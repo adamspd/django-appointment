@@ -1,0 +1,76 @@
+{% extends APPOINTMENT_BASE_TEMPLATE %}
+{% load i18n %}
+{% load static %}
+{% block customCSS %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/appointments.css' %}"/>
+{% endblock %}
+{% block title %}
+    {{ page_title }}
+{% endblock %}
+{% block description %}
+    {{ page_description }}
+{% endblock %}
+{% block body %}
+    <div class="main-container">
+        <div class="body-container">
+            <h1 class="page-title">{{ service.name }}</h1>
+            <small class="page-description">
+                {% trans "Check out our availability and book the date and time that works for you" %}
+            </small>
+            <hr>
+
+            <div class="page-body">
+                <div class="appointment-calendar">
+                    <div class="appointment-calendar-title-timezone">
+                        <div class="title">
+                            {% trans "Select a date and time" %}
+                        </div>
+                        <div class="timezone-details">
+                            {% trans "Timezone" %}:&nbsp;{% trans "Eastern Daylight Time (EDT)" %}
+                        </div>
+                    </div>
+                    <hr class="second-part">
+                    <div class="calendar-and-slot">
+                        <div class="calendar" id="calendar">
+                        </div>
+                        <div class="slot">
+                            <div class="date_chosen">{{ date_chosen }}</div>
+                            <div class="slot-container">
+                                <ul id="slot-list" class="slot-list">
+                                    <!-- Slot list will be updated dynamically by the AJAX request -->
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="service-description">
+                    <form method="post" action="{% url 'appointment:appointment_request_submit' %}"
+                    class="appointment-form">
+                        {% csrf_token %}
+                        <div>{% trans "Service Details" %}</div>
+                        <hr class="second-part">
+                        <div class="service-description-content">
+                            <p class="item-name">{{ service.name }}</p>
+                            <p id="service-datetime-chosen" class="service-datetime-chosen">{{ date_chosen }}</p>
+                            <p>{{ service.get_duration }} hr</p>
+                            <p>${{ service.price }}</p>
+                            <button type="submit" class="btn btn-dark btn-submit-appointment">{% trans 'Next' %}</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block customJS %}
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.5/index.global.min.js'></script>
+    <script>
+        const locale = "{{ locale }}";
+        const availableSlotsAjaxURL = "{% url 'appointment:available_slots_ajax' %}";
+        const requestNextAvailableSlotURLTemplate = "{% url 'appointment:request_next_available_slot' service_id=0 %}";
+        const serviceId = "{{ service.id }}";
+        const serviceDuration = parseInt("{{ service.duration.total_seconds }}") / 60;
+    </script>
+    <script src="{% static 'js/appointments.js' %}"></script>
+{% endblock %}
