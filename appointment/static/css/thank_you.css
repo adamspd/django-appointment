@@ -1,0 +1,44 @@
+/* thank_you.css */
+body {
+    background-color: #f4f4f4;
+}
+.main-content {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    padding: 20px;
+    color: #333;
+}
+
+.thank-you-title {
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.thank-you-message {
+    font-size: 18px;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.appointment-details-title {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.appointment-details {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.appointment-details li {
+    font-size: 14px;
+    margin-bottom: 5px;
+    background-color: #fff;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}

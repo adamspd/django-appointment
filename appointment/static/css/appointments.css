@@ -1,0 +1,135 @@
+.main-container {
+    margin-left: 20px;
+    margin-right: 20px;
+}
+
+.body-container {
+    margin: 0 auto;
+    max-width: 1120px;
+    padding: 0 15px;
+}
+
+.page-body {
+    display: flex;
+    flex-direction: row;
+    margin-top: 50px;
+}
+
+.appointment-calendar {
+    flex: 3;
+}
+
+.service-description {
+    flex: 1;
+    margin-left: 20px; /* Adjust the value as needed */
+}
+
+.second-part {
+    margin-top: 10px;
+}
+
+.calendar-and-slot {
+    margin-top: 20px;
+    display: flex;
+}
+
+.service-description-content {
+    margin-top: 20px;
+    color: black;
+}
+
+.item-name {
+    color: black;
+}
+
+.calendar {
+    flex: 3;
+}
+
+.slot {
+    flex: 2;
+}
+
+
+.appointment-calendar-title-timezone {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.title {
+    flex: 1;
+}
+
+.timezone-details {
+    flex: 1;
+    text-align: right;
+}
+
+
+.fc-day {
+    font-size: 12px;
+}
+
+.fc-daygrid-day-frame {
+    height: 20px;
+}
+
+
+a {
+    color: #0c042c;
+}
+
+.slot {
+    margin-left: 20px;
+}
+
+.slot-list {
+    columns: 2;
+    -webkit-columns: 2;
+    -moz-columns: 2;
+    margin-top: 10px;
+}
+
+li {
+    list-style-type: none;
+    text-align: center;
+}
+
+.appointment-slot {
+    border: 1px solid #ccc;
+    background-color: rgba(42, 42, 42, 0.82);
+    color: #fff;
+    padding: 7px;
+    margin-bottom: 6px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.appointment-slot:hover {
+    background-color: #fff;
+    color: rgba(42, 42, 42, 0.82);
+}
+
+.selected {
+    background-color: #fff;
+    color: rgba(42, 42, 42, 0.82);
+}
+
+.next-available-date {
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    width: fit-content;
+}
+
+.fc-scroller {
+    overflow: hidden !important;
+}
+

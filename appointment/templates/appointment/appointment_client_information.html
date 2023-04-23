@@ -1,0 +1,127 @@
+{% extends APPOINTMENT_BASE_TEMPLATE %}
+{% load i18n %}
+{% load static %}
+{% block customCSS %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/appointments-user-details.css' %}"/>
+{% endblock %}
+{% block title %}
+    {% blocktranslate %}
+        Client Information - {{ ar.get_service_name }}
+    {% endblocktranslate %}
+{% endblock %}
+{% block description %}
+    {% blocktranslate %}
+        Your appointment request for {{ ar.get_service_name }} has been submitted. Please provide your information to
+        create an account and complete the payment process.
+    {% endblocktranslate %}
+{% endblock %}
+{% block body %}
+    <div class="main-container">
+        <div class="body-container">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
+                         role="alert">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="post"
+                  action="{% url 'appointment:appointment_client_information' ar.id ar.get_id_request %}"
+                  class="page-body">
+                {% csrf_token %}
+                <div class="appointment-user-info">
+                    <div class="appointment-user-info-title">
+                        <div class="title">
+                            {% trans "Fill out your details" %}
+                        </div>
+                    </div>
+                    <hr class="second-part">
+                    <div class="user-info-input">
+                        <div class="user-info" id="user-info">
+                            <h1 class="description-title">{% trans "Tell us a bit about yourself" %}</h1>
+                            <div class="already-have-account">
+                                <div>
+                                    {% trans 'Already have an account?' %}
+                                    <a href="#">{% trans 'Log in' %}</a> {% trans 'for faster booking.' %}
+                                </div>
+                            </div>
+                            <div class="name-email">
+                                <label for="name" class="name">{% trans "Full Name" %} *<br>
+                                    <input type="text" placeholder="Full Name *" id="name" class="client-name"
+                                           maxlength="100" minlength="3" required name="name">
+                                </label>
+                                <label for="email" class="email">{% trans "Email" %} *<br>
+                                    <input type="email" placeholder="john.doe@gmail.com" id="email"
+                                           class="client-email" name="email"
+                                           maxlength="100" required>
+                                </label>
+                            </div>
+                            <div class="receive-email">
+                                <label for="receive-email">
+                                    <input type="checkbox" id="receive-email" name="want_reminder">
+                                    {% trans "I want to receive an EMAIL reminder 24 hours before this session starts" %}
+                                </label>
+                            </div>
+                            <div class="phone-number">
+                                <label for="phone">{% trans "Phone Number" %} *<br>
+                                    <input type="tel" placeholder="7574340000" id="phone" class="client-phone"
+                                           maxlength="20" name="phone" required>
+                                </label>
+                            </div>
+                            <div class="address">
+                                <label for="id_address">{% trans "City and State" %} * :<br>
+                                    <input type="text" id="id_address"
+                                           placeholder="{% trans 'Does not have to be specific, just the city and the state...' %}"
+                                           name="address" required>
+                                </label>
+                            </div>
+                            <div class="additional-information">
+                                <label for="additional-information">Additional Information<br>
+                                    <textarea id="additional-information" name="additional_info"></textarea>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="service-description-and-pay">
+                    <div class="service-details-title">{% trans "Service Details" %}</div>
+
+                    <hr class="second-part">
+
+                    <div class="service-description-content">
+                        <div class="item-name">{{ ar.get_service_name }}</div>
+                        <div id="service-datetime-chosen"
+                             class="service-datetime-chosen">
+                            {{ ar.date }}&nbsp;{% trans "at" %}&nbsp;{{ ar.start_time }}
+                        </div>
+                        <div>{{ ar.get_service_duration }} {% trans 'hr' %}</div>
+                    </div>
+
+                    <hr class="second-part">
+                    {% if ar.is_a_paid_service %}
+                        <div class="service-payment">
+                            <div class="payment-details-title">{% trans "Payment Details" %}</div>
+                            <div class="total">
+                                <div>{% trans "Total" %}</div>
+                                <div>${{ ar.get_service_price }}</div>
+                            </div>
+                        </div>
+                    {% endif %}
+                    <button type="submit" class="btn btn-dark btn-submit-appointment">{{ buttonNext }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+{% block customJS %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const messageElements = document.querySelectorAll('.alert-dismissible');
+            setTimeout(function () {
+                messageElements.forEach(function (element) {
+                    element.style.display = 'none';
+                });
+            }, 3000);
+        });
+    </script>
+{% endblock %}
