@@ -1,0 +1,6 @@
+include LICENSE
+include README.rst
+recursive-include appointment *
+recursive-include appointment/templates *.html
+recursive-include appointment/static *.css *.js
+recursive-include docs *

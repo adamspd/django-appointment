@@ -1,0 +1,159 @@
+/* Set margins for the main container */
+.main-container {
+    margin-left: 20px;
+    margin-right: 20px;
+}
+
+/* Center and set max width for the body container */
+.body-container {
+    margin: 0 auto;
+    max-width: 1080px;
+    padding: 0 15px;
+}
+
+/* Set display and margin for page body */
+.page-body {
+    display: flex;
+    flex-direction: row;
+    margin-top: 50px;
+}
+
+/* Set flex for appointment user info */
+.appointment-user-info {
+    flex: 3;
+}
+
+/* Set flex and margin for service description and pay */
+.service-description-and-pay {
+    flex: 1;
+    margin-left: 20px; /* Adjust the value as needed */
+}
+
+/* Set margins and font styles for title sections */
+.appointment-user-info-title, .service-details-title, .payment-details-title {
+    margin-bottom: 10px;
+    font-family: Lobster, cursive;
+    font-size: 18px;
+    color: #0c042c;
+}
+
+/* Set font styles for description titles */
+.description-title {
+    font-size: 16px;
+    font-weight: 400;
+    color: #0c042c;
+}
+
+/* Set margins, borders, padding, and font styles for the "already have an account" section */
+.already-have-account {
+    margin-top: 25px;
+    margin-bottom: 30px;
+    width: 100%;
+    border: 1px solid #0c042c;
+    border-radius: 2px;
+    justify-content: left;
+    padding: 10px 8px;
+    display: flex;
+    align-items: center;
+    font-family: "DejaVu Serif", serif;
+}
+
+/* Set grid display and column gap for name and email input fields */
+.name-email {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 10px;
+}
+
+/* Set margin and display for "receive email" checkbox */
+.receive-email {
+    margin-bottom: 20px;
+}
+
+/* Set margins and display for phone number, address, and additional information input fields */
+.phone-number, .address, .additional-information {
+    margin-top: 20px;
+    display: grid;
+}
+
+/* Set font styles for input labels */
+label {
+    font-family: "DejaVu Serif", serif;
+}
+
+/* Set margin for second part horizontal line */
+.second-part {
+    margin-top: 10px;
+}
+
+/* Set grid display, padding, and margin for user info input fields */
+.user-info-input {
+    margin-top: 20px;
+    display: grid;
+    padding: 30px 10px;
+}
+
+/* Set grid display, padding, margin, and font styles for service description */
+.service-description-content {
+    margin-top: 20px;
+    color: black;
+    padding-top: 30px;
+    display: grid;
+    grid-template-rows: 1fr 1fr 1fr;
+    grid-gap: 10px;
+    font-family: "DejaVu Serif", serif;
+    font-size: 16px;
+}
+
+/* Set font style for service name */
+.item-name {
+    color: black;
+}
+
+/* Set flex for title section */
+.title {
+    flex: 1;
+}
+
+/* Set color for links */
+a {
+    color: #0c042c;
+}
+
+/* Set padding, border radius, and font styles for input fields */
+.user-info input {
+    box-sizing: border-box;
+    padding: 5px;
+    border-radius: 5px;
+}
+
+/* Set width, margin and border */
+.user-info-input input[type="text"],
+.user-info-input input[type="email"],
+.user-info-input input[type="tel"],
+.user-info-input textarea {
+    width: 100%;
+    margin-bottom: 15px;
+    border: 1px solid #a2a2a2;
+}
+
+/* Set a 2px solid border with a specific color when the input or textarea is in focus */
+.user-info-input input[type="text"]:focus,
+.user-info-input input[type="email"]:focus,
+.user-info-input input[type="tel"]:focus,
+.user-info-input textarea:focus {
+    border: 2px solid #040f49;
+}
+
+/* Style for the payment total */
+.total {
+    margin-top: 20px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: "DejaVu Serif", serif;
+    color: rgba(12, 4, 44, 0.93);
+    font-size: 16px;
+    line-height: 1.8;
+}
