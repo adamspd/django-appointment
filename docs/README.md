@@ -31,7 +31,7 @@ the information about the appointment.
 
 ### Appointment
 The appointment model is used to define the last step in the appointment scheduling. It has the following fields:
-- client: The client that made the appointment, (default model : auth.User)
+- client: The client that made the appointment
 - appointment_request: The appointment request that the appointment is based on
 - phone: The phone number of the client
 - address: The address of the client
