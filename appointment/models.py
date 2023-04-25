@@ -19,6 +19,7 @@ class Service(models.Model):
     description = models.TextField(blank=True, null=True)
     duration = models.DurationField()
     price = models.DecimalField(max_digits=6, decimal_places=2)
+    currency = models.CharField(max_length=3, default='USD')
     image = models.ImageField(upload_to='services/', blank=True, null=True)
 
     # meta data
@@ -39,6 +40,9 @@ class Service(models.Model):
 
     def get_price(self):
         return self.price
+
+    def get_currency(self):
+        return self.currency
 
     def get_image(self):
         return self.image
@@ -123,7 +127,7 @@ class Appointment(models.Model):
     want_reminder = models.BooleanField(default=False)
     additional_info = models.TextField(blank=True, null=True)
     paid = models.BooleanField(default=False)
-    amount_paid = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True)
+    amount_to_pay = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True)
     id_request = models.CharField(max_length=100, blank=True, null=True)
 
     # meta datas
@@ -182,8 +186,11 @@ class Appointment(models.Model):
     def is_paid(self):
         return self.paid
 
-    def get_amount_paid(self):
-        return self.amount_paid
+    def get_appointment_amount_to_pay(self):
+        return self.amount_to_pay
+
+    def get_appointment_currency(self):
+        return self.appointment_request.get_service().get_currency()
 
     def get_appointment_id_request(self):
         return self.id_request
@@ -220,3 +227,29 @@ class Config(models.Model):
     def __str__(self):
         return f"Config {self.pk}: slot_duration={self.slot_duration}, lead_time={self.lead_time}, " \
                f"finish_time={self.finish_time}"
+
+
+class PaymentInfo(models.Model):
+    appointment = models.ForeignKey(Appointment, on_delete=models.CASCADE)
+
+    # meta data
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.appointment.get_service_name()} - {self.appointment.get_service_price()}"
+
+    def get_id_request(self):
+        return self.appointment.get_appointment_id_request()
+
+    def get_amount_to_pay(self):
+        return self.appointment.get_appointment_amount_to_pay()
+
+    def get_currency(self):
+        return self.appointment.get_appointment_currency()
+
+    def get_name(self):
+        return self.appointment.get_service_name()
+
+    def get_img_url(self):
+        return self.appointment.get_service_img_url()
