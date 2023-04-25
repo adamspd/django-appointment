@@ -11,7 +11,7 @@ from django.urls import reverse
 from django.utils.translation import gettext as _
 
 from appointment.forms import AppointmentRequestForm
-from appointment.models import Service, Appointment, AppointmentRequest
+from appointment.models import Service, Appointment, AppointmentRequest, PaymentInfo
 from appointment.utils import Utility
 from .settings import (APPOINTMENT_CLIENT_MODEL, APPOINTMENT_BASE_TEMPLATE, APPOINTMENT_WEBSITE_NAME,
                        APPOINTMENT_PAYMENT_URL, APPOINTMENT_THANK_YOU_URL)
@@ -158,7 +158,10 @@ def appointment_client_information(request, appointment_request_id, id_request):
             f"Redirecting to appointment payment with appointment_id {appointment.id} and id_request {id_request}")
         # Redirect to payment or thank you page
         if APPOINTMENT_PAYMENT_URL:
-            payment_url = reverse(APPOINTMENT_PAYMENT_URL, kwargs={'appointment_id': appointment.id})
+            payment_info = PaymentInfo(appointment=appointment)
+            payment_info.save()
+            payment_url = reverse(APPOINTMENT_PAYMENT_URL,
+                                  kwargs={'object_id': payment_info.id, 'id_request': payment_info.get_id_request()})
             return HttpResponseRedirect(payment_url)
         elif APPOINTMENT_THANK_YOU_URL:
             thank_you_url = reverse(APPOINTMENT_THANK_YOU_URL, kwargs={'appointment_id': appointment.id})
