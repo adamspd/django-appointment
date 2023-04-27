@@ -17,60 +17,60 @@ Detailed documentation is in the ["docs"](docs/README.md) directory.
 
 1. Add "appointment" to your INSTALLED_APPS setting like this:
 
-```python
-INSTALLED_APPS = [
-    ...
-    'appointment',
-]
-```
+   ```python
+   INSTALLED_APPS = [
+       # other apps
+       'appointment',
+   ]
+   ```
 
 2. Include the appointment URLconf in your project urls.py like this:
 
-```python
-from django.urls import path, include
-
-urlpatterns = [
-    ...
-    path('appointment/', include('appointment.urls')),
-]
-```
+   ```python
+   from django.urls import path, include
+   
+   urlpatterns = [
+       # other urls
+       path('appointment/', include('appointment.urls')),
+   ]
+   ```
 
 3. In your Django's settings.py, add the following:
 
-```python
-APPOINTMENT_CLIENT_MODEL = file.UserModel  # Not optional (e.g. auth.User, or client.UserClient)
-```
+   ```python
+   APPOINTMENT_CLIENT_MODEL = models.UserModel  # Not optional (e.g. auth.User, or client.UserClient)
+   ```
 
-for example if you use the default Django user model:
+   For example, if you use the default Django user model:
 
-```python
-APPOINTMENT_CLIENT_MODEL = auth.User
-```
+   ```python
+   APPOINTMENT_CLIENT_MODEL = auth.User
+   ```
 
-or if you use a custom user model:
+   Or, if you use a custom user model:
 
-```python
-APPOINTMENT_CLIENT_MODEL = client.UserClient
-```
+   ```python
+   APPOINTMENT_CLIENT_MODEL = client.UserClient
+   ```
 
-Now if you have a custom user model, in your function create_user, you have to have the following arguments even if you
-don't use all of them:
+   If you have a custom user model, make sure your create_user function includes the following arguments, even if you
+   don't use all of them:
 
-```python
-def create_user(first_name, email, username, **extra_fields):
-    pass
-```
+   ```python
+   def create_user(first_name, email, username, **extra_fields):
+       pass
+   ```
 
-This will create a user with the password = f"{APPOINTMENT_WEBSITE_NAME}{current_year}"
+   This will create a user with a password in the format: f"{APPOINTMENT_WEBSITE_NAME}{current_year}"
 
-For example if you put in your settings.py:
+   For example, if you add this to your settings.py:
 
-```python
-APPOINTMENT_WEBSITE_NAME = 'Chocolates'
-```
+   ```python
+   APPOINTMENT_WEBSITE_NAME = 'Chocolates'
+   ```
 
-and the current year is 2023, the password will be "Chocolates2023" if you don't provide an APPOINTMENT_WEBSITE_NAME,
-the default value is "Website", so the password will be "Website2023".
+   And the current year is 2023, the password will be "Chocolates2023". If you don't provide an
+   APPOINTMENT_WEBSITE_NAME, the default value is "Website", so the password will be "Website2023".
 
 4. Run `python manage.py migrate` to create the appointment models.
 
@@ -90,18 +90,18 @@ the default value is "Website", so the password will be "Website2023".
 
 1. In your Django project's settings.py, you can override the default values for the appointment scheduler:
 
-```python
-# Default values
-APPOINTMENT_SLOT_DURATION = 30  # minutes
-APPOINTMENT_LEAD_TIME = (9, 0)  # (hour, minute) 24-hour format
-APPOINTMENT_FINISH_TIME = (16, 30)  # (hour, minute) 24-hour format
-
-# Additional configuration options
-APPOINTMENT_BASE_TEMPLATE = 'base_templates/base.html'  # your base template
-APPOINTMENT_WEBSITE_NAME = 'Website'
-APPOINTMENT_PAYMENT_URL = None
-APPOINTMENT_THANK_YOU_URL = None
-```
+   ```python
+   # Default values
+   APPOINTMENT_SLOT_DURATION = 30  # minutes
+   APPOINTMENT_LEAD_TIME = (9, 0)  # (hour, minute) 24-hour format
+   APPOINTMENT_FINISH_TIME = (16, 30)  # (hour, minute) 24-hour format
+   
+   # Additional configuration options
+   APPOINTMENT_BASE_TEMPLATE = 'base_templates/base.html'  # your base template
+   APPOINTMENT_WEBSITE_NAME = 'Website'
+   APPOINTMENT_PAYMENT_URL = None # example of pattern 'payment:payment_linked
+   APPOINTMENT_THANK_YOU_URL = None # example of pattern 'payment:thank_you'
+   ```
 
 2. Modify these values as needed for your application, and the scheduler will adapt to the new settings.
 
