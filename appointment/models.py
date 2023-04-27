@@ -271,7 +271,10 @@ class PaymentInfo(models.Model):
     def set_paid_status(self, status: bool):
         self.appointment.set_appointment_paid_status(status)
 
-    def get_user(self):
-        return self.appointment.get_client()
+    def get_user_name(self):
+        return self.appointment.get_client().first_name
+
+    def get_user_email(self):
+        return self.appointment.get_client().email
 
 
