@@ -4,7 +4,7 @@ Appointment Scheduler is a Django app designed for managing appointment scheduli
 users to define custom configurations for time slots, lead time, and finish time, or use the default values provided.
 The app also handles conflicts and availability for appointments, ensuring a smooth user experience.
 
-Detailed documentation is in the ["docs"](docs/README.md) directory.
+Detailed documentation is in the ["docs"](https://github.com/adamspd/django-appointment/tree/main/docs) directory.
 
 ## Features
 
@@ -12,6 +12,7 @@ Detailed documentation is in the ["docs"](docs/README.md) directory.
 2. Handles appointment conflicts and availability.
 3. Easy integration with Django admin interface for appointment management.
 4. User-friendly interface for viewing available time slots and scheduling appointments.
+5. Sends email notifications to clients when they schedule an appointment.
 
 ## Quick start
 
@@ -72,6 +73,11 @@ Detailed documentation is in the ["docs"](docs/README.md) directory.
    And the current year is 2023, the password will be "Chocolates2023". If you don't provide an
    APPOINTMENT_WEBSITE_NAME, the default value is "Website", so the password will be "Website2023".
 
+   This name is also used in the footer of the emails sent to the clients when they schedule an appointment.
+   ```html
+    <p>® 2023 {{ APPOINTMENT_WEBSITE_NAME }}. All Right Reserved.</p>
+   ```
+
 4. Run `python manage.py migrate` to create the appointment models.
 
 
@@ -99,8 +105,11 @@ Detailed documentation is in the ["docs"](docs/README.md) directory.
    # Additional configuration options
    APPOINTMENT_BASE_TEMPLATE = 'base_templates/base.html'  # your base template
    APPOINTMENT_WEBSITE_NAME = 'Website'
-   APPOINTMENT_PAYMENT_URL = None # example of pattern 'payment:payment_linked
-   APPOINTMENT_THANK_YOU_URL = None # example of pattern 'payment:thank_you'
+   APPOINTMENT_PAYMENT_URL = None  # example of pattern 'payment:payment_linked
+   APPOINTMENT_THANK_YOU_URL = None  # example of pattern 'payment:thank_you'
+   
+   # Additional to the default email settings
+   APP_DEFAULT_FROM_EMAIL = "webmaster@localhost"  # the default from email that you're using
    ```
 
 2. Modify these values as needed for your application, and the scheduler will adapt to the new settings.
