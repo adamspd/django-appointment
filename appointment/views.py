@@ -13,6 +13,7 @@ from django.utils.translation import gettext as _
 from appointment.forms import AppointmentRequestForm
 from appointment.models import Service, Appointment, AppointmentRequest, PaymentInfo
 from appointment.utils import Utility
+from email_sender.email_sender import send_email
 from .settings import (APPOINTMENT_CLIENT_MODEL, APPOINTMENT_BASE_TEMPLATE, APPOINTMENT_WEBSITE_NAME,
                        APPOINTMENT_PAYMENT_URL, APPOINTMENT_THANK_YOU_URL)
 
@@ -132,6 +133,7 @@ def appointment_client_information(request, appointment_request_id, id_request):
             'name': request.POST.get('name'),
             'email': request.POST.get('email'),
         }
+        payment_type = request.POST.get('payment_type')
         logger.info(f"Form data: {appointment_data} {client_data}")
 
         # Check if email is already in the database
@@ -148,10 +150,24 @@ def appointment_client_information(request, appointment_request_id, id_request):
         password = f"{APPOINTMENT_WEBSITE_NAME}{Utility.get_current_year()}"
         user.password = make_password(password=password)
         user.save()
+
+        # Email the user
+        send_email(
+            recipient_list=[client_data['email']], subject="Thank you for booking us.",
+            template_url='email_sender/thank_you_email.html', context={'first_name': user.first_name,
+                                                                       'current_year': datetime.datetime.now().year,
+                                                                       'company': APPOINTMENT_WEBSITE_NAME,
+                                                                       'payment': APPOINTMENT_PAYMENT_URL is not None,
+                                                                       'deposit': ar.get_service_down_payment()},
+        )
         messages.success(request, _("An account was created for you."))
 
         # Create a new appointment
         appointment = Appointment.objects.create(client=user, appointment_request=ar, **appointment_data)
+        if payment_type == 'full_payment':
+            appointment.amount_to_pay = appointment.get_service_price()
+        elif payment_type == 'down_payment':
+            appointment.amount_to_pay = appointment.get_service_down_payment()
         appointment.save()
 
         logger.info(

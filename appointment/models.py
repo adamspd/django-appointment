@@ -19,6 +19,7 @@ class Service(models.Model):
     description = models.TextField(blank=True, null=True)
     duration = models.DurationField()
     price = models.DecimalField(max_digits=6, decimal_places=2)
+    down_payment = models.DecimalField(max_digits=6, decimal_places=2, default=0)
     currency = models.CharField(max_length=3, default='USD')
     image = models.ImageField(upload_to='services/', blank=True, null=True)
 
@@ -40,6 +41,9 @@ class Service(models.Model):
 
     def get_price(self):
         return self.price
+
+    def get_down_payment(self):
+        return self.down_payment
 
     def get_currency(self):
         return self.currency
@@ -100,6 +104,9 @@ class AppointmentRequest(models.Model):
     def get_service_price(self):
         return self.service.get_price()
 
+    def get_service_down_payment(self):
+        return self.service.get_down_payment()
+
     def get_service_image(self):
         return self.service.get_image()
 
@@ -159,6 +166,9 @@ class Appointment(models.Model):
     def get_service_price(self):
         return self.appointment_request.get_service_price()
 
+    def get_service_down_payment(self):
+        return self.appointment_request.get_service_down_payment()
+
     def get_service_img(self):
         return self.appointment_request.get_service_image()
 
@@ -200,6 +210,10 @@ class Appointment(models.Model):
 
     def get_updated_at(self):
         return self.updated_at
+
+    def set_appointment_paid_status(self, status: bool):
+        self.paid = status
+        self.save()
 
 
 class Config(models.Model):
@@ -253,3 +267,8 @@ class PaymentInfo(models.Model):
 
     def get_img_url(self):
         return self.appointment.get_service_img_url()
+
+    def set_paid_status(self, status: bool):
+        self.appointment.set_appointment_paid_status(status)
+
+

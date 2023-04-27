@@ -1,6 +1,6 @@
 from django.conf import settings
 
-APPOINTMENT_CLIENT_MODEL = getattr(settings, 'APPOINTMENT_CLIENT_MODEL')
+APPOINTMENT_CLIENT_MODEL = getattr(settings, 'APPOINTMENT_CLIENT_MODEL', 'auth.User')
 APPOINTMENT_BASE_TEMPLATE = getattr(settings, 'APPOINTMENT_BASE_TEMPLATE', 'base_templates/base.html')
 APPOINTMENT_WEBSITE_NAME = getattr(settings, 'APPOINTMENT_WEBSITE_NAME', 'Website')
 APPOINTMENT_PAYMENT_URL = getattr(settings, 'APPOINTMENT_PAYMENT_URL', None)
