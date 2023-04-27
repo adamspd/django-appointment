@@ -13,7 +13,8 @@ from django.utils.translation import gettext as _
 from appointment.forms import AppointmentRequestForm
 from appointment.models import Service, Appointment, AppointmentRequest, PaymentInfo
 from appointment.utils import Utility
-from email_sender.email_sender import send_email
+from appointment.email_sender import send_email
+from . import email_messages
 from .settings import (APPOINTMENT_CLIENT_MODEL, APPOINTMENT_BASE_TEMPLATE, APPOINTMENT_WEBSITE_NAME,
                        APPOINTMENT_PAYMENT_URL, APPOINTMENT_THANK_YOU_URL)
 
@@ -152,13 +153,16 @@ def appointment_client_information(request, appointment_request_id, id_request):
         user.save()
 
         # Email the user
+        message = email_messages.thank_you_no_payment if APPOINTMENT_PAYMENT_URL is None else email_messages.thank_you_payment
+        email_context = {
+            'first_name': user.first_name,
+            'message': message,
+            'current_year': datetime.datetime.now().year,
+            'company': APPOINTMENT_WEBSITE_NAME
+        }
         send_email(
             recipient_list=[client_data['email']], subject="Thank you for booking us.",
-            template_url='email_sender/thank_you_email.html', context={'first_name': user.first_name,
-                                                                       'current_year': datetime.datetime.now().year,
-                                                                       'company': APPOINTMENT_WEBSITE_NAME,
-                                                                       'payment': APPOINTMENT_PAYMENT_URL is not None,
-                                                                       'deposit': ar.get_service_down_payment()},
+            template_url='email_sender/thank_you_email.html', context=email_context
         )
         messages.success(request, _("An account was created for you."))
 
