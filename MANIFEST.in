@@ -3,6 +3,7 @@ include README.md
 recursive-include appointment/migrations *.py
 recursive-include appointment/templates/appointment *.html
 recursive-include appointment/templates/base_templates *.html
+recursive-include appointment/templates/email_sender *.html
 recursive-include appointment/static/css *.css
 recursive-include appointment/static/js *.js
 recursive-include appointment *.py
