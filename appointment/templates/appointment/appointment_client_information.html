@@ -105,9 +105,21 @@
                                 <div>{% trans "Total" %}</div>
                                 <div>${{ ar.get_service_price }}</div>
                             </div>
+                            <div class="payment-options">
+                                <button type="submit" class="btn btn-dark btn-pay-full" name="payment_type"
+                                        value="full_payment">
+                                    {% trans "Pay" %}
+                                </button>
+                                <button type="submit" class="btn btn-dark btn-pay-down-payment" name="payment_type"
+                                        value="down_payment">
+                                    {% trans "Pay DP" %} (${{ ar.get_service_down_payment }})
+                                </button>
+                            </div>
                         </div>
+                    {% else %}
+                        <button type="submit" class="btn btn-dark btn-submit-appointment">{{ buttonNext }}</button>
                     {% endif %}
-                    <button type="submit" class="btn btn-dark btn-submit-appointment">{{ buttonNext }}</button>
+
                 </div>
             </form>
         </div>
