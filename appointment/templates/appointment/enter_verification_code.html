@@ -1,0 +1,27 @@
+{% extends APPOINTMENT_BASE_TEMPLATE %}
+{% load i18n %}
+{% load static %}
+{% block customCSS %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/thank_you.css' %}"/>
+{% endblock %}
+{% block title %}
+    {{ page_title }}
+{% endblock %}
+{% block description %}
+    {{ page_description }}
+{% endblock %}
+{% block body %}
+    <div class="container">
+        <div class="main-content">
+            <h1 class="thank-you-title">Thank You for Your Appointment</h1>
+            <p class="thank-you-message">Your appointment has been successfully scheduled.</p>
+            <p class="appointment-details-title">Appointment Details:</p>
+            <ul class="appointment-details">
+                <li>{% trans 'Service' %}: {{ appointment.get_service_name }}</li>
+                <li>{% trans 'Appointment ID' %}: {{ appointment.id_request }}</li>
+                <li>{% trans 'Appointment Date' %}: {{ appointment.get_appointment_date }}</li>
+                <li>{% trans 'Appointment Time' %}: {{ appointment.get_start_time }}</li>
+            </ul>
+        </div>
+    </div>
+{% endblock %}
