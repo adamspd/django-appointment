@@ -40,9 +40,12 @@
                         <div class="user-info" id="user-info">
                             <h1 class="description-title">{% trans "Tell us a bit about yourself" %}</h1>
                             <div class="already-have-account">
+                                <!--<div>
+                                    {#{% trans 'Already have an account?' %}
+                                    <a href="#">{% trans 'Log in' %}</a> {% trans 'for faster booking.' %}#}
+                                </div>-->
                                 <div>
-                                    {% trans 'Already have an account?' %}
-                                    <a href="#">{% trans 'Log in' %}</a> {% trans 'for faster booking.' %}
+                                    {% trans 'All the fields with the * are mandatory.' %}
                                 </div>
                             </div>
                             <div class="name-email">
@@ -107,13 +110,15 @@
                             </div>
                             <div class="payment-options">
                                 <button type="submit" class="btn btn-dark btn-pay-full" name="payment_type"
-                                        value="full_payment">
+                                        value="full">
                                     {% trans "Pay" %}
                                 </button>
-                                <button type="submit" class="btn btn-dark btn-pay-down-payment" name="payment_type"
-                                        value="down_payment">
-                                    {% trans "Pay DP" %} (${{ ar.get_service_down_payment }})
-                                </button>
+                                {% if ar.accepts_down_payment %}
+                                    <button type="submit" class="btn btn-dark btn-pay-down-payment" name="payment_type"
+                                            value="down">
+                                        {% trans "Pay DP" %} (${{ ar.get_service_down_payment }})
+                                    </button>
+                                {% endif %}
                             </div>
                         </div>
                     {% else %}

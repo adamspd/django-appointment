@@ -1,4 +1,6 @@
 import datetime
+import random
+import string
 
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
@@ -11,6 +13,11 @@ from .settings import APPOINTMENT_CLIENT_MODEL
 phone_regex = RegexValidator(
     regex=r'^\d{10}$',
     message=_("Phone number must not contain spaces, letters, parentheses or dashes. It must contain 10 digits.")
+)
+
+PAYMENT_TYPES = (
+    ('full', _('Full payment')),
+    ('down', _('Down payment')),
 )
 
 
@@ -63,12 +70,16 @@ class Service(models.Model):
     def is_a_paid_service(self):
         return self.price > 0
 
+    def accepts_down_payment(self):
+        return self.down_payment > 0
+
 
 class AppointmentRequest(models.Model):
     date = models.DateField()
     start_time = models.TimeField()
     end_time = models.TimeField()
     service = models.ForeignKey(Service, on_delete=models.CASCADE)
+    payment_type = models.CharField(max_length=4, choices=PAYMENT_TYPES, default='full')
     id_request = models.CharField(max_length=100, blank=True, null=True)
 
     # meta data
@@ -122,6 +133,18 @@ class AppointmentRequest(models.Model):
     def is_a_paid_service(self):
         return self.service.is_a_paid_service()
 
+    def accepts_down_payment(self):
+        return self.service.accepts_down_payment()
+
+    def get_payment_type(self):
+        return self.payment_type
+
+    def get_created_at(self):
+        return self.created_at
+
+    def get_updated_at(self):
+        return self.updated_at
+
 
 class Appointment(models.Model):
     client = models.ForeignKey(APPOINTMENT_CLIENT_MODEL, on_delete=models.CASCADE)
@@ -149,6 +172,14 @@ class Appointment(models.Model):
     def save(self, *args, **kwargs):
         if self.id_request is None:
             self.id_request = f"{Utility.get_timestamp()}{self.appointment_request.id}{Utility.generate_random_id()}"
+        if self.amount_to_pay is None or self.amount_to_pay == 0:
+            payment_type = self.appointment_request.get_payment_type()
+            if payment_type == 'full':
+                self.amount_to_pay = self.appointment_request.get_service_price()
+            elif payment_type == 'down':
+                self.amount_to_pay = self.appointment_request.get_service_down_payment()
+            else:
+                self.amount_to_pay = 0
         return super().save(*args, **kwargs)
 
     def get_client(self):
@@ -278,3 +309,20 @@ class PaymentInfo(models.Model):
         return self.appointment.get_client().email
 
 
+class EmailVerificationCode(models.Model):
+    user = models.ForeignKey(APPOINTMENT_CLIENT_MODEL, on_delete=models.CASCADE)
+    code = models.CharField(max_length=6)
+
+    # meta data
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.code}"
+
+    @classmethod
+    def generate_code(cls, user):
+        code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+        verification_code = cls(user=user, code=code)
+        verification_code.save()
+        return code
