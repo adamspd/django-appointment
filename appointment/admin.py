@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Service, AppointmentRequest, Appointment
+from .models import Service, AppointmentRequest, Appointment, EmailVerificationCode
 
 
 @admin.register(Service)
@@ -22,3 +22,8 @@ class AppointmentAdmin(admin.ModelAdmin):
     list_display = ('client', 'appointment_request', 'created_at', 'updated_at',)
     search_fields = ('client__user__username', 'appointment_request__service__name',)
     list_filter = ('client', 'appointment_request__service',)
+
+
+@admin.register(EmailVerificationCode)
+class EmailVerificationCodeAdmin(admin.ModelAdmin):
+    list_display = ('user', 'code')
