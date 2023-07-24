@@ -5,23 +5,44 @@
     <link rel="stylesheet" type="text/css" href="{% static 'css/thank_you.css' %}"/>
 {% endblock %}
 {% block title %}
-    {{ page_title }}
+    Enter Verification Code
 {% endblock %}
 {% block description %}
-    {{ page_description }}
+    Enter Verification Code
 {% endblock %}
 {% block body %}
     <div class="container">
-        <div class="main-content">
-            <h1 class="thank-you-title">Thank You for Your Appointment</h1>
-            <p class="thank-you-message">Your appointment has been successfully scheduled.</p>
-            <p class="appointment-details-title">Appointment Details:</p>
-            <ul class="appointment-details">
-                <li>{% trans 'Service' %}: {{ appointment.get_service_name }}</li>
-                <li>{% trans 'Appointment ID' %}: {{ appointment.id_request }}</li>
-                <li>{% trans 'Appointment Date' %}: {{ appointment.get_appointment_date }}</li>
-                <li>{% trans 'Appointment Time' %}: {{ appointment.get_start_time }}</li>
-            </ul>
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
+                     role="alert">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+        <div class="main-container">
+            <div class="body-container">
+                <h1>Enter Verification Code</h1>
+                <p>We've sent a verification code to your email. Please enter it below:</p>
+                <form method="post"
+                      action="{% url 'appointment:enter_verification_code' appointment_request_id id_request %}">
+                    {% csrf_token %}
+                    <label>Code:
+                        <input type="text" name="code" placeholder="Verification Code" required>
+                    </label>
+                    <button type="submit">Submit</button>
+                </form>
+            </div>
         </div>
     </div>
+{% endblock %}
+{% block customJS %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const messageElements = document.querySelectorAll('.alert-dismissible');
+            setTimeout(function () {
+                messageElements.forEach(function (element) {
+                    element.style.display = 'none';
+                });
+            }, 3000);
+        });
+    </script>
 {% endblock %}
