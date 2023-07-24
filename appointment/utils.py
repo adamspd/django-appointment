@@ -3,7 +3,8 @@ import uuid
 
 from django.utils.translation import to_locale, get_language
 
-from appointment.settings import APPOINTMENT_SLOT_DURATION, APPOINTMENT_LEAD_TIME, APPOINTMENT_FINISH_TIME
+from appointment.settings import APPOINTMENT_SLOT_DURATION, APPOINTMENT_LEAD_TIME, APPOINTMENT_FINISH_TIME, \
+    APP_TIME_ZONE
 
 
 class Utility:
@@ -107,3 +108,25 @@ class Utility:
         :return: int, the current year
         """
         return datetime.datetime.now().year
+
+    @staticmethod
+    def get_timezone():
+        """
+        Get the current timezone as a string.
+
+        :return: str, the current timezone
+        """
+        tmz = APP_TIME_ZONE
+        timezone_map = {
+            'UTC': 'Universal Time Coordinated (UTC)',
+            'US/Eastern': 'Eastern Daylight Time (US & Canada)',
+            'US/Central': 'Central Time (US & Canada)',
+            'US/Mountain': 'Mountain Time (US & Canada)',
+            'US/Pacific': 'Pacific Time (US & Canada)',
+            'US/Alaska': 'Alaska Time (US & Canada)',
+            'US/Hawaii': 'Hawaii Time (US & Canada)',
+            'Europe/Paris': 'Paris Time (Europe)',
+            'Europe/London': 'London Time (Europe)'
+        }
+
+        return timezone_map.get(tmz, 'Universal Time Coordinated (UTC)')
