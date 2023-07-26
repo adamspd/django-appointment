@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Service, AppointmentRequest, Appointment, EmailVerificationCode
+from .models import Service, AppointmentRequest, Appointment, EmailVerificationCode, Config
 
 
 @admin.register(Service)
@@ -27,3 +27,8 @@ class AppointmentAdmin(admin.ModelAdmin):
 @admin.register(EmailVerificationCode)
 class EmailVerificationCodeAdmin(admin.ModelAdmin):
     list_display = ('user', 'code')
+
+
+@admin.register(Config)
+class ConfigAdmin(admin.ModelAdmin):
+    list_display = ('slot_duration', 'lead_time', 'finish_time', 'appointment_buffer_time', 'website_name')

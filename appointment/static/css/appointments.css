@@ -1,6 +1,10 @@
 .main-container {
-    margin-left: 20px;
-    margin-right: 20px;
+    margin: 20px auto;
+    max-width: 1200px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .body-container {
@@ -17,11 +21,19 @@
 
 .appointment-calendar {
     flex: 3;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .service-description {
     flex: 1;
-    margin-left: 20px; /* Adjust the value as needed */
+    margin-left: 20px;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .second-part {
@@ -40,6 +52,9 @@
 
 .item-name {
     color: black;
+    font-weight: bold;
+    font-size: 20px;
+    margin-bottom: 10px;
 }
 
 .calendar {
@@ -50,7 +65,6 @@
     flex: 2;
 }
 
-
 .appointment-calendar-title-timezone {
     display: flex;
     justify-content: space-between;
@@ -60,13 +74,16 @@
 
 .title {
     flex: 1;
+    font-weight: bold;
+    font-size: 20px;
 }
 
 .timezone-details {
     flex: 1;
     text-align: right;
+    font-size: 16px;
+    color: #333;
 }
-
 
 .fc-day {
     font-size: 12px;
@@ -75,7 +92,6 @@
 .fc-daygrid-day-frame {
     height: 20px;
 }
-
 
 a {
     color: #0c042c;
@@ -99,7 +115,7 @@ li {
 
 .appointment-slot {
     border: 1px solid #ccc;
-    background-color: rgba(42, 42, 42, 0.82);
+    background-color: rgba(0, 48, 124, 0.95);
     color: #fff;
     padding: 7px;
     margin-bottom: 6px;
@@ -133,3 +149,148 @@ li {
     overflow: hidden !important;
 }
 
+/* Change the color of the buttons for the calendar */
+.fc-button {
+    background-color: rgba(0, 48, 124, 0.95) !important;
+    border-color: rgba(2, 76, 157, 0.85) !important;
+    color: #fff !important;
+}
+
+/* Change the color of the buttons when hovered */
+.fc-button:hover {
+    background-color: #025bbb !important;
+    border-color: #0056b3;
+}
+
+/* Change the color of the buttons when active or focused */
+.fc-button:active, .fc-button:focus {
+    background-color: #0759b2 !important;
+    border-color: #145294;
+}
+
+.date_chosen {
+    margin-left: 10px;
+    padding-left: 20px;
+    font-size: 18px;
+    color: #333;
+    font-weight: bold;
+}
+
+.btn-request-next-slot {
+    margin-left: 30px;
+    margin-top: -30px;
+}
+
+.no-availability-text {
+    margin-left: 10px;
+    padding-left: 20px;
+    color: #f00;
+    font-weight: bold;
+}
+
+
+/* responsive */
+
+/* CSS for screens larger than 1200px */
+@media (min-width: 1200px) {
+    .page-body {
+        flex-direction: row;
+    }
+
+    .appointment-calendar {
+        flex: 3;
+        padding: 20px;
+    }
+
+    .service-description {
+        flex: 1;
+        margin-left: 20px;
+    }
+
+    .calendar {
+        flex: 3;
+    }
+
+    .slot {
+        flex: 2;
+    }
+
+    .slot {
+        margin-left: 20px;
+    }
+}
+
+/* CSS for screens smaller than 1200px */
+@media (max-width: 1199px) {
+    .page-body {
+        flex-direction: column;
+    }
+
+    .appointment-calendar {
+        flex: 1;
+        padding: 10px;
+    }
+
+    .service-description {
+        flex: 1;
+        margin-left: 0;
+        margin-top: 20px;
+    }
+
+    .calendar {
+        flex: 1;
+    }
+
+    .slot {
+        flex: 1;
+    }
+
+    .slot {
+        margin-left: 0;
+    }
+}
+
+/* CSS for screens smaller or equal to 768px */
+@media (max-width: 768px) {
+    .appointment-calendar {
+        flex: 1;
+        padding: 10px;
+    }
+
+    .service-description {
+        flex: 1;
+        margin-left: 0;
+        margin-top: 20px;
+    }
+
+    .calendar-and-slot {
+        display: grid;
+    }
+
+
+    .slot {
+        margin-top: 40px;
+    }
+
+    .slot-list, .date_chosen, .next-available-date, .no-availability-text {
+        margin-left: 0;
+        padding-left: 0;
+    }
+
+    .btn-request-next-slot {
+        margin-left: 0;
+    }
+
+    /* Reduce font size for smaller screens */
+    .title, .item-name, .date_chosen, .next-available-date {
+        font-size: 16px;
+    }
+
+    .timezone-details {
+        font-size: 14px;
+    }
+
+    .fc-day {
+        font-size: 10px;
+    }
+}
