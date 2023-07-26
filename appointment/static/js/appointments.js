@@ -11,6 +11,14 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
     height: '400px',
     width: '80%',
     themeSystem: 'bootstrap',
+    nowIndicator: true,
+    bootstrapFontAwesome: {
+        close: 'fa-times',
+        prev: 'fa-chevron-left',
+        next: 'fa-chevron-right',
+        prevYear: 'fa-angle-double-left',
+        nextYear: 'fa-angle-double-right'
+    },
     color: 'black',
     selectable: true,
     dateClick: function (info) {
@@ -20,19 +28,24 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
         // Get today's date
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        const slotContainer = $('.slot-container');
+        const errorMessageContainer = $('.error-message');
         const appointmentSlot = $('.appointment-slot');
         // Check if the selected date is in the past
+        getAvailableSlots(info.dateStr);
         if (selectedDate < today) {
+            // Remove any existing error message
+            errorMessageContainer.find('.no-availability-text').remove();
+            appointmentSlot.remove();
+
             // Show an error message
-            if (slotContainer.find('.no-availability-text').length === 0) {
-                slotContainer.append('<p class="no-availability-text">Date is in the past.</p>');
-                appointmentSlot.remove();
-            }
+            errorMessageContainer.append('<p class="no-availability-text">Date is in the past.</p>');
+
+            // Disable the submit button
+            $('.btn-submit-appointment').attr('disabled', 'disabled');
         } else {
-            // Call the getAvailableSlots function
             getAvailableSlots(info.dateStr);
         }
+
     },
     selectAllow: function (info) {
         return (info.start >= getDateWithoutTime(new Date()));
@@ -69,7 +82,9 @@ function getAvailableSlots(selectedDate) {
                 if (slotContainer.find('.no-availability-text').length === 0) {
                     slotContainer.append('<p class="no-availability-text">No availability</p>');
                 }
-                slotContainer.append(`<button class="btn btn-dark btn-request-next-slot" data-service-id="${serviceId}">Request for next available slot</button>`);
+                if (slotContainer.find('.btn-request-next-slot').length === 0) {
+                    slotContainer.append(`<button class="btn btn-danger btn-request-next-slot" data-service-id="${serviceId}">Request next available slot</button>`);
+                }
             } else {
                 // remove the button to request for next available slot
                 $('.no-availability-text').remove();
@@ -90,10 +105,14 @@ function getAvailableSlots(selectedDate) {
                 // Add the 'selected' class to the clicked appointment slot
                 $(this).addClass('selected');
 
+                // Enable the submit button
+                $('.btn-submit-appointment').removeAttr('disabled');
+
                 // Continue with the existing logic
                 const selectedSlot = $(this).text();
                 $('#service-datetime-chosen').text(data.date_chosen + ' ' + selectedSlot);
             });
+
 
         }
     });
@@ -156,9 +175,13 @@ function formatTime(date) {
 body.on('click', '.btn-submit-appointment', function () {
     const selectedSlot = $('.appointment-slot.selected').text();
     const selectedDate = $('.date_chosen').text();
+    if (!selectedSlot || !selectedDate) {
+        alert('Please select a date and time');
+        return;
+    }
     if (selectedSlot && selectedDate) {
         const startTime = convertTo24Hour(selectedSlot);
-
+        const APPOINTMENT_BASE_TEMPLATE = localStorage.getItem('APPOINTMENT_BASE_TEMPLATE');
         // Convert the selectedDate string to a valid format
         const dateParts = selectedDate.split(', ');
         const monthDayYear = dateParts[1] + "," + dateParts[2];
@@ -167,13 +190,6 @@ body.on('click', '.btn-submit-appointment', function () {
         const date = formattedDate.toISOString().slice(0, 10);
         const endTimeDate = new Date(formattedDate.getTime() + serviceDuration * 60000);
         const endTime = formatTime(endTimeDate);
-
-        console.log("Testing...")
-        console.log("end time date: " + endTimeDate);
-        console.log("date: " + date);
-        console.log("start time: " + startTime);
-        console.log("end time: " + endTime);
-        console.log("service: " + serviceId);
 
         const form = $('.appointment-form');
 
@@ -185,8 +201,10 @@ body.on('click', '.btn-submit-appointment', function () {
         console.log("Submitting form...");
         form.submit();
     } else {
-        alert('Please select a time slot before submitting the appointment request.');
+        console.log("No slot selected")
+        const warningContainer = $('.warning-message');
+        if (warningContainer.find('submit-warning') === 0) {
+            warningContainer.append('<p class="submit-warning">Please select a time slot before submitting the appointment request.</p>');
+        }
     }
 });
-
-
