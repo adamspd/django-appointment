@@ -4,7 +4,7 @@ import uuid
 from django.utils.translation import to_locale, get_language
 
 from appointment.settings import APPOINTMENT_SLOT_DURATION, APPOINTMENT_LEAD_TIME, APPOINTMENT_FINISH_TIME, \
-    APP_TIME_ZONE
+    APP_TIME_ZONE, APPOINTMENT_BUFFER_TIME, APPOINTMENT_WEBSITE_NAME
 
 
 class Utility:
@@ -62,6 +62,7 @@ class Utility:
             end_time = datetime.datetime.combine(date, datetime.time(hour=config.finish_time.hour,
                                                                      minute=config.finish_time.minute))
             slot_duration = datetime.timedelta(minutes=config.slot_duration)
+            buff_time = datetime.timedelta(hours=config.buffer_time)
         else:
             start_hour, start_minute = APPOINTMENT_LEAD_TIME
             start_time = datetime.datetime.combine(date, datetime.time(hour=start_hour, minute=start_minute))
@@ -70,10 +71,15 @@ class Utility:
             end_time = datetime.datetime.combine(date, datetime.time(hour=finish_hour, minute=finish_minute))
 
             slot_duration = datetime.timedelta(minutes=APPOINTMENT_SLOT_DURATION)
+            buff_time = datetime.timedelta(hours=APPOINTMENT_BUFFER_TIME)
 
+        # Add a buffer of 3 hours to the current time only if the date is today
+        now = datetime.datetime.now()
+        buffer_time = now + buff_time if date == now.date() else now
         slots = []
         while start_time <= end_time:
-            slots.append(start_time)
+            if start_time >= buffer_time:
+                slots.append(start_time)
             start_time += slot_duration
         for appointment in appointments:
             appointment_start_time = appointment.get_start_time()
@@ -130,3 +136,92 @@ class Utility:
         }
 
         return timezone_map.get(tmz, 'Universal Time Coordinated (UTC)')
+
+    @staticmethod
+    def convert_str_to_date(date_str):
+        """
+        Convert a date string to a datetime.date object.
+
+        :param date_str: str, the date string in the format '%Y-%m-%d'
+        :return: datetime.date, the converted date
+        """
+        return datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
+
+    @staticmethod
+    def get_website_name():
+        """
+        Get the website name from the settings file.
+
+        :return: str, the website name
+        """
+        from appointment.models import Config
+
+        config = Config.objects.first()
+
+        if config and config.website_name != "":
+            return config.website_name
+        return APPOINTMENT_WEBSITE_NAME
+
+
+    @staticmethod
+    def get_appointment_slot_duration():
+        """
+        Get the appointment slot duration from the settings file.
+
+        :return: int, the appointment slot duration
+        """
+        from appointment.models import Config
+
+        config = Config.objects.first()
+
+        if config and config.slot_duration:
+            return config.slot_duration
+        return APPOINTMENT_SLOT_DURATION
+
+
+    @staticmethod
+    def get_appointment_lead_time():
+        """
+        Get the appointment lead time from the settings file.
+
+        :return: int, the appointment lead time
+        """
+        from appointment.models import Config
+
+        config = Config.objects.first()
+
+        if config and config.lead_time:
+            return config.lead_time
+        return APPOINTMENT_LEAD_TIME
+
+
+    @staticmethod
+    def get_appointment_finish_time():
+        """
+        Get the appointment finish time from the settings file.
+
+        :return: int, the appointment finish time
+        """
+        from appointment.models import Config
+
+        config = Config.objects.first()
+
+        if config and config.finish_time:
+            return config.finish_time
+        return APPOINTMENT_FINISH_TIME
+
+
+    @staticmethod
+    def get_appointment_buffer_time():
+        """
+        Get the appointment buffer time from the settings file.
+
+        :return: int, the appointment buffer time
+        """
+        from appointment.models import Config
+
+        config = Config.objects.first()
+
+        if config and config.buffer_time:
+            return config.buffer_time
+        return APPOINTMENT_BUFFER_TIME
