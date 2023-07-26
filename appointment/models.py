@@ -44,10 +44,24 @@ class Service(models.Model):
         return self.description
 
     def get_duration(self):
-        return self.duration.seconds // 3600
+        total_seconds = self.duration.total_seconds()
+        if total_seconds >= 86400:  # 1 day = 86400 seconds
+            days = total_seconds // 86400
+            return f"{days} day{'s' if days > 1 else ''}"
+        elif total_seconds >= 3600:  # 1 hour = 3600 seconds
+            hours = total_seconds // 3600
+            return f"{hours} hour{'s' if hours > 1 else ''}"
+        elif total_seconds >= 60:  # 1 minute = 60 seconds
+            minutes = total_seconds // 60
+            return f"{minutes} minute{'s' if minutes > 1 else ''}"
+        else:
+            return f"{total_seconds} second{'s' if total_seconds > 1 else ''}"
 
     def get_price(self):
-        return self.price
+        if self.price == 0:
+            return "Free"
+        else:
+            return f"{self.price} {self.currency}"
 
     def get_down_payment(self):
         return self.down_payment
@@ -249,16 +263,25 @@ class Appointment(models.Model):
 
 class Config(models.Model):
     slot_duration = models.PositiveIntegerField(
-        default=30,
-        help_text=_("Duration of each slot in minutes"),
+        null=True,
+        help_text=_("Minimum time for an appointment in minutes, recommended 30."),
     )
     lead_time = models.TimeField(
-        default="09:00",
-        help_text=_("Time when slots start"),
+        null=True,
+        help_text=_("Time when we start working."),
     )
     finish_time = models.TimeField(
-        default="16:30",
-        help_text=_("Time when we stop working"),
+        null=True,
+        help_text=_("Time when we stop working."),
+    )
+    appointment_buffer_time = models.DurationField(
+        null=True,
+        help_text=_("Time between now and the first available slot for the current day (doesn't affect tomorrow)."),
+    )
+    website_name = models.CharField(
+        max_length=255,
+        default="",
+        help_text=_("Name of your website."),
     )
 
     def clean(self):
