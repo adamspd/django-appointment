@@ -13,15 +13,22 @@
 {% block body %}
     <div class="container">
         <div class="main-content">
-            <h1 class="thank-you-title">Thank You for Your Appointment</h1>
-            <p class="thank-you-message">Your appointment has been successfully scheduled.</p>
-            <p class="appointment-details-title">Appointment Details:</p>
+            <h1 class="thank-you-title">{% trans "See you soon" %} !</h1>
+            <p class="thank-you-message">{% trans "We've successfully scheduled your appointment! Please check your email for all the details" %}.</p>
+            <p class="appointment-details-title">{% trans "Appointment Details" %}:</p>
             <ul class="appointment-details">
                 <li>{% trans 'Service' %}: {{ appointment.get_service_name }}</li>
                 <li>{% trans 'Appointment ID' %}: {{ appointment.id_request }}</li>
                 <li>{% trans 'Appointment Date' %}: {{ appointment.get_appointment_date }}</li>
-                <li>{% trans 'Appointment Time' %}: {{ appointment.get_start_time }}</li>
+                <li>{% trans 'Appointment Time' %}: {{ appointment.appointment_request.get_start_time }}</li>
+                <li>{% trans 'Duration' %}: {{ appointment.appointment_request.get_service_duration }}</li>
             </ul>
         </div>
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
+                     role="alert">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
     </div>
 {% endblock %}

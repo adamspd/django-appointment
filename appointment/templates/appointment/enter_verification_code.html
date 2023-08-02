@@ -2,7 +2,7 @@
 {% load i18n %}
 {% load static %}
 {% block customCSS %}
-    <link rel="stylesheet" type="text/css" href="{% static 'css/thank_you.css' %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/verification_code.css' %}"/>
 {% endblock %}
 {% block title %}
     Enter Verification Code
@@ -12,12 +12,6 @@
 {% endblock %}
 {% block body %}
     <div class="container">
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
-                     role="alert">{{ message }}</div>
-            {% endfor %}
-        {% endif %}
         <div class="main-container">
             <div class="body-container">
                 <h1>Enter Verification Code</h1>
@@ -26,11 +20,17 @@
                       action="{% url 'appointment:enter_verification_code' appointment_request_id id_request %}">
                     {% csrf_token %}
                     <label>Code:
-                        <input type="text" name="code" placeholder="Verification Code" required>
+                        <input type="text" name="code" placeholder="X1Y2Z3" required>
                     </label>
-                    <button type="submit">Submit</button>
+                    <button class="btn btn-primary" type="submit">Submit</button>
                 </form>
             </div>
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
+                         role="alert">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
         </div>
     </div>
 {% endblock %}

@@ -11,56 +11,65 @@
     {{ page_description }}
 {% endblock %}
 {% block body %}
-    <div class="main-container">
-        <div class="body-container">
-            <h1 class="page-title">{{ service.name }}</h1>
-            <small class="page-description">
-                {% trans "Check out our availability and book the date and time that works for you" %}
-            </small>
-            <hr>
+    <div class="container">
+        <div class="djangoAppt_main-container">
+            <div class="djangoAppt_body-container">
+                <h1 class="page-title">{{ service.name }}</h1>
+                <small class="page-description">
+                    {% trans "Check out our availability and book the date and time that works for you" %}
+                </small>
+                <hr>
 
-            <div class="page-body">
-                <div class="appointment-calendar">
-                    <div class="appointment-calendar-title-timezone">
-                        <div class="title">
-                            {% trans "Select a date and time" %}
-                        </div>
-                        <div class="timezone-details">
-                            {% trans "Timezone" %}:&nbsp;{{ timezone }}
-                        </div>
-                    </div>
-                    <hr class="second-part">
-                    <div class="calendar-and-slot">
-                        <div class="calendar" id="calendar">
-                        </div>
-                        <div class="slot">
-                            <div class="date_chosen">{{ date_chosen }}</div>
-                            <div class="slot-container">
-                                <div class="error-message"></div>
-                                <ul id="slot-list" class="slot-list">
-                                    <!-- Slot list will be updated dynamically by the AJAX request -->
-                                </ul>
+                <div class="djangoAppt_page-body">
+                    <div class="djangoAppt_appointment-calendar">
+                        <div class="djangoAppt_appointment-calendar-title-timezone">
+                            <div class="djangoAppt_title">
+                                {% trans "Select a date and time" %}
                             </div>
+                            <div class="djangoAppt_timezone-details">
+                                {% trans "Timezone" %}:&nbsp;{{ timezoneTxt }}
+                            </div>
+                        </div>
+                        <hr class="djangoAppt_second-part">
+                        <div class="djangoAppt_calendar-and-slot">
+                            <div class="djangoAppt_calendar" id="calendar">
+                            </div>
+                            <div class="djangoAppt_slot">
+                                <div class="djangoAppt_date_chosen">{{ date_chosen }}</div>
+                                <div class="slot-container">
+                                    <div class="error-message"></div>
+                                    <ul id="slot-list" class="djangoAppt_slot-list">
+                                        <!-- Slot list will be updated dynamically by the AJAX request -->
+                                    </ul>
+                                </div>
 
+                            </div>
                         </div>
                     </div>
+                    <div class="djangoAppt_service-description">
+                        <form method="post" action="{% url 'appointment:appointment_request_submit' %}"
+                              class="appointment-form">
+                            {% csrf_token %}
+                            <div>{% trans "Service Details" %}</div>
+                            <hr class="djangoAppt_second-part">
+                            <div class="djangoAppt_service-description-content">
+                                <p class="djangoAppt_item-name">{{ service.name }}</p>
+                                <p id="service-datetime-chosen" class="service-datetime-chosen">{{ date_chosen }}</p>
+                                <p>{{ service.get_duration }}</p>
+                                <p>{{ service.get_price_text }}</p>
+                                <button type="submit"
+                                        class="btn btn-primary btn-submit-appointment"
+                                        disabled>{% trans 'Next' %}</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-                <div class="service-description">
-                    <form method="post" action="{% url 'appointment:appointment_request_submit' %}"
-                          class="appointment-form">
-                        {% csrf_token %}
-                        <div>{% trans "Service Details" %}</div>
-                        <hr class="second-part">
-                        <div class="service-description-content">
-                            <p class="item-name">{{ service.name }}</p>
-                            <p id="service-datetime-chosen" class="service-datetime-chosen">{{ date_chosen }}</p>
-                            <p>{{ service.get_duration }}</p>
-                            <p>{{ service.get_price }}</p>
-                            <button type="submit"
-                                    class="btn btn-primary btn-submit-appointment" disabled>{% trans 'Next' %}</button>
-                        </div>
-                    </form>
-                </div>
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
+                             role="alert">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
             </div>
         </div>
     </div>
@@ -68,6 +77,9 @@
 
 {% block customJS %}
     <script src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js'></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.43/moment-timezone-with-data.min.js"
+            integrity="sha512-KCI+fR3bUbOcU0ZC3UcaPwCLuO5LEkukaWBYddmhLPXgpAPWJ8j6pJLmTI6t9CMYczE4YCrWZQ/wrZz/JsyC+A=="
+            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.5/index.global.min.js'></script>
     <script>
         const timezone = "{{ timezone }}";

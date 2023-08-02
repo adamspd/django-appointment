@@ -3,7 +3,7 @@ import random
 import string
 
 from django.core.exceptions import ValidationError
-from django.core.validators import RegexValidator
+from django.core.validators import RegexValidator, MinValueValidator, MinLengthValidator, MaxLengthValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -22,12 +22,19 @@ PAYMENT_TYPES = (
 
 
 class Service(models.Model):
+    """
+    Represents a service provided by the appointment system.
+
+    Author: Adams Pierre David
+    Version: 1.1.0
+    Since: 1.0.0
+    """
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True, null=True)
     duration = models.DurationField()
-    price = models.DecimalField(max_digits=6, decimal_places=2)
-    down_payment = models.DecimalField(max_digits=6, decimal_places=2, default=0)
-    currency = models.CharField(max_length=3, default='USD')
+    price = models.DecimalField(max_digits=6, decimal_places=2, validators=[MinValueValidator(0)])
+    down_payment = models.DecimalField(max_digits=6, decimal_places=2, default=0, validators=[MinValueValidator(0)])
+    currency = models.CharField(max_length=3, default='USD', validators=[MaxLengthValidator(3), MinLengthValidator(3)])
     image = models.ImageField(upload_to='services/', blank=True, null=True)
 
     # meta data
@@ -43,21 +50,33 @@ class Service(models.Model):
     def get_description(self):
         return self.description
 
+    def get_duration_parts(self):
+        total_seconds = int(self.duration.total_seconds())
+        days = total_seconds // 86400
+        hours = (total_seconds % 86400) // 3600
+        minutes = (total_seconds % 3600) // 60
+        seconds = total_seconds % 60
+        return days, hours, minutes, seconds
+
     def get_duration(self):
-        total_seconds = self.duration.total_seconds()
-        if total_seconds >= 86400:  # 1 day = 86400 seconds
-            days = total_seconds // 86400
-            return f"{days} day{'s' if days > 1 else ''}"
-        elif total_seconds >= 3600:  # 1 hour = 3600 seconds
-            hours = total_seconds // 3600
-            return f"{hours} hour{'s' if hours > 1 else ''}"
-        elif total_seconds >= 60:  # 1 minute = 60 seconds
-            minutes = total_seconds // 60
-            return f"{minutes} minute{'s' if minutes > 1 else ''}"
-        else:
-            return f"{total_seconds} second{'s' if total_seconds > 1 else ''}"
+        days, hours, minutes, seconds = self.get_duration_parts()
+        parts = []
+
+        if days:
+            parts.append(f"{days} day{'s' if days > 1 else ''}")
+        if hours:
+            parts.append(f"{hours} hour{'s' if hours > 1 else ''}")
+        if minutes:
+            parts.append(f"{minutes} minute{'s' if minutes > 1 else ''}")
+        if seconds:
+            parts.append(f"{seconds} second{'s' if seconds > 1 else ''}")
+
+        return ' '.join(parts)
 
     def get_price(self):
+        return self.price
+
+    def get_price_text(self):
         if self.price == 0:
             return "Free"
         else:
@@ -89,6 +108,13 @@ class Service(models.Model):
 
 
 class AppointmentRequest(models.Model):
+    """
+    Represents an appointment request made by a client.
+
+    Author: Adams Pierre David
+    Version: 1.1.0
+    Since: 1.0.0
+    """
     date = models.DateField()
     start_time = models.TimeField()
     end_time = models.TimeField()
@@ -102,6 +128,11 @@ class AppointmentRequest(models.Model):
 
     def __str__(self):
         return f"{self.date} - {self.start_time} to {self.end_time} - {self.service.name}"
+
+    def clean(self):
+        if self.start_time is not None and self.end_time is not None:
+            if self.start_time >= self.end_time:
+                raise ValueError("Start time must be before end time")
 
     def save(self, *args, **kwargs):
         if self.id_request is None:
@@ -161,6 +192,13 @@ class AppointmentRequest(models.Model):
 
 
 class Appointment(models.Model):
+    """
+    Represents an appointment made by a client. It is created when the client confirms the appointment request.
+
+    Author: Adams Pierre David
+    Version: 1.1.0
+    Since: 1.0.0
+    """
     client = models.ForeignKey(APPOINTMENT_CLIENT_MODEL, on_delete=models.CASCADE)
     appointment_request = models.OneToOneField(AppointmentRequest, on_delete=models.CASCADE)
     phone = models.CharField(validators=[phone_regex], max_length=10, blank=True, null=True, default="",
@@ -262,6 +300,14 @@ class Appointment(models.Model):
 
 
 class Config(models.Model):
+    """
+    Represents configuration settings for the appointment system. There can only be one Config object in the database.
+    If you want to change the settings, you must edit the existing Config object.
+
+    Author: Adams Pierre David
+    Version: 1.1.0
+    Since: 1.1.0
+    """
     slot_duration = models.PositiveIntegerField(
         null=True,
         help_text=_("Minimum time for an appointment in minutes, recommended 30."),
@@ -274,7 +320,7 @@ class Config(models.Model):
         null=True,
         help_text=_("Time when we stop working."),
     )
-    appointment_buffer_time = models.DurationField(
+    appointment_buffer_time = models.FloatField(
         null=True,
         help_text=_("Time between now and the first available slot for the current day (doesn't affect tomorrow)."),
     )
@@ -287,6 +333,9 @@ class Config(models.Model):
     def clean(self):
         if Config.objects.exists() and not self.pk:
             raise ValidationError(_("You can only create one Config object"))
+        if self.lead_time is not None and self.finish_time is not None:
+            if self.lead_time >= self.finish_time:
+                raise ValidationError(_("Lead time must be before finish time"))
 
     def save(self, *args, **kwargs):
         self.clean()
@@ -298,6 +347,13 @@ class Config(models.Model):
 
 
 class PaymentInfo(models.Model):
+    """
+    Represents payment information for an appointment.
+
+    Author: Adams Pierre David
+    Version: 1.1.0
+    Since: 1.0.0
+    """
     appointment = models.ForeignKey(Appointment, on_delete=models.CASCADE)
 
     # meta data
@@ -333,6 +389,13 @@ class PaymentInfo(models.Model):
 
 
 class EmailVerificationCode(models.Model):
+    """
+    Represents an email verification code for a user when the email already exists in the database.
+
+    Author: Adams Pierre David
+    Version: 1.1.0
+    Since: 1.1.0
+    """
     user = models.ForeignKey(APPOINTMENT_CLIENT_MODEL, on_delete=models.CASCADE)
     code = models.CharField(max_length=6)
 
