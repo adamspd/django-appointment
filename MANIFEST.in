@@ -8,3 +8,5 @@ recursive-include appointment/static/js *.js
 recursive-include appointment/email_sender *.py
 recursive-include appointment *.py
 recursive-include docs *
+include logger_config.py
+exclude appointment/__pycache__

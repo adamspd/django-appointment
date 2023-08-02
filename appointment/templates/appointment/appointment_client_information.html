@@ -40,12 +40,9 @@
                         <div class="user-info" id="user-info">
                             <h1 class="description-title">{% trans "Tell us a bit about yourself" %}</h1>
                             <div class="already-have-account">
-                                <!--<div>
-                                    {#{% trans 'Already have an account?' %}
-                                    <a href="#">{% trans 'Log in' %}</a> {% trans 'for faster booking.' %}#}
-                                </div>-->
                                 <div>
-                                    {% trans 'All the fields with the * are mandatory.' %}
+                                    {% trans 'Already have an account?' %}
+                                    <a href="#">{% trans 'Log in' %}</a> {% trans 'for faster booking.' %}
                                 </div>
                             </div>
                             <div class="name-email">
@@ -97,7 +94,7 @@
                              class="service-datetime-chosen">
                             {{ ar.date }}&nbsp;{% trans "at" %}&nbsp;{{ ar.start_time }}
                         </div>
-                        <div>{{ ar.get_service_duration }} {% trans 'hr' %}</div>
+                        <div>{{ ar.get_service_duration }}</div>
                     </div>
 
                     <hr class="second-part">
@@ -122,7 +119,8 @@
                             </div>
                         </div>
                     {% else %}
-                        <button type="submit" class="btn btn-dark btn-submit-appointment">{{ buttonNext }}</button>
+                        <button type="submit" class="btn btn-dark btn-submit-appointment" name="payment_type"
+                                value="full">{{ buttonNext }}</button>
                     {% endif %}
 
                 </div>
@@ -139,6 +137,25 @@
                     element.style.display = 'none';
                 });
             }, 3000);
+
+            // Get the form and the submit buttons
+            const form = document.querySelector('form');
+            const submitButtons = Array.from(form.querySelectorAll('button[type="submit"]'));
+
+            // Disable the submit buttons initially
+            submitButtons.forEach(button => button.disabled = true);
+
+            // Listen for input events on the form
+            form.addEventListener('input', function () {
+                // Get all required fields
+                const requiredFields = Array.from(form.querySelectorAll('[required]'));
+
+                // Check if all required fields are filled
+                const allFieldsFilled = requiredFields.every(field => field.value.trim() !== '');
+
+                // Enable or disable the submit buttons based on whether all fields are filled
+                submitButtons.forEach(button => button.disabled = !allFieldsFilled);
+            });
         });
     </script>
 {% endblock %}
