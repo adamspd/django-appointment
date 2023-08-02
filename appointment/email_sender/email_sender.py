@@ -1,6 +1,6 @@
+from django.conf import settings
 from django.core.mail import mail_admins, send_mail
 from django.template import loader
-from django.conf import settings
 
 from appointment.settings import APP_DEFAULT_FROM_EMAIL
 
@@ -23,6 +23,7 @@ def has_required_email_settings():
             return False
 
     return True
+
 
 def send_email(recipient_list, subject: str, template_url: str = None, context: dict = None, from_email=None,
                message: str = None):
@@ -51,6 +52,7 @@ def send_email(recipient_list, subject: str, template_url: str = None, context: 
         )
     except Exception as e:
         print(f"Error sending email: {e}")
+
 
 def notify_admin(subject: str, template_url: str = None, context: dict = None, message: str = None):
     if not has_required_email_settings():
