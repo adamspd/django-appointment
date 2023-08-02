@@ -1,84 +1,84 @@
-.main-container {
+.djangoAppt_main-container {
     margin: 20px auto;
     max-width: 1200px;
     padding: 20px;
-    background-color: #f8f9fa;
+    background-color: rgba(248, 249, 250, 0.4);
     border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.1);
 }
 
-.body-container {
+.djangoAppt_body-container {
     margin: 0 auto;
     max-width: 1120px;
     padding: 0 15px;
 }
 
-.page-body {
+.djangoAppt_page-body {
     display: flex;
     flex-direction: row;
     margin-top: 50px;
 }
 
-.appointment-calendar {
+.djangoAppt_appointment-calendar {
     flex: 3;
     padding: 20px;
     background-color: #fff;
     border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.1);
 }
 
-.service-description {
+.djangoAppt_service-description {
     flex: 1;
     margin-left: 20px;
     padding: 20px;
     background-color: #fff;
     border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.1);
 }
 
-.second-part {
+.djangoAppt_second-part {
     margin-top: 10px;
 }
 
-.calendar-and-slot {
+.djangoAppt_calendar-and-slot {
     margin-top: 20px;
     display: flex;
 }
 
-.service-description-content {
+.djangoAppt_service-description-content {
     margin-top: 20px;
     color: black;
 }
 
-.item-name {
+.djangoAppt_item-name {
     color: black;
     font-weight: bold;
     font-size: 20px;
     margin-bottom: 10px;
 }
 
-.calendar {
+.djangoAppt_calendar {
     flex: 3;
 }
 
-.slot {
+.djangoAppt_slot {
     flex: 2;
 }
 
-.appointment-calendar-title-timezone {
+.djangoAppt_appointment-calendar-title-timezone {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 10px;
 }
 
-.title {
+.djangoAppt_title {
     flex: 1;
     font-weight: bold;
     font-size: 20px;
 }
 
-.timezone-details {
+.djangoAppt_timezone-details {
     flex: 1;
     text-align: right;
     font-size: 16px;
@@ -97,15 +97,16 @@ a {
     color: #0c042c;
 }
 
-.slot {
+.djangoAppt_slot {
     margin-left: 20px;
 }
 
-.slot-list {
+.djangoAppt_slot-list {
     columns: 2;
     -webkit-columns: 2;
     -moz-columns: 2;
     margin-top: 10px;
+    padding-left: 10px !important;
 }
 
 li {
@@ -113,7 +114,7 @@ li {
     text-align: center;
 }
 
-.appointment-slot {
+.djangoAppt_appointment-slot {
     border: 1px solid #ccc;
     background-color: rgba(0, 48, 124, 0.95);
     color: #fff;
@@ -123,7 +124,7 @@ li {
     border-radius: 4px;
 }
 
-.appointment-slot:hover {
+.djangoAppt_appointment-slot:hover {
     background-color: #fff;
     color: rgba(42, 42, 42, 0.82);
 }
@@ -133,12 +134,13 @@ li {
     color: rgba(42, 42, 42, 0.82);
 }
 
-.next-available-date {
+.djangoAppt_next-available-date {
     font-size: 16px;
     font-weight: bold;
     color: #333;
     margin-top: 10px;
-    padding: 10px;
+    margin-left: 10px;
+    padding: 8px;
     background-color: #f8f9fa;
     border: 1px solid #dee2e6;
     border-radius: 5px;
@@ -168,125 +170,132 @@ li {
     border-color: #145294;
 }
 
-.date_chosen {
-    margin-left: 10px;
-    padding-left: 20px;
+.djangoAppt_date_chosen {
+    margin-left: 5px;
+    padding-left: 5px;
     font-size: 18px;
     color: #333;
     font-weight: bold;
 }
 
-.btn-request-next-slot {
-    margin-left: 30px;
+.djangoAppt_btn-request-next-slot {
+    margin-left: 10px;
+    padding: 8px !important;
     margin-top: -30px;
 }
 
-.no-availability-text {
-    margin-left: 10px;
-    padding-left: 20px;
+.djangoAppt_no-availability-text {
+    margin-left: 5px;
+    padding-left: 5px;
     color: #f00;
     font-weight: bold;
 }
-
 
 /* responsive */
 
 /* CSS for screens larger than 1200px */
 @media (min-width: 1200px) {
-    .page-body {
+    .djangoAppt_page-body {
         flex-direction: row;
     }
 
-    .appointment-calendar {
+    .djangoAppt_appointment-calendar {
         flex: 3;
         padding: 20px;
     }
 
-    .service-description {
+    .djangoAppt_service-description {
         flex: 1;
         margin-left: 20px;
     }
 
-    .calendar {
+    .djangoAppt_calendar {
         flex: 3;
     }
 
-    .slot {
+    .djangoAppt_slot {
         flex: 2;
     }
 
-    .slot {
+    .djangoAppt_slot {
         margin-left: 20px;
     }
 }
 
 /* CSS for screens smaller than 1200px */
 @media (max-width: 1199px) {
-    .page-body {
+    .djangoAppt_page-body {
         flex-direction: column;
     }
 
-    .appointment-calendar {
+    .djangoAppt_appointment-calendar {
         flex: 1;
         padding: 10px;
     }
 
-    .service-description {
+    .djangoAppt_service-description {
         flex: 1;
         margin-left: 0;
         margin-top: 20px;
     }
 
-    .calendar {
+    .djangoAppt_calendar {
         flex: 1;
     }
 
-    .slot {
+    .djangoAppt_slot {
         flex: 1;
     }
 
-    .slot {
-        margin-left: 0;
+    .djangoAppt_slot {
+        margin-left: 10px;
     }
 }
 
 /* CSS for screens smaller or equal to 768px */
 @media (max-width: 768px) {
-    .appointment-calendar {
+    .djangoAppt_main-container {
+        padding: 8px;
+    }
+
+    .djangoAppt_body-container {
+        padding: 8px;
+    }
+
+    .djangoAppt_appointment-calendar {
         flex: 1;
         padding: 10px;
     }
 
-    .service-description {
+    .djangoAppt_service-description {
         flex: 1;
         margin-left: 0;
         margin-top: 20px;
     }
 
-    .calendar-and-slot {
+    .djangoAppt_calendar-and-slot {
         display: grid;
     }
 
-
-    .slot {
+    .djangoAppt_slot {
         margin-top: 40px;
     }
 
-    .slot-list, .date_chosen, .next-available-date, .no-availability-text {
+    .djangoAppt_slot-list, .djangoAppt_date_chosen, .djangoAppt_no-availability-text {
         margin-left: 0;
         padding-left: 0;
     }
 
-    .btn-request-next-slot {
+    .djangoAppt_btn-request-next-slot {
         margin-left: 0;
     }
 
     /* Reduce font size for smaller screens */
-    .title, .item-name, .date_chosen, .next-available-date {
+    .djangoAppt_title, .djangoAppt_item-name, .djangoAppt_date_chosen, .djangoAppt_next-available-date {
         font-size: 16px;
     }
 
-    .timezone-details {
+    .djangoAppt_timezone-details {
         font-size: 14px;
     }
 

@@ -55,6 +55,16 @@
         <p>
             {{ message }}
         </p>
+        {% if appointment_details %}
+            <div class="main-content">
+                <p class="appointment-details-title">{% trans "Appointment Details" %}:</p>
+                <ul class="appointment-details">
+                    {% for key, value in appointment_details.items %}
+                        <li>{{ key }}: {{ value }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
         <p>
             {% blocktranslate %}
                 If you have any questions or need assistance, please don't hesitate to reach out to our support team.

@@ -1,19 +1,18 @@
 import datetime
 import uuid
 
+from django.apps import apps
+from django.utils.translation import gettext as _
 from django.utils.translation import to_locale, get_language
 
 from appointment.settings import APPOINTMENT_SLOT_DURATION, APPOINTMENT_LEAD_TIME, APPOINTMENT_FINISH_TIME, \
-    APP_TIME_ZONE, APPOINTMENT_BUFFER_TIME, APPOINTMENT_WEBSITE_NAME
+    APP_TIME_ZONE, APPOINTMENT_BUFFER_TIME, APPOINTMENT_WEBSITE_NAME, APPOINTMENT_PAYMENT_URL, APPOINTMENT_CLIENT_MODEL
 
 
 class Utility:
     """
     Utility class containing useful static methods for general-purpose tasks.
     """
-
-    def __init__(self):
-        pass
 
     @staticmethod
     def is_ajax(request):
@@ -62,7 +61,7 @@ class Utility:
             end_time = datetime.datetime.combine(date, datetime.time(hour=config.finish_time.hour,
                                                                      minute=config.finish_time.minute))
             slot_duration = datetime.timedelta(minutes=config.slot_duration)
-            buff_time = datetime.timedelta(hours=config.buffer_time)
+            buff_time = datetime.timedelta(hours=config.appointment_buffer_time)
         else:
             start_hour, start_minute = APPOINTMENT_LEAD_TIME
             start_time = datetime.datetime.combine(date, datetime.time(hour=start_hour, minute=start_minute))
@@ -116,7 +115,7 @@ class Utility:
         return datetime.datetime.now().year
 
     @staticmethod
-    def get_timezone():
+    def get_timezone_txt():
         """
         Get the current timezone as a string.
 
@@ -134,8 +133,11 @@ class Utility:
             'Europe/Paris': 'Paris Time (Europe)',
             'Europe/London': 'London Time (Europe)'
         }
-
         return timezone_map.get(tmz, 'Universal Time Coordinated (UTC)')
+
+    @staticmethod
+    def get_timezone():
+        return APP_TIME_ZONE
 
     @staticmethod
     def convert_str_to_date(date_str):
@@ -162,7 +164,6 @@ class Utility:
             return config.website_name
         return APPOINTMENT_WEBSITE_NAME
 
-
     @staticmethod
     def get_appointment_slot_duration():
         """
@@ -177,7 +178,6 @@ class Utility:
         if config and config.slot_duration:
             return config.slot_duration
         return APPOINTMENT_SLOT_DURATION
-
 
     @staticmethod
     def get_appointment_lead_time():
@@ -194,7 +194,6 @@ class Utility:
             return config.lead_time
         return APPOINTMENT_LEAD_TIME
 
-
     @staticmethod
     def get_appointment_finish_time():
         """
@@ -210,7 +209,6 @@ class Utility:
             return config.finish_time
         return APPOINTMENT_FINISH_TIME
 
-
     @staticmethod
     def get_appointment_buffer_time():
         """
@@ -222,6 +220,29 @@ class Utility:
 
         config = Config.objects.first()
 
-        if config and config.buffer_time:
-            return config.buffer_time
+        if config and config.appointment_buffer_time:
+            return config.appointment_buffer_time
         return APPOINTMENT_BUFFER_TIME
+
+    @staticmethod
+    def get_finish_button_text(service) -> str:
+        """
+        Check if a service is free.
+
+        :param service: Service, the service to check
+        :return: bool, True if the service is free, False otherwise
+        """
+        print("APPOINTMENT_PAYMENT_URL", APPOINTMENT_PAYMENT_URL)
+        print("service.is_a_paid_service()", service.is_a_paid_service())
+        if service.is_a_paid_service() and APPOINTMENT_PAYMENT_URL:
+            return _("Pay Now")
+        return _("Finish")
+
+    @staticmethod
+    def get_user_model():
+        """
+        Get the client models from the settings file.
+
+        :return: The client models
+        """
+        return apps.get_model(APPOINTMENT_CLIENT_MODEL)
