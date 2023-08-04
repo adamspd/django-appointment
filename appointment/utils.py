@@ -83,7 +83,8 @@ class Utility:
         for appointment in appointments:
             appointment_start_time = appointment.get_start_time()
             appointment_end_time = appointment.get_end_time()
-            slots = [slot for slot in slots if not (appointment_start_time <= slot <= appointment_end_time)]
+            slots = [slot for slot in slots if
+                     not (appointment_start_time < slot + slot_duration and slot < appointment_end_time)]
         return [slot.strftime('%I:%M %p') for slot in slots]
 
     @staticmethod
