@@ -8,7 +8,7 @@
     + [create_appointment](#create-appointment)
     + [get_client_data_from_post](#get-client-data-from-post)
     + [get_appointment_data_from_post_request](#get-appointment-data-from-post-request)
-    + [create_user_and_send_email](#create-user-and-send-email)
+    + [create_user_and_notify_admin](#create-user-and-send-email)
     + [appointment_client_information](#appointment-client-information)
     + [verify_user_and_login](#verify-user-and-login)
     + [enter_verification_code](#enter-verification-code)

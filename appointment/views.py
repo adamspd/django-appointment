@@ -254,13 +254,12 @@ def get_appointment_data_from_post_request(request):
     }
 
 
-def create_user_and_send_email(request, ar, client_data, appointment_data):
+def create_user_and_notify_admin(request, client_data, appointment_data):
     """
     This function creates a new user, sends a thank-you email, and notifies the admin.
 
     Args:
         request (HttpRequest): The request instance.
-        ar (AppointmentRequest): The AppointmentRequest instance.
         client_data (dict): The client data.
         appointment_data (dict): The appointment data.
 
@@ -274,8 +273,6 @@ def create_user_and_send_email(request, ar, client_data, appointment_data):
     logger.info("Creating a new user with the given information {client_data}")
     user = create_new_user(client_data)
 
-    # Email the user
-    send_thank_you_email(ar, user.first_name, user.email)
     notify_admin(subject="New Appointment Request",
                  message=f"New appointment request from {client_data['email']} for {appointment_data}")
     messages.success(request, _("An account was created for you."))
@@ -314,7 +311,7 @@ def appointment_client_information(request, appointment_request_id, id_request):
         if is_email_in_db:
             return handle_existing_email(request, client_data, appointment_data, appointment_request_id, id_request)
 
-        create_user_and_send_email(request, ar, client_data, appointment_data)
+        create_user_and_notify_admin(request, client_data, appointment_data)
 
         # Create a new appointment
         response = create_appointment(request, ar, client_data, appointment_data)
@@ -380,6 +377,16 @@ def enter_verification_code(request, appointment_request_id, id_request):
             appointment_data = get_appointment_data_from_session(request)
             response = create_appointment(request=request, appointment_request_obj=appointment_request_object,
                                           client_data={'email': email}, appointment_data=appointment_data)
+            appointment = Appointment.objects.get(appointment_request=appointment_request_object)
+            appointment_details = {
+                'Service': appointment.get_service_name(),
+                'Appointment ID': appointment.id_request,
+                'Appointment Date': appointment.get_appointment_date(),
+                'Appointment Time': appointment.appointment_request.get_start_time(),
+                'Duration': appointment.appointment_request.get_service_duration()
+            }
+            send_thank_you_email(ar=appointment_request_object, first_name=user.first_name, email=email,
+                                 appointment_details=appointment_details)
             return response
         else:
             messages.error(request, "Invalid verification code.")
@@ -421,7 +428,13 @@ def default_thank_you(request, appointment_id):
         'Appointment Time': appointment.appointment_request.get_start_time(),
         'Duration': appointment.appointment_request.get_service_duration()
     }
-    send_thank_you_email(ar=ar, first_name=first_name, email=email, appointment_details=appointment_details)
+    account_details = {
+        'Your username': appointment.client.username,
+        'The email address linked to this account': email,
+        'Your temporary password': f"{Utility.get_website_name()}{Utility.get_current_year()}",
+    }
+    send_thank_you_email(ar=ar, first_name=first_name, email=email, appointment_details=appointment_details,
+                         account_details=account_details)
     context = {
         'appointment': appointment,
         'APPOINTMENT_BASE_TEMPLATE': APPOINTMENT_BASE_TEMPLATE,
