@@ -1,6 +1,6 @@
-# Appointment Scheduler
+# Django Appointment
 
-Appointment Scheduler is a Django app designed for managing appointment scheduling with ease and flexibility. It allows
+Django-Appointment is a Django app designed for managing appointment scheduling with ease and flexibility. It allows
 users to define custom configurations for time slots, lead time, and finish time, or use the default values provided.
 The app also handles conflicts and availability for appointments, ensuring a smooth user experience.
 
