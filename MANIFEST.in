@@ -6,7 +6,9 @@ recursive-include appointment/templates/email_sender *.html
 recursive-include appointment/static/css *.css
 recursive-include appointment/static/js *.js
 recursive-include appointment/email_sender *.py
+recursive-include appointment/tests *.py
 recursive-include appointment *.py
 recursive-include docs *
 include logger_config.py
+include release_notes.md
 exclude appointment/__pycache__
