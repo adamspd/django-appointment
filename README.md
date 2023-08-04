@@ -5,6 +5,8 @@ users to define custom configurations for time slots, lead time, and finish time
 The app also handles conflicts and availability for appointments, ensuring a smooth user experience.
 
 Detailed documentation is in the ["docs"](https://github.com/adamspd/django-appointment/tree/main/docs) directory.
+Please refer to the release notes for changes and migration
+information [here](https://github.com/adamspd/django-appointment/tree/main/release_notes.md).
 
 ## Features
 
@@ -12,7 +14,7 @@ Detailed documentation is in the ["docs"](https://github.com/adamspd/django-appo
 2. Handles appointment conflicts and availability.
 3. Easy integration with Django admin interface for appointment management.
 4. User-friendly interface for viewing available time slots and scheduling appointments.
-5. Sends email notifications to clients when they schedule an appointment.
+5. Send email notifications to clients when they schedule an appointment.
 
 ## Quick start
 
