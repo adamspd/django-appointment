@@ -6,13 +6,9 @@
 
 ## Introduction
 
-Version 1.1.2 continues the commitment to improving the package with bug fixes, enhancements, and updates to user communication. This release includes significant fixes for handling multiple usernames, slot availability, and a revised email template for appointment confirmations.
+Version 1.1.2 continues the commitment to improving the package with bug fixes, enhancements, and updates. This release includes significant fixes for handling multiple usernames and a revised email template for appointment confirmations.
 
 ## Bug Fixes
-
-### Slot Availability Fix
-
-- Fixed an issue where booking the second slot did not correctly block the first slot if it was booked later. This fix ensures that both slots are handled correctly, and one does not affect the availability of the other.
 
 ### Username Handling Fix
 
