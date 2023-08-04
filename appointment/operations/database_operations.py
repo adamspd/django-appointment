@@ -71,7 +71,14 @@ def create_new_user(client_data):
     Version: 1.1.0
     Since: 1.1.0
     """
-    username = client_data['email'].split('@')[0]
+    username_base = client_data['email'].split('@')[0]
+    username = username_base
+    suffix = 1
+    while CLIENT_MODEL.objects.filter(username=username).exists():
+        # convert suffix to string and format it to have 2 digits
+        suffix_str = f"{suffix:02}"
+        username = f"{username_base}{suffix_str}"
+        suffix += 1
     user = CLIENT_MODEL.objects.create_user(first_name=client_data['name'], email=client_data['email'],
                                             username=username)
     password = f"{Utility.get_website_name()}{Utility.get_current_year()}"
