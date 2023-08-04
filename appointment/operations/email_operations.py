@@ -36,7 +36,8 @@ def get_thank_you_message(ar: AppointmentRequest) -> str:
     return message
 
 
-def send_thank_you_email(ar: AppointmentRequest, first_name: str, email: str, appointment_details=None):
+def send_thank_you_email(ar: AppointmentRequest, first_name: str, email: str, appointment_details=None,
+                         account_details=None):
     """
     Send a thank-you email to the client for booking an appointment.
 
@@ -45,6 +46,7 @@ def send_thank_you_email(ar: AppointmentRequest, first_name: str, email: str, ap
         first_name (str): The first name of the client.
         email (str): The email address of the client.
         appointment_details (str, optional): Additional details about the appointment (default None).
+        account_details (str, optional): Additional details about the account (default None).
 
     Returns: None
 
@@ -52,12 +54,21 @@ def send_thank_you_email(ar: AppointmentRequest, first_name: str, email: str, ap
     Version: 1.1.0
     Since: 1.1.0
     """
+    message = f"We've created an account for you to manage your appointment for the requested service " \
+              f"{ar.get_service_name()}. Your password is temporary. Please change it on your first login."
+    # Month and year like "J A N  2 0 2 1"
+    month_year = ar.date.strftime("%b %Y").upper()
+    day = ar.date.strftime("%d")
     email_context = {
         'first_name': first_name,
         'message': get_thank_you_message(ar),
         'current_year': datetime.datetime.now().year,
         'company': Utility.get_website_name(),
-        'appointment_details': appointment_details,
+        'more_details': appointment_details,
+        'account_details': account_details,
+        'account_message': message if account_details is not None else None,
+        'month_year': month_year,
+        'day': day,
     }
     send_email(
         recipient_list=[email], subject="Thank you for booking us.",
