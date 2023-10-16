@@ -1,0 +1,70 @@
+{% extends BASE_TEMPLATE %}
+{% load i18n %}
+{% load static %}
+
+{% block customCSS %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/app_admin/staff_member.css' %}"/>
+{% endblock %}
+
+{% block body %}
+    <section class="content content-wrapper">
+        <div class="staff-form-wrapper">
+            <div class="staff-form-content">
+                <h2>{% trans 'Staff Appointment Information' %}</h2>
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="form-group">
+                        {{ form.services_offered.label_tag }}
+                        {{ form.services_offered.errors }}
+                        {{ form.services_offered }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.slot_duration.label_tag }}
+                        {{ form.slot_duration }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.lead_time.label_tag }}
+                        {{ form.lead_time }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.finish_time.label_tag }}
+                        {{ form.finish_time }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.appointment_buffer_time.label_tag }}
+                        {{ form.appointment_buffer_time }}
+                    </div>
+
+                    <div class="form-check">
+                        {{ form.work_on_saturday }}
+                        {{ form.work_on_saturday.label_tag }}
+                    </div>
+
+                    <div class="form-check">
+                        {{ form.work_on_sunday }}
+                        {{ form.work_on_sunday.label_tag }}
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">{% trans 'Save' %}</button>
+                </form>
+                <div class="messages" style="margin: 20px 0">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
+                                 role="alert">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+
+{% block customJS %}
+    <script src="{% static 'js/js-utils.js' %}"></script>
+{% endblock %}

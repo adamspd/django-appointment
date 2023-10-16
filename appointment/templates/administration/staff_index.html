@@ -1,0 +1,184 @@
+{% extends BASE_TEMPLATE %}
+{% load i18n %}
+{% load static %}
+{% block customMetaTag %}
+    <meta name="csrf-token" content="{{ csrf_token }}">
+{% endblock %}
+{% block customCSS %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/appointments.css' %}"/>
+    <style>
+        @media (max-width: 991px) {
+            body {
+                font-size: 15px; /* Adjust font size for tablets */
+            }
+
+            #calendar {
+                max-width: 800px; /* Adjust calendar width for tablets */
+            }
+        }
+
+        /* Mobile Styles */
+        @media (max-width: 767px) {
+            body {
+                margin: 20px 5px; /* Reduce margins on mobile */
+                font-size: 14px; /* Adjust font size for mobiles */
+            }
+
+            #calendar {
+                max-width: 100%; /* Let the calendar take the full width on mobile */
+            }
+
+            .fc, .fc-toolbar-title, h2 {
+                font-size: 15px !important; /* Adjust as needed */
+                margin: 0; /* Remove any default margin */
+            }
+        }
+
+        .calendar-wrapper {
+            display: flex;
+            transition: all 0.3s; /* smooth transition for resizing */
+            width: 100%;
+        }
+
+        #calendar {
+            flex-grow: 1; /* Makes the calendar grow to occupy all available space */
+            transition: all 0.3s; /* smooth transition for resizing */
+            width: 100%;
+        }
+
+        #event-details {
+            overflow-y: auto;
+            width: 0; /* initially hidden */
+            transition: all 0.3s; /* smooth transition for resizing */
+            border-left: 1px solid #ccc;
+            flex-shrink: 0; /* Prevents the div from shrinking beyond its content's size */
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 10% auto; /* Centering the modal vertically */
+            padding: 20px;
+            width: 80%;
+            max-width: 600px; /* Maximum width for the modal */
+            position: relative; /* For positioning the close button */
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2); /* A little shadow for depth */
+        }
+
+        .modal-footer {
+            text-align: right;
+        }
+
+        .close-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .body-blur {
+            filter: blur(2px); /* This will blur the whole body when modal is open */
+        }
+
+        #eventDetailsModal .modal-content {
+            background-color: #f4f4f4;
+            border-radius: 10px;
+        }
+
+        #eventDetailsModal .modal-header,
+        #eventDetailsModal .modal-footer {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+        }
+
+        #eventDetailsModal .modal-title {
+            font-weight: bold;
+        }
+
+        #eventDetailsModal label {
+            display: block;
+            margin-top: 10px;
+        }
+
+        #eventDetailsModal input {
+            width: 100%;
+            padding: 5px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        #eventDetailsModal .btn {
+            margin-right: 10px;
+        }
+
+        #serviceSelect {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+        }
+
+        #serviceSelect:disabled {
+            background-color: #e9ecef;
+        }
+    </style>
+{% endblock %}
+{% block title %}
+    {{ page_title }}
+{% endblock %}
+{% block description %}
+    {{ page_description }}
+{% endblock %}
+{% block body %}
+    <section class="content content-wrapper">
+        <div class="container">
+            <div class="calendar-wrapper">
+                <div id="calendar" class="calendarbox"></div>
+            </div>
+
+            {% include 'modal/event_details_modal.html' %}
+            {% include 'modal/error_modal.html' %}
+
+            <div class="messages" style="margin: 20px 0">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
+                             role="alert">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+    </section>
+{% endblock %}
+
+
+{% block customJS %}
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js'></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.43/moment-timezone-with-data.min.js"
+            integrity="sha512-KCI+fR3bUbOcU0ZC3UcaPwCLuO5LEkukaWBYddmhLPXgpAPWJ8j6pJLmTI6t9CMYczE4YCrWZQ/wrZz/JsyC+A=="
+            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.5/index.global.min.js'></script>
+    <script>
+        const timezone = "{{ timezone }}";
+        const locale = "{{ locale }}";
+        const availableSlotsAjaxURL = "{% url 'appointment:available_slots_ajax' %}";
+        const requestNextAvailableSlotURLTemplate = "{% url 'appointment:request_next_available_slot' service_id=0 %}";
+        const getNonWorkingDaysURL = "{% url 'appointment:get_non_working_days_ajax' %}";
+        const serviceId = "{{ service.id }}";
+        const serviceDuration = parseInt("{{ service.duration.total_seconds }}") / 60;
+        const appointments = {{ appointments|safe }};
+        const fetchServiceListForStaffURL = "{% url 'appointment:fetch_service_list_for_staff' %}";
+        const updateApptMinInfoURL = "{% url 'appointment:update_appt_min_info' %}";
+        const updateApptDateURL = "{% url 'appointment:update_appt_date_time' %}";
+        const validateApptDateURL = "{% url 'appointment:validate_appointment_date' %}";
+    </script>
+    <script src="{% static 'js/modal/error_modal.js' %}"></script>
+    <script src="{% static 'js/app_admin/staff_index.js' %}"></script>
+    <script src="{% static 'js/js-utils.js' %}"></script>
+{% endblock %}

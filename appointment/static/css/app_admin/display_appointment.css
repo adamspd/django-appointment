@@ -1,0 +1,140 @@
+.appointment-display-content{
+    margin: 0 auto;
+    padding-top: 50px;
+}
+
+.app-content {
+    max-width: 950px;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin: 0 auto;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(800px);
+        background-color: transparent;
+    }
+    to   {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInGreen {
+    from {
+        background-color: transparent;
+    }
+    to   {
+        background-color: #4CAF50; /* green */
+    }
+}
+
+@keyframes fadeInRed {
+    from {
+        background-color: transparent;
+    }
+    to   {
+        background-color: #F44336; /* red */
+    }
+}
+
+
+.appointment-card {
+    border: 1px solid #e0e0e0;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+    animation: fadeIn 0.5s forwards;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center the contents */
+}
+
+.appointment-card h2 {
+    margin-top: 0;
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 10px;
+    width: 100%;
+}
+
+.appointment-details {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 20px;
+    width: 100%;
+    justify-content: space-between; /* Evenly space the details */
+}
+
+.appointment-detail, .appointment-detail-payment {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #e0e0e0;
+    margin: 5px;
+    border-radius: 4px;
+    flex-basis: 48%; /* Allow 2 details per row with a little space in between */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Add subtle shadow */
+    transition: all 0.3s; /* Smooth transitions */
+    animation: fadeIn 0.6s forwards; /* Default fade-in */
+}
+
+.appointment-detail:nth-child(1) { animation-delay: 0.05s; }
+.appointment-detail:nth-child(2) { animation-delay: 0.05s; }
+.appointment-detail:nth-child(3) { animation-delay: 0.1s; }
+.appointment-detail:nth-child(4) { animation-delay: 0.1s; }
+.appointment-detail:nth-child(5) { animation-delay: 0.15s; }
+.appointment-detail:nth-child(6) { animation-delay: 0.15s; }
+.appointment-detail:nth-child(7) { animation-delay: 0.2s; }
+.appointment-detail:nth-child(8) { animation-delay: 0.2s; }
+.appointment-detail:nth-child(9) { animation-delay: 0.25s; }
+.appointment-detail:nth-child(10) { animation-delay: 0.25s; }
+.appointment-detail:nth-child(11) { animation-delay: 0.3s; }
+.appointment-detail:nth-child(12) { animation-delay: 0.3s; }
+
+.is-paid-true {
+    animation: fadeIn 0.35s forwards, fadeInGreen 0.35s forwards;
+    color: white;
+}
+
+.is-paid-false {
+    animation: fadeIn 0.35s forwards, fadeInRed 0.35s forwards;
+    color: white;
+}
+
+
+.hover-element:hover {
+    background-color: #f7f7f7;
+    transform: translateY(-5px); /* Slight elevation on hover */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* Enhanced shadow on hover */
+}
+
+.appointment-detail i {
+    margin-right: 10px;
+    color: #555; /* Slightly darker icon color */
+}
+
+/* Mobile First Styles (Default) */
+.appointment-detail, .appointment-detail-payment {
+    flex-basis: 100%; /* Each detail takes the full width on mobile */
+    margin: 10px 0; /* Adjusted margin */
+}
+
+/* Tablet Styles */
+@media (min-width: 768px) and (max-width: 991px) {
+    .appointment-detail, .appointment-detail-payment {
+        flex-basis: 48%; /* 2 details per row for tablets */
+        margin: 5px; /* Revert to original margin */
+    }
+}
+
+/* Desktop Styles */
+@media (min-width: 992px) {
+    .appointment-detail, .appointment-detail-payment {
+        flex-basis: 48%; /* 2 details per row for desktop */
+        margin: 5px;
+    }
+}

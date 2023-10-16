@@ -109,7 +109,7 @@ a {
     padding-left: 10px !important;
 }
 
-li {
+#slot-list li {
     list-style-type: none;
     text-align: center;
 }
@@ -191,6 +191,12 @@ li {
     font-weight: bold;
 }
 
+.disabled-day {
+    background-color: #ECECEC; /* light gray */
+    opacity: 0.5;
+    pointer-events: none; /* makes it unclickable */
+}
+
 /* responsive */
 
 /* CSS for screens larger than 1200px */
@@ -221,6 +227,74 @@ li {
         margin-left: 20px;
     }
 }
+
+/* Select design */
+
+#staff_id {
+    width: 100%;
+    padding: 2px 4px;
+    border: 1px solid rgba(255, 227, 227, 0.89);
+    border-radius: 5px;
+    background-color: #d4eaf5;
+    color: #333;
+    appearance: none; /* Remove default arrow icon in some browsers */
+    -webkit-appearance: none; /* For Webkit browsers */
+    -moz-appearance: none; /* For Firefox */
+    cursor: pointer;
+    outline: none;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s;
+    position: relative;
+    font-size: 16px;
+}
+
+#staff_id:hover {
+    background-color: #f6c6c6;
+}
+
+#staff_id:focus {
+    background-color: #d1dbff;
+}
+
+/* Add a custom arrow icon using pseudo-elements */
+#staff_id::-ms-expand {
+    display: none;
+}
+
+#staff_id::after {
+    content: '\25BC'; /* Unicode arrow character */
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    pointer-events: none; /* Make sure clicks pass through */
+    color: #333;
+}
+
+/* Styling the options when hovered */
+#staff_id option:hover {
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+/* Styling the options when they are active (clicked or selected with keyboard) */
+#staff_id option:active, #staff_id option:checked {
+    background-color: #e0e0e0;
+    color: #333;
+}
+
+/* This changes the background color of the option elements when the select is open */
+#staff_id option {
+    background-color: #f8f8f8;
+    color: #333;
+}
+
+/* For Firefox - to change the background color of the dropdown */
+#staff_id:-moz-focusring {
+    color: transparent;
+    text-shadow: 0 0 0 #333;
+}
+
 
 /* CSS for screens smaller than 1200px */
 @media (max-width: 1199px) {
@@ -303,3 +377,8 @@ li {
         font-size: 10px;
     }
 }
+
+.selected-cell {
+    background-color: #aaddff;  /* or any color you prefer */
+}
+

@@ -1,0 +1,71 @@
+{% extends BASE_TEMPLATE %}
+{% load i18n %}
+{% load static %}
+{% block customCSS %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/app_admin/user_profile.css' %}"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+{% endblock %}
+{% block title %}
+    Staff Members List
+{% endblock %}
+{% block description %}
+    {% trans 'List of all staff members' %}.
+{% endblock %}
+{% block body %}
+    <section class="content content-wrapper">
+        <div class="profile-container">
+            <section class="profile-section">
+                <div class="section-header">
+                    <h2 class="section-header-itm">{% trans 'Staff Members' %}</h2>
+                    <div class="buttons-container section-header-itm">
+                        <a href="{{ btn_staff_me_link }}"
+                           class="modify-btn button-color-purple">
+                            {{ btn_staff_me }}
+                        </a>
+                        <a href="{% url 'appointment:create_new_staff_member' %}"
+                           class="modify-btn button-color-green">
+                            <i class="fas fa-add"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="responsive-table-container">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>{% trans 'Name' %}</th>
+                            <th>{% trans 'Email' %}</th>
+                            <th>{% trans 'Details' %}</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for staff_member in staff_members %}
+                            <tr>
+                                <td>{{ staff_member.user.first_name }} {{ staff_member.user.last_name }}</td>
+                                <td>{{ staff_member.user.email }}</td>
+                                <td><a href="{% url 'appointment:user_profile' staff_member.user.id %}"
+                                       class="modify-btn button-color-blue">{% trans 'View Profile' %}</a></td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="3">{% trans 'No staff members found' %}.</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            <div class="messages" style="margin: 20px 0">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
+                             role="alert">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+    </section>
+{% endblock %}
+
+{% block customJS %}
+    <script src="{% static 'js/js-utils.js' %}"></script>
+{% endblock %}

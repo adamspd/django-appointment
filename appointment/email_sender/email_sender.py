@@ -21,7 +21,6 @@ def has_required_email_settings():
         if not hasattr(settings, setting_name):
             print(f"Warning: '{setting_name}' not found in settings. Email functionality will be disabled.")
             return False
-
     return True
 
 

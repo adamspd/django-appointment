@@ -1,0 +1,56 @@
+.working-hours-form-wrapper {
+    margin: 0 auto;
+    padding-top: 50px;
+}
+
+.wh-form-content {
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    max-width: 500px;
+    margin: 0 auto;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.working-hours-form-wrapper h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.working-hours-form-wrapper form {
+    display: flex;
+    flex-direction: column;
+}
+
+.working-hours-form-wrapper form p {
+    margin-bottom: 20px;
+}
+
+.working-hours-form-wrapper form label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+.working-hours-form-wrapper form input,
+.working-hours-form-wrapper form select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.working-hours-form-wrapper form button {
+    align-self: center;
+    padding: 10px 20px;
+    cursor: pointer;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.working-hours-form-wrapper form button:hover {
+    background-color: #0056b3;
+}

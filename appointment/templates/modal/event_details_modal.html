@@ -1,0 +1,33 @@
+{% load i18n %}
+<!-- Event Details Modal -->
+<div class="modal fade" id="eventDetailsModal" tabindex="-1" role="dialog" aria-labelledby="eventModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="eventModalLabel">{% trans 'Event Details' %}</h5>
+                <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"
+                        onclick="closeModal()"></button>
+            </div>
+            <div class="modal-body" id="eventModalBody">
+                <!-- Event details will be populated here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" id="eventGoBtn"
+                        onclick="goToEvent()">{% trans 'Go' %}</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                        onclick="closeModal()">{% trans 'Close' %}
+                </button>
+                <button type="button" class="btn btn-secondary" id="eventCancelBtn" style="display: none;"
+                        onclick="cancelEdit()">{% trans 'Cancel' %}
+                </button>
+                <button type="button" class="btn btn-primary" id="eventEditBtn"
+                        onclick="toggleEditMode()">{% trans 'Edit' %}</button>
+                <button type="button" class="btn btn-primary" id="eventSubmitBtn" style="display: none;"
+                        onclick="submitChanges()">{% trans 'Submit' %}
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>

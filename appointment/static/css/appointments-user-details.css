@@ -71,10 +71,46 @@
 }
 
 /* Set margins and display for phone number, address, and additional information input fields */
-.phone-number, .address, .additional-information {
+.address, .additional-information {
     margin-top: 20px;
     display: grid;
 }
+
+.phone-number {
+    margin-bottom: 15px;
+}
+
+.phone-input-container {
+    display: flex;
+    align-items: center; /* vertically center the items */
+}
+
+.phone-number select {
+    margin-right: 10px; /* add some space between them */
+}
+
+.phone-number input {
+    flex: 1; /* take available space */
+}
+
+.phone-number select {
+    padding: 6px 10px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    appearance: none; /* remove default appearance */
+    background-color: #fff;
+    margin-right: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #333;
+    transition: border-color 0.3s;
+}
+
+.phone-number select:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
 
 /* Set font styles for input labels */
 label {
@@ -127,13 +163,15 @@ a {
     border-radius: 5px;
 }
 
+.name-email {
+    margin-bottom: 15px;
+}
+
 /* Set width, margin and border */
 .user-info-input input[type="text"],
 .user-info-input input[type="email"],
-.user-info-input input[type="tel"],
 .user-info-input textarea {
     width: 100%;
-    margin-bottom: 15px;
     border: 1px solid #a2a2a2;
 }
 
@@ -157,3 +195,68 @@ a {
     font-size: 16px;
     line-height: 1.8;
 }
+
+/* Media query for screens up to 795px */
+@media only screen and (max-width: 795px) {
+
+    /* Adjust the page body layout for smaller screens */
+    .page-body {
+        flex-direction: column;
+    }
+
+    /* Adjust the flex properties for smaller screens */
+    .appointment-user-info,
+    .service-description-and-pay {
+        flex: none; /* reset the flex */
+        width: 100%; /* take full width */
+    }
+
+    /* Remove the margin for service description and pay */
+    .service-description-and-pay {
+        margin-left: 0;
+        margin-bottom: 20px;
+    }
+
+    /* Adjust the grid for name and email for smaller screens */
+    .name-email {
+        grid-template-columns: 1fr; /* stack them vertically */
+    }
+
+    /* Adjust the phone number container */
+    .phone-input-container {
+        flex-direction: column;
+        align-items: stretch; /* make them take full width */
+    }
+
+    .phone-number select,
+    .phone-number input {
+        margin-right: 0;
+        margin-bottom: 10px;
+    }
+
+    /* Adjust the user info input fields */
+    .user-info-input {
+        padding: 20px 10px;
+    }
+
+    /* Adjust the service description content */
+    .service-description-content {
+        grid-template-rows: repeat(3, auto); /* adjust the grid rows */
+    }
+
+    /* Adjust the total layout */
+    .total {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+
+@media only screen and (max-width: 450px) {
+
+    /* Adjust the page body layout for smaller screens */
+    .main-container {
+        width: 97%;
+        margin: 0 !important;
+    }
+}
+
