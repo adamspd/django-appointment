@@ -1,0 +1,49 @@
+{% extends BASE_TEMPLATE %}
+{% load i18n %}
+{% load static %}
+
+{% block customCSS %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/app_admin/staff_member.css' %}"/>
+{% endblock %}
+
+{% block body %}
+    <section class="content content-wrapper">
+        <div class="staff-form-wrapper">
+            <div class="staff-form-content">
+                <h2>{% trans 'Staff Personal Information' %}</h2>
+                <form id="updatePersonalInfoForm" method="post" action="">
+                    {% csrf_token %}
+
+                    <div class="form-group">
+                        {{ form.first_name.label_tag }}
+                        {{ form.first_name }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.last_name.label_tag }}
+                        {{ form.last_name }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.email.label_tag }}
+                        {{ form.email }}
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">{% trans 'Update' %}</button>
+                </form>
+                <div class="messages" style="margin: 20px 0">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
+                                 role="alert">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+
+{% block customJS %}
+    <script src="{% static 'js/js-utils.js' %}"></script>
+{% endblock %}

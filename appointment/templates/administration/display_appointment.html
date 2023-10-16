@@ -1,0 +1,92 @@
+{% extends BASE_TEMPLATE %}
+{% load i18n %}
+{% load static %}
+{% block customCSS %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/app_admin/display_appointment.css' %}"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+{% endblock %}
+{% block title %}
+    {{ page_title }}
+{% endblock %}
+{% block description %}
+    {{ page_description }}
+{% endblock %}
+{% block body %}
+    <section class="content content-wrapper">
+        <div class="appointment-display-content">
+            <div class="app-content">
+                <div class="appointment-card">
+                    <h2>{{ page_title }}</h2>
+                    <div class="appointment-details">
+                        <div class="appointment-detail hover-element">
+                            <i class="fas fa-calendar-alt"></i>
+                            <strong>{% trans 'Date' %}:</strong> {{ appointment.get_date }}
+                        </div>
+                        <div class="appointment-detail hover-element">
+                            <i class="fas fa-clock"></i>
+                            <strong>{% trans 'Start time' %}:</strong> {{ appointment.get_start_time|time:"g:i A" }}
+                        </div>
+                        <div class="appointment-detail hover-element">
+                            <i class="fas fa-clock"></i>
+                            <strong>{% trans 'End time' %}:</strong> {{ appointment.get_end_time|time:"g:i A" }}
+                        </div>
+                        <div class="appointment-detail hover-element">
+                            <i class="fas fa-hands-helping"></i>
+                            <strong>{% trans 'Service' %}:</strong> {{ appointment.get_service_name }}
+                        </div>
+                        <div class="appointment-detail hover-element">
+                            <i class="fas fa-user"></i>
+                            <strong>{% trans 'Client' %}:</strong> {{ appointment.get_client_name }}
+                        </div>
+                        <div class="appointment-detail hover-element">
+                            <i class="fas fa-envelope"></i>
+                            <strong>{% trans 'Email' %}:</strong> {{ appointment.client.email }}
+                        </div>
+                        <div class="appointment-detail hover-element">
+                            <i class="fas fa-phone"></i>
+                            <strong>{% trans 'Phone' %}:</strong> {{ appointment.phone }}
+                        </div>
+                        <div class="appointment-detail hover-element">
+                            <i class="fas fa-comment"></i>
+                            <strong>{% trans 'Want reminder' %}:</strong> {{ appointment.want_reminder }}
+                        </div>
+                        <div class="appointment-detail hover-element">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <strong>{% trans 'Client address' %}:</strong> {{ appointment.address }}
+                        </div>
+                        <div class="appointment-detail hover-element">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>{% trans 'Additional client info' %}:</strong> {{ appointment.additional_info }}
+                        </div>
+                        <div class="appointment-detail {% if appointment.is_paid %} is-paid-true {% else %} is-paid-false {% endif %}">
+                            <i class="fas fa-money-bill-wave"></i>
+                            <strong>{% trans 'Is paid' %}:</strong> {{ appointment.is_paid }}
+                        </div>
+                        <div class="appointment-detail hover-element">
+                            <i class="fas fa-dollar-sign"></i>
+                            <strong>{% trans 'Service price' %}:</strong> {{ appointment.get_appointment_amount_to_pay_str }}
+                        </div>
+                    </div>
+                </div>
+                <div class="messages" style="margin: 20px 0">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
+                                 role="alert">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+{% block customJS %}
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js'></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.43/moment-timezone-with-data.min.js"
+            integrity="sha512-KCI+fR3bUbOcU0ZC3UcaPwCLuO5LEkukaWBYddmhLPXgpAPWJ8j6pJLmTI6t9CMYczE4YCrWZQ/wrZz/JsyC+A=="
+            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.5/index.global.min.js'></script>
+
+    <script src="{% static 'js/js-utils.js' %}"></script>
+
+{% endblock %}
