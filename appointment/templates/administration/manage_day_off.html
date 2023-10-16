@@ -1,0 +1,146 @@
+{% extends BASE_TEMPLATE %}
+{% load i18n %}
+{% load static %}
+
+{% block customCSS %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/app_admin/days_off.css' %}"/>
+    <!-- jQuery UI CSS -->
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+{% endblock %}
+
+{% block body %}
+    <section class="content content-wrapper">
+        <div class="days-off-form-wrapper">
+            <div class="do-form-content">
+                <h2>{% trans "Manage Days Off" %}</h2>
+
+                <form method="post" action="">
+                    {% csrf_token %}
+                    <!-- Staff Member -->
+                    {% if error_message %}
+                        <script type="text/javascript">
+                            document.addEventListener("DOMContentLoaded", function () {
+                                showErrorModal("{{ error_message }}");
+                            });
+                        </script>
+                    {% endif %}
+
+                    {% if days_off_form.staff_member %}
+                        <div class="form-group">
+                            <label for="{{ days_off_form.staff_member.id_for_label }}">{% trans 'Staff Member' %}:</label>
+                            {{ days_off_form.staff_member }}
+                        </div>
+                    {% endif %}
+
+                    <!-- Start Date Display (read-only) -->
+                    <div class="form-group">
+                        <label for="{{ day_off_form.start_date.id_for_label }}_display">{% trans 'Start Date' %}:</label>
+                        <input type="text" id="{{ day_off_form.start_date.id_for_label }}_display"
+                               class="datepicker-display"
+                               value="{{ day_off_form.start_date.value }}" readonly>
+                        <!-- Actual value to be submitted -->
+                        <input type="hidden" id="{{ day_off_form.start_date.id_for_label }}"
+                               name="{{ day_off_form.start_date.name }}" class="datepicker-actual"
+                               value="{{ day_off_form.start_date.value }}">
+                    </div>
+
+                    <!-- End Date Display (read-only) -->
+                    <div class="form-group">
+                        <label for="{{ day_off_form.end_date.id_for_label }}_display">{% trans 'End Date' %}:</label>
+                        <input type="text" id="{{ day_off_form.end_date.id_for_label }}_display"
+                               class="datepicker-display"
+                               value="{{ day_off_form.end_date.value }}" readonly>
+                        <!-- Actual value to be submitted -->
+                        <input type="hidden" id="{{ day_off_form.end_date.id_for_label }}"
+                               name="{{ day_off_form.end_date.name }}" class="datepicker-actual"
+                               value="{{ day_off_form.end_date.value }}">
+                    </div>
+
+
+                    <div class="form-group">
+                        <label for="{{ day_off_form.description.id_for_label }}">{% trans 'Description' %}:</label>
+                        <input type="text" id="{{ day_off_form.description.id_for_label }}"
+                               name="{{ day_off_form.description.name }}" value="{{ day_off_form.description.value }}">
+                    </div>
+
+
+                    <button type="submit" class="btn btn-primary">{% trans "Submit" %}</button>
+                </form>
+                <div class="row-form-errors" style="margin: 10px 0">
+                    {% if days_off_form.errors %}
+                        <div class="alert alert-danger">
+                            {{ days_off_form.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="messages" style="margin: 20px 0">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
+                                 role="alert">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                {% include 'modal/error_modal.html' %}
+            </div>
+        </div>
+    </section>
+{% endblock %}
+
+{% block customJS %}
+    <!-- JS -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $.datepicker._defaults.monthNamesShort = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"];
+
+            function updateHiddenField(displayElement, hiddenElement) {
+                const displayedDate = displayElement.val();
+                if (displayedDate) {
+                    const parsedDate = $.datepicker.parseDate('M. dd, yy', displayedDate);
+                    hiddenElement.val($.datepicker.formatDate('yy-mm-dd', parsedDate));
+                }
+            }
+
+            // Initialize datepicker
+            $("#id_start_date_display, #id_end_date_display").datepicker({
+                dateFormat: 'M. dd, yy',
+                onSelect: function () {
+                    const hiddenElementId = $(this).attr('id').replace('_display', '');
+                    updateHiddenField($(this), $('#' + hiddenElementId));
+                }
+            });
+
+            // Format the hidden fields correctly on page load
+            updateHiddenField($("#id_start_date_display"), $("#id_start_date"));
+            updateHiddenField($("#id_end_date_display"), $("#id_end_date"));
+        });
+
+        $('form').on('submit', function (event) {
+            event.preventDefault();
+
+            const formData = $(this).serialize();
+
+            $.ajax({
+                url: $(this).attr('action'),
+                type: 'POST',
+                data: formData,
+                dataType: 'json',
+                success: function (response) {
+                    if (response.success) {
+                        window.location.href = response.redirect_url;
+                    } else {
+                        showErrorModal(error.responseJSON.message);
+                    }
+                },
+                error: function (error) {
+                    showErrorModal(error.responseJSON.message);
+                }
+            });
+        });
+    </script>
+    <script src="{% static 'js/modal/error_modal.js' %}"></script>
+    <script src="{% static 'js/js-utils.js' %}"></script>
+{% endblock %}

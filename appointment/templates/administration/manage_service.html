@@ -1,0 +1,34 @@
+{% extends BASE_TEMPLATE %}
+{% load i18n %}
+{% load static %}
+
+{% block customCSS %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/app_admin/service.css' %}"/>
+{% endblock %}
+
+{% block body %}
+    <section class="content content-wrapper">
+        <div class="service-form-wrapper">
+            <div class="service-form-content">
+                <h2>{{ page_title }}</h2>
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button type="submit" class="btn btn-primary">{{ btn_text }}</button>
+                </form>
+                <div class="messages" style="margin: 20px 0">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
+                                 role="alert">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+
+{% block customJS %}
+    <script src="{% static 'js/js-utils.js' %}"></script>
+{% endblock %}

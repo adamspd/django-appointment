@@ -1,15 +1,49 @@
+# Include files
 include LICENSE
 include README.md
-recursive-include appointment/templates/appointment *.html
-recursive-include appointment/templates/base_templates *.html
-recursive-include appointment/templates/email_sender *.html
+include requirements.txt
+include setup.cfg
+include setup.py
+include pyproject.toml
+include MANIFEST.in
+
+# Include appointment main files
+include appointment/__init__.py
+include appointment/admin.py
+include appointment/apps.py
+include appointment/decorators.py
+include appointment/email_messages.py
+include appointment/forms.py
+include appointment/logger_config.py
+include appointment/models.py
+include appointment/services.py
+include appointment/settings.py
+include appointment/urls.py
+include appointment/views.py
+include appointment/views_admin.py
+
+# Recursive includes
+recursive-include appointment/email_sender *.py
 recursive-include appointment/static/css *.css
 recursive-include appointment/static/js *.js
 recursive-include appointment/static/img *.jpg
-recursive-include appointment/email_sender *.py
+recursive-include appointment/templates/ *.html
 recursive-include appointment/tests *.py
-recursive-include appointment *.py
-recursive-include docs *
-include logger_config.py
-include release_notes.md
+recursive-include appointment/utils *.py
+
+# Exclusions
+exclude release_notes.md
+exclude check_version.py
+exclude manage.py
+exclude db.sqlite3
+exclude .gitignore
+exclude .git
+exclude .svn
+exclude .hg
 exclude appointment/__pycache__
+exclude appointment/migrations/__pycache__
+
+# Recursive exclusions
+recursive-exclude appointment/migrations *.py
+recursive-exclude appointments *.py
+recursive-exclude appointment *.pyc

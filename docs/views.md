@@ -1,4 +1,4 @@
-- [Django Appointment System](#django-appointment-system)
+- [Django Appointment](#django-appointment-system) 
   * [Views](#views)
     + [get_available_slots_ajax](#get-available-slots-ajax)
     + [get_next_available_date_ajax](#get-next-available-date-ajax)
@@ -15,7 +15,7 @@
     + [default_thank_you](#default-thank-you)
 
 
-# Django Appointment System
+# Django Appointment 📦
 
 ## Views
 

@@ -1,4 +1,4 @@
-{% extends APPOINTMENT_BASE_TEMPLATE %}
+{% extends BASE_TEMPLATE %}
 {% load i18n %}
 {% load static %}
 {% block customCSS %}
@@ -20,8 +20,8 @@
                 <li>{% trans 'Service' %}: {{ appointment.get_service_name }}</li>
                 <li>{% trans 'Appointment ID' %}: {{ appointment.id_request }}</li>
                 <li>{% trans 'Appointment Date' %}: {{ appointment.get_appointment_date }}</li>
-                <li>{% trans 'Appointment Time' %}: {{ appointment.appointment_request.get_start_time }}</li>
-                <li>{% trans 'Duration' %}: {{ appointment.appointment_request.get_service_duration }}</li>
+                <li>{% trans 'Appointment Time' %}: {{ appointment.get_start_time }}</li>
+                <li>{% trans 'Duration' %}: {{ appointment.get_service_duration }}</li>
             </ul>
         </div>
         {% if messages %}
@@ -31,4 +31,7 @@
             {% endfor %}
         {% endif %}
     </div>
+{% endblock %}
+{% block customJS %}
+    <script src="{% static 'js/js-utils.js' %}"></script>
 {% endblock %}
