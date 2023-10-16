@@ -6,8 +6,10 @@
     <meta charset="UTF-8">
     <title>{% block title %}{% trans "Appointment application" %}{% endblock %}</title>
     <meta name="description" content="{% block description %}Chosing a date page to take an appointment.{% endblock %}">
-    <meta name="keywords" content="appointment, appointment application, adams pierre david">
+    <meta name="keywords" content="{% block keyword %}appointment, adams pierre david{% endblock %}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="{% block author %}Adams Pierre David{% endblock %}">
+    {% block customMetaTag %}{% endblock %}
 
     <!-- Stylesheets -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"

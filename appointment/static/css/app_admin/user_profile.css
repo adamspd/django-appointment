@@ -1,0 +1,334 @@
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #fff;
+}
+
+.profile-container {
+    margin: 0 auto;
+    background-color: #fff;
+    border-radius: 8px;
+}
+
+.profile-section {
+    border: 1px solid #e0e0e0;
+    max-width: 1000px;
+    padding: 20px;
+    margin: 0 auto 30px auto;
+    position: relative;
+    background-color: #fff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 6px;
+    transition: all 0.3s;
+}
+
+.profile-section:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.section-content-button {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
+
+.button-color-blue {
+    background: linear-gradient(90deg, #007BFF, #0056b3);
+}
+
+.button-color-red {
+    background: linear-gradient(90deg, #dc3545, #c82333);
+}
+
+.button-color-green {
+    background: linear-gradient(90deg, #28a745, #218838);
+}
+
+.button-color-yellow {
+    background: linear-gradient(90deg, #ffc107, #d39e00);
+}
+
+.button-color-purple {
+    background: linear-gradient(90deg, #6f42c1, #5a32a3);
+}
+
+.button-color-orange {
+    background: linear-gradient(90deg, #fd7e14, #e66400);
+}
+
+.button-color-teal {
+    background: linear-gradient(90deg, #20c997, #17a2b8);
+}
+
+.button-color-pink {
+    background: linear-gradient(90deg, #e83e8c, #d63384);
+}
+
+.button-color-gray {
+    background: linear-gradient(90deg, #6c757d, #5a636e);
+}
+
+
+.modify-btn {
+    color: #fff;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.3s; /* Consistent transition */
+}
+
+.button-color-blue:hover {
+    background: linear-gradient(90deg, #0056b3, #007BFF); /* Reverse gradient on hover */
+    transform: scale(1.05); /* Slight scale on hover for engagement */
+    color: #babaf5;
+}
+
+.button-color-red:hover {
+    background: linear-gradient(90deg, #c82333, #dc3545);
+    transform: scale(1.05);
+    color: #efcece;
+}
+
+.button-color-green:hover {
+    background: linear-gradient(90deg, #218838, #28a745);
+    transform: scale(1.05);
+    color: #c3e6cb;
+}
+
+.button-color-yellow:hover {
+    background: linear-gradient(90deg, #d39e00, #ffc107); /* Reverse gradient on hover */
+    transform: scale(1.05); /* Slight scale on hover for engagement */
+    color: #ffe58a;
+}
+
+.button-color-purple:hover {
+    background: linear-gradient(90deg, #5a32a3, #6f42c1);
+    transform: scale(1.05);
+    color: #d1b6e1;
+}
+
+.button-color-orange:hover {
+    background: linear-gradient(90deg, #e66400, #fd7e14);
+    transform: scale(1.05);
+    color: #ffcc99;
+}
+
+.button-color-teal:hover {
+    background: linear-gradient(90deg, #17a2b8, #20c997);
+    transform: scale(1.05);
+    color: #ace2e1;
+}
+
+.button-color-pink:hover {
+    background: linear-gradient(90deg, #d63384, #e83e8c);
+    transform: scale(1.05);
+    color: #f2a6c6;
+}
+
+.button-color-gray:hover {
+    background: linear-gradient(90deg, #5a636e, #6c757d);
+    transform: scale(1.05);
+    color: #d1d5d9;
+}
+
+
+.section-content {
+    margin-top: 20px;
+}
+
+.profile-section h2 {
+    margin-bottom: 20px; /* Space between the title and content */
+}
+
+.profile-section p {
+    line-height: 1.5em; /* Enhanced line spacing for readability */
+    margin-bottom: 15px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 16px;
+    text-align: left;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 6px;
+    overflow: hidden; /* To respect border-radius in tables */
+}
+
+table th, table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #ddd;
+    transition: background-color 0.3s; /* Smooth transition for hover effect */
+}
+
+table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+table tbody tr:hover {
+    background-color: #f5f5f5;
+}
+
+
+/* Adding gradient backgrounds for a more vibrant look */
+.profile-container {
+    background-image: linear-gradient(to bottom right, #fff, #f7f9fc);
+}
+
+/* Additional hover effect for the sections */
+.profile-section:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+
+/* Elegant & smooth transitions for all elements */
+* {
+    transition: all 0.3s ease-out;
+}
+
+/* Button hover effects for a dynamic touch */
+.modify-btn:hover {
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+    transform: scale(1.05) translateY(-3px);
+}
+
+/* Elevate the table headers for a layered appearance */
+table th {
+    position: relative;
+    z-index: 2;
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.06);
+}
+
+/* Subtle hover effects for table rows */
+table tbody tr {
+    position: relative;
+    z-index: 1;
+    transform: scale(1);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+table tbody tr:hover {
+    transform: scale(1.01);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Animate the appearance of the profile sections for a smooth load-in effect */
+@keyframes slideInFromLeft {
+    0% {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+    100% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.profile-section {
+    animation: slideInFromLeft 0.6s forwards;
+}
+
+/* Staggered animation delays for each section for a sequential load-in */
+.profile-section:nth-child(1) {
+    animation-delay: 0.2s;
+}
+
+.profile-section:nth-child(2) {
+    animation-delay: 0.4s;
+}
+
+.profile-section:nth-child(3) {
+    animation-delay: 0.6s;
+}
+
+.profile-section:nth-child(4) {
+    animation-delay: 0.8s;
+}
+
+.profile-section:nth-child(5) {
+    animation-delay: 1.0s;
+}
+
+/* Consider adding this for a smoother feel when scrolling */
+body {
+    scroll-behavior: smooth;
+}
+
+
+/* Responsive design for tablets and mobile devices */
+@media screen and (max-width: 768px) {
+    .profile-container {
+        margin: 20px 10px;
+        padding: 15px;
+    }
+
+    .profile-section {
+        padding: 15px;
+    }
+
+    .section-content-button {
+        top: 10px;
+        right: 10px;
+    }
+
+    .modify-btn {
+        padding: 6px 10px;
+        font-size: 14px;
+    }
+
+    table th, table td {
+        padding: 10px;
+    }
+
+    .profile-section h2 {
+        font-size: 20px;
+        margin-bottom: 15px;
+    }
+
+    .profile-section p {
+        font-size: 14px;
+    }
+
+    .responsive-table-container {
+        overflow-x: auto; /* Allows horizontal scrolling */
+        -webkit-overflow-scrolling: touch; /* Smooth scroll for touch devices */
+    }
+
+    /* Optional: Add a shadow on the right to indicate more content */
+    .responsive-table-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 10px;
+        height: 100%;
+        box-shadow: -5px 0 10px rgba(0, 0, 0, 0.05);
+        pointer-events: none; /* Ensures it doesn't interfere with other interactions */
+    }
+}
+
+.buttons-container {
+    display: flex;
+    gap: 5px; /* Provides space between the buttons */
+}
+
+@media screen and (max-width: 487px) {
+    .section-content-button.modify-btn {
+        padding: 4px 8px;
+        font-size: 12px;
+    }
+
+    .buttons-container {
+        gap: 3px;
+    }
+}
+

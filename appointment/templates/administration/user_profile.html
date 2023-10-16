@@ -1,0 +1,270 @@
+{% extends BASE_TEMPLATE %}
+{% load i18n %}
+{% load static %}
+{% block customCSS %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/app_admin/user_profile.css' %}"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+{% endblock %}
+{% block title %}
+    {{ page_title }}
+{% endblock %}
+{% block description %}
+    {{ page_description }}
+{% endblock %}
+{% block body %}
+    <section class="content content-wrapper">
+        <div class="profile-container">
+            <div class="messages" style="padding: 20px 0">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
+                             role="alert">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            <section class="profile-section">
+                {% translate "Confirm Deletion" as modal_title %}
+                {% translate "Delete" as delete_btn_modal %}
+
+                <h2>{% trans 'Personal Information' %}</h2>
+                <!-- Display fields from PersonalInformationForm -->
+                <div class="section-content">
+                    <p><strong>{% trans 'First Name' %}:</strong> {{ user.first_name }}</p>
+                    <p><strong>{% trans 'Last Name' %}:</strong> {{ user.last_name }}</p>
+                    <p><strong>{% trans 'Email' %}:</strong> {{ user.email }}</p>
+                </div>
+                <a href="{% url 'appointment:update_user_info' user.id %}"
+                   class="section-content-button modify-btn button-color-blue">
+                    <i class="fas fa-pen"></i>
+                </a>
+            </section>
+
+            <!-- Appointment Information Section -->
+            <section class="profile-section">
+                <h2>{% trans 'Appointment Information' %}</h2>
+                <small>
+                    {{ service_msg }}
+                </small>
+                {% if staff_member %}
+                    <div class="section-content">
+                        <p>
+                            <strong>{% trans 'Slot duration' %}:</strong> {{ staff_member.get_slot_duration_str }}
+                            <i class="fas fa-info-circle" data-toggle="tooltip"
+                               title="{{ slot_duration_help_text }}"></i>
+                        </p>
+                        <p><strong>{% trans 'General start time' %}:</strong> {{ staff_member.get_lead_time }}</p>
+                        <p><strong>{% trans 'General end time' %}:</strong> {{ staff_member.get_finish_time }}</p>
+                        <p>
+                            <strong>{% trans 'Weekend days you work' %}:</strong> {{ staff_member.get_weekend_days_worked_str }}
+                        </p>
+
+                        <p>
+                            <strong>{% trans 'Appointment buffer time' %}:</strong> {{ staff_member.get_appointment_buffer_time_str }}
+                            <i class="fas fa-info-circle" data-toggle="tooltip" title="{{ buffer_time_help_text }}"></i>
+                        </p>
+
+                    </div>
+                    <a href="{% url 'appointment:add_or_update_staff_info' staff_member.user.id %}"
+                       class="section-content-button modify-btn button-color-blue">
+                        <i class="fas fa-pen"></i>
+                    </a>
+                {% else %}
+                    <div class="section-content">
+                        <p>{% trans 'No staff member information yet for this user' %}.</p>
+                    </div>
+                    <a href="{% url 'appointment:add_or_update_staff_info' user.id %}"
+                       class="section-content-button modify-btn button-color-green">
+                        <i class="fas fa-add"></i>
+                    </a>
+                {% endif %}
+
+            </section>
+
+            <!-- Days Off Information Section -->
+            <section class="profile-section">
+                <h2>{% trans 'Days Off' %}</h2>
+                <a href="{% url 'appointment:add_day_off' staff_user_id=user.id %}"
+                   class="section-content-button modify-btn button-color-green">
+                    <i class="fas fa-add"></i>
+                </a>
+                <small>
+                    {% trans "Days off are days you're not working, you need to set them for holidays as well so clients don't book you those days." %}
+                </small>
+                <div class="responsive-table-container">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>{% trans 'Start Date' %}</th>
+                            <th>{% trans 'End Date' %}</th>
+                            <th>{% trans 'Description' %}</th>
+                            <th>{% trans 'Action' %}</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for day_off in days_off %}
+                            <tr>
+                                <td>{{ day_off.start_date }}</td>
+                                <td>{{ day_off.end_date }}</td>
+                                <td>{{ day_off.description }}</td>
+                                <td>
+                                    <div class="buttons-container">
+                                        {% if superuser %}
+                                            <a href="{% url 'appointment:update_day_off_id' day_off_id=day_off.id staff_user_id=user.id %}"
+                                               class="modify-btn button-color-blue">
+                                                <i class="fas fa-pen"></i>
+                                            </a>
+                                        {% else %}
+                                            <a href="{% url 'appointment:update_day_off' day_off_id=day_off.id %}"
+                                               class="modify-btn button-color-blue">
+                                                <i class="fas fa-pen"></i>
+                                            </a>
+                                        {% endif %}
+                                        {% translate "Are you sure you want to delete this working hours?" as d_modal_message %}
+                                        {% if superuser %}
+                                            <a href="javascript:void(0)"
+                                               onclick="showModal('{{ modal_title }}', '{{ d_modal_message }}', '{{ delete_btn_modal }}', '{% url 'appointment:delete_day_off_id' day_off_id=day_off.id staff_user_id=user.id %}')"
+                                               class="modify-btn button-color-red">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        {% else %}
+                                            <a href="javascript:void(0)"
+                                               onclick="showModal('{{ modal_title }}', '{{ d_modal_message }}', '{{ delete_btn_modal }}', '{% url 'appointment:delete_day_off' day_off_id=day_off.id %}')"
+                                               class="modify-btn button-color-red">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="4">{% trans 'No days off have been set' %}.</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Working Hours Information Section -->
+            <section class="profile-section">
+                <h2>{% trans 'Working Hours' %}</h2>
+                <a href="{% url 'appointment:add_working_hours_id' user.id %}"
+                   class="section-content-button modify-btn button-color-green">
+                    <i class="fas fa-add"></i>
+                </a>
+                <small>
+                    {% trans "Note: If you are a staff member, your working hours will be used to determine when you are available for appointments." %}
+                </small>
+                <div class="responsive-table-container">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>{% trans 'Day' %}</th>
+                            <th>{% trans 'Start Time' %}</th>
+                            <th>{% trans 'End Time' %}</th>
+                            <th>{% trans 'Action' %}</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for working_hour in working_hours %}
+                            <tr>
+                                <td>{{ working_hour.get_day_of_week_str }}</td>
+                                <td>{{ working_hour.start_time|time:"g:i A" }}</td>
+                                <td>{{ working_hour.end_time|time:"g:i A" }}</td>
+                                <td>
+                                    <div class="buttons-container">
+                                        {% if superuser %}
+                                            <a href="{% url 'appointment:update_working_hours_id' working_hours_id=working_hour.id staff_user_id=user.id %}"
+                                               class="modify-btn button-color-blue">
+                                                <i class="fas fa-pen"></i>
+                                            </a>
+                                        {% else %}
+                                            <a href="{% url 'appointment:update_working_hours' working_hours_id=working_hour.id %}"
+                                               class="modify-btn button-color-blue">
+                                                <i class="fas fa-pen"></i>
+                                            </a>
+                                        {% endif %}
+                                        {% translate "Are you sure you want to delete this working hours?" as w_modal_message %}
+                                        {% if superuser %}
+                                            <a href="javascript:void(0)"
+                                               onclick="showModal('{{ modal_title }}', '{{ w_modal_message }}', '{{ delete_btn_modal }}', '{% url 'appointment:delete_working_hours_id' working_hours_id=working_hour.id staff_user_id=user.id %}')"
+                                               class="modify-btn button-color-red">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        {% else %}
+                                            <a href="javascript:void(0)"
+                                               onclick="showModal('{{ modal_title }}', '{{ w_modal_message }}', '{{ delete_btn_modal }}', '{% url 'appointment:delete_working_hours' working_hours_id=working_hour.id %}')"
+                                               class="modify-btn button-color-red">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="4">{% trans 'No working hours have been set' %}.</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Service Information Section -->
+            <section class="profile-section">
+                <h2>{% trans 'Service Offered' %}</h2>
+                <small>
+                    {% if not superuser %}
+                        {% trans "To add/modify a new service, make a request to an admin." %}
+                        {% trans "Changes made in one service will change it for every staff member." %}
+                    {% endif %}
+                </small>
+                <div class="responsive-table-container">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>{% trans 'Name' %}</th>
+                            <th>{% trans 'Description' %}</th>
+                            <th>{% trans 'Duration' %}</th>
+                            <th>{% trans 'Price' %}</th>
+                            <th>{% trans 'Down Payment' %}</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for service in services_offered %}
+                            <tr>
+                                <td>{{ service.name }}</td>
+                                <td>{{ service.description }}</td>
+                                <td>{{ service.get_duration }}</td>
+                                <td>{{ service.get_price_text }}</td>
+                                <td>{{ service.get_down_payment_str }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="5">{% trans 'No service offered yet' %}.</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        {% include 'modal/confirm_modal.html' %}
+    </section>
+{% endblock %}
+{% block customJS %}
+    <!-- Bootstrap's JS and CSS (if not already included) -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <!-- Our custom modal JS -->
+    <script src="{% static 'js/modal/confirm_modal.js' %}"></script>
+
+    <script src="{% static 'js/js-utils.js' %}"></script>
+{% endblock %}
+

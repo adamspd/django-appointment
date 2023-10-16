@@ -1,0 +1,41 @@
+{% extends BASE_TEMPLATE %}
+{% load i18n %}
+{% load static %}
+{% block customCSS %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/verification_code.css' %}"/>
+{% endblock %}
+{% block title %}
+    {% trans 'Enter Verification Code' %}
+{% endblock %}
+{% block description %}
+    {% trans 'Enter Verification Code' %}
+{% endblock %}
+{% block body %}
+    <section class="content content-wrapper">
+        <div class="main-container">
+            <div class="body-container">
+                <h1>{% trans 'Enter Verification Code' %}</h1>
+                <p>{% trans "We've sent a verification code to your email. Please enter it below" %}:</p>
+                <form method="post"
+                      action="{% url 'appointment:email_change_verification_code' %}">
+                    {% csrf_token %}
+                    <label>{% trans 'Code' %}:
+                        <input type="text" name="code" placeholder="X1Y2Z3" required>
+                    </label>
+                    <button class="btn btn-primary" type="submit">{% trans 'Submit' %}</button>
+                </form>
+            </div>
+        </div>
+        <div class="messages" style="margin: 20px 0">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
+                         role="alert">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </section>
+{% endblock %}
+{% block customJS %}
+    <script src="{% static 'js/js-utils.js' %}"></script>
+{% endblock %}

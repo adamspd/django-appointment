@@ -1,8 +1,17 @@
+# settings.py
+# Path: appointment/settings.py
+
+"""
+Author: Adams Pierre David
+Version: 2.0.0
+Since: 1.0.0
+"""
+
 from django.conf import settings
 from django.conf.global_settings import DEFAULT_FROM_EMAIL
 
-APPOINTMENT_CLIENT_MODEL = getattr(settings, 'APPOINTMENT_CLIENT_MODEL', 'auth.User')
 APPOINTMENT_BASE_TEMPLATE = getattr(settings, 'APPOINTMENT_BASE_TEMPLATE', 'base_templates/base.html')
+APPOINTMENT_ADMIN_BASE_TEMPLATE = getattr(settings, 'APPOINTMENT_ADMIN_BASE_TEMPLATE', 'base_templates/base.html')
 APPOINTMENT_WEBSITE_NAME = getattr(settings, 'APPOINTMENT_WEBSITE_NAME', 'Website')
 APPOINTMENT_PAYMENT_URL = getattr(settings, 'APPOINTMENT_PAYMENT_URL', None)
 APPOINTMENT_THANK_YOU_URL = getattr(settings, 'APPOINTMENT_THANK_YOU_URL', None)
