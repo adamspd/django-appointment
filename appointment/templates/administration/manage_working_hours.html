@@ -1,0 +1,169 @@
+{% extends BASE_TEMPLATE %}
+{% load i18n %}
+{% load static %}
+
+{% block customCSS %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/app_admin/working_hours.css' %}"/>
+    <!-- additional CSS -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.1/css/all.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.39.0/css/tempusdominus-bootstrap-4.min.css"/>
+{% endblock %}
+
+{% block body %}
+    <section class="content content-wrapper">
+        <div class="working-hours-form-wrapper">
+            <div class="wh-form-content">
+                <h2>{% trans "Manage Working Hours" %}</h2>
+                <form method="post" action="" id="workingHoursForm"
+                      data-action="{% if working_hours_instance %}update{% else %}create{% endif %}"
+                      data-working-hours-id="
+                          {% if working_hours_instance %}{{ working_hours_instance.id }}{% else %}0{% endif %}"
+                      data-staff-user-id="{% if staff_user_id %}{{ staff_user_id }}{% else %}0{% endif %}">
+                    {% csrf_token %}
+
+                    {% if working_hours_form.staff_member %}
+                        <div class="form-group">
+                            <label for="{{ working_hours_form.staff_member.id_for_label }}">{% trans 'Staff Member' %}:</label>
+                            {{ working_hours_form.staff_member }}
+                        </div>
+                    {% endif %}
+
+                    <div class="form-group">
+                        <label for="{{ working_hours_form.day_of_week.id_for_label }}">{% trans 'Day of Week' %}:</label>
+                        {{ working_hours_form.day_of_week }}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ working_hours_form.start_time.id_for_label }}">{% trans 'Start Time' %}:</label>
+                        <div class="input-group date" id="start-timepicker" data-target-input="nearest">
+                            <input type="text" class="form-control datetimepicker-input" data-toggle="datetimepicker"
+                                   data-target="#start-timepicker" name="{{ working_hours_form.start_time.name }}"
+                                   value="{{ working_hours_form.start_time.value|default:'09:00 AM' }}"
+                                   id="{{ working_hours_form.start_time.id_for_label }}">
+                            <div class="input-group-append" data-toggle="datetimepicker"
+                                 data-target="#start-timepicker">
+                                <div class="input-group-text"><i class="far fa-clock"></i></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ working_hours_form.end_time.id_for_label }}">{% trans 'End Time' %}:</label>
+                        <div class="input-group date" id="end-timepicker" data-target-input="nearest">
+                            <input type="text" class="form-control datetimepicker-input" data-toggle="datetimepicker"
+                                   data-target="#end-timepicker" name="{{ working_hours_form.end_time.name }}"
+                                   value="{{ working_hours_form.end_time.value|default:'05:00 PM' }}"
+                                   id="{{ working_hours_form.end_time.id_for_label }}">
+                            <div class="input-group-append" data-toggle="datetimepicker" data-target="#end-timepicker">
+                                <div class="input-group-text"><i class="far fa-clock"></i></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">{{ button_text }}</button>
+                    <input type="hidden" id="addWorkingHoursUrl"
+                           value="{% url 'appointment:add_working_hours_id' staff_user_id|default:user.id %}">
+                    <input type="hidden" id="updateWorkingHoursUrl"
+                           value="{% url 'appointment:update_working_hours_id' working_hours_id|default:0 staff_user_id|default:user.id %}">
+
+                </form>
+                {% include 'modal/error_modal.html' %}
+                <div class="messages" style="margin: 20px 0">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
+                                 role="alert">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+{% block customJS %}
+    <!-- JS -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.8/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    <script type="text/javascript"
+            src="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.39.0/js/tempusdominus-bootstrap-4.min.js"></script>
+    <script type="text/javascript">
+        const addWorkingHoursUrl = $('#addWorkingHoursUrl').val();
+        const updateWorkingHoursUrl = $('#updateWorkingHoursUrl').val();
+
+        $(function () {
+            const startTimeInput = $('#start-timepicker input');
+            const endTimeInput = $('#end-timepicker input');
+            const startTimePicker = $('#start-timepicker');
+            const endTimePicker = $('#end-timepicker');
+
+            const defaultStartTime = startTimeInput.val() ? moment(startTimeInput.val(), 'hh:mm A') : moment().hour(12).minute(0);
+            const defaultEndTime = endTimeInput.val() ? moment(endTimeInput.val(), 'hh:mm A') : moment().hour(13).minute(0);
+
+            startTimePicker.datetimepicker({
+                format: 'hh:mm A',
+                icons: {
+                    time: 'far fa-clock'
+                },
+                pick12HourFormat: false,
+                pickSeconds: false,
+                defaultDate: defaultStartTime
+            });
+
+            endTimePicker.datetimepicker({
+                format: 'hh:mm A',
+                icons: {
+                    time: 'far fa-clock'
+                },
+                pick12HourFormat: false,
+                pickSeconds: false,
+                defaultDate: defaultEndTime
+            });
+
+            startTimePicker.on('change.datetimepicker', function (e) {
+                startTimeInput.val(e.date.format('hh:mm A'));
+            });
+
+            endTimePicker.on('change.datetimepicker', function (e) {
+                endTimeInput.val(e.date.format('hh:mm A'));
+            });
+        });
+
+        $(document).on('submit', '#workingHoursForm', function (e) {
+            e.preventDefault();
+
+            const form = $(this);
+            const action = form.data('action');
+            let postUrl = '';
+
+            if (action === 'create') {
+                postUrl = addWorkingHoursUrl;
+            } else if (action === 'update') {
+                postUrl = updateWorkingHoursUrl;
+            }
+
+            $.ajax({
+                url: postUrl,
+                type: 'POST',
+                data: form.serialize(),
+                success: function (response) {
+                    console.log("response", response.success);
+                    if (response.success) {
+                        window.location.href = response.redirect_url;
+                    } else {
+                        showErrorModal(response.message)
+                    }
+                },
+                error: function (error) {
+                    showErrorModal(error.responseJSON.message)
+                }
+            });
+        });
+    </script>
+    <script src="{% static 'js/modal/error_modal.js' %}"></script>
+    <script src="{% static 'js/js-utils.js' %}"></script>
+{% endblock %}
+
