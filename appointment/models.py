@@ -3,7 +3,6 @@
 
 """
 Author: Adams Pierre David
-Version: 2.0.0
 Since: 1.0.0
 """
 import colorsys
@@ -152,6 +151,9 @@ class Service(models.Model):
         return f"{self.get_down_payment()}{self.get_currency_icon()}"
 
     def get_image_url(self):
+        print(f"image: {self.image}")
+        if not self.image:
+            return ""
         return self.image.url
 
     def is_a_paid_service(self):
@@ -277,7 +279,6 @@ class AppointmentRequest(models.Model):
     Represents an appointment request made by a client.
 
     Author: Adams Pierre David
-    Version: 2.0.0
     Since: 1.0.0
     """
     date = models.DateField()

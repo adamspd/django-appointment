@@ -378,7 +378,89 @@ a {
     }
 }
 
+/* CSS for screens smaller or equal to 768px */
+@media (max-width: 450px) {
+    .djangoAppt_main-container {
+        padding: 3px;
+    }
+
+    .djangoAppt_body-container {
+        padding: 3px;
+    }
+
+    .djangoAppt_appointment-calendar {
+        flex: 1;
+        padding: 5px;
+    }
+
+    .djangoAppt_service-description {
+        flex: 1;
+        margin-left: 0;
+        margin-top: 20px;
+    }
+
+    .djangoAppt_calendar-and-slot {
+        display: grid;
+    }
+
+    .djangoAppt_slot {
+        margin-top: 40px;
+    }
+
+    .djangoAppt_slot-list, .djangoAppt_date_chosen, .djangoAppt_no-availability-text {
+        margin-left: 0 !important;
+        padding-left: 0 !important;
+    }
+
+    .djangoAppt_btn-request-next-slot {
+        margin-left: 0;
+    }
+
+    /* Reduce font size for smaller screens */
+    .djangoAppt_title, .djangoAppt_item-name, .djangoAppt_date_chosen, .djangoAppt_next-available-date {
+        font-size: 13px;
+    }
+
+    .djangoAppt_timezone-details, .error-message {
+        font-size: 13px;
+    }
+
+    .fc-day {
+        font-size: 11px;
+    }
+
+    .fc-toolbar-title {
+        font-size: 14px !important;
+    }
+
+    .fc {
+        font-size: 13px !important;
+    }
+
+    .fc, .fc-button {
+        padding: .3em .45em !important;
+        vertical-align: center !important;
+    }
+
+    .fc-daygrid-day-events {
+        display: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        font-size: 0 !important;
+        height: 0 !important;
+    }
+
+    .djangoAppt_appointment-slot {
+        padding: 5px;
+        font-size: 13px;
+    }
+
+    .djangoAppt_service-description {
+        font-size: 13px !important;
+    }
+}
+
 .selected-cell {
-    background-color: #aaddff;  /* or any color you prefer */
+    background-color: #aaddff; /* or any color you prefer */
 }
 

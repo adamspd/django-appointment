@@ -1,0 +1,77 @@
+{% extends BASE_TEMPLATE %}
+{% load i18n %}
+{% load static %}
+{% block customCSS %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/app_admin/user_profile.css' %}"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+{% endblock %}
+{% block title %}
+    Staff Members List
+{% endblock %}
+{% block description %}
+    {% trans 'Service List' %}.
+{% endblock %}
+{% block body %}
+    <section class="content content-wrapper">
+        <div class="profile-container">
+            <section class="profile-section">
+                <div class="section-header">
+                    <h2 class="section-header-itm">{% trans 'Service List' %}</h2>
+                </div>
+                <div class="responsive-table-container">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>{% trans 'Name' %}</th>
+                            <th>{% trans 'Duration' %}</th>
+                            <th>{% trans 'Price' %}</th>
+                            <th>{% trans 'Action' %}</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for service in services %}
+                            <tr>
+                                <td>{{ service.name }}</td>
+                                <td>{{ service.get_duration }}</td>
+                                <td>{{ service.get_price_text }}</td>
+                                <td>
+                                    <div class="buttons-container">
+                                        {% translate "Are you sure you want to delete this service?" as d_modal_message %}
+                                        {% if request.user.is_superuser %}
+                                            <a href="{% url 'appointment:update_service' service_id=service.id %}"
+                                               class="modify-btn button-color-blue">
+                                                <i class="fas fa-pen"></i>
+                                            </a>
+                                            <a href="javascript:void(0)"
+                                               onclick="showModal('{{ modal_title }}', '{{ d_modal_message }}', '{{ delete_btn_modal }}', '{% url 'appointment:delete_service' service_id=service.id %}')"
+                                               class="modify-btn button-color-red">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3">{% trans 'No service found' %}.</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            <div class="messages" style="margin: 20px 0">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
+                             role="alert">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+    </section>
+{% endblock %}
+
+{% block customJS %}
+    <script src="{% static 'js/js-utils.js' %}"></script>
+{% endblock %}
