@@ -1,9 +1,9 @@
-## Migration Guide for Version 2.0.0 🚀
+## Migration Guide for Version 2.1.0 🚀
 
-Version 2.0.0 introduces significant changes to the database schema. Before upgrading, please review the changes below
+Version 2.1.0 introduces significant changes to the database schema. Before upgrading, please review the changes below
 and follow the recommended steps to ensure a smooth migration.
 
-### Changes in Version 2.0.0:
+### Changes in Version 2.1.0:
 
 1. **New Fields**:
     - A non-nullable `staff_member` field has been added to the `appointmentrequest` model.

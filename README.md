@@ -1,6 +1,8 @@
 # Django Appointment 📦
 
-⚠️ **IMPORTANT**: Version 2.0.0 introduces significant database changes. Please read the [migration guide](https://github.com/adamspd/django-appointment/tree/main/migration_guide_v2.0.0.md) before updating.
+⚠️ **IMPORTANT**: Version 2.1.0 introduces significant database changes. Please read
+the [migration guide](https://github.com/adamspd/django-appointment/tree/main/migration_guide_v2.1.0.md) before
+updating.
 
 Django-Appointment is a Django app engineered for managing appointment scheduling with ease and flexibility. It enables
 users to define custom configurations for time slots, lead time, and finish time, or utilize the default values
@@ -20,8 +22,12 @@ notes [here](https://github.com/adamspd/django-appointment/tree/main/release_not
 4. User-friendly interface for viewing available time slots and scheduling appointments.
 5. Capability to send email notifications to clients upon scheduling an appointment.
 
-## Added Features in version 2.0.0 🆕
-- **Database Changes ⚠️**: Significant modifications to the database schema. Before updating, ensure you follow the migration steps outlined in the [migration guide](https://github.com/adamspd/django-appointment/tree/main/migration_guide_v2.0.0.md).
+## Added Features in version 2.0.0
+
+- **Database Changes ⚠️**: Significant modifications to the database schema. Before updating, ensure you follow the
+  migration steps outlined in
+  the [migration guide](https://github.com/adamspd/django-appointment/tree/main/migration_guide_v2.1.0.md).
+
 1. Introduced a staff feature allowing staff members in a team or system to manage their own appointments.
 2. Implemented an admin feature panel enabling staff members and superusers (admins) to manage the system.
 3. Added buffer time between the current time and the first available slot for the day.
@@ -29,6 +35,15 @@ notes [here](https://github.com/adamspd/django-appointment/tree/main/release_not
 5. Specified days off for staff members to represent holidays or vacations.
 6. Staff members can now define their own configuration settings for the appointment system, such as slot duration,
    working hours, and buffer time between appointments. However, only admins have the privilege to add/remove services.
+
+### Breaking Changes in version 2.1.0:
+- None
+
+### New Features 🆕
+See the [release notes](release_notes.md#Updates) for more information.
+
+### Fixes 🆕
+See the [release notes](release_notes.md#Bug-Fixes) for more information.
 
 ## Quick Start 🚀
 
@@ -57,40 +72,42 @@ notes [here](https://github.com/adamspd/django-appointment/tree/main/release_not
    ```python
    AUTH_USER_MODEL = 'models.UserModel'  # Optional if you use Django's user model
    ```
-   
+
    For instance, if you employ a custom user model:
-   
+
    ```python
    AUTH_USER_MODEL = 'client.UserClient'
    ```
-   
-   If you're utilizing the default Django user model, there's no need to add this line since Django automatically sets it
+
+   If you're utilizing the default Django user model, there's no need to add this line since Django automatically sets
+   it
    to:
-   
+
    ```python
    AUTH_USER_MODEL = 'auth.User'
    ```
-   
+
    Ensure your `create_user` function includes the following arguments, even if they are not all utilized:
-   
+
    ```python
    def create_user(first_name, email, username, last_name=None, **extra_fields):
        pass
    ```
-   
+
    This function will create a user with a password formatted as: f"{APPOINTMENT_WEBSITE_NAME}{current_year}"
-   
+
    For instance, if you append this to your `settings.py`:
-   
+
    ```python
    APPOINTMENT_WEBSITE_NAME = 'Chocolates'
    ```
-   
-   And the current year is 2023, the password will be "Chocolates2023". If `APPOINTMENT_WEBSITE_NAME` is not provided, the
+
+   And the current year is 2023, the password will be "Chocolates2023". If `APPOINTMENT_WEBSITE_NAME` is not provided,
+   the
    default value is "Website", rendering the password as "Website2023".
-   
+
    This name is also utilized in the footer of the emails sent to clients upon scheduling an appointment:
-   
+
    ```html
    <p>® 2023 {{ APPOINTMENT_WEBSITE_NAME }}. All Rights Reserved.</p>
    ```

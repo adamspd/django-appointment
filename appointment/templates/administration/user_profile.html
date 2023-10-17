@@ -64,7 +64,7 @@
                         </p>
 
                     </div>
-                    <a href="{% url 'appointment:add_or_update_staff_info' staff_member.user.id %}"
+                    <a href="{% url 'appointment:update_staff_other_info' staff_member.user.id %}"
                        class="section-content-button modify-btn button-color-blue">
                         <i class="fas fa-pen"></i>
                     </a>
@@ -72,7 +72,7 @@
                     <div class="section-content">
                         <p>{% trans 'No staff member information yet for this user' %}.</p>
                     </div>
-                    <a href="{% url 'appointment:add_or_update_staff_info' user.id %}"
+                    <a href="{% url 'appointment:update_staff_other_info' user.id %}"
                        class="section-content-button modify-btn button-color-green">
                         <i class="fas fa-add"></i>
                     </a>
