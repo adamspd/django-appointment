@@ -151,7 +151,6 @@ class Service(models.Model):
         return f"{self.get_down_payment()}{self.get_currency_icon()}"
 
     def get_image_url(self):
-        print(f"image: {self.image}")
         if not self.image:
             return ""
         return self.image.url
