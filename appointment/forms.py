@@ -3,7 +3,6 @@
 
 """
 Author: Adams Pierre David
-Version: 2.0.0
 Since: 1.0.0
 """
 
@@ -127,17 +126,37 @@ class StaffWorkingHoursForm(forms.ModelForm):
 
 
 class ServiceForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(ServiceForm, self).__init__(*args, **kwargs)
+        if self.instance and self.instance.pk:
+            self.fields['background_color'].widget.attrs['value'] = self.instance.background_color
+
     class Meta:
         model = Service
         fields = ['name', 'description', 'duration', 'price', 'down_payment', 'image', 'currency', 'background_color']
         widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-control'}),
-            'description': forms.Textarea(attrs={'class': 'form-control'}),
-            'duration': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'HH:MM:SS'}),
-            'price': forms.NumberInput(attrs={'class': 'form-control'}),
-            'down_payment': forms.NumberInput(attrs={'class': 'form-control'}),
+            'name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': _('Example: First Consultation')
+            }),
+            'description': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': "Example: Overview of client's needs."
+            }),
+            'duration': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'HH:MM:SS, (example: 00:15:00 for 15 minutes)'
+            }),
+            'price': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Example: 100.00 (0 for free)'
+            }),
+            'down_payment': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Example: 50.00 (0 for free)'
+            }),
             'image': forms.ClearableFileInput(attrs={'class': 'form-control'}),
             'currency': forms.Select(choices=[('USD', 'USD'), ('EUR', 'EUR'), ('GBP', 'GBP')],
                                      attrs={'class': 'form-control'}),
-            'background_color': forms.TextInput(attrs={'class': 'form-control', 'type': 'color'}),
+            'background_color': forms.TextInput(attrs={'class': 'form-control', 'type': 'color', 'value': '#000000'}),
         }

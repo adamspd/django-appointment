@@ -3,7 +3,6 @@
 
 """
 Author: Adams Pierre David
-Version: 2.0.0
 Since: 1.0.0
 """
 
