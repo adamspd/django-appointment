@@ -1,19 +1,19 @@
 # django-appointment 📦
 
-**v2.0.0 🆕**
+**v2.1.0 🆕**
 
-## ___Release Notes for Version 2.0.0___
+## ___Release Notes for Version 2.1.0___
 
 ## Introduction 📜
 
-Version 2.0.0 brings significant enhancements to the django-appointment package, with major features such as staff
+Version 2.1.0 brings significant enhancements to the django-appointment package, with major features such as staff
 member management, working hours, and days off, alongside improvements in the configuration settings for added
 flexibility. This release not only refines the user experience but also provides administrators and staff with more
 control and customization.
 
 ⚠️ **Important Note**: This version introduces significant database schema changes. Before updating, ensure you follow
 the migration steps outlined in
-the [migration guide](https://github.com/adamspd/django-appointment/tree/main/migration_guide_v2.0.0.md).
+the [migration guide](https://github.com/adamspd/django-appointment/tree/main/migration_guide_v2.1.0.md).
 
 ## New Features ✨
 
@@ -49,13 +49,23 @@ the [migration guide](https://github.com/adamspd/django-appointment/tree/main/mi
 - Continued integration of the django-phonenumber-field for efficient phone number handling.
 - Improved responsiveness of the client information request page for better user experience across devices.
 
-## Bug Fixes 🐛
+## Bug Fixes
 
-No major bug fixes in this release.
+- Redirect to the service adding page after service addition, rather than the user profile.
+- Resolved the issue where images were not being saved during service creation.
+- Improved the appointment page for mobile:
+  - Adjusted the month size.
+  - Resized the button.
+  - Optimized the calendar dimensions.
+  - Corrected the slots and container sizes.
 
-## Updates 🔄
+## Updates
 
-No additional updates in this release.
+- Introduced a view to get all the services defined.
+- Defined a new URL to add a new staff member. 
+
+  ### Deprecations/Removals 🆕
+  - Modified the existing URL that only allowed staff member updates.
 
 ## Previous Version Highlights (1.1.2) 🔙
 
@@ -69,7 +79,7 @@ If you're upgrading from a previous version or installing for the first time, fo
 ### Installation 📥:
 
 ```bash
-pip install django-appointment==2.0.0
+pip install django-appointment==2.1.0
 ```
 
 ### Database Migration 🔧:
@@ -86,7 +96,7 @@ please refer to the provided resources.
 
 ## Conclusion 🎉
 
-Version 2.0.0 introduces comprehensive features and enhancements to make the appointment scheduling process more robust,
+Version 2.1.0 introduces comprehensive features and enhancements to make the appointment scheduling process more robust,
 user-friendly, and customizable. With the addition of staff management capabilities, more precise working hours, and
 day-off settings, this release guarantees a refined experience for both administrators and end-users.
 

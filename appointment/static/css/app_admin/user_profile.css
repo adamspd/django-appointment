@@ -4,7 +4,7 @@ body {
 }
 
 .profile-container {
-    margin: 0 auto;
+    margin: 5px auto;
     background-color: #fff;
     border-radius: 8px;
 }
@@ -182,7 +182,7 @@ table tbody tr:hover {
 
 /* Adding gradient backgrounds for a more vibrant look */
 .profile-container {
-    background-image: linear-gradient(to bottom right, #fff, #f7f9fc);
+    /*background-image: linear-gradient(to bottom right, #fff, #f7f9fc);*/
 }
 
 /* Additional hover effect for the sections */
