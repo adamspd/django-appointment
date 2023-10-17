@@ -4,7 +4,6 @@
 
 """
 Author: Adams Pierre David
-Version: 2.0.0
 Since: 2.0.0
 """
 
@@ -373,7 +372,7 @@ def create_new_staff_member(request):
             return redirect('appointment:user_profile', staff_user_id=user.pk)
         else:
             messages.error(request, error_message)
-            return redirect('appointment:create_new_staff_member')
+            return redirect('appointment:add_staff_member_personal_info')
 
     form = PersonalInformationForm()
     context = get_generic_context_with_extra(request=request, extra={'form': form})
@@ -403,10 +402,10 @@ def remove_superuser_staff_member(request):
 @require_superuser
 def add_or_update_service(request, service_id=None):
     if request.method == 'POST':
-        service, is_valid, error_message = handle_service_management_request(request.POST, service_id)
+        service, is_valid, error_message = handle_service_management_request(request.POST, request.FILES, service_id)
         if is_valid:
             messages.success(request, "Service saved successfully!")
-            return redirect('appointment:user_profile')  # Modify this to the appropriate redirect
+            return redirect('appointment:add_service')
         else:
             messages.error(request, error_message)
 
@@ -442,3 +441,25 @@ def remove_staff_member(request, staff_user_id):
     staff_member.delete()
     messages.success(request, _("Staff member deleted successfully!"))
     return redirect('appointment:user_profile')
+
+
+@require_user_authenticated
+@require_staff_or_superuser
+def get_service_list(request, response_type='html'):
+    services = Service.objects.all()
+    if response_type == 'json':
+        service_data = []
+        for service in services:
+            service_data.append({
+                'id': service.id,
+                'name': service.name,
+                'description': service.description,
+                'duration': service.get_duration(),
+                'price': service.get_price_text(),
+                'down_payment': service.get_down_payment_str(),
+                'image': service.get_image_url(),
+                'background_color': service.background_color
+            })
+        return json_response("Successfully fetched services.", custom_data={'services': service_data}, safe=False)
+    context = get_generic_context_with_extra(request=request, extra={'services': services})
+    return render(request, 'administration/service_list.html', context=context)

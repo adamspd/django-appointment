@@ -3,7 +3,6 @@
 
 """
 Author: Adams Pierre David
-Version: 2.0.0
 Since: 2.0.0
 """
 
@@ -520,13 +519,13 @@ def create_staff_member_service(post_data):
         return None, False, get_error_message_in_form(form=form)
 
 
-def handle_service_management_request(post_data, service_id=None):
+def handle_service_management_request(post_data, files_data=None, service_id=None):
     try:
         if service_id:
             service = Service.objects.get(pk=service_id)
-            form = ServiceForm(post_data, instance=service)
+            form = ServiceForm(post_data, files_data, instance=service)
         else:
-            form = ServiceForm(post_data)
+            form = ServiceForm(post_data, files_data)
 
         if form.is_valid():
             form.save()
