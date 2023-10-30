@@ -53,7 +53,6 @@ class StaffMemberForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['user'].queryset = get_user_model().objects.filter(is_staff=True)
 
 
 @admin.register(StaffMember)
