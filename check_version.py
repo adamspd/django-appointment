@@ -1,7 +1,7 @@
 import requests
 
 package_name = "django-appointment"
-current_version = "2.1.0"
+current_version = "2.1.1"
 
 response = requests.get(f"https://pypi.org/pypi/{package_name}/json")
 if response.status_code == 200:
