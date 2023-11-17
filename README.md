@@ -1,5 +1,8 @@
 # Django Appointment 📦
 
+![Tests](https://github.com/adamspd/django-appointment/actions/workflows/tests.yml/badge.svg)
+![Published on PyPi](https://github.com/adamspd/django-appointment/actions/workflows/publish.yml/badge.svg)
+
 ⚠️ **IMPORTANT**: Version 2.1.0 introduces significant database changes. Please read
 the [migration guide](https://github.com/adamspd/django-appointment/tree/main/migration_guide_v2.1.0.md) before
 updating.
