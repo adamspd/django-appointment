@@ -1,4 +1,4 @@
-name: Upload Python Package to PyPI on Push to Main
+name: Upload Python Package to PyPI
 
 on:
   push:
