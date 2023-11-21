@@ -12,7 +12,7 @@
 [![GitHub contributors](https://img.shields.io/github/contributors/adamspd/django-appointment)](https://github.com/adamspd/django-appointment/graphs/contributors)
 
 ⚠️ **IMPORTANT**: Version 2.1.0 introduces significant database changes. Please read
-the [migration guide](https://github.com/adamspd/django-appointment/tree/main/migration_guides/latest.md) before
+the [migration guide](https://github.com/adamspd/django-appointment/tree/main/docs/migration_guides/latest.md) before
 updating.
 
 Django-Appointment is a Django app engineered for managing appointment scheduling with ease and flexibility. It enables
@@ -21,9 +21,9 @@ provided. This app proficiently manages conflicts and availability for appointme
 experience.
 
 Detailed documentation can be found in
-the [docs' directory](https://github.com/adamspd/django-appointment/tree/main/docs).
+the [docs' directory](https://github.com/adamspd/django-appointment/tree/main/docs/README.md).
 For changes and migration information, please refer to the [release
-notes](https://github.com/adamspd/django-appointment/tree/main/release_notes/latest.md).
+notes](https://github.com/adamspd/django-appointment/tree/main/docs/release_notes/latest.md).
 
 ## Features ✨
 
@@ -37,7 +37,7 @@ notes](https://github.com/adamspd/django-appointment/tree/main/release_notes/lat
 
 - **Database Changes ⚠️**: Significant modifications to the database schema. Before updating, ensure you follow the
   migration steps outlined in
-  the [migration guide](https://github.com/adamspd/django-appointment/tree/main/migration_guides/latest.md).
+  the [migration guide](https://github.com/adamspd/django-appointment/tree/main/docs/migration_guides/latest.md).
 
 1. Introduced a staff feature allowing staff members in a team or system to manage their own appointments.
 2. Implemented an admin feature panel enabling staff members and superusers (admins) to manage the system.
@@ -53,11 +53,13 @@ notes](https://github.com/adamspd/django-appointment/tree/main/release_notes/lat
 
 ### New Features 🆕
 
-See the [release notes](docs/release_notes/latest.md#Updates) for more information.
+See the [release notes](https://github.com/adamspd/django-appointment/tree/main/docs/release_notes/latest.md#Updates)
+for more information.
 
 ### Fixes 🆕
 
-See the [release notes](docs/release_notes/latest.md#Bug-Fixes) for more information.
+See the [release notes](https://github.com/adamspd/django-appointment/tree/main/docs/release_notes/latest.md#Bug-Fixes)
+for more information.
 
 ## Quick Start 🚀
 
@@ -136,7 +138,8 @@ See the [release notes](docs/release_notes/latest.md#Bug-Fixes) for more informa
 ## Customization 🔧
 
 1. In your Django project's `settings.py`, you can override the default values for the appointment scheduler. More
-   information regarding available configurations can be found in the [documentation](docs/README.md#configuration).
+   information regarding available configurations can be found in
+   the [documentation](https://github.com/adamspd/django-appointment/tree/main/docs/README.md#configuration).
 2. Modify these values as needed for your application, and the app will adapt to the new settings.
 3. For further customization, you can extend the provided models, views, and templates or create your own.
 
@@ -144,6 +147,22 @@ See the [release notes](docs/release_notes/latest.md#Bug-Fixes) for more informa
 
 For support or inquiries regarding the Appointment Scheduler app, please refer to the documentation in the "docs"
 directory or visit the GitHub repository for more information.
+
+## Contributing 🤝
+
+Contributions are welcome! Please refer to
+the [contributing guidelines](https://github.com/adamspd/django-appointment/tree/main/CONTRIBUTING.md) for more
+information.
+
+## Code of Conduct 📜
+
+Please refer to the [code of conduct](https://github.com/adamspd/django-appointment/tree/main/CODE_OF_CONDUCT.md) for
+more information.
+
+## Security policy 🔒
+
+Please refer to the [security policy](https://github.com/adamspd/django-appointment/tree/main/SECURITY.md) for more
+information.
 
 ## Notes 📝⚠️
 
