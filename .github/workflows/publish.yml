@@ -21,7 +21,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install setuptools wheel twine requests  # Added requests for the version check
+        pip install setuptools wheel twine requests build  # Added requests for the version check
 
     # Check if the current version is already on PyPI
     - name: Check version on PyPI
@@ -34,7 +34,7 @@ jobs:
     - name: Build package
       if: steps.version_check.outputs.version_exists != 'true'
       run: |
-        python setup.py sdist bdist_wheel
+        python -m build
 
     - name: Upload to PyPI
       if: steps.version_check.outputs.version_exists != 'true'
