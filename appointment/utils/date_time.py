@@ -64,7 +64,7 @@ def convert_minutes_in_human_readable_format(minutes: float) -> str:
     elif len(parts) == 2:
         return _("{first_part} and {second_part}").format(first_part=parts[0], second_part=parts[1])
     elif len(parts) == 3:
-        return _("{days}, {hours}, and {minutes}").format(days=parts[0], hours=parts[1], minutes=parts[2])
+        return _("{days}, {hours} and {minutes}").format(days=parts[0], hours=parts[1], minutes=parts[2])
     else:
         return ""
 
