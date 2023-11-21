@@ -39,7 +39,7 @@ notes](https://github.com/adamspd/django-appointment/tree/main/docs/release_note
 - For more information, please refer to
   this [documentation](https://github.com/adamspd/django-appointment/tree/main/docs/history/readme_v2_1_1.md).
 
-## Added Features in version 2.1.2
+## Added Features in version 2.1.3
 
 This release of Django Appointment brings a series of improvements and updates aimed at enhancing the overall
 functionality and user experience:
