@@ -557,7 +557,7 @@ class Config(models.Model):
         default="",
         help_text=_("Name of your website."),
     )
-    app_offered_by_label = models.CharField(max_length=255, default=_("Offered by"),
+    app_offered_by_label = models.CharField(max_length=255, default=_("Offered by"), null=True, blank=True,
                                             help_text=_("Label for `Offered by` on the appointment page"))
 
     # meta data
