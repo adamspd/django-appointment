@@ -2,9 +2,17 @@
 
 ![Tests](https://github.com/adamspd/django-appointment/actions/workflows/tests.yml/badge.svg)
 ![Published on PyPi](https://github.com/adamspd/django-appointment/actions/workflows/publish.yml/badge.svg)
+[![PyPI version](https://badge.fury.io/py/django-appointment.svg)](https://badge.fury.io/py/django-appointment)
+[![codecov](https://codecov.io/gh/adamspd/django-appointment/branch/main/graph/badge.svg?token=ZQZQZQZQZQ)](https://codecov.io/gh/adamspd/django-appointment)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![GitHub commit activity](https://img.shields.io/github/commit-activity/m/adamspd/django-appointment)](https://github.com/adamspd/django-appointment/commits/main)
+[![GitHub last commit](https://img.shields.io/github/last-commit/adamspd/django-appointment)](https://github.com/adamspd/django-appointment/commit/main)
+[![GitHub issues](https://img.shields.io/github/issues/adamspd/django-appointment)](https://github.com/adamspd/django-appointment/issues)
+[![GitHub pull requests](https://img.shields.io/github/issues-pr/adamspd/django-appointment)](https://github.com/adamspd/django-appointment/pulls)
+[![GitHub contributors](https://img.shields.io/github/contributors/adamspd/django-appointment)](https://github.com/adamspd/django-appointment/graphs/contributors)
 
 ⚠️ **IMPORTANT**: Version 2.1.0 introduces significant database changes. Please read
-the [migration guide](https://github.com/adamspd/django-appointment/tree/main/migration_guide_v2.1.0.md) before
+the [migration guide](https://github.com/adamspd/django-appointment/tree/main/migration_guides/latest.md) before
 updating.
 
 Django-Appointment is a Django app engineered for managing appointment scheduling with ease and flexibility. It enables
@@ -12,10 +20,10 @@ users to define custom configurations for time slots, lead time, and finish time
 provided. This app proficiently manages conflicts and availability for appointments, ensuring a seamless user
 experience.
 
-Detailed documentation can be found in the [docs](https://github.com/adamspd/django-appointment/tree/main/docs)
-directory.
-For changes and migration information, please refer to the release
-notes [here](https://github.com/adamspd/django-appointment/tree/main/release_notes.md).
+Detailed documentation can be found in
+the [docs' directory](https://github.com/adamspd/django-appointment/tree/main/docs).
+For changes and migration information, please refer to the [release
+notes](https://github.com/adamspd/django-appointment/tree/main/release_notes/latest.md).
 
 ## Features ✨
 
@@ -29,7 +37,7 @@ notes [here](https://github.com/adamspd/django-appointment/tree/main/release_not
 
 - **Database Changes ⚠️**: Significant modifications to the database schema. Before updating, ensure you follow the
   migration steps outlined in
-  the [migration guide](https://github.com/adamspd/django-appointment/tree/main/migration_guide_v2.1.0.md).
+  the [migration guide](https://github.com/adamspd/django-appointment/tree/main/migration_guides/latest.md).
 
 1. Introduced a staff feature allowing staff members in a team or system to manage their own appointments.
 2. Implemented an admin feature panel enabling staff members and superusers (admins) to manage the system.
@@ -40,13 +48,16 @@ notes [here](https://github.com/adamspd/django-appointment/tree/main/release_not
    working hours, and buffer time between appointments. However, only admins have the privilege to add/remove services.
 
 ### Breaking Changes in version 2.1.0:
+
 - None
 
 ### New Features 🆕
-See the [release notes](release_notes.md#Updates) for more information.
+
+See the [release notes](docs/release_notes/latest.md#Updates) for more information.
 
 ### Fixes 🆕
-See the [release notes](release_notes.md#Bug-Fixes) for more information.
+
+See the [release notes](docs/release_notes/latest.md#Bug-Fixes) for more information.
 
 ## Quick Start 🚀
 
@@ -83,8 +94,7 @@ See the [release notes](release_notes.md#Bug-Fixes) for more information.
    ```
 
    If you're utilizing the default Django user model, there's no need to add this line since Django automatically sets
-   it
-   to:
+   it to:
 
    ```python
    AUTH_USER_MODEL = 'auth.User'
@@ -106,8 +116,7 @@ See the [release notes](release_notes.md#Bug-Fixes) for more information.
    ```
 
    And the current year is 2023, the password will be "Chocolates2023". If `APPOINTMENT_WEBSITE_NAME` is not provided,
-   the
-   default value is "Website", rendering the password as "Website2023".
+   the default value is "Website", rendering the password as "Website2023".
 
    This name is also utilized in the footer of the emails sent to clients upon scheduling an appointment:
 
@@ -127,8 +136,7 @@ See the [release notes](release_notes.md#Bug-Fixes) for more information.
 ## Customization 🔧
 
 1. In your Django project's `settings.py`, you can override the default values for the appointment scheduler. More
-   information regarding available configurations can be found in the
-   documentation [here](docs/README.md#configuration).
+   information regarding available configurations can be found in the [documentation](docs/README.md#configuration).
 2. Modify these values as needed for your application, and the app will adapt to the new settings.
 3. For further customization, you can extend the provided models, views, and templates or create your own.
 
@@ -140,3 +148,7 @@ directory or visit the GitHub repository for more information.
 ## Notes 📝⚠️
 
 Currently, the application does not send email reminders yet.
+
+## About the Author
+
+Adams Pierre David - [Website](https://adamspierredavid.com/)
