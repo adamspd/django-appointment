@@ -51,7 +51,7 @@
                               class="appointment-form">
                             {% csrf_token %}
                             <div class="staff-members-list">
-                                <label class="djangoAppt_item-name" for="staff_id">{% trans "Offered by" %}</label>
+                                <label class="djangoAppt_item-name" for="staff_id">{{ label }}</label>
                                 <select name="staff_member" id="staff_id">
                                     {% if not staff_member %}
                                         <option value="none" selected>{% trans 'Please select a staff member' %}</option>
