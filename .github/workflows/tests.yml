@@ -30,3 +30,11 @@ jobs:
       run: |
         coverage run --source=appointment manage.py test appointment.tests --verbosity=1
         coverage report
+        coverage xml
+    - name: Upload to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        file: ./coverage.xml  # specify the location of the coverage report
+        flags: unittests  # optional
+        name: codecov-umbrella  # optional
