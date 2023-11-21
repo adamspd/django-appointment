@@ -9,7 +9,7 @@ Since: 2.0.0
 import datetime
 
 from django.utils import timezone
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext_lazy as _, ngettext
 
 from appointment.settings import APP_TIME_ZONE
 
@@ -43,23 +43,26 @@ def convert_minutes_in_human_readable_format(minutes: float) -> str:
         return _("Not set.")
     if minutes < 0:
         raise ValueError("Minutes cannot be negative.")
-    days, minutes = divmod(int(minutes), 1440)
-    hours, minutes = divmod(int(minutes), 60)
-
-    def format_unit(value, single_name, plural_name):
-        return _("{value} {name}").format(value=value, name=single_name if value <= 1 else plural_name)
+    days, remaining_minutes = divmod(int(minutes), 1440)
+    hours, minutes = divmod(int(remaining_minutes), 60)
 
     parts = []
     if days:
-        parts.append(format_unit(days, "day", "days"))
+        days_display = ngettext("%(count)d day", "%(count)d days", days) % {'count': days}
+        parts.append(days_display)
+
     if hours:
-        parts.append(format_unit(hours, "hour", "hours"))
+        hours_display = ngettext("%(count)d hour", "%(count)d hours", hours) % {'count': hours}
+        parts.append(hours_display)
+
     if minutes:
-        parts.append(format_unit(minutes, "minute", "minutes"))
+        minutes_display = ngettext("%(count)d minute", "%(count)d minutes", minutes) % {'count': minutes}
+        parts.append(minutes_display)
+
     if len(parts) == 1:
         return parts[0]
     elif len(parts) == 2:
-        return _(" and ").join(parts)
+        return _("{first_part} and {second_part}").format(first_part=parts[0], second_part=parts[1])
     elif len(parts) == 3:
         return _("{days}, {hours} and {minutes}").format(days=parts[0], hours=parts[1], minutes=parts[2])
     else:
@@ -70,8 +73,8 @@ def convert_str_to_date(date_str: str) -> datetime.date:
     """Convert a date string to a datetime date object.
 
     :param date_str: The date string.
-                     Supported formats include '%Y-%m-%d' (like "2023-12-31") and '%Y/%m/%d' (like "2023/12/31").
-    :return: datetime.date, the converted date
+                     Supported formats include `%Y-%m-%d` (like "2023-12-31") and `%Y/%m/%d` (like "2023/12/31").
+    :return: The converted `datetime.date`'s object.
     """
     date_formats = ['%Y-%m-%d', '%Y/%m/%d', '%Y.%m.%d']
 
