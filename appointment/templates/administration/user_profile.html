@@ -29,8 +29,8 @@
                 <h2>{% trans 'Personal Information' %}</h2>
                 <!-- Display fields from PersonalInformationForm -->
                 <div class="section-content">
-                    <p><strong>{% trans 'First Name' %}:</strong> {{ user.first_name }}</p>
-                    <p><strong>{% trans 'Last Name' %}:</strong> {{ user.last_name }}</p>
+                    <p><strong>{% trans 'First name' %}:</strong> {{ user.first_name }}</p>
+                    <p><strong>{% trans 'Last name' %}:</strong> {{ user.last_name }}</p>
                     <p><strong>{% trans 'Email' %}:</strong> {{ user.email }}</p>
                 </div>
                 <a href="{% url 'appointment:update_user_info' user.id %}"
@@ -94,8 +94,8 @@
                     <table>
                         <thead>
                         <tr>
-                            <th>{% trans 'Start Date' %}</th>
-                            <th>{% trans 'End Date' %}</th>
+                            <th>{% trans 'Start date' %}</th>
+                            <th>{% trans 'End date' %}</th>
                             <th>{% trans 'Description' %}</th>
                             <th>{% trans 'Action' %}</th>
                         </tr>
@@ -161,8 +161,8 @@
                         <thead>
                         <tr>
                             <th>{% trans 'Day' %}</th>
-                            <th>{% trans 'Start Time' %}</th>
-                            <th>{% trans 'End Time' %}</th>
+                            <th>{% trans 'Start time' %}</th>
+                            <th>{% trans 'End time' %}</th>
                             <th>{% trans 'Action' %}</th>
                         </tr>
                         </thead>
@@ -229,7 +229,7 @@
                             <th>{% trans 'Description' %}</th>
                             <th>{% trans 'Duration' %}</th>
                             <th>{% trans 'Price' %}</th>
-                            <th>{% trans 'Down Payment' %}</th>
+                            <th>{% trans 'Down payment' %}</th>
                         </tr>
                         </thead>
                         <tbody>
