@@ -42,7 +42,8 @@ class EmailVerificationCodeAdmin(admin.ModelAdmin):
 
 @admin.register(Config)
 class ConfigAdmin(admin.ModelAdmin):
-    list_display = ('slot_duration', 'lead_time', 'finish_time', 'appointment_buffer_time', 'website_name')
+    list_display = (
+        'slot_duration', 'lead_time', 'finish_time', 'appointment_buffer_time', 'website_name', 'app_offered_by_label')
 
 
 # Define a custom ModelForm for StaffMember
