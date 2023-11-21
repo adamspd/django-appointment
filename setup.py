@@ -18,9 +18,30 @@ setuptools.setup(
     project_urls={
         "Author Website": __author_website__,
     },
-    packages=setuptools.find_packages(),  # Find all packages in your project
-    include_package_data=True,  # Include files specified in MANIFEST.in
+    packages=setuptools.find_packages(where="appointments"),
+    package_dir={"": "appointment"},
+    include_package_data=True,
     package_data={
-        'appointment': ['static/css/*.css', 'static/js/*.js', 'static/img/*.png', 'static/img/*.jpg',],
+        'appointment': [
+            'static/css/**/*.css',
+            'static/js/**/*.js',
+            'static/img/**/*.*',
+            'templates/**/*.html',
+        ],
+        'appointment.tests': [
+            'mixins/*',
+            'base/*',
+            'models/*',
+            'utils/*',
+            '*.py'
+        ],
+    },
+    exclude_package_data={
+        "appointment": [
+            "django_appointment.egg-info"
+        ],
+        "appointment.django_appointment": [
+            "egg-info",
+        ]
     },
 )
