@@ -1,0 +1,23 @@
+name: Codecov Coverage
+
+on:
+  push:
+    branches-ignore:
+      - 'main'
+  workflow_dispatch:
+
+jobs:
+  running_tests:
+    runs-on: ubuntu-20.04
+    strategy:
+      max-parallel: 4
+      matrix:
+        python-version: [3.10.5]
+        fail-fast: [false]
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v3
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
