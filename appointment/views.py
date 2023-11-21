@@ -21,7 +21,8 @@ from django.utils.translation import gettext as _
 from appointment.email_sender import notify_admin
 from appointment.forms import AppointmentRequestForm, AppointmentForm
 from appointment.logger_config import logger
-from appointment.models import Service, Appointment, AppointmentRequest, EmailVerificationCode, StaffMember, DayOff
+from appointment.models import Config, Service, Appointment, AppointmentRequest, EmailVerificationCode, StaffMember, \
+    DayOff
 from appointment.utils.db_helpers import get_website_name, get_user_model, create_payment_info_and_get_url, \
     get_user_by_email, \
     get_non_working_days_for_staff, check_day_off_for_staff, create_new_user, create_and_save_appointment, \
@@ -73,7 +74,7 @@ def get_available_slots_ajax(request):
         message = _("Day off. Please select another date!")
         custom_data['available_slots'] = []
         return json_response(message=message, custom_data=custom_data, success=False, error_code=ErrorCode.INVALID_DATE)
-    # if selected_date is not a working day for the staff, return an empty list of slots and message is Day Off
+    # if selected_date is not a working day for the staff, return an empty list of slots and 'message' is Day Off
     weekday_num = get_weekday_num_from_date(selected_date)
     is_working_day_ = is_working_day(staff_member=sm, day=weekday_num)
     if not is_working_day_:
@@ -178,6 +179,8 @@ def appointment_request(request, service_id=None, staff_member_id=None):
     staff_member = None
     all_staff_members = None
     available_slots = []
+    config = Config.objects.first()
+    label = config.app_offered_by_label if config else _("Offered by")
 
     if service_id:
         service = get_object_or_404(Service, pk=service_id)
@@ -207,6 +210,7 @@ def appointment_request(request, service_id=None, staff_member_id=None):
         'date_chosen': date_chosen,
         'locale': get_locale(),
         'timezoneTxt': get_timezone_txt(),
+        'label': label
     }
     context = get_generic_context_with_extra(request, extra_context, admin=False)
     return render(request, 'appointment/appointments.html', context=context)
