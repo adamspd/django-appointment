@@ -13,13 +13,13 @@ import string
 from babel.numbers import get_currency_symbol
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.core.validators import MinValueValidator, MinLengthValidator, MaxLengthValidator
+from django.core.validators import MaxLengthValidator, MinLengthValidator, MinValueValidator
 from django.db import models
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.modelfields import PhoneNumberField
 
-from appointment.utils.date_time import get_timestamp, get_weekday_num, convert_minutes_in_human_readable_format, \
+from appointment.utils.date_time import convert_minutes_in_human_readable_format, get_timestamp, get_weekday_num, \
     time_difference
 from appointment.utils.view_helpers import generate_random_id, get_locale
 
@@ -557,6 +557,8 @@ class Config(models.Model):
         default="",
         help_text=_("Name of your website."),
     )
+    app_offered_by_label = models.CharField(max_length=255, default=_("Offered by"),
+                                            help_text=_("Label for `Offered by` on the appointment page"))
 
     # meta data
     created_at = models.DateTimeField(auto_now_add=True)
