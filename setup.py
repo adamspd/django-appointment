@@ -18,4 +18,9 @@ setuptools.setup(
     project_urls={
         "Author Website": __author_website__,
     },
+    packages=setuptools.find_packages(),  # Find all packages in your project
+    include_package_data=True,  # Include files specified in MANIFEST.in
+    package_data={
+        'appointment': ['static/css/*.css', 'static/js/*.js', 'static/img/*.png', 'static/img/*.jpg',],
+    },
 )
