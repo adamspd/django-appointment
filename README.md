@@ -11,8 +11,9 @@
 [![GitHub pull requests](https://img.shields.io/github/issues-pr/adamspd/django-appointment)](https://github.com/adamspd/django-appointment/pulls)
 [![GitHub contributors](https://img.shields.io/github/contributors/adamspd/django-appointment)](https://github.com/adamspd/django-appointment/graphs/contributors)
 
-⚠️ **IMPORTANT**: Version 2.1.0 introduces significant database changes. Please read
-the [migration guide](https://github.com/adamspd/django-appointment/tree/main/migration_guides/latest.md) before
+⚠️ **IMPORTANT**: If upgrading from a version before 2.0.0, please note significant database changes were introduced in
+Version 2.0.0 introduces significant database changes. Please read
+the [migration guide](https://github.com/adamspd/django-appointment/tree/main/docs/migration_guides/v2_1_0.md) before
 updating.
 
 Django-Appointment is a Django app engineered for managing appointment scheduling with ease and flexibility. It enables
@@ -21,9 +22,9 @@ provided. This app proficiently manages conflicts and availability for appointme
 experience.
 
 Detailed documentation can be found in
-the [docs' directory](https://github.com/adamspd/django-appointment/tree/main/docs).
+the [docs' directory](https://github.com/adamspd/django-appointment/tree/main/docs/README.md).
 For changes and migration information, please refer to the [release
-notes](https://github.com/adamspd/django-appointment/tree/main/release_notes/latest.md).
+notes](https://github.com/adamspd/django-appointment/tree/main/docs/release_notes/latest.md).
 
 ## Features ✨
 
@@ -33,31 +34,56 @@ notes](https://github.com/adamspd/django-appointment/tree/main/release_notes/lat
 4. User-friendly interface for viewing available time slots and scheduling appointments.
 5. Capability to send email notifications to clients upon scheduling an appointment.
 
-## Added Features in version 2.0.0
+## Key features introduced in previous versions.
 
-- **Database Changes ⚠️**: Significant modifications to the database schema. Before updating, ensure you follow the
-  migration steps outlined in
-  the [migration guide](https://github.com/adamspd/django-appointment/tree/main/migration_guides/latest.md).
+- For more information, please refer to
+  this [documentation](https://github.com/adamspd/django-appointment/tree/main/docs/history/readme_v2_1_1.md).
 
-1. Introduced a staff feature allowing staff members in a team or system to manage their own appointments.
-2. Implemented an admin feature panel enabling staff members and superusers (admins) to manage the system.
-3. Added buffer time between the current time and the first available slot for the day.
-4. Defined working hours for each staff member, along with the specific days they are available during the week.
-5. Specified days off for staff members to represent holidays or vacations.
-6. Staff members can now define their own configuration settings for the appointment system, such as slot duration,
-   working hours, and buffer time between appointments. However, only admins have the privilege to add/remove services.
+## Added Features in version 2.1.2
 
-### Breaking Changes in version 2.1.0:
+This release of Django Appointment brings a series of improvements and updates aimed at enhancing the overall
+functionality and user experience:
+
+1. **Dynamic Label Customization in Appointment Pages (#19)**:
+    - Added a new configuration option `app_offered_by_label` to the `Config` model.
+    - This feature allows for dynamic labeling in the appointment HTML page to showcase the staff members or services
+      offering the appointment.
+    - The default value is "Offered by", which can be customized to fit different contexts, such as "Provided by" or "
+      Choose Photographer" for photography services.
+
+2. **Updated Documentation and Workflow Enhancements (#25, #26, #27)**:
+    - Improved clarity and consistency in the project's documentation, making it more accessible and user-friendly.
+    - Updated workflow processes to streamline development and issue tracking.
+
+3. **Community Engagement and Standards (#21, #22, #23, #24)**:
+    - Introduced a `CODE_OF_CONDUCT.md` to foster a respectful and inclusive community environment.
+    - Created `CONTRIBUTING.md` to guide contributors through the process of making contributions to the project.
+    - Established a `SECURITY.md` policy to address security protocols and reporting.
+    - Refined issue templates for bug reports and feature requests, enhancing the efficiency of community contributions
+      and feedback.
+
+4. **Library Updates and Security Patches (#14, #15, #18)**:
+    - Updated dependencies such as `phonenumbers` and `django` to their latest versions, ensuring better performance and
+      security.
+
+5. **Enhanced Project Visibility (#16)**:
+    - Added GitHub Badges to the README for better visibility and quick access to project metrics like build status,
+      versioning, and contribution activities.
+
+6. **Translation Refinements (#31)**:
+    - Removed inconsistencies in translations, improving the internationalization aspect of the application.
+
+These updates collectively contribute to the robustness and versatility of the Django Appointment package, aligning with
+our commitment to providing a high-quality and user-friendly appointment management solution.
+
+### Breaking Changes in version 2.1.2:
 
 - None
 
-### New Features 🆕
+### New Features  & Bug Fixes 🆕
 
-See the [release notes](docs/release_notes/latest.md#Updates) for more information.
-
-### Fixes 🆕
-
-See the [release notes](docs/release_notes/latest.md#Bug-Fixes) for more information.
+See the [release notes](https://github.com/adamspd/django-appointment/tree/main/docs/release_notes/latest.md)
+for more information.
 
 ## Quick Start 🚀
 
@@ -136,7 +162,8 @@ See the [release notes](docs/release_notes/latest.md#Bug-Fixes) for more informa
 ## Customization 🔧
 
 1. In your Django project's `settings.py`, you can override the default values for the appointment scheduler. More
-   information regarding available configurations can be found in the [documentation](docs/README.md#configuration).
+   information regarding available configurations can be found in
+   the [documentation](https://github.com/adamspd/django-appointment/tree/main/docs/README.md#configuration).
 2. Modify these values as needed for your application, and the app will adapt to the new settings.
 3. For further customization, you can extend the provided models, views, and templates or create your own.
 
@@ -144,6 +171,22 @@ See the [release notes](docs/release_notes/latest.md#Bug-Fixes) for more informa
 
 For support or inquiries regarding the Appointment Scheduler app, please refer to the documentation in the "docs"
 directory or visit the GitHub repository for more information.
+
+## Contributing 🤝
+
+Contributions are welcome! Please refer to
+the [contributing guidelines](https://github.com/adamspd/django-appointment/tree/main/CONTRIBUTING.md) for more
+information.
+
+## Code of Conduct 📜
+
+Please refer to the [code of conduct](https://github.com/adamspd/django-appointment/tree/main/CODE_OF_CONDUCT.md) for
+more information.
+
+## Security policy 🔒
+
+Please refer to the [security policy](https://github.com/adamspd/django-appointment/tree/main/SECURITY.md) for more
+information.
 
 ## Notes 📝⚠️
 
