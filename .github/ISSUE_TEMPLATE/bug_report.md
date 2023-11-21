@@ -36,3 +36,12 @@ If applicable, add screenshots to help explain your problem.
 
 **Additional context**
 Add any other context about the problem here.
+
+## Possible Solution
+If you have an idea about what is causing this issue or how to fix it, please let us know.
+
+## Can you fix the bug?
+- [ ] Yes, I can fix the bug and will open a pull request.
+- [ ] No, I can't fix the bug, but I can assist in testing and providing feedback.
+- [ ] No, I can't fix the bug, but I can provide more information to help you fix it.
+- [ ] No, I can't fix the bug, but I can open an issue to report it.
