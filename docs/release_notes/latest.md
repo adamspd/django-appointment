@@ -50,7 +50,7 @@ internationalization, alongside some crucial library updates and new dynamic fea
 ## Previous Version Highlights (2.1.1) 🔙
 
 - For details on the previous version's features and updates, please refer
-  to [release notes for version 2.1.1](docs/release_notes/v2_1_1.md).
+  to [release notes for version 2.1.1](https://github.com/adamspd/django-appointment/tree/main/docs/release_notes/v2_1_1.md).
 
 ## Getting Started 🚀
 
