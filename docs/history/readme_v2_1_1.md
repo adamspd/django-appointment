@@ -14,7 +14,7 @@ notes](https://github.com/adamspd/django-appointment/tree/main/docs/release_note
 
 - **Database Changes ⚠️**: Significant modifications to the database schema. Before updating, ensure you follow the
   migration steps outlined in
-  the [migration guide](https://github.com/adamspd/django-appointment/tree/main/docs/migration_guides/v2_1_1.md).
+  the [migration guide](https://github.com/adamspd/django-appointment/tree/main/docs/migration_guides/v2_1_0.md).
 
 1. Introduced a staff feature allowing staff members in a team or system to manage their own appointments.
 2. Implemented an admin feature panel enabling staff members and superusers (admins) to manage the system.
