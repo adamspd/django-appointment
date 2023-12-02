@@ -25,15 +25,19 @@ jobs:
 
     # Check if the current version is already on PyPI
     - name: Check version on PyPI
+      id: version_check
       run: |
         python check_version.py
+      continue-on-error: true
 
     # Build the package (folder exclusion is handled by MANIFEST.in)
     - name: Build package
+      if: steps.version_check.outputs.version_exists != 'true'
       run: |
         python setup.py sdist bdist_wheel
 
     - name: Upload to PyPI
+      if: steps.version_check.outputs.version_exists != 'true'
       env:
         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
         TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
