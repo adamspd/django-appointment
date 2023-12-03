@@ -1,4 +1,4 @@
-- [Django Appointment](#django-appointment-system) 
+- [Django Appointment]() 
   * [Views](#views)
     + [get_available_slots_ajax](#get-available-slots-ajax)
     + [get_next_available_date_ajax](#get-next-available-date-ajax)

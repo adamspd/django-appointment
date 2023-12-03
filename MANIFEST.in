@@ -27,14 +27,18 @@ recursive-include appointment/static/css *.css
 recursive-include appointment/static/js *.js
 recursive-include appointment/static/img *.jpg
 recursive-include appointment/templates/ *.html
-recursive-include appointment/tests/base *.py
-recursive-include appointment/tests/mixins *.py
-recursive-include appointment/tests/models *.py
-recursive-include appointment/tests/utils *.py
 recursive-include appointment/tests *.py
 recursive-include appointment/utils *.py
 
 # Exclusions
+exclude release_notes.md
+exclude check_version.py
+exclude manage.py
+exclude db.sqlite3
+exclude .gitignore
+exclude .git
+exclude .svn
+exclude .hg
 exclude appointment/__pycache__
 exclude appointment/migrations/__pycache__
 exclude appointment/django_appointment.egg-info/PKG-INFO
@@ -44,5 +48,6 @@ exclude appointment/django_appointment.egg-info/requires.txt
 exclude appointment/django_appointment.egg-info/top_level.txt
 
 # Recursive exclusions
-recursive-exclude appointment/migrations *
-recursive-exclude appointments *
+recursive-exclude appointment/migrations *.py
+recursive-exclude appointments *.py
+recursive-exclude appointment *.pyc
