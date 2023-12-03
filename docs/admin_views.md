@@ -22,6 +22,7 @@ Example:
 ```html
 
 <head>
+    <title>My title</title>
     ...
     {% block customMetaTag %}
     {% endblock %}
@@ -110,7 +111,7 @@ Failure to include this block might result in errors during asynchronous operati
     - **Endpoint**: `email_change_verification_code/`
     - **Description**: When a user changes their email, they need to verify the new email through a code. This endpoint
       handles the verification process.
-    - **Methods**: GET (display verification code form), POST (submit verification code)
+    - **Methods**: GET (it displays a verification code form), POST (submit verification code)
 
 #### **Days Off Management**:
 
@@ -152,8 +153,8 @@ Failure to include this block might result in errors during asynchronous operati
 - **Delete Working Hours**:
     - **Endpoint**: `delete-working-hours/`, `delete-working-hours/<int:working_hours_id>/`,
       and `delete-working-hours/<int:working_hours_id>/<int:staff_user_id>/`
-    - **Description**: Users can remove a working hours entry. Superusers can delete any entry, while staff members can
-      only delete their own.
+    - **Description**: Users can remove a working hours' entry.
+      Superusers can delete any entry, while staff members can only delete their own.
     - **Methods**: GET
 
 ### Note on updating personal info

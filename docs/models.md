@@ -1,4 +1,4 @@
-- [Django Appointment System](#django-appointment-system)
+- [Django Appointment System]()
     * [Models](#models)
         + [Service](#service)
         + [StaffMember](#staffmember)
@@ -149,13 +149,11 @@ appointment request.
 - `get_service_img_url`: Returns the URL of the service's image.
 - `get_service_description`: Returns the description of the service.
 - `get_appointment_date`: Returns the date of the appointment.
-- `is_paid`: Returns whether the appointment has been paid for.
+- `is_paid`: Returns if the appointment has been paid for.
 - `get_appointment_amount_to_pay`: Returns the amount to be paid for the appointment.
 - `get_appointment_amount_to_pay_str`: Returns a formatted amount to pay text.
 - `get_appointment_currency`: Returns the currency of the appointment price.
 - `get_appointment_id_request`: Returns the ID of the appointment.
-- `get_created_at`: Returns the timestamp when the appointment was created.
-- `get_updated_at`: Returns the timestamp when the appointment was last updated.
 - `set_appointment_paid_status`: Sets the paid status of the appointment.
 - `get_absolute_url`: Returns the absolute URL for the appointment.
 - `get_background_color`: Returns the background color of the service.
@@ -266,7 +264,7 @@ The `WorkingHours` model represents the working hours for a staff member on a sp
 - `clean`: Validates that the `start_time` is before the `end_time`.
 - `get_start_time`: Returns the start time of the working hours.
 - `get_end_time`: Returns the end time of the working hours.
-- `get_day_of_week_str`: Returns the name of the day of the week.
+- `get_day_of_week_str`: Returns the name of the day.
 - `is_owner`: Returns a boolean indicating if the given user ID matches the user ID of the staff member associated with
   the working hours.
 

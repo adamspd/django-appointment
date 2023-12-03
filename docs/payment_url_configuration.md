@@ -7,7 +7,7 @@ determines where the user is redirected for payment processing after an appointm
 
 ### 1. Direct Payment Gateway URL:
 
-If you have a direct URL to a payment gateway or an external payment page, you can simply set
+If you have a direct URL to a payment gateway or an external payment page, you can set
 the `APPOINTMENT_PAYMENT_URL` to that URL. For instance:
 
 ```python
