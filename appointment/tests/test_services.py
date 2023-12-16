@@ -14,7 +14,7 @@ from appointment.services import fetch_user_appointments, prepare_appointment_di
     handle_service_management_request, handle_working_hours_form, handle_day_off_form
 from appointment.tests.base.base_test import BaseTest
 from appointment.utils.date_time import convert_str_to_time, get_ar_end_time
-from appointment.utils.db_helpers import get_user_model, DayOff, WorkingHours, Config, EmailVerificationCode, \
+from appointment.utils.db_helpers import DayOff, WorkingHours, Config, EmailVerificationCode, \
     StaffMember
 
 
@@ -55,10 +55,10 @@ class FetchUserAppointmentsTests(BaseTest):
                          "Staff members should not see appointments not linked to them. User2's appointment was found.")
 
     def test_fetch_appointments_for_regular_user(self):
-        """Test that a regular user (not a staff member) cannot fetch appointments."""
-        # Fetching appointments for a regular user (client1 in this case) should raise an exception
-        with self.assertRaises(get_user_model().staffmember.RelatedObjectDoesNotExist,
-                               msg="Regular users without a staff member profile can't fetch appointments."):
+        """Test that a regular user (not a user with staff member instance or staff) cannot fetch appointments."""
+        # Fetching appointments for a regular user (client1 in this case) should raise ValueError
+        with self.assertRaises(ValueError,
+                               msg="Regular users without staff or superuser status should raise a ValueError."):
             fetch_user_appointments(self.client1)
 
 

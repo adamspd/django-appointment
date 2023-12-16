@@ -35,14 +35,16 @@ def fetch_user_appointments(user):
     :param user: The user instance.
     :return: A list of appointments.
     """
-    try:
-        staff_member_instance = user.staffmember
-    except ObjectDoesNotExist:
-        return []
-
     if user.is_superuser:
         return get_all_appointments()
-    return get_staff_member_appointment_list(staff_member_instance)
+    try:
+        staff_member_instance = user.staffmember
+        return get_staff_member_appointment_list(staff_member_instance)
+    except ObjectDoesNotExist:
+        if user.is_staff:
+            return []
+
+    raise ValueError("User is not a staff member or a superuser")
 
 
 def prepare_appointment_display_data(user, appointment_id):
@@ -534,4 +536,3 @@ def handle_service_management_request(post_data, files_data=None, service_id=Non
             return None, False, get_error_message_in_form(form=form)
     except Exception as e:
         return None, False, str(e)
-
