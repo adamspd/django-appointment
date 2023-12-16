@@ -48,6 +48,9 @@ def get_user_appointments(request, response_type='html'):
         'appointments': json.dumps(appointments_json),
     }
     context = get_generic_context_with_extra(request=request, extra=extra_context)
+    # if appointment is empty and user doesn't have a staff-member instance, put a message
+    if not appointments and not StaffMember.objects.filter(user=request.user).exists() and request.user.is_staff:
+        messages.error(request, _("User doesn't have a staff member instance. Please contact the administrator."))
     return render(request, 'administration/staff_index.html', context)
 
 
