@@ -39,7 +39,7 @@ notes](https://github.com/adamspd/django-appointment/tree/main/docs/release_note
 - For more information, please refer to
   this [documentation](https://github.com/adamspd/django-appointment/tree/main/docs/history/readme_v2_1_1.md).
 
-## Added Features in version 2.1.3
+## Added Features in version 2.1.5
 
 This release of Django Appointment brings a series of improvements and updates aimed at enhancing the overall
 functionality and user experience:
@@ -73,6 +73,10 @@ functionality and user experience:
 6. **Translation Refinements (#31)**:
     - Removed inconsistencies in translations, improving the internationalization aspect of the application.
 
+7. **Bug Fixes (#48)**:
+    - Fixed a bug where a stack trace was displayed when a user that is staff but didn't have a staff member profile
+      tried to access its appointment's page list (/app-admin/user-event/)
+
 These updates collectively contribute to the robustness and versatility of the Django Appointment package, aligning with
 our commitment to providing a high-quality and user-friendly appointment management solution.
 
@@ -80,7 +84,7 @@ our commitment to providing a high-quality and user-friendly appointment managem
 
 - None
 
-### New Features  & Bug Fixes 🆕
+### New Features & Bug Fixes 🆕
 
 See the [release notes](https://github.com/adamspd/django-appointment/tree/main/docs/release_notes/latest.md)
 for more information.

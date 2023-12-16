@@ -43,6 +43,57 @@ internationalization, alongside some crucial library updates and new dynamic fea
 
 - Inconsistencies in translations removed, improving the internationalization aspect.
 
+## Bug Fixes 🐛
+
+---
+
+- Fixed a bug where a stack trace was displayed when a user that is staff but didn't have a staff member profile tried
+  to access its appointment's page list (/app-admin/user-event/)
+
+  #### Description of the bug
+    If a staff (Django-related role) is authenticated and tries to retrieved this endpoint :
+    `/app-admin/user-event/` he'll get the following error if debug = true
+    ```
+      Traceback (most recent call last):
+      File ".../django/core/handlers/exception.py", line 55, in inner
+        response = get_response(request)
+                   ^^^^^^^^^^^^^^^^^^^^^
+      File ".../django/core/handlers/base.py", line 197, in _get_response
+        response = wrapped_callback(request, *callback_args, **callback_kwargs)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      File ".../appointment/decorators.py", line 26, in wrapper
+        return func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      File ".../appointment/decorators.py", line 39, in wrapper
+        return func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      File ".../appointment/views_admin.py", line 39, in get_user_appointments
+        appointments = fetch_user_appointments(request.user)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      File ".../appointment/services.py", line 44, in fetch_user_appointments
+        staff_member_instance = user.staffmember
+                                ^^^^^^^^^^^^^^^^
+      File ".../django/utils/functional.py", line 268, in inner
+        return func(_wrapped, *args)
+               ^^^^^^^^^^^^^^^^^^^^^
+      File ".../django/db/models/fields/related_descriptors.py", line 492, in __get__
+        raise self.RelatedObjectDoesNotExist(
+        client.models.UserClient.staffmember.RelatedObjectDoesNotExist: UserClient has no staffmember.
+    ```
+    If debug = false, the user will get a 500 error
+    #### To Reproduce
+    ##### Steps to reproduce the behavior:
+
+      Create a user/account (user1)
+      Login as admin/superuser (admin) and add user1 to staff.
+      Login as user1 and go to /appointment/app-admin/user-event/
+      See error
+
+    #### Expected behavior
+    Not an error but a redirection or anything more concise than just an error or a 5xx code return.
+
+---
+
 ### Breaking Changes 🚨
 
 - None
