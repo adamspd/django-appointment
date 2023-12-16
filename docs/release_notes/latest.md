@@ -1,12 +1,12 @@
 # django-appointment 📦
 
-**v2.1.2 🆕**
+**v2.1.5 🆕**
 
-## ___Release Notes for Version 2.1.2___
+## ___Release Notes for Version 2.1.5___
 
 ## Introduction 📜
 
-Version 2.1.2 of django-appointment introduces a series of refinements and updates, enhancing both the functionality and
+Version 2.1.5 of django-appointment introduces a series of refinements and updates, enhancing both the functionality and
 the user experience. This release focuses on improving documentation, workflow, community engagement, and
 internationalization, alongside some crucial library updates and new dynamic features.
 
@@ -115,7 +115,7 @@ If you're upgrading from a previous version or installing for the first time, fo
 ### Installation 📥:
 
 ```bash
-pip install django-appointment==2.1.0
+pip install django-appointment==2.1.5
 ```
 
 ### Database Migration 🔧:
@@ -132,5 +132,5 @@ please refer to the provided resources.
 
 ## Conclusion 🎉
 
-Version 2.1.2 continues our commitment to providing a robust and user-friendly appointment management solution. With
+Version 2.1.5 continues our commitment to providing a robust and user-friendly appointment management solution. With
 these updates, Django Appointment becomes more adaptable, secure, and community-focused.
