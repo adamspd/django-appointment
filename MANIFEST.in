@@ -41,11 +41,6 @@ exclude .svn
 exclude .hg
 exclude appointment/__pycache__
 exclude appointment/migrations/__pycache__
-exclude appointment/django_appointment.egg-info/PKG-INFO
-exclude appointment/django_appointment.egg-info/SOURCES.txt
-exclude appointment/django_appointment.egg-info/dependency_links.txt
-exclude appointment/django_appointment.egg-info/requires.txt
-exclude appointment/django_appointment.egg-info/top_level.txt
 
 # Recursive exclusions
 recursive-exclude appointment/migrations *.py
