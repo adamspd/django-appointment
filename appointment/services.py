@@ -9,25 +9,22 @@ Since: 2.0.0
 import datetime
 
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.translation import gettext as _
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext as _, gettext_lazy as _
 
-from appointment.forms import StaffDaysOffForm, StaffWorkingHoursForm, PersonalInformationForm, ServiceForm
+from appointment.forms import PersonalInformationForm, ServiceForm, StaffDaysOffForm, StaffWorkingHoursForm
 from appointment.settings import APPOINTMENT_PAYMENT_URL
-from appointment.utils.date_time import get_ar_end_time, convert_12_hour_time_to_24_hour_time, \
-    convert_str_to_time
-from appointment.utils.db_helpers import get_all_appointments, get_staff_member_appointment_list, \
-    get_appointment_by_id, get_all_staff_members, get_staff_member_from_user_id_or_logged_in, \
-    day_off_exists_for_date_range, working_hours_exist, Appointment, WorkingHours, Service, StaffMember, \
-    get_user_by_email, EmailVerificationCode, create_new_user
-from appointment.utils.db_helpers import get_working_hours_for_staff_and_day, get_appointments_for_date_and_time, \
-    get_times_from_config, exclude_booked_slots, calculate_slots, \
-    calculate_staff_slots, check_day_off_for_staff
+from appointment.utils.date_time import convert_12_hour_time_to_24_hour_time, convert_str_to_time, get_ar_end_time
+from appointment.utils.db_helpers import Appointment, EmailVerificationCode, Service, StaffMember, WorkingHours, \
+    calculate_slots, calculate_staff_slots, check_day_off_for_staff, create_new_user, day_off_exists_for_date_range, \
+    exclude_booked_slots, get_all_appointments, get_all_staff_members, get_appointment_by_id, \
+    get_appointments_for_date_and_time, get_staff_member_appointment_list, get_staff_member_from_user_id_or_logged_in, \
+    get_times_from_config, get_user_by_email, get_working_hours_for_staff_and_day, working_hours_exist
 from appointment.utils.error_codes import ErrorCode
-from appointment.utils.json_context import json_response, get_generic_context
+from appointment.utils.json_context import get_generic_context, json_response
 from appointment.utils.permissions import check_entity_ownership
 from appointment.utils.session import handle_email_change
 
@@ -38,11 +35,16 @@ def fetch_user_appointments(user):
     :param user: The user instance.
     :return: A list of appointments.
     """
-
     if user.is_superuser:
         return get_all_appointments()
-    staff_member_instance = user.staffmember
-    return get_staff_member_appointment_list(staff_member_instance)
+    try:
+        staff_member_instance = user.staffmember
+        return get_staff_member_appointment_list(staff_member_instance)
+    except ObjectDoesNotExist:
+        if user.is_staff:
+            return []
+
+    raise ValueError("User is not a staff member or a superuser")
 
 
 def prepare_appointment_display_data(user, appointment_id):
@@ -534,4 +536,3 @@ def handle_service_management_request(post_data, files_data=None, service_id=Non
             return None, False, get_error_message_in_form(form=form)
     except Exception as e:
         return None, False, str(e)
-
