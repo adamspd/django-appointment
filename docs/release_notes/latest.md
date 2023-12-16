@@ -14,10 +14,11 @@ internationalization, alongside some crucial library updates and new dynamic fea
 
 ### Dynamic Label Customization in Appointment Pages (#19)
 
-- Added a new configuration option `app_offered_by_label` in the `Config` model.
-- Enables dynamic labeling in the appointment HTML page, showcasing the staff members or services offering the
-  appointment.
-- Default label is "Offered by", customizable to suit different service contexts.
+- Added a new configuration option `app_offered_by_label` to the `Config` model.
+- This feature allows for dynamic labeling in the appointment HTML page to showcase the staff members or services
+  offering the appointment.
+- The default value is "Offered by", which can be customized to fit different contexts, such as "Provided by" or "
+  Choose Photographer" for photography services.
 
 ### Updated Documentation and Workflow Enhancements (#25, #26, #27)
 
@@ -42,6 +43,10 @@ internationalization, alongside some crucial library updates and new dynamic fea
 ### Translation Refinements (#31)
 
 - Inconsistencies in translations removed, improving the internationalization aspect.
+
+### Provided an endpoint to delete an appointment (#49)
+
+- Added an endpoint to delete an appointment. Either with an ajax call or a simple request.
 
 ## Bug Fixes 🐛
 

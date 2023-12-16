@@ -44,50 +44,34 @@ notes](https://github.com/adamspd/django-appointment/tree/main/docs/release_note
 This release of Django Appointment brings a series of improvements and updates aimed at enhancing the overall
 functionality and user experience:
 
-1. **Dynamic Label Customization in Appointment Pages (#19)**:
-    - Added a new configuration option `app_offered_by_label` to the `Config` model.
-    - This feature allows for dynamic labeling in the appointment HTML page to showcase the staff members or services
-      offering the appointment.
-    - The default value is "Offered by", which can be customized to fit different contexts, such as "Provided by" or "
-      Choose Photographer" for photography services.
+1. **Dynamic Label Customization in Appointment Pages (#19)**
 
-2. **Updated Documentation and Workflow Enhancements (#25, #26, #27)**:
-    - Improved clarity and consistency in the project's documentation, making it more accessible and user-friendly.
-    - Updated workflow processes to streamline development and issue tracking.
+2. **Updated Documentation and Workflow Enhancements (#25, #26, #27)**
 
-3. **Community Engagement and Standards (#21, #22, #23, #24)**:
-    - Introduced a `CODE_OF_CONDUCT.md` to foster a respectful and inclusive community environment.
-    - Created `CONTRIBUTING.md` to guide contributors through the process of making contributions to the project.
-    - Established a `SECURITY.md` policy to address security protocols and reporting.
-    - Refined issue templates for bug reports and feature requests, enhancing the efficiency of community contributions
-      and feedback.
+3. **Community Engagement and Standards (#21, #22, #23, #24)**
 
-4. **Library Updates and Security Patches (#14, #15, #18)**:
-    - Updated dependencies such as `phonenumbers` and `django` to their latest versions, ensuring better performance and
-      security.
+4. **Library Updates and Security Patches (#14, #15, #18)**
 
-5. **Enhanced Project Visibility (#16)**:
-    - Added GitHub Badges to the README for better visibility and quick access to project metrics like build status,
-      versioning, and contribution activities.
+5. **Enhanced Project Visibility (#16)**
 
-6. **Translation Refinements (#31)**:
-    - Removed inconsistencies in translations, improving the internationalization aspect of the application.
+6. **Translation Refinements (#31)**
 
-7. **Bug Fixes (#48)**:
-    - Fixed a bug where a stack trace was displayed when a user that is staff but didn't have a staff member profile
-      tried to access its appointment's page list (/app-admin/user-event/)
+7. **Bug Fixes (#48)**
+
+See more at the [release notes](https://github.com/adamspd/django-appointment/tree/main/docs/release_notes/latest.md).
 
 These updates collectively contribute to the robustness and versatility of the Django Appointment package, aligning with
 our commitment to providing a high-quality and user-friendly appointment management solution.
 
-### Breaking Changes in version 2.1.2:
-
-- None
-
-### New Features & Bug Fixes 🆕
+### Bug Fixes 🆕
 
 See the [release notes](https://github.com/adamspd/django-appointment/tree/main/docs/release_notes/latest.md)
 for more information.
+
+### Breaking Changes in version 2.1.5:
+
+- None
+
 
 ## Quick Start 🚀
 
