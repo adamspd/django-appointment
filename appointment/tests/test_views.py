@@ -3,6 +3,7 @@ import json
 from datetime import date, timedelta, time
 
 from django.contrib import messages
+from django.contrib.messages import get_messages
 from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import Client
@@ -10,7 +11,7 @@ from django.test.client import RequestFactory
 from django.urls import reverse
 from django.utils.translation import gettext as _
 
-from appointment.models import AppointmentRequest, Appointment, EmailVerificationCode
+from appointment.models import AppointmentRequest, Appointment, EmailVerificationCode, StaffMember
 from appointment.tests.base.base_test import BaseTest
 from appointment.utils.db_helpers import WorkingHours
 from appointment.views import verify_user_and_login
@@ -28,6 +29,7 @@ class ViewsTestCase(BaseTest):
                                     start_time=datetime.time(8, 0), end_time=datetime.time(12, 0))
         self.ar = self.create_appt_request_for_sm1()
         self.request = self.factory.get('/')
+        self.user1.is_staff = True
         self.request.user = self.user1
         middleware = SessionMiddleware(lambda req: None)
         middleware.process_request(self.request)
@@ -137,3 +139,27 @@ class ViewsTestCase(BaseTest):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertIn(appointment.get_service_name(), str(response.content))
+
+    def test_staff_user_without_staff_member_instance(self):
+        """Test that a staff user without a staff member instance receives an appropriate error message."""
+        self.user1.is_staff = True
+
+        # Delete any AppointmentRequests and Appointments linked to the StaffMember instance of self.user1
+        AppointmentRequest.objects.filter(staff_member__user=self.user1).delete()
+        Appointment.objects.filter(appointment_request__staff_member__user=self.user1).delete()
+
+        # Now safely delete the StaffMember instance
+        StaffMember.objects.filter(user=self.user1).delete()
+
+        self.user1.save()  # Save the user to the database after updating
+        self.client.force_login(self.user1)  # Log in as self.user1
+
+        url = reverse('appointment:get_user_appointments')
+        response = self.client.get(url)
+
+        message_list = list(get_messages(response.wsgi_request))
+        self.assertTrue(any(
+            message.message == "User doesn't have a staff member instance. Please contact the administrator." for
+            message in message_list),
+                        "Expected error message not found in messages.")
+
