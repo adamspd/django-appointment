@@ -11,23 +11,24 @@ import datetime
 import json
 
 from django.contrib import messages
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
-from appointment.decorators import require_user_authenticated, require_staff_or_superuser, require_ajax, \
-    require_superuser
-from appointment.forms import StaffAppointmentInformationForm, PersonalInformationForm, ServiceForm
-from appointment.models import Appointment, StaffMember, WorkingHours, DayOff
-from appointment.services import fetch_user_appointments, prepare_appointment_display_data, prepare_user_profile_data, \
-    handle_entity_management_request, save_appointment, save_appt_date_time, update_personal_info_service, \
-    email_change_verification_service, create_staff_member_service, handle_service_management_request
-from appointment.utils.db_helpers import get_user_model, get_staff_member_by_user_id, get_day_off_by_id, \
-    get_working_hours_by_id, Service
+from appointment.decorators import require_ajax, require_staff_or_superuser, require_superuser, \
+    require_user_authenticated
+from appointment.forms import PersonalInformationForm, ServiceForm, StaffAppointmentInformationForm
+from appointment.models import Appointment, DayOff, StaffMember, WorkingHours
+from appointment.services import create_staff_member_service, email_change_verification_service, \
+    fetch_user_appointments, handle_entity_management_request, handle_service_management_request, \
+    prepare_appointment_display_data, prepare_user_profile_data, save_appointment, save_appt_date_time, \
+    update_personal_info_service
+from appointment.utils.db_helpers import Service, get_day_off_by_id, get_staff_member_by_user_id, get_user_model, \
+    get_working_hours_by_id
 from appointment.utils.error_codes import ErrorCode
-from appointment.utils.json_context import convert_appointment_to_json, json_response, \
-    get_generic_context_with_extra, get_generic_context, handle_unauthorized_response
-from appointment.utils.permissions import check_permissions, check_extensive_permissions
+from appointment.utils.json_context import convert_appointment_to_json, get_generic_context, \
+    get_generic_context_with_extra, handle_unauthorized_response, json_response
+from appointment.utils.permissions import check_extensive_permissions, check_permissions
 
 
 ###############################################################
@@ -466,3 +467,22 @@ def get_service_list(request, response_type='html'):
         return json_response("Successfully fetched services.", custom_data={'services': service_data}, safe=False)
     context = get_generic_context_with_extra(request=request, extra={'services': services})
     return render(request, 'administration/service_list.html', context=context)
+
+
+@require_user_authenticated
+@require_staff_or_superuser
+def delete_appointment(request, appointment_id):
+    appointment = get_object_or_404(Appointment, pk=appointment_id)
+    appointment.delete()
+    messages.success(request, _("Appointment deleted successfully!"))
+    return redirect('appointment:get_user_appointments')
+
+
+@require_user_authenticated
+@require_staff_or_superuser
+def delete_appointment_ajax(request):
+    data = json.loads(request.body)
+    appointment_id = data.get("appointment_id")
+    appointment = get_object_or_404(Appointment, pk=appointment_id)
+    appointment.delete()
+    return json_response("Appointment deleted successfully.")

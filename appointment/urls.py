@@ -11,7 +11,9 @@ from django.urls import path, include
 from appointment.views import appointment_request, get_available_slots_ajax, get_next_available_date_ajax, \
     appointment_request_submit, appointment_client_information, default_thank_you, enter_verification_code, \
     get_non_working_days_ajax
-from appointment.views_admin import get_user_appointments, display_appointment, user_profile, update_working_hours, \
+from appointment.views_admin import delete_appointment, delete_appointment_ajax, get_user_appointments, \
+    display_appointment, user_profile, \
+    update_working_hours, \
     add_working_hours, delete_working_hours, add_day_off, update_day_off, delete_day_off, add_or_update_staff_info, \
     fetch_service_list_for_staff, update_appt_min_info, update_appt_date_time, validate_appointment_date, \
     email_change_verification_code, update_personal_info, create_new_staff_member, make_superuser_staff_member, \
@@ -70,6 +72,9 @@ admin_urlpatterns = [
     path('update-working-hours/<int:working_hours_id>/', update_working_hours, name='update_working_hours'),
     path('add-working-hours/', add_working_hours, name='add_working_hours'),
     path('delete-working-hours/<int:working_hours_id>/', delete_working_hours, name='delete_working_hours'),
+
+    # delete appointment
+    path('delete-appointment/<int:appointment_id>/', delete_appointment, name='delete_appointment'),
 ]
 
 ajax_urlpatterns = [
@@ -81,6 +86,8 @@ ajax_urlpatterns = [
     path('update_appt_min_info/', update_appt_min_info, name="update_appt_min_info"),
     path('update_appt_date_time/', update_appt_date_time, name="update_appt_date_time"),
     path('validate_appointment_date/', validate_appointment_date, name="validate_appointment_date"),
+    # delete appointment ajax
+    path('delete_appointment/', delete_appointment_ajax, name="delete_appointment_ajax"),
 ]
 
 urlpatterns = [

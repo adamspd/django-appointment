@@ -38,6 +38,17 @@ class ViewsTestCase(BaseTest):
         middleware = MessageMiddleware(lambda req: None)
         middleware.process_request(self.request)
         self.request.session.save()
+        self.appointment = self.create_appointment_for_user1()
+
+    def need_staff_login(self):
+        self.user1.is_staff = True
+        self.user1.save()
+        self.client.force_login(self.user1)
+
+    def clean_staff_member_objects(self):
+        """Delete all AppointmentRequests and Appointments linked to the StaffMember instance of self.user1."""
+        AppointmentRequest.objects.filter(staff_member__user=self.user1).delete()
+        Appointment.objects.filter(appointment_request__staff_member__user=self.user1).delete()
 
     def test_get_available_slots_ajax(self):
         """get_available_slots_ajax view should return a JSON response with available slots for the selected date."""
@@ -142,17 +153,13 @@ class ViewsTestCase(BaseTest):
 
     def test_staff_user_without_staff_member_instance(self):
         """Test that a staff user without a staff member instance receives an appropriate error message."""
-        self.user1.is_staff = True
-
-        # Delete any AppointmentRequests and Appointments linked to the StaffMember instance of self.user1
-        AppointmentRequest.objects.filter(staff_member__user=self.user1).delete()
-        Appointment.objects.filter(appointment_request__staff_member__user=self.user1).delete()
+        self.clean_staff_member_objects()
 
         # Now safely delete the StaffMember instance
         StaffMember.objects.filter(user=self.user1).delete()
 
         self.user1.save()  # Save the user to the database after updating
-        self.client.force_login(self.user1)  # Log in as self.user1
+        self.need_staff_login()
 
         url = reverse('appointment:get_user_appointments')
         response = self.client.get(url)
@@ -161,5 +168,55 @@ class ViewsTestCase(BaseTest):
         self.assertTrue(any(
             message.message == "User doesn't have a staff member instance. Please contact the administrator." for
             message in message_list),
-                        "Expected error message not found in messages.")
+            "Expected error message not found in messages.")
 
+    def test_delete_appointment(self):
+        self.need_staff_login()
+
+        url = reverse('appointment:delete_appointment', args=[self.appointment.id])
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 302)  # Redirect status code
+        self.assertRedirects(response, reverse('appointment:get_user_appointments'))
+
+        # Check for success messages
+        messages_list = list(get_messages(response.wsgi_request))
+        self.assertTrue(any(_("Appointment deleted successfully!") in str(message) for message in messages_list))
+
+        # Check if appointment is deleted
+        appointment_exists = Appointment.objects.filter(pk=self.appointment.id).exists()
+        self.assertFalse(appointment_exists, "Appointment should be deleted but still exists.")
+
+    def test_delete_appointment_ajax(self):
+        self.need_staff_login()
+
+        url = reverse('appointment:delete_appointment_ajax')
+        data = json.dumps({'appointment_id': self.appointment.id})
+        response = self.client.post(url, data, content_type='application/json')
+
+        self.assertEqual(response.status_code, 200)
+        # Expecting both 'message' and 'success' in the response
+        expected_response = {"message": "Appointment deleted successfully.", "success": True}
+        self.assertEqual(json.loads(response.content), expected_response)
+
+        # Check if appointment is deleted
+        appointment_exists = Appointment.objects.filter(pk=self.appointment.id).exists()
+        self.assertFalse(appointment_exists, "Appointment should be deleted but still exists.")
+
+    def test_remove_staff_member(self):
+        self.need_staff_login()
+        self.clean_staff_member_objects()
+
+        url = reverse('appointment:remove_staff_member', args=[self.staff_member.user_id])
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 302)  # Redirect status code
+        self.assertRedirects(response, reverse('appointment:user_profile'))
+
+        # Check for success messages
+        messages_list = list(get_messages(response.wsgi_request))
+        self.assertTrue(any(_("Staff member deleted successfully!") in str(message) for message in messages_list))
+
+        # Check if staff member is deleted
+        staff_member_exists = StaffMember.objects.filter(pk=self.staff_member.id).exists()
+        self.assertFalse(staff_member_exists, "Appointment should be deleted but still exists.")
