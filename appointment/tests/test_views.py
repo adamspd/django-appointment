@@ -39,9 +39,15 @@ class ViewsTestCase(BaseTest):
         middleware.process_request(self.request)
         self.request.session.save()
         self.appointment = self.create_appointment_for_user1()
+        self.tomorrow = date.today() + timedelta(days=1)
 
     def need_staff_login(self):
         self.user1.is_staff = True
+        self.user1.save()
+        self.client.force_login(self.user1)
+
+    def need_superuser_login(self):
+        self.user1.is_superuser = True
         self.user1.save()
         self.client.force_login(self.user1)
 
@@ -220,3 +226,98 @@ class ViewsTestCase(BaseTest):
         # Check if staff member is deleted
         staff_member_exists = StaffMember.objects.filter(pk=self.staff_member.id).exists()
         self.assertFalse(staff_member_exists, "Appointment should be deleted but still exists.")
+
+    def test_fetch_service_list_for_staff(self):
+        self.need_staff_login()
+
+        # Assuming self.service1 and self.service2 are services linked to self.staff_member1
+        self.staff_member1.services_offered.add(self.service1, self.service2)
+        staff_member_services = [self.service1, self.service2]
+
+        # Simulate a request without appointmentId
+        url = reverse('appointment:fetch_service_list_for_staff')
+        response = self.client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.status_code, 200)
+        response_data = response.json()
+        self.assertEqual(response_data["message"], "Successfully fetched services.")
+        self.assertCountEqual(
+            response_data["services_offered"],
+            [{"id": service.id, "name": service.name} for service in staff_member_services]
+        )
+
+        # Create a test appointment and link it to self.staff_member1
+        test_appointment = self.create_appointment_for_user1()
+
+        # Simulate a request with appointmentId
+        url_with_appointment = f"{url}?appointmentId={test_appointment.id}"
+        response_with_appointment = self.client.get(url_with_appointment, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response_with_appointment.status_code, 200)
+        response_data_with_appointment = response_with_appointment.json()
+        self.assertEqual(response_data_with_appointment["message"], "Successfully fetched services.")
+        # Assuming the staff member linked to the appointment offers the same services
+        self.assertCountEqual(
+            response_data_with_appointment["services_offered"],
+            [{"id": service.id, "name": service.name} for service in staff_member_services]
+        )
+
+    def test_update_appt_min_info_create(self):
+        self.need_staff_login()
+
+        # Preparing data
+        data = {
+            'isCreating': True, 'service_id': '1', 'appointment_id': None, 'client_name': 'Bryan Zap',
+            'client_email': 'bz@gmail.com', 'client_phone': '+33769992738', 'client_address': 'Naples, Florida',
+            'want_reminder': 'false', 'additional_info': '', 'start_time': '15:00:26',
+            'date': self.tomorrow.strftime('%Y-%m-%d')
+        }
+        url = reverse('appointment:update_appt_min_info')
+
+        # Making the request
+        response = self.client.post(url, data=json.dumps(data), content_type='application/json',
+                                    **{'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'})
+
+        # Check response status
+        self.assertEqual(response.status_code, 200)
+
+        # Check response content
+        response_data = response.json()
+        self.assertIn('message', response_data)
+        self.assertEqual(response_data['message'], 'Appointment created successfully.')
+        self.assertIn('appt', response_data)
+
+        # Verify appointment created in the database
+        appointment_id = response_data['appt'][0]['id']
+        self.assertTrue(Appointment.objects.filter(id=appointment_id).exists())
+
+    def test_update_appt_min_info_update(self):
+        self.need_superuser_login()
+
+        # Create an appointment to update
+        appt = self.create_appointment_for_user1()
+
+        # Preparing data for update
+        data = {
+            'isCreating': False, 'service_id': '1', 'appointment_id': appt.id, 'client_name': 'Bryan Zap',
+            'client_email': 'bz@gmail.com', 'client_phone': '+33769992738', 'client_address': 'Naples, Florida',
+            'want_reminder': 'false', 'additional_info': '', 'start_time': '15:00:26',
+            'date': self.tomorrow.strftime('%Y-%m-%d')
+        }
+        url = reverse('appointment:update_appt_min_info')
+
+        # Making the request
+        response = self.client.post(url, data=json.dumps(data), content_type='application/json',
+                                    **{'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'})
+
+        # Check response status
+        self.assertEqual(response.status_code, 200)
+
+        # Check response content
+        response_data = response.json()
+        self.assertIn('message', response_data)
+        self.assertEqual(response_data['message'], 'Appointment updated successfully.')
+        self.assertIn('appt', response_data)
+
+        # Verify appointment updated in the database
+        updated_appt = Appointment.objects.get(id=appt.id)
+        self.assertEqual(updated_appt.client.email, data['client_email'])
+

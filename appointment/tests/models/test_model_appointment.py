@@ -78,6 +78,10 @@ class AppointmentModelTestCase(BaseTest):
         """Test if an appointment's paid status is correct."""
         self.assertFalse(self.appointment.is_paid())
 
+    def test_is_paid_txt(self):
+        """Test if an appointment's paid status is correct."""
+        self.assertEqual(self.appointment.is_paid_txt(), "No")
+
     # Test appointment amount to pay
     def test_get_appointment_amount_to_pay(self):
         """Test if an appointment's amount to pay is correct."""
@@ -186,3 +190,21 @@ class AppointmentModelTestCase(BaseTest):
     def test_get_service_duration(self):
         """Test if an appointment's service duration is correct."""
         self.assertEqual(self.appointment.get_service_duration(), "1 hour")
+
+    def test_appt_to_dict(self):
+        response = {
+            'id': 1,
+            'client_name': 'Client1',
+            'client_email': 'client1@gmail.com',
+            'start_time': '1900-01-01 09:00',
+            'end_time': '1900-01-01 10:00',
+            'service_name': 'Test Service',
+            'address': 'Some City, Some State',
+            'want_reminder': False,
+            'additional_info': None,
+            'paid': False,
+            'amount_to_pay': 100,
+        }
+        actual_response = self.appointment.to_dict()
+        actual_response.pop('id_request', None)
+        self.assertEqual(actual_response, response)

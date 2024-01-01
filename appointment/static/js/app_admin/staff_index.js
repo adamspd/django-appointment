@@ -171,7 +171,7 @@ function displayEventList(events, date) {
     const date_obj = new Date(date.toISOString())
 
     if (events.length === 0) {
-        eventListHtml += `<div class="djangoAppt_no-events">` + noEventTxt +`</div>`;
+        eventListHtml += `<div class="djangoAppt_no-events">` + noEventTxt + `</div>`;
     }
 
     eventListHtml += `<button class="btn btn-primary djangoAppt_btn-new-event" onclick="createNewAppointment('${date_obj}')">` + newEventTxt + `</button></div>`;
@@ -614,7 +614,7 @@ function collectFormDataFromModal(modal) {
 
     inputs.forEach(input => {
         if (input.name !== "date") {
-            let key = input.previousElementSibling.innerText.trim().replace(/\s+/g, '_').replace(":", "").toLowerCase();
+            let key = input.name.replace(/([A-Z])/g, '_$1').toLowerCase();
             data[key] = input.value;
         }
     });
@@ -645,9 +645,10 @@ function validateEmail(email) {
     const emailError = document.getElementById("emailError");
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    console.log("Email: ", emailInput.value)
+    if (!emailRegex.test(emailInput.value)) {
         emailInput.style.border = "1px solid red";
-        emailError.textContent = "Invalid email address.";
+        emailError.textContent = "Invalid email address, yeah.";
         emailError.style.color = "red";
         emailError.style.display = "inline";
         return false;
@@ -664,6 +665,8 @@ async function sendAppointmentData(data) {
     const headers = {
         'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': getCSRFToken(),
     };
+
+    console.log("Sending data to server: ", data);
 
     return fetch(updateApptMinInfoURL, {
         method: 'POST', headers: headers, body: JSON.stringify(data)

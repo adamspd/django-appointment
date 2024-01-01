@@ -16,30 +16,27 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_POST
 
-from appointment.decorators import require_ajax, require_staff_or_superuser, require_superuser, \
-    require_user_authenticated
+from appointment.decorators import (
+    require_ajax, require_staff_or_superuser, require_superuser, require_user_authenticated)
 from appointment.forms import PersonalInformationForm, ServiceForm, StaffAppointmentInformationForm
+from appointment.messages_ import appt_updated_successfully
 from appointment.models import Appointment, DayOff, StaffMember, WorkingHours
-from appointment.services import create_staff_member_service, email_change_verification_service, \
-    fetch_user_appointments, handle_entity_management_request, handle_service_management_request, \
-    prepare_appointment_display_data, prepare_user_profile_data, save_appointment, save_appt_date_time, \
-    update_personal_info_service
-from appointment.utils.date_time import convert_str_to_date, convert_str_to_time
-from appointment.utils.db_helpers import AppointmentRequest, Service, create_and_save_appointment, create_new_user, \
-    get_day_off_by_id, \
-    get_staff_member_by_user_id, \
-    get_user_by_email, get_user_model, \
-    get_working_hours_by_id
+from appointment.services import (
+    create_new_appointment, create_staff_member_service, email_change_verification_service,
+    fetch_user_appointments, handle_entity_management_request, handle_service_management_request,
+    prepare_appointment_display_data, prepare_user_profile_data, save_appt_date_time, update_existing_appointment,
+    update_personal_info_service)
+from appointment.utils.db_helpers import (
+    Service, get_day_off_by_id, get_staff_member_by_user_id, get_user_model,
+    get_working_hours_by_id)
 from appointment.utils.error_codes import ErrorCode
-from appointment.utils.json_context import convert_appointment_to_json, get_generic_context, \
-    get_generic_context_with_extra, handle_unauthorized_response, json_response
+from appointment.utils.json_context import (
+    convert_appointment_to_json, get_generic_context, get_generic_context_with_extra, handle_unauthorized_response,
+    json_response)
 from appointment.utils.permissions import check_extensive_permissions, check_permissions
 
 
 ###############################################################
-
-
-appt_updated_successfully = _("Appointment updated successfully.")
 
 
 @require_user_authenticated
@@ -240,7 +237,8 @@ def fetch_service_list_for_staff(request):
         else:
             staff_member = StaffMember.objects.get(user=request.user)
             # Ensure the staff member is associated with this appointment
-            if not Appointment.objects.filter(id=appointment_id, staff_member=staff_member).exists():
+            if not Appointment.objects.filter(id=appointment_id,
+                                              appointment_request__staff_member=staff_member).exists():
                 return json_response("You do not have permission to access this appointment.", status_code=403)
     else:
         # Fetch all services for the staff member (create mode)
@@ -250,84 +248,6 @@ def fetch_service_list_for_staff(request):
     return json_response("Successfully fetched services.", custom_data={'services_offered': services})
 
 
-def create_new_appointment(data, request):
-    service = Service.objects.get(id=data.get("service_id"))
-    staff_member = StaffMember.objects.get(user=request.user)
-
-    # Convert date and start time strings to datetime objects
-    date = convert_str_to_date(data.get("date"))
-    start_time = convert_str_to_time(data.get("start_time"))
-    start_datetime = datetime.datetime.combine(date, start_time)
-
-    appointment_request = AppointmentRequest(
-        date=start_datetime.date(),
-        start_time=start_datetime.time(),
-        end_time=(start_datetime + service.duration).time(),
-        service=service,
-        staff_member=staff_member,
-    )
-    appointment_request.full_clean()  # Validates the model
-    appointment_request.save()
-
-    # Prepare client data
-    email = data.get("client_email", "")
-    name_parts = data.get("client_name", "").split()
-    first_name = name_parts[0] if name_parts else ""
-    last_name = name_parts[-1] if len(name_parts) > 1 else ""  # Use an empty string if no last name
-
-    client_data = {
-        'email': email,
-        'first_name': first_name,
-        'last_name': last_name,
-    }
-
-    # Use your custom user creation logic
-    user = get_user_by_email(email)
-    if not user:
-        create_new_user(client_data)
-
-    # Create and save the new appointment
-    appointment_data = {
-        'phone': data.get("phone_number", ""),
-        'address': data.get("client_address", ""),
-        'want_reminder': data.get("want_reminder", False),
-        'additional_info': data.get("additional_info", ""),
-        'paid': False
-    }
-    appointment = create_and_save_appointment(appointment_request, client_data, appointment_data)
-    appointment_list = convert_appointment_to_json(request, [appointment])
-
-    return json_response("Appointment created successfully.", custom_data={'appt': appointment_list})
-
-
-def update_existing_appointment(data, request):
-    try:
-        appt = Appointment.objects.get(id=data.get("appointment_id"))
-        print(f"want_reminder: {data.get('want_reminder')}")
-        want_reminder = data.get("want_reminder") == 'true'
-        appt = save_appointment(
-            appt,
-            client_name=data.get("client_name"),
-            client_email=data.get("client_email"),
-            start_time=data.get("start_time"),
-            phone_number=data.get("phone_number"),
-            client_address=data.get("client_address"),
-            service_id=data.get("service_id"),
-            want_reminder=want_reminder,
-            additional_info=data.get("additional_info")
-        )
-        appointments_json = convert_appointment_to_json(request, [appt])[0]
-        return json_response(appt_updated_successfully, custom_data={'appt': appointments_json})
-    except Appointment.DoesNotExist:
-        return json_response("Appointment does not exist.", status=404, success=False,
-                             error_code=ErrorCode.APPOINTMENT_NOT_FOUND)
-    except Service.DoesNotExist:
-        return json_response("Service does not exist.", status=404, success=False,
-                             error_code=ErrorCode.SERVICE_NOT_FOUND)
-    except Exception as e:
-        return json_response(str(e.args[0]), status=400, success=False)
-
-
 @require_user_authenticated
 @require_staff_or_superuser
 @require_ajax
@@ -335,6 +255,7 @@ def update_existing_appointment(data, request):
 def update_appt_min_info(request):
     data = json.loads(request.body)
     is_creating = data.get('isCreating', False)
+    print("this is the data", data)
 
     if is_creating:
         # Logic for creating a new appointment
