@@ -225,7 +225,7 @@ function getAvailableSlots(selectedDate, staffId = null) {
                     // Show an error message
                     errorMessageContainer.append('<p class="djangoAppt_no-availability-text">Date is in the past.</p>');
                     if (slotContainer.find('.djangoAppt_btn-request-next-slot').length === 0) {
-                        slotContainer.append(`<button class="btn btn-danger djangoAppt_btn-request-next-slot" data-service-id="${serviceId}">Request next available slot</button>`);
+                        slotContainer.append(`<button class="btn btn-danger djangoAppt_btn-request-next-slot" data-service-id="${serviceId}">` + requestNonAvailableSlotBtnTxt + `</button>`);
                     }
                     // Disable the 'submit' button
                     $('.btn-submit-appointment').attr('disabled', 'disabled');
@@ -237,7 +237,7 @@ function getAvailableSlots(selectedDate, staffId = null) {
                     // Check if the returned message is 'No availability'
                     if (data.message.toLowerCase() === 'no availability') {
                         if (slotContainer.find('.djangoAppt_btn-request-next-slot').length === 0) {
-                            slotContainer.append(`<button class="btn btn-danger djangoAppt_btn-request-next-slot" data-service-id="${serviceId}">Request next available slot</button>`);
+                            slotContainer.append(`<button class="btn btn-danger djangoAppt_btn-request-next-slot" data-service-id="${serviceId}">` + requestNonAvailableSlotBtnTxt + `</button>`);
                         }
                     } else {
                         $('.djangoAppt_btn-request-next-slot').remove();

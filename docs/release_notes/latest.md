@@ -1,16 +1,26 @@
 # django-appointment 📦
 
-**v2.1.2 🆕**
+**v2.1.5 🆕**
 
-## ___Release Notes for Version 2.1.2___
+## ___Release Notes for Version 2.1.5___
 
 ## Introduction 📜
 
-Version 2.1.2 of django-appointment introduces a series of refinements and updates, enhancing both the functionality and
+Version 2.1.5 of django-appointment introduces a series of refinements and updates, enhancing both the functionality and
 the user experience. This release focuses on improving documentation, workflow, community engagement, and
 internationalization, alongside some crucial library updates and new dynamic features.
 
 ## New Features ✨
+
+### Dynamic Appointment Management
+
+- AJAX-based appointment creation and update functionalities.
+- Enhanced endpoints for efficient appointment management.
+
+### User Interface Enhancements and JavaScript Refactor
+
+- Major updates to staff_index.js for improved interactivity and responsiveness.
+- New CSS for a more responsive and user-friendly interface in appointment and calendar views.
 
 ### Dynamic Label Customization in Appointment Pages (#19)
 
@@ -56,8 +66,8 @@ internationalization, alongside some crucial library updates and new dynamic fea
   to access its appointment's page list (/app-admin/user-event/)
 
   #### Description of the bug
-    If a staff (Django-related role) is authenticated and tries to retrieved this endpoint :
-    `/app-admin/user-event/` he'll get the following error if debug = true
+  If a staff (Django-related role) is authenticated and tries to retrieved this endpoint :
+  `/app-admin/user-event/` he'll get the following error if debug = true
     ```
       Traceback (most recent call last):
       File ".../django/core/handlers/exception.py", line 55, in inner
@@ -85,17 +95,17 @@ internationalization, alongside some crucial library updates and new dynamic fea
         raise self.RelatedObjectDoesNotExist(
         client.models.UserClient.staffmember.RelatedObjectDoesNotExist: UserClient has no staffmember.
     ```
-    If debug = false, the user will get a 500 error
-    #### To Reproduce
-    ##### Steps to reproduce the behavior:
+  If debug = false, the user will get a 500 error
+  #### To Reproduce
+  ##### Steps to reproduce the behavior:
 
       Create a user/account (user1)
       Login as admin/superuser (admin) and add user1 to staff.
       Login as user1 and go to /appointment/app-admin/user-event/
       See error
 
-    #### Expected behavior
-    Not an error but a redirection or anything more concise than just an error or a 5xx code return.
+  #### Expected behavior
+  Not an error but a redirection or anything more concise than just an error or a 5xx code return.
 
 ---
 
@@ -115,7 +125,7 @@ If you're upgrading from a previous version or installing for the first time, fo
 ### Installation 📥:
 
 ```bash
-pip install django-appointment==2.1.0
+pip install django-appointment==2.1.5
 ```
 
 ### Database Migration 🔧:
@@ -132,5 +142,5 @@ please refer to the provided resources.
 
 ## Conclusion 🎉
 
-Version 2.1.2 continues our commitment to providing a robust and user-friendly appointment management solution. With
+Version 2.1.5 continues our commitment to providing a robust and user-friendly appointment management solution. With
 these updates, Django Appointment becomes more adaptable, secure, and community-focused.

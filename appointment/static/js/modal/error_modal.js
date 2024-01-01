@@ -1,6 +1,6 @@
 let errorModalInstance = null;
 
-function showErrorModal(message, title = 'Error') {
+function showErrorModal(message, title = errorTxt) {
     // Insert the error message into the modal
     document.getElementById('errorModalLabel').textContent = title;
     document.getElementById('errorModalMessage').textContent = message;

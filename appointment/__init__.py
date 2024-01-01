@@ -4,5 +4,5 @@ __author_website__ = "https://adamspierredavid.com/"
 __description__ = "Managing appointment scheduling with customizable slots, staff features, and conflict handling."
 __package_name__ = "django-appointment"
 __url__ = "https://github.com/adamspd/django-appointment"
-__version__ = "2.1.2"
+__version__ = "2.1.5"
 __test_version__ = True

@@ -1,0 +1,53 @@
+/* Hide scrollbar for day grid month view on small screens */
+
+@media (max-width: 500px) {
+    .djangoAppt_no-events {
+        margin-bottom: 10px;
+    }
+
+    .djangoAppt_btn-new-event {
+        padding: 5px 8px !important;
+        font-size: 13px !important;
+    }
+
+    .fc-dayGridMonth-view .fc-scroller {
+        overflow: hidden !important;
+    }
+
+    .modal-content {
+        margin: 0 auto !important;
+    }
+
+    .modal-footer {
+        text-align: left !important;
+        flex-wrap: inherit !important;
+        justify-content: center !important;
+        align-content: flex-start;
+    }
+
+    #eventDetailsModal .btn {
+        margin-right: 2px !important;
+        font-size: 13px !important;
+    }
+
+    #eventModalBody, #serviceSelect {
+        font-size: 13px !important;
+    }
+
+    #eventModalLabel {
+        font-size: 15px !important;
+    }
+}
+
+/* Hide scrollbar for time grid day view on larger screens */
+@media (min-width: 450px) {
+    .fc-timeGridDay-view .fc-scroller {
+        overflow: hidden !important;
+    }
+}
+
+@media (min-width: 600px) {
+    .fc-scroller {
+        overflow: hidden !important;
+    }
+}

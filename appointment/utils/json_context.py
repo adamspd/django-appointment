@@ -5,7 +5,9 @@
 Author: Adams Pierre David
 Since: 2.0.0
 """
+import datetime
 
+import pytz
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
@@ -19,11 +21,12 @@ from appointment.utils.error_codes import ErrorCode
 def convert_appointment_to_json(request, appointments: list) -> list:
     """Convert a queryset of Appointment objects to a JSON serializable format."""
     su = request.user.is_superuser
+    tz = pytz.timezone(get_timezone())
     return [{
         "id": appt.id,
         "client": appt.client.username if username_in_user_model() else "",
-        "start_time": appt.get_start_time().strftime('%Y-%m-%d %H:%M:%S'),
-        "end_time": appt.get_end_time().strftime('%Y-%m-%d %H:%M:%S'),
+        "start_time": tz.localize(appt.get_start_time()).isoformat(),
+        "end_time": tz.localize(appt.get_end_time()).isoformat(),
         "client_name": appt.get_client_name(),
         "url": appt.get_absolute_url(request),
         "background_color": appt.get_background_color(),
@@ -31,7 +34,10 @@ def convert_appointment_to_json(request, appointments: list) -> list:
         "client_email": appt.client.email,
         "client_phone": str(appt.phone),
         "client_address": appt.address,
-        "service_id": appt.get_service().id
+        "service_id": appt.get_service().id,
+        "additional_info": appt.additional_info,
+        "want_reminder": appt.want_reminder,
+        "timezone": get_timezone(),
     } for appt in appointments]
 
 

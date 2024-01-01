@@ -10,7 +10,7 @@ import datetime
 
 from django.utils.translation import gettext as _
 
-from appointment import email_messages
+from appointment import messages_ as email_messages
 from appointment.email_sender import send_email
 from appointment.models import EmailVerificationCode, AppointmentRequest
 from appointment.settings import APPOINTMENT_PAYMENT_URL

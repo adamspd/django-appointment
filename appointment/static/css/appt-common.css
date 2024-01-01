@@ -1,0 +1,452 @@
+.djangoAppt_main-container {
+    margin: 20px auto;
+    max-width: 1200px;
+    padding: 20px;
+    background-color: rgba(248, 249, 250, 0.4);
+    border-radius: 5px;
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.1);
+}
+
+.djangoAppt_body-container {
+    margin: 0 auto;
+    max-width: 1120px;
+    padding: 0 15px;
+}
+
+.djangoAppt_page-body {
+    display: flex;
+    flex-direction: row;
+    margin-top: 50px;
+}
+
+.djangoAppt_appointment-calendar {
+    flex: 3;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.1);
+}
+
+.djangoAppt_service-description {
+    flex: 1;
+    margin-left: 20px;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.1);
+}
+
+.djangoAppt_second-part {
+    margin-top: 10px;
+}
+
+.djangoAppt_calendar-and-slot {
+    margin-top: 20px;
+    display: flex;
+}
+
+.djangoAppt_service-description-content {
+    margin-top: 20px;
+    color: black;
+}
+
+.djangoAppt_item-name {
+    color: black;
+    font-weight: bold;
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
+.djangoAppt_calendar {
+    flex: 3;
+}
+
+.djangoAppt_slot {
+    flex: 2;
+}
+
+.djangoAppt_appointment-calendar-title-timezone {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.djangoAppt_title {
+    flex: 1;
+    font-weight: bold;
+    font-size: 20px;
+}
+
+.djangoAppt_timezone-details {
+    flex: 1;
+    text-align: right;
+    font-size: 16px;
+    color: #333;
+}
+
+.fc-day {
+    font-size: 12px;
+}
+
+.fc-daygrid-day-frame {
+    height: 20px;
+}
+
+a {
+    color: #0c042c;
+}
+
+.djangoAppt_slot {
+    margin-left: 20px;
+}
+
+.djangoAppt_slot-list {
+    columns: 2;
+    -webkit-columns: 2;
+    -moz-columns: 2;
+    margin-top: 10px;
+    padding-left: 10px !important;
+}
+
+#slot-list li {
+    list-style-type: none;
+    text-align: center;
+}
+
+.djangoAppt_appointment-slot {
+    border: 1px solid #ccc;
+    background-color: rgba(0, 48, 124, 0.95);
+    color: #fff;
+    padding: 7px;
+    margin-bottom: 6px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.djangoAppt_appointment-slot:hover {
+    background-color: #fff;
+    color: rgba(42, 42, 42, 0.82);
+}
+
+.selected {
+    background-color: #fff;
+    color: rgba(42, 42, 42, 0.82);
+}
+
+.djangoAppt_next-available-date {
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+    margin-top: 10px;
+    margin-left: 10px;
+    padding: 8px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    width: fit-content;
+}
+
+/* Change the color of the buttons for the calendar */
+.fc-button {
+    background-color: rgba(0, 48, 124, 0.95) !important;
+    border-color: rgba(2, 76, 157, 0.85) !important;
+    color: #fff !important;
+}
+
+/* Change the color of the buttons when hovered */
+.fc-button:hover {
+    background-color: #025bbb !important;
+    border-color: #0056b3;
+}
+
+/* Change the color of the buttons when active or focused */
+.fc-button:active, .fc-button:focus {
+    background-color: #0759b2 !important;
+    border-color: #145294;
+}
+
+.djangoAppt_date_chosen {
+    margin-left: 5px;
+    padding-left: 5px;
+    font-size: 18px;
+    color: #333;
+    font-weight: bold;
+}
+
+.djangoAppt_btn-request-next-slot {
+    margin-left: 10px;
+    padding: 8px !important;
+    margin-top: -30px;
+}
+
+.djangoAppt_no-availability-text {
+    margin-left: 5px;
+    padding-left: 5px;
+    color: #f00;
+    font-weight: bold;
+}
+
+.disabled-day {
+    background-color: #ECECEC; /* light gray */
+    opacity: 0.5;
+    pointer-events: none; /* makes it unclickable */
+}
+
+/* responsive */
+
+/* CSS for screens larger than 1200px */
+@media (min-width: 1200px) {
+    .djangoAppt_page-body {
+        flex-direction: row;
+    }
+
+    .djangoAppt_appointment-calendar {
+        flex: 3;
+        padding: 20px;
+    }
+
+    .djangoAppt_service-description {
+        flex: 1;
+        margin-left: 20px;
+    }
+
+    .djangoAppt_calendar {
+        flex: 3;
+    }
+
+    .djangoAppt_slot {
+        flex: 2;
+    }
+
+    .djangoAppt_slot {
+        margin-left: 20px;
+    }
+}
+
+/* Select design */
+
+#staff_id {
+    width: 100%;
+    padding: 2px 4px;
+    border: 1px solid rgba(255, 227, 227, 0.89);
+    border-radius: 5px;
+    background-color: #d4eaf5;
+    color: #333;
+    appearance: none; /* Remove default arrow icon in some browsers */
+    -webkit-appearance: none; /* For Webkit browsers */
+    -moz-appearance: none; /* For Firefox */
+    cursor: pointer;
+    outline: none;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s;
+    position: relative;
+    font-size: 16px;
+}
+
+#staff_id:hover {
+    background-color: #f6c6c6;
+}
+
+#staff_id:focus {
+    background-color: #d1dbff;
+}
+
+/* Add a custom arrow icon using pseudo-elements */
+#staff_id::-ms-expand {
+    display: none;
+}
+
+#staff_id::after {
+    content: '\25BC'; /* Unicode arrow character */
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    pointer-events: none; /* Make sure clicks pass through */
+    color: #333;
+}
+
+/* Styling the options when hovered */
+#staff_id option:hover {
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+/* Styling the options when they are active (clicked or selected with keyboard) */
+#staff_id option:active, #staff_id option:checked {
+    background-color: #e0e0e0;
+    color: #333;
+}
+
+/* This changes the background color of the option elements when the select is open */
+#staff_id option {
+    background-color: #f8f8f8;
+    color: #333;
+}
+
+/* For Firefox - to change the background color of the dropdown */
+#staff_id:-moz-focusring {
+    color: transparent;
+    text-shadow: 0 0 0 #333;
+}
+
+
+/* CSS for screens smaller than 1200px */
+@media (max-width: 1199px) {
+    .djangoAppt_page-body {
+        flex-direction: column;
+    }
+
+    .djangoAppt_appointment-calendar {
+        flex: 1;
+        padding: 10px;
+    }
+
+    .djangoAppt_service-description {
+        flex: 1;
+        margin-left: 0;
+        margin-top: 20px;
+    }
+
+    .djangoAppt_calendar {
+        flex: 1;
+    }
+
+    .djangoAppt_slot {
+        flex: 1;
+    }
+
+    .djangoAppt_slot {
+        margin-left: 10px;
+    }
+}
+
+/* CSS for screens smaller or equal to 768px */
+@media (max-width: 768px) {
+    .djangoAppt_main-container {
+        padding: 8px;
+    }
+
+    .djangoAppt_body-container {
+        padding: 8px;
+    }
+
+    .djangoAppt_appointment-calendar {
+        flex: 1;
+        padding: 10px;
+    }
+
+    .djangoAppt_service-description {
+        flex: 1;
+        margin-left: 0;
+        margin-top: 20px;
+    }
+
+    .djangoAppt_calendar-and-slot {
+        display: grid;
+    }
+
+    .djangoAppt_slot {
+        margin-top: 40px;
+    }
+
+    .djangoAppt_slot-list, .djangoAppt_date_chosen, .djangoAppt_no-availability-text {
+        margin-left: 0;
+        padding-left: 0;
+    }
+
+    .djangoAppt_btn-request-next-slot {
+        margin-left: 0;
+    }
+
+    /* Reduce font size for smaller screens */
+    .djangoAppt_title, .djangoAppt_item-name, .djangoAppt_date_chosen, .djangoAppt_next-available-date {
+        font-size: 16px;
+    }
+
+    .djangoAppt_timezone-details {
+        font-size: 14px;
+    }
+
+    .fc-day {
+        font-size: 10px;
+    }
+}
+
+/* CSS for screens smaller or equal to 768px */
+@media (max-width: 450px) {
+    .djangoAppt_main-container {
+        padding: 3px;
+    }
+
+    .djangoAppt_body-container {
+        padding: 3px;
+    }
+
+    .djangoAppt_appointment-calendar {
+        flex: 1;
+        padding: 5px;
+    }
+
+    .djangoAppt_service-description {
+        flex: 1;
+        margin-left: 0;
+        margin-top: 20px;
+    }
+
+    .djangoAppt_calendar-and-slot {
+        display: grid;
+    }
+
+    .djangoAppt_slot {
+        margin-top: 40px;
+    }
+
+    .djangoAppt_slot-list, .djangoAppt_date_chosen, .djangoAppt_no-availability-text {
+        margin-left: 0 !important;
+        padding-left: 0 !important;
+    }
+
+    .djangoAppt_btn-request-next-slot {
+        margin-left: 0;
+    }
+
+    /* Reduce font size for smaller screens */
+    .djangoAppt_title, .djangoAppt_item-name, .djangoAppt_date_chosen, .djangoAppt_next-available-date {
+        font-size: 13px;
+    }
+
+    .djangoAppt_timezone-details, .error-message {
+        font-size: 13px;
+    }
+
+    .fc-day {
+        font-size: 11px;
+    }
+
+    .fc-toolbar-title {
+        font-size: 14px !important;
+    }
+
+    .fc {
+        font-size: 13px !important;
+    }
+
+    .fc, .fc-button {
+        vertical-align: center !important;
+    }
+
+    .djangoAppt_appointment-slot {
+        padding: 5px;
+        font-size: 13px;
+    }
+
+    .djangoAppt_service-description {
+        font-size: 13px !important;
+    }
+}
+
+.selected-cell {
+    background-color: #aaddff; /* or any color you prefer */
+}

@@ -122,13 +122,13 @@
                                         {% translate "Are you sure you want to delete this working hours?" as d_modal_message %}
                                         {% if superuser %}
                                             <a href="javascript:void(0)"
-                                               onclick="showModal('{{ modal_title }}', '{{ d_modal_message }}', '{{ delete_btn_modal }}', '{% url 'appointment:delete_day_off_id' day_off_id=day_off.id staff_user_id=user.id %}')"
+                                               onclick="showModal('{{ modal_title }}', '{{ d_modal_message }}', '{{ delete_btn_modal }}', '{% url 'appointment:delete_day_off_id' day_off_id=day_off.id staff_user_id=user.id %}', null)"
                                                class="modify-btn button-color-red">
                                                 <i class="fas fa-trash"></i>
                                             </a>
                                         {% else %}
                                             <a href="javascript:void(0)"
-                                               onclick="showModal('{{ modal_title }}', '{{ d_modal_message }}', '{{ delete_btn_modal }}', '{% url 'appointment:delete_day_off' day_off_id=day_off.id %}')"
+                                               onclick="showModal('{{ modal_title }}', '{{ d_modal_message }}', '{{ delete_btn_modal }}', '{% url 'appointment:delete_day_off' day_off_id=day_off.id %}', null)"
                                                class="modify-btn button-color-red">
                                                 <i class="fas fa-trash"></i>
                                             </a>
@@ -188,13 +188,13 @@
                                         {% translate "Are you sure you want to delete this working hours?" as w_modal_message %}
                                         {% if superuser %}
                                             <a href="javascript:void(0)"
-                                               onclick="showModal('{{ modal_title }}', '{{ w_modal_message }}', '{{ delete_btn_modal }}', '{% url 'appointment:delete_working_hours_id' working_hours_id=working_hour.id staff_user_id=user.id %}')"
+                                               onclick="showModal('{{ modal_title }}', '{{ w_modal_message }}', '{{ delete_btn_modal }}', '{% url 'appointment:delete_working_hours_id' working_hours_id=working_hour.id staff_user_id=user.id %}', null)"
                                                class="modify-btn button-color-red">
                                                 <i class="fas fa-trash"></i>
                                             </a>
                                         {% else %}
                                             <a href="javascript:void(0)"
-                                               onclick="showModal('{{ modal_title }}', '{{ w_modal_message }}', '{{ delete_btn_modal }}', '{% url 'appointment:delete_working_hours' working_hours_id=working_hour.id %}')"
+                                               onclick="showModal('{{ modal_title }}', '{{ w_modal_message }}', '{{ delete_btn_modal }}', '{% url 'appointment:delete_working_hours' working_hours_id=working_hour.id %}', null)"
                                                class="modify-btn button-color-red">
                                                 <i class="fas fa-trash"></i>
                                             </a>
@@ -263,7 +263,7 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
     <!-- Our custom modal JS -->
-    <script src="{% static 'js/modal/confirm_modal.js' %}"></script>
+    <script src="{% static 'js/modal/show_modal.js' %}"></script>
 
     <script src="{% static 'js/js-utils.js' %}"></script>
 {% endblock %}
