@@ -5,7 +5,8 @@
     <meta name="csrf-token" content="{{ csrf_token }}">
 {% endblock %}
 {% block customCSS %}
-    <link rel="stylesheet" type="text/css" href="{% static 'css/appointments.css' %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/appt-common.css' %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/app_admin/admin.css' %}"/>
     <style>
         @media (max-width: 991px) {
             body {
@@ -38,6 +39,7 @@
             display: flex;
             transition: all 0.3s; /* smooth transition for resizing */
             width: 100%;
+            flex-direction: column;
         }
 
         #calendar {
@@ -57,9 +59,7 @@
         .modal-content {
             background-color: #fff;
             margin: 10% auto; /* Centering the modal vertically */
-            padding: 20px;
-            width: 80%;
-            max-width: 600px; /* Maximum width for the modal */
+            width: 100%;
             position: relative; /* For positioning the close button */
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.2); /* A little shadow for depth */
         }
@@ -127,6 +127,131 @@
         #serviceSelect:disabled {
             background-color: #e9ecef;
         }
+
+        #customContextMenu ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        #customContextMenu ul li a {
+            padding: 5px 10px;
+            display: block;
+            text-decoration: none;
+            color: black;
+        }
+
+        #customContextMenu ul li a:hover {
+            background-color: #f0f0f0;
+        }
+
+        #customContextMenu {
+            border: 1px solid #ccc;
+            background-color: #fff;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+            padding: 5px 0;
+            position: absolute;
+            z-index: 1000;
+            display: none;
+        }
+
+
+        #eventDetailsModal input[type="checkbox"] {
+            width: auto;
+            margin: 0 5px 0 0;
+        }
+
+        /* General styles */
+        .flex-container-appt {
+            display: flex;
+            align-items: center;
+            margin-top: 5px;
+        }
+
+        .flex-container-appt label {
+            flex: 0 0 auto; /* Do not grow, do not shrink, and base width on content */
+            margin-right: 5px;
+            white-space: nowrap; /* Prevent label from wrapping */
+        }
+
+        .flex-container-appt input,
+        .flex-container-appt select {
+            flex: 1 1 auto; /* Grow and shrink based on available space */
+        }
+
+        /* Larger Modal on Desktop */
+        @media (min-width: 850px) {
+            .modal-content {
+                /* centering the modal horizontally */
+                margin: 10% auto;
+                left: 0;
+                right: 0;
+            }
+        }
+
+        /* Stack label and input on mobile */
+        @media (max-width: 767px) {
+            .flex-container-appt {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .flex-container-appt label {
+                margin-right: 0;
+                margin-bottom: 5px;
+            }
+        }
+
+        .highlight-weekend {
+            background-color: rgba(248, 1, 1, 0.035); /* Light gray background for weekends */
+        }
+
+        .event-dot {
+            height: 5px;
+            width: 5px;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 2px;
+        }
+
+        /* Hide event list container on larger screens */
+        @media (min-width: 768px) {
+            #event-list-container {
+                display: none; /* Hide the event list container */
+            }
+        }
+
+        /* Show event list container on smaller screens */
+        @media (max-width: 767px) {
+            #event-list-container {
+                /* Styles to display and position the event list container */
+                display: block; /* Show the event list container */
+                margin-top: 20px; /* Space from the calendar */
+            }
+
+            .event-list-item {
+                /* Styles for individual event list items */
+                padding: 10px;
+                border-bottom: 1px solid #ccc;
+            }
+        }
+
+        @media (max-width: 450px) {
+            .fc-daygrid-event-harness {
+                width: 5px;
+            }
+
+            .fc td, .fc th {
+
+            }
+        }
+
+        .event-list-item-appt {
+            /* pointer hand cursor */
+            cursor: pointer;
+        }
+
+
     </style>
 {% endblock %}
 {% block title %}
@@ -140,6 +265,7 @@
         <div class="container">
             <div class="calendar-wrapper">
                 <div id="calendar" class="calendarbox"></div>
+                <div id="event-list-container" class="event-list-container"></div>
             </div>
 
             {% include 'modal/event_details_modal.html' %}
@@ -155,6 +281,13 @@
             </div>
         </div>
     </section>
+    <div id="customContextMenu" style="display: none; position: absolute; z-index: 1000;">
+        <ul>
+            <li id="newAppointmentOption"><a href="#">New Appointment</a></li>
+        </ul>
+    </div>
+
+    {% include 'modal/confirm_modal.html' %}
 {% endblock %}
 
 
@@ -169,6 +302,7 @@
         const locale = "{{ locale }}";
         const availableSlotsAjaxURL = "{% url 'appointment:available_slots_ajax' %}";
         const requestNextAvailableSlotURLTemplate = "{% url 'appointment:request_next_available_slot' service_id=0 %}";
+        const deleteAppointmentURLTemplate = "{% url 'appointment:delete_appointment_ajax' %}";
         const getNonWorkingDaysURL = "{% url 'appointment:get_non_working_days_ajax' %}";
         const serviceId = "{{ service.id }}";
         const serviceDuration = parseInt("{{ service.duration.total_seconds }}") / 60;
@@ -178,7 +312,78 @@
         const updateApptDateURL = "{% url 'appointment:update_appt_date_time' %}";
         const validateApptDateURL = "{% url 'appointment:validate_appointment_date' %}";
     </script>
+    <script>
+        {# Text for translation #}
+        const confirmDeletionTitleTxt = "{% trans 'Confirm Deletion' %}";
+        const confirmDeletionTxt = "{% trans 'Are you sure you want to delete this appointment?' %}";
+        const deleteBtnTxt = "{% trans 'Delete' %}";
+        const eventsOnTxt = "{% trans 'Events on' %}";
+        const noEventTxt = "{% trans 'No events for this day.' %}";
+        const newEventTxt = "{% trans 'New Event' %}";
+        const successTxt = "{% trans 'Success' %}";
+        const errorTxt = "{% trans 'Error' %}"
+        const updateApptErrorTitleTxt = "{% trans 'Error: Unable to delete appointment.' %}"
+        const apptNotFoundTxt = "{% trans 'Appointment not found.' %}"
+    </script>
+
     <script src="{% static 'js/modal/error_modal.js' %}"></script>
     <script src="{% static 'js/app_admin/staff_index.js' %}"></script>
+    <script src="{% static 'js/modal/show_modal.js' %}"></script>
     <script src="{% static 'js/js-utils.js' %}"></script>
+
+    <script>
+        function createCommonInputFields(appointment, servicesDropdown, isEditMode, defaultStartTime) {
+            const startTimeValue = isEditMode ? moment(appointment.start_time).format('HH:mm:ss') : defaultStartTime;
+            const disabledAttribute = isEditMode ? '' : 'disabled';
+
+            return `
+                <div class="flex-container-appt">
+                <label>{% trans 'Service Name' %}:</label>
+                ${servicesDropdown.outerHTML}
+                </div>
+                <label for="clientName">{% trans 'Client Name' %}:</label>
+                <input type="text" name="clientName" value="${appointment.client_name || ''}" ${disabledAttribute} id="clientName" placeholder="John Doe">
+                <label for="clientEmail">{% trans 'Client Email' %}:</label>
+                <input type="email" name="clientEmail" value="${appointment.client_email || ''}" ${disabledAttribute} id="clientEmail" placeholder="john.doe@example.com">
+                <span id="emailError" style="display:none;"></span>
+                <label for="clientPhone">{% trans 'Phone Number' %}:</label>
+                <input type="tel" name="clientPhone" value="${appointment.client_phone || ''}" ${disabledAttribute} id="clientPhone" placeholder="+12392350799">
+                <label for="clientAddress">{% trans 'Client address' %}:</label>
+                <input type="text" name="clientAddress" value="${appointment.client_address || ''}" ${disabledAttribute} id="clientAddress" placeholder="Naples, Florida">
+                <div class="flex-container-appt">
+                <label for="want_reminder">{% trans 'Wants reminder' %}:</label>
+                <input type="checkbox" name="want_reminder" id="want_reminder" value="true" ${appointment.want_reminder ? 'checked' : ''}  ${disabledAttribute}>
+                </div>
+                <label for="additional_info">{% trans 'Additional Information' %}:</label>
+                <input type="text" name="additional_info" value="${appointment.additional_info || ''}" ${disabledAttribute} placeholder="{% trans 'Client wants this and that' %}" id="additional_info">
+                <div class="flex-container-appt">
+                <label for="startTime">{% trans 'Start time' %}:</label>
+                <input type="time" name="startTime" value="${startTimeValue}" ${disabledAttribute}>
+                </div>
+            `;
+        }
+
+        function generateModalContent(appointment, servicesDropdown, isEditMode) {
+            const startTimeValue = moment(appointment.start_time).format('HH:mm:ss');
+            const commonInputs = createCommonInputFields(appointment, servicesDropdown, isEditMode, startTimeValue);
+            return `
+                ${commonInputs}
+                <div class="flex-container-appt">
+                <label for="endTime">{% trans 'End time' %}:</label>
+                <input type="time" name="endTime" value="${moment(appointment.end_time).format('HH:mm:ss')}" ${!isEditMode ? 'disabled' : ''}>
+                </div>
+            `;
+        }
+
+        function prepareCreateAppointmentModalContent(servicesDropdown, defaultStartTime, formattedDate) {
+            const appointment = {client_name: '', client_email: '', client_phone: '', client_address: ''};
+            const commonInputs = createCommonInputFields(appointment, servicesDropdown, true, defaultStartTime);
+
+            return `
+                ${commonInputs}
+                <label for="date" style="display: none"></label>
+                <input type="hidden" name="date" value="${formattedDate}">
+            `;
+        }
+    </script>
 {% endblock %}

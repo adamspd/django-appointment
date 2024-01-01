@@ -12,6 +12,16 @@ internationalization, alongside some crucial library updates and new dynamic fea
 
 ## New Features ✨
 
+### Dynamic Appointment Management
+
+- AJAX-based appointment creation and update functionalities.
+- Enhanced endpoints for efficient appointment management.
+
+### User Interface Enhancements and JavaScript Refactor
+
+- Major updates to staff_index.js for improved interactivity and responsiveness.
+- New CSS for a more responsive and user-friendly interface in appointment and calendar views.
+
 ### Dynamic Label Customization in Appointment Pages (#19)
 
 - Added a new configuration option `app_offered_by_label` to the `Config` model.
@@ -56,8 +66,8 @@ internationalization, alongside some crucial library updates and new dynamic fea
   to access its appointment's page list (/app-admin/user-event/)
 
   #### Description of the bug
-    If a staff (Django-related role) is authenticated and tries to retrieved this endpoint :
-    `/app-admin/user-event/` he'll get the following error if debug = true
+  If a staff (Django-related role) is authenticated and tries to retrieved this endpoint :
+  `/app-admin/user-event/` he'll get the following error if debug = true
     ```
       Traceback (most recent call last):
       File ".../django/core/handlers/exception.py", line 55, in inner
@@ -85,17 +95,17 @@ internationalization, alongside some crucial library updates and new dynamic fea
         raise self.RelatedObjectDoesNotExist(
         client.models.UserClient.staffmember.RelatedObjectDoesNotExist: UserClient has no staffmember.
     ```
-    If debug = false, the user will get a 500 error
-    #### To Reproduce
-    ##### Steps to reproduce the behavior:
+  If debug = false, the user will get a 500 error
+  #### To Reproduce
+  ##### Steps to reproduce the behavior:
 
       Create a user/account (user1)
       Login as admin/superuser (admin) and add user1 to staff.
       Login as user1 and go to /appointment/app-admin/user-event/
       See error
 
-    #### Expected behavior
-    Not an error but a redirection or anything more concise than just an error or a 5xx code return.
+  #### Expected behavior
+  Not an error but a redirection or anything more concise than just an error or a 5xx code return.
 
 ---
 

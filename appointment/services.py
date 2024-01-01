@@ -300,16 +300,9 @@ def get_working_hours_and_days_off_context(request, btn_txt, form_name, form, us
     return context
 
 
-def save_appointment(appt, client_name, client_email, start_time, phone_number, client_address, service_id):
+def save_appointment(appt, client_name, client_email, start_time, phone_number, client_address, service_id,
+                     want_reminder=False, additional_info=None):
     """Save an appointment's details.
-
-    :param appt: The appointment to modify.
-    :param client_name: The name of the client.
-    :param client_email: The email of the client.
-    :param start_time: The start time of the appointment.
-    :param phone_number: The phone number of the client.
-    :param client_address: The address of the client.
-    :param service_id: The ID of the service.
     :return: The modified appointment.
     """
     # Modify and save client details
@@ -335,6 +328,8 @@ def save_appointment(appt, client_name, client_email, start_time, phone_number, 
     # Modify and save appointment details
     appt.phone = phone_number
     appt.address = client_address
+    appt.want_reminder = want_reminder
+    appt.additional_info = additional_info
     appt.save()
     return appt
 
