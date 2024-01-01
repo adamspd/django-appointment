@@ -40,6 +40,13 @@ class ViewsTestCase(BaseTest):
         self.request.session.save()
         self.appointment = self.create_appointment_for_user1()
         self.tomorrow = date.today() + timedelta(days=1)
+        self.appt = self.create_appointment_for_user1()
+        self.data = {
+            'isCreating': False, 'service_id': '1', 'appointment_id': self.appt.id, 'client_name': 'Bryan Zap',
+            'client_email': 'bz@gmail.com', 'client_phone': '+33769992738', 'client_address': 'Naples, Florida',
+            'want_reminder': 'false', 'additional_info': '', 'start_time': '15:00:26',
+            'date': self.tomorrow.strftime('%Y-%m-%d')
+        }
 
     def need_staff_login(self):
         self.user1.is_staff = True
@@ -264,16 +271,11 @@ class ViewsTestCase(BaseTest):
         self.need_staff_login()
 
         # Preparing data
-        data = {
-            'isCreating': True, 'service_id': '1', 'appointment_id': None, 'client_name': 'Bryan Zap',
-            'client_email': 'bz@gmail.com', 'client_phone': '+33769992738', 'client_address': 'Naples, Florida',
-            'want_reminder': 'false', 'additional_info': '', 'start_time': '15:00:26',
-            'date': self.tomorrow.strftime('%Y-%m-%d')
-        }
+        self.data.update({'isCreating': True, 'appointment_id': None})
         url = reverse('appointment:update_appt_min_info')
 
         # Making the request
-        response = self.client.post(url, data=json.dumps(data), content_type='application/json',
+        response = self.client.post(url, data=json.dumps(self.data), content_type='application/json',
                                     **{'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'})
 
         # Check response status
@@ -293,19 +295,10 @@ class ViewsTestCase(BaseTest):
         self.need_superuser_login()
 
         # Create an appointment to update
-        appt = self.create_appointment_for_user1()
-
-        # Preparing data for update
-        data = {
-            'isCreating': False, 'service_id': '1', 'appointment_id': appt.id, 'client_name': 'Bryan Zap',
-            'client_email': 'bz@gmail.com', 'client_phone': '+33769992738', 'client_address': 'Naples, Florida',
-            'want_reminder': 'false', 'additional_info': '', 'start_time': '15:00:26',
-            'date': self.tomorrow.strftime('%Y-%m-%d')
-        }
         url = reverse('appointment:update_appt_min_info')
 
         # Making the request
-        response = self.client.post(url, data=json.dumps(data), content_type='application/json',
+        response = self.client.post(url, data=json.dumps(self.data), content_type='application/json',
                                     **{'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'})
 
         # Check response status
@@ -318,6 +311,57 @@ class ViewsTestCase(BaseTest):
         self.assertIn('appt', response_data)
 
         # Verify appointment updated in the database
-        updated_appt = Appointment.objects.get(id=appt.id)
-        self.assertEqual(updated_appt.client.email, data['client_email'])
+        updated_appt = Appointment.objects.get(id=self.appt.id)
+        self.assertEqual(updated_appt.client.email, self.data['client_email'])
 
+    def test_update_nonexistent_appointment(self):
+        self.need_superuser_login()
+
+        # Preparing data with a non-existent appointment ID
+        self.data['appointment_id'] = 999
+        url = reverse('appointment:update_appt_min_info')
+
+        # Making the request
+        response = self.client.post(url, data=json.dumps(self.data), content_type='application/json',
+                                    **{'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'})
+
+        # Check response status and content
+        self.assertEqual(response.status_code, 404)
+        response_data = response.json()
+        self.assertIn('message', response_data)
+        self.assertEqual(response_data['message'], "Appointment does not exist.")
+
+    def test_update_with_nonexistent_service(self):
+        self.need_superuser_login()
+
+        # Preparing data with a non-existent service ID
+        self.data['service_id'] = 999
+        url = reverse('appointment:update_appt_min_info')
+
+        # Making the request
+        response = self.client.post(url, data=json.dumps(self.data), content_type='application/json',
+                                    **{'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'})
+
+        # Check response status and content
+        self.assertEqual(response.status_code, 404)
+        response_data = response.json()
+        self.assertIn('message', response_data)
+        self.assertEqual(response_data['message'], "Service does not exist.")
+
+    def test_update_with_invalid_data_causing_exception(self):
+        self.need_superuser_login()
+
+        # Preparing invalid data to trigger an exception, for example here, no email address
+        data = {
+            'isCreating': False, 'service_id': '1', 'appointment_id': self.appt.id,
+        }
+        url = reverse('appointment:update_appt_min_info')
+
+        # Making the request
+        response = self.client.post(url, data=json.dumps(data), content_type='application/json',
+                                    **{'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'})
+
+        # Check response status and content
+        self.assertEqual(response.status_code, 400)
+        response_data = response.json()
+        self.assertIn('message', response_data)
