@@ -6,6 +6,7 @@ from unittest.mock import patch, ANY
 
 from django.apps import apps
 from django.conf import settings
+from django.contrib.auth.hashers import make_password
 from django.core.cache import cache
 from django.core.exceptions import FieldDoesNotExist
 from django.test import TestCase
@@ -785,3 +786,4 @@ class CreateNewUserTest(TestCase):
         user = create_new_user(client_data)
         password = f"{get_website_name()}{get_current_year()}"
         self.assertTrue(user.check_password(password))
+

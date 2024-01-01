@@ -12,6 +12,7 @@ from urllib.parse import urlparse
 
 from django.apps import apps
 from django.conf import settings
+from django.contrib.auth.hashers import make_password
 from django.core.cache import cache
 from django.core.exceptions import FieldDoesNotExist
 from django.urls import reverse
@@ -160,7 +161,7 @@ def create_new_user(client_data: dict):
         user = create_user_with_email(client_data)
 
     password = f"{get_website_name()}{get_current_year()}"
-    user.set_password(password)  # Use set_password to ensure the password is hashed
+    user.set_password(password)
     user.save()
 
     return user

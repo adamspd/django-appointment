@@ -1,23 +1,50 @@
 // Constants
-const MOBILE_WIDTH = 450;
-const SMALL_TABLET_WIDTH = 650;
-const TABLET_WIDTH = 767;
-const MEDIUM_WIDTH = 991;
+const Constants = {
+    MOBILE_WIDTH_SMALL: 350,
+    MOBILE_WIDTH: 450,
+    SMALL_TABLET_WIDTH: 650,
+    TABLET_WIDTH: 767,
+    MEDIUM_WIDTH: 991,
+    DEFAULT_START_TIME: '09:00'
+};
 
-// Global variables
-let eventIdSelected = null;
-let calendar = null;
-let isEditing = false;
+// Application State
+const AppState = {
+    eventIdSelected: null, calendar: null, isEditingAppointment: false, isCreating: false,
+};
 
 document.addEventListener("DOMContentLoaded", initializeCalendar);
 window.addEventListener('resize', updateCalendarConfig);
+document.getElementById('eventDetailsModal').addEventListener('keypress', function (event) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        document.getElementById('eventSubmitBtn').click();
+    }
+});
+
+// Throttle resize events
+let resizeTimeout;
+window.addEventListener('resize', function () {
+    if (resizeTimeout) {
+        clearTimeout(resizeTimeout);
+    }
+    resizeTimeout = setTimeout(function () {
+        initializeCalendar()
+    }, 500); // Only rerender at most, every 100ms
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+    // Wait for a 50ms after the DOM is ready before initializing the calendar
+    setTimeout(initializeCalendar, 50);
+});
+
 
 function initializeCalendar() {
     const formattedAppointments = formatAppointmentsForCalendar(appointments);
     const calendarEl = document.getElementById('calendar');
-    calendar = new FullCalendar.Calendar(calendarEl, getCalendarConfig(formattedAppointments));
-    calendar.setOption('locale', locale);
-    calendar.render();
+    AppState.calendar = new FullCalendar.Calendar(calendarEl, getCalendarConfig(formattedAppointments));
+    AppState.calendar.setOption('locale', locale);
+    AppState.calendar.render();
 }
 
 function formatAppointmentsForCalendar(appointments) {
@@ -32,8 +59,23 @@ function formatAppointmentsForCalendar(appointments) {
 }
 
 function updateCalendarConfig() {
-    calendar.setOption('headerToolbar', getHeaderToolbarConfig());
-    calendar.setOption('height', getCalendarHeight());
+    AppState.calendar.setOption('headerToolbar', getHeaderToolbarConfig());
+    AppState.calendar.setOption('height', getCalendarHeight());
+}
+
+function mobileCheck() {
+    return window.innerWidth < Constants.MOBILE_WIDTH;
+}
+
+function tabletCheck() {
+    return window.innerWidth < Constants.TABLET_WIDTH;
+}
+
+function getEventDisplayedStyle() {
+    if (mobileCheck()) {
+        return "list-item";
+    }
+    return "block";
 }
 
 function getCalendarConfig(events) {
@@ -54,42 +96,110 @@ function getCalendarConfig(events) {
             prevYear: 'fa-angle-double-left',
             nextYear: 'fa-angle-double-right'
         },
+        defaultView: mobileCheck() ? "basicDay" : "dayGridMonth",
         selectable: true,
         events: events,
-        eventDisplay: 'block',
+        eventDisplay: getEventDisplayedStyle(),
         timeZone: timezone,
         eventClick: async function (info) {
-            eventIdSelected = info.event.id;
-            await showEventModal(info.event);
+            AppState.eventIdSelected = info.event.id;
+            await showEventModal(info.event.id, false, false);
         },
         dateClick: function (info) {
-            // ... your code for dateClick ...
+            // Retrieve events for the clicked date
+            const dateEvents = appointments
+                .filter(event => moment(info.date).isSame(event.start_time, 'day'))
+                .sort((a, b) => new Date(a.start_time) - new Date(b.start_time));
+
+            // Display events in a list below the calendar
+            displayEventList(dateEvents, info.date);
         },
+
         selectAllow: function (info) {
-            // ... your code for selectAllow ...
         },
         dayCellClassNames: function (info) {
-            // ... your code for dayCellClassNames ...
+            const day = info.date.getDay();
+            if (day === 0 || day === 6) { // 0 = Sunday, 6 = Saturday
+                return 'highlight-weekend';
+            }
+            return ''; // Return empty string for regular days
         },
         eventDrop: async function (info) {
             await validateAndUpdateAppointmentDate(info.event, info.revert);
         },
+        eventDidMount: function (info) {
+            // If it is a mobile view, we change the event to a dot
+            if (mobileCheck()) {
+                // Find the fc-daygrid-event-dot class within the event element
+                // and change its style to display as a dot
+                const dotEl = info.el.querySelector('.fc-daygrid-event-dot') || document.createElement('span');
+                dotEl.classList.add('fc-daygrid-event-dot');
+                dotEl.style.borderRadius = '50%';
+                dotEl.style.backgroundColor = info.event.backgroundColor;
+
+                // Clear the inner HTML of the event element and append the dot
+                info.el.innerHTML = '';
+                info.el.appendChild(dotEl);
+            }
+        },
+        dayCellDidMount: function (dayCell) {
+            // Check if the day is in the past
+            const currentDate = new Date();
+            currentDate.setHours(0, 0, 0, 0); // Reset time part to compare only dates
+
+            if (dayCell.date >= currentDate && !tabletCheck()) {
+                // Attach right-click event listener only if the day is not in the past
+                dayCell.el.addEventListener('contextmenu', function (event) {
+                    event.preventDefault();
+                    handleCalendarRightClick(event, dayCell.date);
+                });
+            }
+        },
     };
 }
+
+function displayEventList(events, date) {
+    let eventListHtml = '<h4 style="font-size: 14px; font-weight: bold;">' + eventsOnTxt + ' ' + moment(date).format('MMMM Do, YYYY') + '</h4>';
+    eventListHtml += '<hr>';
+
+    events.forEach(function (event) {
+        eventListHtml += `<div class="event-list-item-appt" data-event-id="${event.id}">${event.service_name}</div>`;
+        eventListHtml += `<div><i class="fa fa-clock-o" aria-hidden="true"></i> ${moment(event.start_time).format('h:mm a')} - ${moment(event.end_time).format('h:mm a')}</div>`;
+        eventListHtml += '<hr>';
+    });
+
+    const date_obj = new Date(date.toISOString())
+
+    if (events.length === 0) {
+        eventListHtml += `<div class="djangoAppt_no-events">` + noEventTxt + `</div>`;
+    }
+
+    eventListHtml += `<button class="btn btn-primary djangoAppt_btn-new-event" onclick="createNewAppointment('${date_obj}')">` + newEventTxt + `</button></div>`;
+
+    const eventListContainer = document.getElementById('event-list-container');
+    eventListContainer.innerHTML = eventListHtml;
+
+    // Add click event listeners to each event item
+    const eventItems = eventListContainer.getElementsByClassName('event-list-item-appt');
+    for (let item of eventItems) {
+        item.addEventListener('click', function () {
+            const eventId = this.getAttribute('data-event-id');
+            showEventModal(eventId, false, false).then(r => r);
+        });
+    }
+}
+
 
 function getHeaderToolbarConfig() {
     if (window.matchMedia('(max-width: 767px)').matches) {
         // Mobile configuration
         return {
-            left: 'title',
-            right: 'prev,next,dayGridMonth,timeGridDay'
+            left: 'title', right: 'prev,next,dayGridMonth,timeGridDay'
         };
     } else if (window.matchMedia('(max-width: 991px)').matches) {
         // Tablet configuration
         return {
-            left: 'prev,today,next',
-            center: 'title',
-            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            left: 'prev,today,next', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay'
         };
     } else {
         // Desktop configuration
@@ -104,57 +214,30 @@ function getHeaderToolbarConfig() {
 }
 
 function getCalendarHeight() {
-    if (window.innerWidth <= MOBILE_WIDTH) return '500px';
-    if (window.innerWidth <= SMALL_TABLET_WIDTH) return '600px';
-    if (window.innerWidth <= TABLET_WIDTH) return '650px';
-    if (window.innerWidth <= MEDIUM_WIDTH) return '767px';
+    if (window.innerWidth <= Constants.MOBILE_WIDTH_SMALL) return '400px';
+    if (window.innerWidth <= Constants.MOBILE_WIDTH) return '450px';
+    if (window.innerWidth <= Constants.SMALL_TABLET_WIDTH) return '600px';
+    if (window.innerWidth <= Constants.TABLET_WIDTH) return '650px';
+    if (window.innerWidth <= Constants.MEDIUM_WIDTH) return '767px';
     return '850px';
 }
 
-function toggleEditMode() {
-    const modal = document.getElementById("eventDetailsModal");
-    const inputs = modal.querySelectorAll("input");
-    const servicesDropdown = document.getElementById("serviceSelect");
+function handleCalendarRightClick(event, date) {
+    const contextMenu = document.getElementById("customContextMenu");
+    contextMenu.style.top = `${event.pageY}px`;
+    contextMenu.style.left = `${event.pageX}px`;
+    contextMenu.style.display = 'block';
 
-    // Retrieve the appointment that matches the eventIdSelected
-    const appointment = appointments.find(app => Number(app.id) === Number(eventIdSelected));
-    if (!appointment) {
-        return;
-    }
+    const newAppointmentOption = document.getElementById("newAppointmentOption");
+    newAppointmentOption.onclick = () => createNewAppointment(date);
 
-    const endTimeLabel = modal.querySelector("label[for='endTime']");  // Assuming you have a label with `for` attribute set to `endTime`
-    const endTimeInput = modal.querySelector("input[name='endTime']");  // Assuming you have an input with `name` attribute set to `endTime`
-    const editButton = document.getElementById("eventEditBtn");
-    const submitButton = document.getElementById("eventSubmitBtn");
-    const closeButton = modal.querySelector(".btn-secondary[data-dismiss='modal']");
-    const cancelButton = document.getElementById("eventCancelBtn");
-
-    if (isEditing) {
-        inputs.forEach(input => input.disabled = true);
-        servicesDropdown.disabled = true;
-        endTimeLabel.style.display = "";  // Show the end time label
-        endTimeInput.style.display = "";  // Show the end time input
-        editButton.style.display = "";
-        closeButton.style.display = "";
-        submitButton.style.display = "none";
-        cancelButton.style.display = "none";
-    } else {
-        inputs.forEach(input => input.disabled = false);
-        servicesDropdown.disabled = false;
-        endTimeLabel.style.display = "none";  // Hide the end time label
-        endTimeInput.style.display = "none";  // Hide the end time input
-        editButton.style.display = "none";
-        closeButton.style.display = "none";
-        submitButton.style.display = "";
-        cancelButton.style.display = "";
-    }
-
-    isEditing = !isEditing;
+    // Hide context menu on any click
+    document.addEventListener('click', () => contextMenu.style.display = 'none', {once: true});
 }
 
 function goToEvent() {
     // Get the event URL
-    const event = appointments.find(app => Number(app.id) === Number(eventIdSelected));
+    const event = appointments.find(app => Number(app.id) === Number(AppState.eventIdSelected));
     if (event && event.url) {
         closeModal()
         window.location.href = event.url;
@@ -177,100 +260,21 @@ function closeModal() {
     cancelButton.style.display = "none";
 
     // Reset the editing flag
-    isEditing = false;
+    AppState.isEditingAppointment = false;
 
     // Close the modal
     $('#eventDetailsModal').modal('hide');
 }
 
-function checkEmail(email) {
-    const emailInput = document.querySelector('input[name="clientEmail"]');
-    const emailError = document.getElementById("emailError");
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-        emailInput.style.border = "1px solid red";
-        emailError.textContent = "Invalid email address.";
-        emailError.style.color = "red";
-        emailError.style.display = "inline";  // Make the error message visible
-        return false;
-    } else {
-        emailInput.style.border = "";  // Reset the border to its original style
-        emailError.textContent = "";  // Clear the error message
-        emailError.style.display = "none";  // Hide the error message
-        return true;
-    }
-}
+// ################################################################ //
+//                            Generic                               //
+// ################################################################ //
 
-async function submitChanges() {
-    const modal = document.getElementById("eventDetailsModal");
-    const inputs = modal.querySelectorAll("input");
-    const serviceDropdown = modal.querySelector("#serviceSelect");
-    const serviceId = serviceDropdown.value;
-
-    const data = {};
-
-    inputs.forEach(input => {
-        let key = input.previousElementSibling.innerText.trim().replace(/\s+/g, '_').replace(":", "").toLowerCase();
-        data[key] = input.value;
-    });
-
-    // Check if the email is valid
-    if (!checkEmail(data["client_email"])) {
-        return;
-    }
-
-    data["appointment_id"] = eventIdSelected;  // Adding the appointment ID
-    data["service_id"] = serviceId;
-
-    try {
-        const response = await fetch(updateApptMinInfoURL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',  // to ensure Django treats this as an AJAX request
-                'X-CSRFToken': getCSRFToken(),
-            },
-            body: JSON.stringify(data)
-        });
-        if (response.ok) {
-            const responseData = await response.json();
-
-            if (responseData.appt) {
-                const index = appointments.findIndex(app => Number(app.id) === Number(eventIdSelected));
-                if (index !== -1) {
-                    appointments[index] = responseData.appt;
-                }
-            }
-            let eventToUpdate = calendar.getEventById(eventIdSelected);
-            if (eventToUpdate) {
-                eventToUpdate.setProp('title', responseData.appt.service_name);
-                eventToUpdate.setStart(moment(responseData.appt.start_time).format('YYYY-MM-DDTHH:mm:ss'));
-                eventToUpdate.setEnd(responseData.appt.end_time);
-                eventToUpdate.setExtendedProp('client_name', responseData.appt.client_name);
-                eventToUpdate.setProp('backgroundColor', responseData.appt.background_color);
-                calendar.render();
-            }
-            calendar.refetchEvents();
-            document.querySelector('input[name="startTime"]').value = responseData.appt.start_time;
-            document.querySelector('input[name="endTime"]').value = responseData.appt.end_time;
-
-
-        } else {
-            console.error('Failed to update appointment. Server responded with:', response.status);
-            // TODO: Handle error, e.g., show an error message to the user
-        }
-    } catch (error) {
-        console.error('Failed to send data:', error);
-        // TODO: Handle error, e.g., show an error message to the user
-    }
-
-    closeModal();
-}
 
 async function cancelEdit() {
     // Retrieve the appointment that matches the eventIdSelected
-    const appointment = appointments.find(app => Number(app.id) === Number(eventIdSelected));
+    const appointment = appointments.find(app => Number(app.id) === Number(AppState.eventIdSelected));
     if (!appointment) {
         return;
     }
@@ -289,74 +293,54 @@ async function cancelEdit() {
     endTimeInput.style.display = "";
 
     // Re-show the event modal with the original data
-    const event = {id: eventIdSelected};
-    await showEventModal(event);
+    await showEventModal(appointment.id, false, false);
     toggleEditMode(); // Turn off edit mode
 }
 
-async function showEventModal(event) {
-    const appointment = appointments.find(app => Number(app.id) === Number(event.id));
-    if (!appointment) {
-        return;
-    }
+function confirmDeleteAppointment(appointmentId) {
+    const deleteURL = deleteAppointmentURLTemplate
+    const data = {appointment_id: appointmentId};
 
-    // Extract only the time using Moment.js
-    const startTime = moment(appointment.start_time).format('HH:mm:ss');
-    const endTime = moment(appointment.end_time).format('HH:mm:ss');
-
-    // Fetch and populate services for dropdown
-    const servicesDropdown = await populateServices(appointment.service_id);
-    servicesDropdown.id = "serviceSelect";
-    servicesDropdown.value = appointment.service_id; // Assuming you have a service_id in the appointment
-    servicesDropdown.disabled = true; // Initially disable the dropdown
-
-    // Convert the services dropdown to a string for the template
-    const div = document.createElement('div');
-    div.appendChild(servicesDropdown);
-    const servicesDropdownString = div.innerHTML;
-
-    // Set the content of the modal as input fields
-    const modalBodyContent = `
-        <label>Service Name:</label>
-        ${servicesDropdownString}
-        <label for="startTime">Start Time:</label>
-        <input type="time" name="startTime" value="${startTime}" disabled>
-        <label for="endTime">End Time:</label>
-        <input type="time" name="endTime" value="${endTime}" disabled>
-        <label for="clientName">Client Name:</label>
-        <input type="text" name="clientName" value="${appointment.client_name}" disabled>
-        <label for="clientEmail">Client Email</label>
-        <input type="email" name="clientEmail" value="${appointment.client_email}" disabled>
-        <span id="emailError" style="display:none;"></span>
-        <label for="clientPhone">Phone Number</label>
-        <input type="tel" name="clientPhone" value="${appointment.client_phone}" disabled>
-        <label for="clientAddress">Client Address</label>
-        <input type="text" name="clientAddress" value="${appointment.client_address}" disabled>
-    `;
-
-    document.getElementById('eventModalBody').innerHTML = modalBodyContent;
-
-    // Display the modal
-    $('#eventDetailsModal').modal('show');
-}
-
-function fetchServices() {
-    let ajax_data_get_data = {
-        'appointmentId': eventIdSelected,
-    }
-    const finalUrl = `${fetchServiceListForStaffURL}?${$.param(ajax_data_get_data)}`;
-    return fetch(finalUrl)
-        .then(response => response.json())
+    fetch(deleteURL, {
+        method: 'POST', headers: {
+            'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': getCSRFToken(),
+        }, body: JSON.stringify(data)
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
         .then(data => {
-            return data.services_offered;  // This should be a list of dictionaries
+            $('#eventDetailsModal').modal('hide');
+            let event = AppState.calendar.getEventById(appointmentId);
+            if (event) {
+                event.remove();
+            }
+            showErrorModal(data.message, successTxt);
+            closeConfirmModal();  // Close the confirmation modal
         })
         .catch(error => {
-            console.error("There was an error fetching the services.", error);
+            console.error('Error:', error);
+            showErrorModal(updateApptErrorTitleTxt);
         });
 }
 
-async function populateServices(selectedServiceId) {
-    const services = await fetchServices();
+function deleteAppointment() {
+    showModal(confirmDeletionTxt, confirmDeletionTxt, deleteBtnTxt, null, () => confirmDeleteAppointment(AppState.eventIdSelected));
+}
+
+function fetchServices(isEditMode = false) {
+    let url = isEditMode && AppState.eventIdSelected ? `${fetchServiceListForStaffURL}?appointmentId=${AppState.eventIdSelected}` : fetchServiceListForStaffURL;
+    return fetch(url)
+        .then(response => response.json())
+        .then(data => data.services_offered)
+        .catch(error => console.error("Error fetching services: ", error));
+}
+
+async function populateServices(selectedServiceId, isEditMode = false) {
+    const services = await fetchServices(isEditMode);
     const selectElement = document.createElement('select');
     services.forEach(service => {
         const option = document.createElement('option');
@@ -380,26 +364,19 @@ function getCSRFToken() {
     }
 }
 
-
 async function validateAndUpdateAppointmentDate(event, revertFunction) {
     const updatedStartTime = event.start.toISOString();
     const updatedEndTime = event.end ? event.end.toISOString() : null;
 
     const data = {
-        appointment_id: event.id,
-        start_time: updatedStartTime,
-        date: event.start.toISOString().split('T')[0]
+        appointment_id: event.id, start_time: updatedStartTime, date: event.start.toISOString().split('T')[0]
     };
 
     try {
         const validationResponse = await fetch(validateApptDateURL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRFToken': getCSRFToken(),
-            },
-            body: JSON.stringify(data)
+            method: 'POST', headers: {
+                'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': getCSRFToken(),
+            }, body: JSON.stringify(data)
         });
 
         if (validationResponse.ok) {
@@ -421,32 +398,322 @@ async function updateAppointmentDate(event, revertFunction) {
     const updatedDate = event.start.toISOString().split('T')[0];
 
     const data = {
-        appointment_id: event.id,
-        start_time: updatedStartTime,
-        date: updatedDate,
+        appointment_id: event.id, start_time: updatedStartTime, date: updatedDate,
     };
 
     try {
         const response = await fetch(updateApptDateURL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRFToken': getCSRFToken(),
-            },
-            body: JSON.stringify(data)
+            method: 'POST', headers: {
+                'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': getCSRFToken(),
+            }, body: JSON.stringify(data)
         });
 
+        const responseData = await response.json();
         if (response.ok) {
-            const responseData = await response.json();
-            showErrorModal(responseData.message, 'Success')
-            console.log('Appointment date updated:', responseData.message);
+            console.log("Updated message: " + responseData.message)
+            showErrorModal(responseData.message, successTxt)
         } else {
             console.error('Failed to update appointment date. Server responded with:', response.statusText);
+            showErrorModal(responseData.message, updateApptErrorTitleTxt);
             revertFunction();
         }
     } catch (error) {
         console.error('Failed to send data:', error);
         revertFunction();
     }
+}
+
+// ################################################################ //
+//                      Create new Appt                             //
+// ################################################################ //
+function createNewAppointment(dateInput) {
+    let date;
+    if (typeof dateInput === 'string' || dateInput instanceof String) {
+        date = new Date(dateInput);
+    } else {
+        date = dateInput;
+    }
+
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0'); // getMonth() returns 0-11
+    const year = date.getFullYear();
+    const formattedDate = `${year}-${month}-${day}`;
+    const defaultStartTime = `${formattedDate}T09:00:00`;
+
+    showCreateAppointmentModal(defaultStartTime, formattedDate).then(() => {
+    });
+}
+
+
+async function showCreateAppointmentModal(defaultStartTime, formattedDate) {
+    const servicesDropdown = await populateServices(null, false);
+    servicesDropdown.id = "serviceSelect";
+    servicesDropdown.disabled = false; // Enable dropdown
+
+    document.getElementById('eventModalBody').innerHTML = prepareCreateAppointmentModalContent(servicesDropdown, defaultStartTime, formattedDate);
+
+    adjustCreateAppointmentModalButtons();
+    AppState.isCreating = true;
+    $('#eventDetailsModal').modal('show');
+}
+
+function adjustCreateAppointmentModalButtons() {
+    document.getElementById("eventSubmitBtn").style.display = "";
+    document.getElementById("eventCancelBtn").style.display = "none";
+    document.getElementById("eventEditBtn").style.display = "none";
+    document.getElementById("eventDeleteBtn").style.display = "none";
+    document.getElementById("eventGoBtn").style.display = "none";
+}
+
+
+// ################################################################ //
+//                      Show Event Modal                            //
+// ################################################################ //
+
+// Extract Appointment Data
+async function getAppointmentData(eventId, isCreatingMode, defaultStartTime) {
+    if (eventId && !isCreatingMode) {
+        const appointment = appointments.find(app => Number(app.id) === Number(eventId));
+        if (!appointment) {
+            showErrorModal(apptNotFoundTxt, errorTxt);
+            return null;
+        }
+        return appointment;
+    }
+    return {
+        id: null,
+        service_name: '',
+        start_time: defaultStartTime,
+        end_time: '',
+        client_name: '',
+        client_email: '',
+        client_phone: '',
+        client_address: '',
+        additional_info: '',
+        want_reminder: false,
+        background_color: '',
+        timezone: '',
+    };
+}
+
+// Populate Services Dropdown
+async function getServiceDropdown(serviceId, isEditMode) {
+    const servicesDropdown = await populateServices(serviceId, !isEditMode);
+    servicesDropdown.id = "serviceSelect";
+    servicesDropdown.disabled = !isEditMode;
+    return servicesDropdown;
+}
+
+// Show Event Modal
+async function showEventModal(eventId = null, isEditMode, isCreatingMode = false, defaultStartTime = '') {
+    const appointment = await getAppointmentData(eventId, isCreatingMode, defaultStartTime);
+    if (!appointment) return;
+
+    const servicesDropdown = await getServiceDropdown(appointment.service_id, isEditMode);
+    document.getElementById('eventModalBody').innerHTML = generateModalContent(appointment, servicesDropdown, isEditMode);
+    adjustModalButtonsVisibility(isEditMode, isCreatingMode);
+    $('#eventDetailsModal').modal('show');
+}
+
+// Adjust Modal Buttons Visibility
+function adjustModalButtonsVisibility(isEditMode, isCreatingMode) {
+    const editButton = document.getElementById("eventEditBtn");
+    const submitButton = document.getElementById("eventSubmitBtn");
+    const deleteButton = document.getElementById("eventDeleteBtn");
+    const goButton = document.getElementById("eventGoBtn");
+
+    editButton.style.display = !isEditMode && !isCreatingMode ? "" : "none";
+    submitButton.style.display = isCreatingMode || isEditMode ? "" : "none";
+    deleteButton.style.display = !isEditMode && !isCreatingMode ? "" : "none";
+    goButton.style.display = isCreatingMode ? "none" : "";
+}
+
+// ################################################################ //
+//                         Edit Logic                               //
+// ################################################################ //
+
+function toggleEditMode() {
+    const modal = document.getElementById("eventDetailsModal");
+    const appointment = appointments.find(app => Number(app.id) === Number(AppState.eventIdSelected));
+    AppState.isCreating = false; // Turn off creating mode
+
+    // Proceed only if an appointment is found
+    if (appointment) {
+        AppState.isEditingAppointment = !AppState.isEditingAppointment;  // Toggle the editing state
+        updateModalUIForEditMode(modal, AppState.isEditingAppointment);
+    }
+}
+
+function updateModalUIForEditMode(modal, isEditingAppointment) {
+    const inputs = modal.querySelectorAll("input");
+    const servicesDropdown = document.getElementById("serviceSelect");
+    const editButton = document.getElementById("eventEditBtn");
+    const submitButton = document.getElementById("eventSubmitBtn");
+    const closeButton = modal.querySelector(".btn-secondary[data-dismiss='modal']");
+    const cancelButton = document.getElementById("eventCancelBtn");
+    const deleteButton = document.getElementById("eventDeleteBtn");
+    const goButton = document.getElementById("eventGoBtn");
+    const endTimeLabel = modal.querySelector("label[for='endTime']");
+    const endTimeInput = modal.querySelector("input[name='endTime']");
+
+    // Toggle input and dropdown enable/disable state
+    inputs.forEach(input => input.disabled = !isEditingAppointment);
+    servicesDropdown.disabled = !isEditingAppointment;
+
+    // Toggle visibility of UI elements
+    toggleElementVisibility(editButton, !isEditingAppointment);
+    toggleElementVisibility(submitButton, isEditingAppointment);
+    toggleElementVisibility(cancelButton, isEditingAppointment);
+    toggleElementVisibility(deleteButton, !isEditingAppointment);
+    toggleElementVisibility(closeButton, !isEditingAppointment);
+    toggleElementVisibility(endTimeLabel, !isEditingAppointment);  // Show end time in view mode
+    toggleElementVisibility(endTimeInput, !isEditingAppointment);  // Show end time in view mode
+    toggleElementVisibility(goButton, !isEditingAppointment);
+}
+
+function toggleElementVisibility(element, isVisible) {
+    if (element) {
+        element.style.display = isVisible ? "" : "none";
+    }
+}
+
+
+// ################################################################ //
+//                         Submit Logic                             //
+// ################################################################ //
+
+async function submitChanges() {
+    const modal = document.getElementById("eventDetailsModal");
+    const formData = collectFormDataFromModal(modal);
+
+    if (!validateFormData(formData)) return;
+
+    const response = await sendAppointmentData(formData);
+    if (response.ok) {
+        const responseData = await response.json();
+        if (AppState.isCreating) {
+            addNewAppointmentToCalendar(responseData.appt[0]);
+        } else {
+            updateExistingAppointmentInCalendar(responseData.appt);
+        }
+
+        AppState.calendar.render();
+    } else {
+        const responseData = await response.json();
+        showErrorModal(responseData.message);
+    }
+    closeModal();
+
+}
+
+// Collect form data from modal
+function collectFormDataFromModal(modal) {
+    const inputs = modal.querySelectorAll("input");
+    const serviceId = modal.querySelector("#serviceSelect").value;
+    const data = {isCreating: AppState.isCreating, service_id: serviceId, appointment_id: AppState.eventIdSelected};
+
+    inputs.forEach(input => {
+        if (input.name !== "date") {
+            let key = input.name.replace(/([A-Z])/g, '_$1').toLowerCase();
+            data[key] = input.value;
+        }
+    });
+
+    if (AppState.isCreating) {
+        data["date"] = modal.querySelector('input[name="date"]').value;
+    }
+
+    // Special handling for checkbox
+    const wantReminderCheckbox = modal.querySelector('input[name="want_reminder"]');
+    if (!wantReminderCheckbox.checked) {
+        data['want_reminder'] = 'false';
+    } else {
+        data['want_reminder'] = 'true';
+    }
+
+    return data;
+}
+
+// Validate form data
+function validateFormData(data) {
+    return validateEmail(data["client_email"]);
+}
+
+// Validate email
+function validateEmail(email) {
+    const emailInput = document.querySelector('input[name="clientEmail"]');
+    const emailError = document.getElementById("emailError");
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    console.log("Email: ", emailInput.value)
+    if (!emailRegex.test(emailInput.value)) {
+        emailInput.style.border = "1px solid red";
+        emailError.textContent = "Invalid email address, yeah.";
+        emailError.style.color = "red";
+        emailError.style.display = "inline";
+        return false;
+    } else {
+        emailInput.style.border = "";
+        emailError.textContent = "";
+        emailError.style.display = "none";
+        return true;
+    }
+}
+
+// Send appointment data to server
+async function sendAppointmentData(data) {
+    const headers = {
+        'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': getCSRFToken(),
+    };
+
+    console.log("Sending data to server: ", data);
+
+    return fetch(updateApptMinInfoURL, {
+        method: 'POST', headers: headers, body: JSON.stringify(data)
+    });
+}
+
+// Handle response from server
+async function handleAppointmentResponse(response) {
+    if (!response.ok) {
+        throw new Error(response.message);
+    }
+
+    const responseData = await response.json();
+    if (AppState.isCreating) {
+        addNewAppointmentToCalendar(responseData.appt[0]);
+    } else {
+        updateExistingAppointmentInCalendar(responseData.appt);
+    }
+
+    AppState.calendar.render();
+}
+
+// Add new appointment to calendar
+function addNewAppointmentToCalendar(newAppointment) {
+    const newEvent = formatAppointmentsForCalendar([newAppointment])[0];
+    appointments.push(newAppointment);
+    AppState.calendar.addEvent(newEvent);
+}
+
+// Update existing appointment in calendar
+function updateExistingAppointmentInCalendar(appointment) {
+    let eventToUpdate = AppState.calendar.getEventById(AppState.eventIdSelected);
+    if (eventToUpdate) {
+        updateEventProperties(eventToUpdate, appointment);
+    }
+    // update appointment in appointments array
+    const index = appointments.findIndex(app => Number(app.id) === Number(AppState.eventIdSelected));
+    if (index !== -1) {
+        appointments[index] = appointment;
+    }
+}
+
+// Update event properties
+function updateEventProperties(event, appointment) {
+    event.setProp('title', appointment.service_name);
+    event.setStart(moment(appointment.start_time).format('YYYY-MM-DDTHH:mm:ss'));
+    event.setEnd(appointment.end_time);
+    event.setExtendedProp('client_name', appointment.client_name);
+    event.setProp('backgroundColor', appointment.background_color);
 }

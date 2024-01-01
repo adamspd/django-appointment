@@ -43,7 +43,7 @@
                                                 <i class="fas fa-pen"></i>
                                             </a>
                                             <a href="javascript:void(0)"
-                                               onclick="showModal('{{ modal_title }}', '{{ d_modal_message }}', '{{ delete_btn_modal }}', '{% url 'appointment:delete_service' service_id=service.id %}')"
+                                               onclick="showModal('{{ modal_title }}', '{{ d_modal_message }}', '{{ delete_btn_modal }}', '{% url 'appointment:delete_service' service_id=service.id %}', null)"
                                                class="modify-btn button-color-red">
                                                 <i class="fas fa-trash"></i>
                                             </a>
@@ -51,7 +51,7 @@
                                     </div>
                                 </td>
                             </tr>
-                            {% empty %}
+                        {% empty %}
                             <tr>
                                 <td colspan="3">{% trans 'No service found' %}.</td>
                             </tr>

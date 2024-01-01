@@ -95,7 +95,7 @@ def convert_str_to_time(time_str: str) -> datetime.time:
     :param time_str: A string representation of time.
     :return: A Python `time` object.
     """
-    formats = ["%I:%M %p", "%H:%M:%S"]
+    formats = ["%I:%M %p", "%H:%M:%S",  "%H:%M"]
 
     for fmt in formats:
         try:

@@ -24,7 +24,7 @@ notes](https://github.com/adamspd/django-appointment/tree/main/docs/release_note
 6. Staff members can now define their own configuration settings for the appointment system, such as slot duration,
    working hours, and buffer time between appointments. However, only admins have the privilege to add/remove services.
 
-### Breaking Changes in version 2.1.2:
+### Breaking Changes in version 2.1.1:
 
 - None
 
