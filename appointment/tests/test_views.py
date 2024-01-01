@@ -13,7 +13,7 @@ from django.utils.translation import gettext as _
 
 from appointment.models import AppointmentRequest, Appointment, EmailVerificationCode, StaffMember
 from appointment.tests.base.base_test import BaseTest
-from appointment.utils.db_helpers import WorkingHours
+from appointment.utils.db_helpers import Service, WorkingHours
 from appointment.views import verify_user_and_login
 
 
@@ -62,6 +62,11 @@ class ViewsTestCase(BaseTest):
         """Delete all AppointmentRequests and Appointments linked to the StaffMember instance of self.user1."""
         AppointmentRequest.objects.filter(staff_member__user=self.user1).delete()
         Appointment.objects.filter(appointment_request__staff_member__user=self.user1).delete()
+
+    def remove_staff_member(self):
+        """Remove the StaffMember instance of self.user1."""
+        self.clean_staff_member_objects()
+        StaffMember.objects.filter(user=self.user1).delete()
 
     def test_get_available_slots_ajax(self):
         """get_available_slots_ajax view should return a JSON response with available slots for the selected date."""
@@ -365,3 +370,75 @@ class ViewsTestCase(BaseTest):
         self.assertEqual(response.status_code, 400)
         response_data = response.json()
         self.assertIn('message', response_data)
+
+    def test_delete_service_with_superuser(self):
+        self.need_superuser_login()
+        # Test deletion with a superuser
+        response = self.client.get(reverse('appointment:delete_service', args=[self.service1.id]))
+
+        # Check if the service was deleted
+        self.assertFalse(Service.objects.filter(id=self.service1.id).exists())
+
+        # Check if the success message is added
+        messages_ = list(get_messages(response.wsgi_request))
+        self.assertIn(_("Service deleted successfully!"), [m.message for m in messages_])
+
+        # Check if it redirects to the user profile
+        self.assertRedirects(response, reverse('appointment:user_profile'))
+
+    def test_delete_service_without_superuser(self):
+        # Log in as a regular/staff user
+        self.need_staff_login()
+
+        response = self.client.get(reverse('appointment:delete_service', args=[self.service1.id]))
+
+        # Check for a forbidden status code, as only superusers should be able to delete services
+        self.assertEqual(response.status_code, 403)
+
+    def test_delete_nonexistent_service(self):
+        self.need_superuser_login()
+        # Try to delete a service that does not exist
+        response = self.client.get(reverse('appointment:delete_service', args=[99999]))
+
+        # Check for a 404-status code
+        self.assertEqual(response.status_code, 404)
+
+    def test_remove_staff_member_with_superuser(self):
+        self.need_superuser_login()
+        self.clean_staff_member_objects()
+        # Test removal of staff member by a superuser
+        response = self.client.get(reverse('appointment:remove_superuser_staff_member'))
+
+        # Check if the StaffMember instance was deleted
+        self.assertFalse(StaffMember.objects.filter(user=self.user1).exists())
+
+        # Check if it redirects to the user profile
+        self.assertRedirects(response, reverse('appointment:user_profile'))
+
+    def test_remove_staff_member_without_superuser(self):
+        # Log out superuser and log in as a regular user
+        self.need_staff_login()
+        response = self.client.get(reverse('appointment:remove_superuser_staff_member'))
+
+        # Check for a forbidden status code, as only superusers should be able to remove staff members
+        self.assertEqual(response.status_code, 403)
+
+    def test_make_staff_member_with_superuser(self):
+        self.need_superuser_login()
+        self.remove_staff_member()
+        # Test creating a staff member by a superuser
+        response = self.client.get(reverse('appointment:make_superuser_staff_member'))
+
+        # Check if the StaffMember instance was created
+        self.assertTrue(StaffMember.objects.filter(user=self.user1).exists())
+
+        # Check if it redirects to the user profile
+        self.assertRedirects(response, reverse('appointment:user_profile'))
+
+    def test_make_staff_member_without_superuser(self):
+        self.need_staff_login()
+        response = self.client.get(reverse('appointment:make_superuser_staff_member'))
+
+        # Check for a forbidden status code, as only superusers should be able to create staff members
+        self.assertEqual(response.status_code, 403)
+
