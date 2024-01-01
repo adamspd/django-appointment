@@ -8,14 +8,14 @@ from django.http import HttpRequest
 from django.test import TestCase
 from django.utils.translation import gettext_lazy as _
 
-from appointment.models import Appointment, Service, AppointmentRequest, Config, StaffMember
+from appointment.models import Appointment, AppointmentRequest, Config, Service, StaffMember
 from appointment.services import get_available_slots, get_finish_button_text
-from appointment.settings import APPOINTMENT_WEBSITE_NAME, APPOINTMENT_SLOT_DURATION, APPOINTMENT_LEAD_TIME, \
-    APPOINTMENT_FINISH_TIME, APPOINTMENT_BUFFER_TIME
-from appointment.utils.date_time import get_timestamp, convert_str_to_date, get_current_year, get_timezone
-from appointment.utils.db_helpers import get_website_name, get_appointment_slot_duration, \
-    get_appointment_lead_time, get_appointment_finish_time, get_appointment_buffer_time, get_user_model
-from appointment.utils.view_helpers import generate_random_id, is_ajax, get_locale
+from appointment.settings import APPOINTMENT_BUFFER_TIME, APPOINTMENT_FINISH_TIME, APPOINTMENT_LEAD_TIME, \
+    APPOINTMENT_SLOT_DURATION, APPOINTMENT_WEBSITE_NAME
+from appointment.utils.date_time import convert_str_to_date, get_current_year, get_timestamp, get_timezone
+from appointment.utils.db_helpers import get_appointment_buffer_time, get_appointment_finish_time, \
+    get_appointment_lead_time, get_appointment_slot_duration, get_user_model, get_website_name
+from appointment.utils.view_helpers import generate_random_id, get_locale, is_ajax
 
 
 class UtilityTestCase(TestCase):
