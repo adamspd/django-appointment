@@ -16,15 +16,19 @@ from django.utils import timezone
 from django.utils.translation import gettext as _, gettext_lazy as _
 
 from appointment.forms import PersonalInformationForm, ServiceForm, StaffDaysOffForm, StaffWorkingHoursForm
+from appointment.messages_ import appt_updated_successfully
 from appointment.settings import APPOINTMENT_PAYMENT_URL
-from appointment.utils.date_time import convert_12_hour_time_to_24_hour_time, convert_str_to_time, get_ar_end_time
-from appointment.utils.db_helpers import Appointment, EmailVerificationCode, Service, StaffMember, WorkingHours, \
-    calculate_slots, calculate_staff_slots, check_day_off_for_staff, create_new_user, day_off_exists_for_date_range, \
-    exclude_booked_slots, get_all_appointments, get_all_staff_members, get_appointment_by_id, \
-    get_appointments_for_date_and_time, get_staff_member_appointment_list, get_staff_member_from_user_id_or_logged_in, \
-    get_times_from_config, get_user_by_email, get_working_hours_for_staff_and_day, working_hours_exist
+from appointment.utils.date_time import (
+    convert_12_hour_time_to_24_hour_time, convert_str_to_date, convert_str_to_time, get_ar_end_time)
+from appointment.utils.db_helpers import (
+    Appointment, AppointmentRequest, EmailVerificationCode, Service, StaffMember, WorkingHours, calculate_slots,
+    calculate_staff_slots, check_day_off_for_staff, create_and_save_appointment, create_new_user,
+    day_off_exists_for_date_range, exclude_booked_slots, get_all_appointments, get_all_staff_members,
+    get_appointment_by_id, get_appointments_for_date_and_time, get_staff_member_appointment_list,
+    get_staff_member_from_user_id_or_logged_in, get_times_from_config, get_user_by_email,
+    get_working_hours_for_staff_and_day, working_hours_exist)
 from appointment.utils.error_codes import ErrorCode
-from appointment.utils.json_context import get_generic_context, json_response
+from appointment.utils.json_context import convert_appointment_to_json, get_generic_context, json_response
 from appointment.utils.permissions import check_entity_ownership
 from appointment.utils.session import handle_email_change
 
@@ -65,7 +69,7 @@ def prepare_appointment_display_data(user, appointment_id):
         return None, None, _("You are not authorized to view this appointment."), 403
 
     # Prepare the data for display
-    page_title = _("Appointment details: {client_name}").format(client_name=appointment.get_client_name())
+    page_title = _("Appointment details") + _(": {client_name}").format(client_name=appointment.get_client_name())
     if user.is_superuser:
         page_title += f' (by: {appointment.get_staff_member_name()})'
 
@@ -300,16 +304,9 @@ def get_working_hours_and_days_off_context(request, btn_txt, form_name, form, us
     return context
 
 
-def save_appointment(appt, client_name, client_email, start_time, phone_number, client_address, service_id):
+def save_appointment(appt, client_name, client_email, start_time, phone_number, client_address, service_id,
+                     want_reminder=False, additional_info=None):
     """Save an appointment's details.
-
-    :param appt: The appointment to modify.
-    :param client_name: The name of the client.
-    :param client_email: The email of the client.
-    :param start_time: The start time of the appointment.
-    :param phone_number: The phone number of the client.
-    :param client_address: The address of the client.
-    :param service_id: The ID of the service.
     :return: The modified appointment.
     """
     # Modify and save client details
@@ -335,6 +332,8 @@ def save_appointment(appt, client_name, client_email, start_time, phone_number, 
     # Modify and save appointment details
     appt.phone = phone_number
     appt.address = client_address
+    appt.want_reminder = want_reminder
+    appt.additional_info = additional_info
     appt.save()
     return appt
 
@@ -536,3 +535,81 @@ def handle_service_management_request(post_data, files_data=None, service_id=Non
             return None, False, get_error_message_in_form(form=form)
     except Exception as e:
         return None, False, str(e)
+
+
+def create_new_appointment(data, request):
+    service = Service.objects.get(id=data.get("service_id"))
+    staff_member = StaffMember.objects.get(user=request.user)
+
+    # Convert date and start time strings to datetime objects
+    date = convert_str_to_date(data.get("date"))
+    start_time = convert_str_to_time(data.get("start_time"))
+    start_datetime = datetime.datetime.combine(date, start_time)
+
+    appointment_request = AppointmentRequest(
+        date=start_datetime.date(),
+        start_time=start_datetime.time(),
+        end_time=(start_datetime + service.duration).time(),
+        service=service,
+        staff_member=staff_member,
+    )
+    appointment_request.full_clean()  # Validates the model
+    appointment_request.save()
+
+    # Prepare client data
+    email = data.get("client_email", "")
+    name_parts = data.get("client_name", "").split()
+    first_name = name_parts[0] if name_parts else ""
+    last_name = name_parts[-1] if len(name_parts) > 1 else ""  # Use an empty string if no last name
+
+    client_data = {
+        'email': email,
+        'first_name': first_name,
+        'last_name': last_name,
+    }
+
+    # Use your custom user creation logic
+    user = get_user_by_email(email)
+    if not user:
+        create_new_user(client_data)
+
+    # Create and save the new appointment
+    appointment_data = {
+        'phone': data.get("client_phone", ""),
+        'address': data.get("client_address", ""),
+        'want_reminder': data.get("want_reminder") == 'true',
+        'additional_info': data.get("additional_info", ""),
+        'paid': False
+    }
+    appointment = create_and_save_appointment(appointment_request, client_data, appointment_data)
+    appointment_list = convert_appointment_to_json(request, [appointment])
+
+    return json_response("Appointment created successfully.", custom_data={'appt': appointment_list})
+
+
+def update_existing_appointment(data, request):
+    try:
+        appt = Appointment.objects.get(id=data.get("appointment_id"))
+        print(f"want_reminder: {data.get('want_reminder')}")
+        want_reminder = data.get("want_reminder") == 'true'
+        appt = save_appointment(
+            appt,
+            client_name=data.get("client_name"),
+            client_email=data.get("client_email"),
+            start_time=data.get("start_time"),
+            phone_number=data.get("client_phone"),
+            client_address=data.get("client_address"),
+            service_id=data.get("service_id"),
+            want_reminder=want_reminder,
+            additional_info=data.get("additional_info")
+        )
+        appointments_json = convert_appointment_to_json(request, [appt])[0]
+        return json_response(appt_updated_successfully, custom_data={'appt': appointments_json})
+    except Appointment.DoesNotExist:
+        return json_response("Appointment does not exist.", status=404, success=False,
+                             error_code=ErrorCode.APPOINTMENT_NOT_FOUND)
+    except Service.DoesNotExist:
+        return json_response("Service does not exist.", status=404, success=False,
+                             error_code=ErrorCode.SERVICE_NOT_FOUND)
+    except Exception as e:
+        return json_response(str(e.args[0]), status=400, success=False)

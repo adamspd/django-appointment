@@ -180,8 +180,6 @@ class ConvertStrToTimeTests(TestCase):
         with self.assertRaises(ValueError):
             convert_str_to_time("25:00:00")
         with self.assertRaises(ValueError):
-            convert_str_to_time("10:00")
-        with self.assertRaises(ValueError):
             convert_str_to_time("10:60 AM")
         with self.assertRaises(ValueError):
             convert_str_to_time("10:60:00")

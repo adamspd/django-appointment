@@ -458,6 +458,9 @@ class Appointment(models.Model):
             return True
         return self.paid
 
+    def is_paid_txt(self):
+        return _("Yes") if self.is_paid() else _("No")
+
     def get_appointment_amount_to_pay(self):
         # Check if the decimal part is 0
         if self.amount_to_pay % 1 == 0:
@@ -525,6 +528,22 @@ class Appointment(models.Model):
 
     def is_owner(self, staff_user_id):
         return self.appointment_request.staff_member.user.id == staff_user_id
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "client_name": self.client.get_full_name(),
+            "client_email": self.client.email,
+            "start_time": self.appointment_request.start_time.strftime('%Y-%m-%d %H:%M'),
+            "end_time": self.appointment_request.end_time.strftime('%Y-%m-%d %H:%M'),
+            "service_name": self.appointment_request.service.name,
+            "address": self.address,
+            "want_reminder": self.want_reminder,
+            "additional_info": self.additional_info,
+            "paid": self.paid,
+            "amount_to_pay": self.amount_to_pay,
+            "id_request": self.id_request,
+        }
 
 
 class Config(models.Model):

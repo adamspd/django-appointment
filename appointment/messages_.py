@@ -18,3 +18,4 @@ If you choose the deposit, you will have to pay the rest of the amount on the da
 thank_you_payment = _("""We're excited to have you on board! Thank you for booking us. The next step is to pay for
 the booking.""")
 
+appt_updated_successfully = _("Appointment updated successfully.")

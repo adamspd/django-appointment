@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load static %}
 {% block customCSS %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/appt-common.css' %}"/>
     <link rel="stylesheet" type="text/css" href="{% static 'css/appointments.css' %}"/>
 {% endblock %}
 {% block title %}
@@ -54,7 +55,8 @@
                                 <label class="djangoAppt_item-name" for="staff_id">{{ label }}</label>
                                 <select name="staff_member" id="staff_id">
                                     {% if not staff_member %}
-                                        <option value="none" selected>{% trans 'Please select a staff member' %}</option>
+                                        <option value="none"
+                                                selected>{% trans 'Please select a staff member' %}</option>
                                     {% endif %}
                                     {% for sf in all_staff_members %}
                                         <option value="{{ sf.id }}"
@@ -102,6 +104,9 @@
         const getNonWorkingDaysURL = "{% url 'appointment:get_non_working_days_ajax' %}";
         const serviceId = "{{ service.id }}";
         const serviceDuration = parseInt("{{ service.duration.total_seconds }}") / 60;
+    </script>
+    <script>
+        const requestNonAvailableSlotBtnTxt = "{% trans 'Request next available slot' %}";
     </script>
     <script src="{% static 'js/appointments.js' %}"></script>
     <script src="{% static 'js/js-utils.js' %}"></script>

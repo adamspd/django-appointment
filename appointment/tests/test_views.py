@@ -13,7 +13,7 @@ from django.utils.translation import gettext as _
 
 from appointment.models import AppointmentRequest, Appointment, EmailVerificationCode, StaffMember
 from appointment.tests.base.base_test import BaseTest
-from appointment.utils.db_helpers import WorkingHours
+from appointment.utils.db_helpers import Service, WorkingHours
 from appointment.views import verify_user_and_login
 
 
@@ -39,9 +39,22 @@ class ViewsTestCase(BaseTest):
         middleware.process_request(self.request)
         self.request.session.save()
         self.appointment = self.create_appointment_for_user1()
+        self.tomorrow = date.today() + timedelta(days=1)
+        self.appt = self.create_appointment_for_user1()
+        self.data = {
+            'isCreating': False, 'service_id': '1', 'appointment_id': self.appt.id, 'client_name': 'Bryan Zap',
+            'client_email': 'bz@gmail.com', 'client_phone': '+33769992738', 'client_address': 'Naples, Florida',
+            'want_reminder': 'false', 'additional_info': '', 'start_time': '15:00:26',
+            'date': self.tomorrow.strftime('%Y-%m-%d')
+        }
 
     def need_staff_login(self):
         self.user1.is_staff = True
+        self.user1.save()
+        self.client.force_login(self.user1)
+
+    def need_superuser_login(self):
+        self.user1.is_superuser = True
         self.user1.save()
         self.client.force_login(self.user1)
 
@@ -49,6 +62,11 @@ class ViewsTestCase(BaseTest):
         """Delete all AppointmentRequests and Appointments linked to the StaffMember instance of self.user1."""
         AppointmentRequest.objects.filter(staff_member__user=self.user1).delete()
         Appointment.objects.filter(appointment_request__staff_member__user=self.user1).delete()
+
+    def remove_staff_member(self):
+        """Remove the StaffMember instance of self.user1."""
+        self.clean_staff_member_objects()
+        StaffMember.objects.filter(user=self.user1).delete()
 
     def test_get_available_slots_ajax(self):
         """get_available_slots_ajax view should return a JSON response with available slots for the selected date."""
@@ -220,3 +238,207 @@ class ViewsTestCase(BaseTest):
         # Check if staff member is deleted
         staff_member_exists = StaffMember.objects.filter(pk=self.staff_member.id).exists()
         self.assertFalse(staff_member_exists, "Appointment should be deleted but still exists.")
+
+    def test_fetch_service_list_for_staff(self):
+        self.need_staff_login()
+
+        # Assuming self.service1 and self.service2 are services linked to self.staff_member1
+        self.staff_member1.services_offered.add(self.service1, self.service2)
+        staff_member_services = [self.service1, self.service2]
+
+        # Simulate a request without appointmentId
+        url = reverse('appointment:fetch_service_list_for_staff')
+        response = self.client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.status_code, 200)
+        response_data = response.json()
+        self.assertEqual(response_data["message"], "Successfully fetched services.")
+        self.assertCountEqual(
+            response_data["services_offered"],
+            [{"id": service.id, "name": service.name} for service in staff_member_services]
+        )
+
+        # Create a test appointment and link it to self.staff_member1
+        test_appointment = self.create_appointment_for_user1()
+
+        # Simulate a request with appointmentId
+        url_with_appointment = f"{url}?appointmentId={test_appointment.id}"
+        response_with_appointment = self.client.get(url_with_appointment, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response_with_appointment.status_code, 200)
+        response_data_with_appointment = response_with_appointment.json()
+        self.assertEqual(response_data_with_appointment["message"], "Successfully fetched services.")
+        # Assuming the staff member linked to the appointment offers the same services
+        self.assertCountEqual(
+            response_data_with_appointment["services_offered"],
+            [{"id": service.id, "name": service.name} for service in staff_member_services]
+        )
+
+    def test_update_appt_min_info_create(self):
+        self.need_staff_login()
+
+        # Preparing data
+        self.data.update({'isCreating': True, 'appointment_id': None})
+        url = reverse('appointment:update_appt_min_info')
+
+        # Making the request
+        response = self.client.post(url, data=json.dumps(self.data), content_type='application/json',
+                                    **{'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'})
+
+        # Check response status
+        self.assertEqual(response.status_code, 200)
+
+        # Check response content
+        response_data = response.json()
+        self.assertIn('message', response_data)
+        self.assertEqual(response_data['message'], 'Appointment created successfully.')
+        self.assertIn('appt', response_data)
+
+        # Verify appointment created in the database
+        appointment_id = response_data['appt'][0]['id']
+        self.assertTrue(Appointment.objects.filter(id=appointment_id).exists())
+
+    def test_update_appt_min_info_update(self):
+        self.need_superuser_login()
+
+        # Create an appointment to update
+        url = reverse('appointment:update_appt_min_info')
+
+        # Making the request
+        response = self.client.post(url, data=json.dumps(self.data), content_type='application/json',
+                                    **{'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'})
+
+        # Check response status
+        self.assertEqual(response.status_code, 200)
+
+        # Check response content
+        response_data = response.json()
+        self.assertIn('message', response_data)
+        self.assertEqual(response_data['message'], 'Appointment updated successfully.')
+        self.assertIn('appt', response_data)
+
+        # Verify appointment updated in the database
+        updated_appt = Appointment.objects.get(id=self.appt.id)
+        self.assertEqual(updated_appt.client.email, self.data['client_email'])
+
+    def test_update_nonexistent_appointment(self):
+        self.need_superuser_login()
+
+        # Preparing data with a non-existent appointment ID
+        self.data['appointment_id'] = 999
+        url = reverse('appointment:update_appt_min_info')
+
+        # Making the request
+        response = self.client.post(url, data=json.dumps(self.data), content_type='application/json',
+                                    **{'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'})
+
+        # Check response status and content
+        self.assertEqual(response.status_code, 404)
+        response_data = response.json()
+        self.assertIn('message', response_data)
+        self.assertEqual(response_data['message'], "Appointment does not exist.")
+
+    def test_update_with_nonexistent_service(self):
+        self.need_superuser_login()
+
+        # Preparing data with a non-existent service ID
+        self.data['service_id'] = 999
+        url = reverse('appointment:update_appt_min_info')
+
+        # Making the request
+        response = self.client.post(url, data=json.dumps(self.data), content_type='application/json',
+                                    **{'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'})
+
+        # Check response status and content
+        self.assertEqual(response.status_code, 404)
+        response_data = response.json()
+        self.assertIn('message', response_data)
+        self.assertEqual(response_data['message'], "Service does not exist.")
+
+    def test_update_with_invalid_data_causing_exception(self):
+        self.need_superuser_login()
+
+        # Preparing invalid data to trigger an exception, for example here, no email address
+        data = {
+            'isCreating': False, 'service_id': '1', 'appointment_id': self.appt.id,
+        }
+        url = reverse('appointment:update_appt_min_info')
+
+        # Making the request
+        response = self.client.post(url, data=json.dumps(data), content_type='application/json',
+                                    **{'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'})
+
+        # Check response status and content
+        self.assertEqual(response.status_code, 400)
+        response_data = response.json()
+        self.assertIn('message', response_data)
+
+    def test_delete_service_with_superuser(self):
+        self.need_superuser_login()
+        # Test deletion with a superuser
+        response = self.client.get(reverse('appointment:delete_service', args=[self.service1.id]))
+
+        # Check if the service was deleted
+        self.assertFalse(Service.objects.filter(id=self.service1.id).exists())
+
+        # Check if the success message is added
+        messages_ = list(get_messages(response.wsgi_request))
+        self.assertIn(_("Service deleted successfully!"), [m.message for m in messages_])
+
+        # Check if it redirects to the user profile
+        self.assertRedirects(response, reverse('appointment:user_profile'))
+
+    def test_delete_service_without_superuser(self):
+        # Log in as a regular/staff user
+        self.need_staff_login()
+
+        response = self.client.get(reverse('appointment:delete_service', args=[self.service1.id]))
+
+        # Check for a forbidden status code, as only superusers should be able to delete services
+        self.assertEqual(response.status_code, 403)
+
+    def test_delete_nonexistent_service(self):
+        self.need_superuser_login()
+        # Try to delete a service that does not exist
+        response = self.client.get(reverse('appointment:delete_service', args=[99999]))
+
+        # Check for a 404-status code
+        self.assertEqual(response.status_code, 404)
+
+    def test_remove_staff_member_with_superuser(self):
+        self.need_superuser_login()
+        self.clean_staff_member_objects()
+        # Test removal of staff member by a superuser
+        response = self.client.get(reverse('appointment:remove_superuser_staff_member'))
+
+        # Check if the StaffMember instance was deleted
+        self.assertFalse(StaffMember.objects.filter(user=self.user1).exists())
+
+        # Check if it redirects to the user profile
+        self.assertRedirects(response, reverse('appointment:user_profile'))
+
+    def test_remove_staff_member_without_superuser(self):
+        # Log out superuser and log in as a regular user
+        self.need_staff_login()
+        response = self.client.get(reverse('appointment:remove_superuser_staff_member'))
+
+        # Check for a forbidden status code, as only superusers should be able to remove staff members
+        self.assertEqual(response.status_code, 403)
+
+    def test_make_staff_member_with_superuser(self):
+        self.need_superuser_login()
+        self.remove_staff_member()
+        # Test creating a staff member by a superuser
+        response = self.client.get(reverse('appointment:make_superuser_staff_member'))
+
+        # Check if the StaffMember instance was created
+        self.assertTrue(StaffMember.objects.filter(user=self.user1).exists())
+
+        # Check if it redirects to the user profile
+        self.assertRedirects(response, reverse('appointment:user_profile'))
+
+    def test_make_staff_member_without_superuser(self):
+        self.need_staff_login()
+        response = self.client.get(reverse('appointment:make_superuser_staff_member'))
+
+        # Check for a forbidden status code, as only superusers should be able to create staff members
+        self.assertEqual(response.status_code, 403)
+
