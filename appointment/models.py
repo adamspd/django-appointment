@@ -458,6 +458,9 @@ class Appointment(models.Model):
             return True
         return self.paid
 
+    def is_paid_txt(self):
+        return _("Yes") if self.is_paid() else _("No")
+
     def get_appointment_amount_to_pay(self):
         # Check if the decimal part is 0
         if self.amount_to_pay % 1 == 0:

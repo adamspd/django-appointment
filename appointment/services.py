@@ -65,7 +65,7 @@ def prepare_appointment_display_data(user, appointment_id):
         return None, None, _("You are not authorized to view this appointment."), 403
 
     # Prepare the data for display
-    page_title = _("Appointment details: {client_name}").format(client_name=appointment.get_client_name())
+    page_title = _("Appointment details") + _(": {client_name}").format(client_name=appointment.get_client_name())
     if user.is_superuser:
         page_title += f' (by: {appointment.get_staff_member_name()})'
 
