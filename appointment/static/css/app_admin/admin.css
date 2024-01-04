@@ -1,6 +1,6 @@
 /* Hide scrollbar for day grid month view on small screens */
 
-@media (max-width: 500px) {
+@media (max-width: 767px) {
     .djangoAppt_no-events {
         margin-bottom: 10px;
     }

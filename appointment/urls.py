@@ -22,8 +22,8 @@ app_name = 'appointment'
 
 admin_urlpatterns = [
     # display the calendar with the events
-    path('user-event/<str:response_type>/', get_user_appointments, name='get_user_event_type'),
-    path('user-event/', get_user_appointments, name='get_user_appointments'),
+    path('appointments/<str:response_type>/', get_user_appointments, name='get_user_event_type'),
+    path('appointments/', get_user_appointments, name='get_user_appointments'),
 
     # create a new staff member and make/remove superuser staff member
     path('staff-member-personal-info/', create_new_staff_member, name='add_staff_member_personal_info'),

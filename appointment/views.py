@@ -29,7 +29,7 @@ from appointment.utils.email_ops import send_thank_you_email
 from appointment.utils.session import get_appointment_data_from_session, handle_existing_email
 from appointment.utils.view_helpers import get_locale, get_timezone_txt
 from .decorators import require_ajax
-from .services import get_appointments_and_slots, get_available_slots_for_staff, get_finish_button_text
+from .services import get_appointments_and_slots, get_available_slots_for_staff
 from .settings import (APPOINTMENT_PAYMENT_URL, APPOINTMENT_THANK_YOU_URL, APP_TIME_ZONE)
 from .utils.date_time import convert_str_to_date, convert_str_to_time, get_current_year
 from .utils.error_codes import ErrorCode
@@ -357,7 +357,7 @@ def appointment_client_information(request, appointment_request_id, id_request):
 
     extra_context = {
         'ar': ar,
-        'buttonNext': get_finish_button_text(ar),
+        'APPOINTMENT_PAYMENT_URL': APPOINTMENT_PAYMENT_URL,
         'form': appointment_form,
     }
     context = get_generic_context_with_extra(request, extra_context, admin=False)
