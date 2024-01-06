@@ -14,7 +14,7 @@
 
 ## Models
 
-> **Notes**: All the models have a `created_at` and `updated_at` field. These fields are automatically updated when the
+> **Notes** ⚠️ : All the models have a `created_at` and `updated_at` field. These fields are automatically updated when the
 > model is created or updated. They are not editable by the user.
 
 ### Service

@@ -453,7 +453,7 @@ def remove_staff_member(request, staff_user_id):
     staff_member = get_object_or_404(StaffMember, user_id=staff_user_id)
     staff_member.delete()
     user = get_user_model().objects.get(pk=staff_user_id)
-    if not user.is_superuser:
+    if not user.is_superuser and user.is_staff:
         user.is_staff = False
         user.save()
     messages.success(request, _("Staff member deleted successfully!"))

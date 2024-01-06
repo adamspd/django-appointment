@@ -222,7 +222,7 @@ class ViewsTestCase(BaseTest):
         self.assertFalse(appointment_exists, "Appointment should be deleted but still exists.")
 
     def test_remove_staff_member(self):
-        self.need_staff_login()
+        self.need_superuser_login()
         self.clean_staff_member_objects()
 
         url = reverse('appointment:remove_staff_member', args=[self.staff_member.user_id])

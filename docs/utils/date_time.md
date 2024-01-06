@@ -14,7 +14,6 @@ system.
 ## Module Metadata:
 
 **Author**: Adams Pierre David
-**Version**: 1.2.0
 **Since**: 1.2.0
 
 ## Time Conversion:
@@ -24,11 +23,12 @@ system.
 - **convert_str_to_date**: Convert a string representation of a date to a Python `date` object.
 - **convert_str_to_time**: Convert a string representation of time to a Python `time` object.
 
-## Date & Time Utilities:
+## Date Time Utilities:
 
 - **get_ar_end_time**: Calculate the end time of an appointment request based on its start time and duration.
 - **get_timezone**: Retrieve the current timezone of the application.
 - **get_timestamp**: Obtain the current timestamp as a string without the decimal part.
+- **time_difference**: Calculate the difference between two times.
 
 ## Weekday Operations:
 
