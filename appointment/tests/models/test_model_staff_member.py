@@ -21,7 +21,7 @@ class StaffMemberModelTestCase(TestCase, UserMixin, ServiceMixin, StaffMemberMix
         self.assertIsNone(self.staff_member.lead_time)
         self.assertIsNone(self.staff_member.finish_time)
         self.assertIsNone(self.staff_member.slot_duration)
-        self.assertEqual(self.staff_member.appointment_buffer_time, 0)
+        self.assertIsNone(self.staff_member.appointment_buffer_time)
 
     def test_staff_member_without_user(self):
         """A staff member cannot be created without a user."""
