@@ -1,6 +1,6 @@
 import datetime
 import json
-from datetime import date, timedelta, time
+from datetime import date, time, timedelta
 
 from django.contrib import messages
 from django.contrib.messages import get_messages
@@ -11,7 +11,7 @@ from django.test.client import RequestFactory
 from django.urls import reverse
 from django.utils.translation import gettext as _
 
-from appointment.models import AppointmentRequest, Appointment, EmailVerificationCode, StaffMember
+from appointment.models import Appointment, AppointmentRequest, EmailVerificationCode, StaffMember
 from appointment.tests.base.base_test import BaseTest
 from appointment.utils.db_helpers import Service, WorkingHours
 from appointment.views import verify_user_and_login
@@ -222,7 +222,7 @@ class ViewsTestCase(BaseTest):
         self.assertFalse(appointment_exists, "Appointment should be deleted but still exists.")
 
     def test_remove_staff_member(self):
-        self.need_staff_login()
+        self.need_superuser_login()
         self.clean_staff_member_objects()
 
         url = reverse('appointment:remove_staff_member', args=[self.staff_member.user_id])
@@ -441,4 +441,3 @@ class ViewsTestCase(BaseTest):
 
         # Check for a forbidden status code, as only superusers should be able to create staff members
         self.assertEqual(response.status_code, 403)
-

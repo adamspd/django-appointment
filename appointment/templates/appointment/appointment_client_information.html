@@ -99,30 +99,39 @@
 
                     <hr class="second-part">
                     {% if ar.is_a_paid_service %}
-                        <div class="service-payment">
-                            <div class="payment-details-title">{% trans "Payment Details" %}</div>
-                            <div class="total">
-                                <div>{% trans "Total" %}</div>
-                                <div>${{ ar.get_service_price }}</div>
-                            </div>
-                            <div class="payment-options">
-                                <button type="submit" class="btn btn-dark btn-pay-full" name="payment_type"
-                                        value="full">
-                                    {% trans "Pay" %}
-                                </button>
-                                {% if ar.accepts_down_payment %}
-                                    <button type="submit" class="btn btn-dark btn-pay-down-payment" name="payment_type"
-                                            value="down">
-                                        {% trans "Pay DP" %} (${{ ar.get_service_down_payment }})
+                        {% if APPOINTMENT_PAYMENT_URL %}
+                            <div class="service-payment">
+                                <div class="payment-details-title">{% trans "Payment Details" %}</div>
+                                <div class="total">
+                                    <div>{% trans "Total" %}</div>
+                                    <div>${{ ar.get_service_price }}</div>
+                                </div>
+                                <div class="payment-options">
+                                    <button type="submit" class="btn btn-dark btn-pay-full" name="payment_type"
+                                            value="full">
+                                        {% trans "Pay" %}
                                     </button>
-                                {% endif %}
+                                    {% if ar.accepts_down_payment %}
+                                        <button type="submit" class="btn btn-dark btn-pay-down-payment"
+                                                name="payment_type"
+                                                value="down">
+                                            {% trans "Down Payment" %} (${{ ar.get_service_down_payment }})
+                                        </button>
+                                    {% endif %}
+                                </div>
                             </div>
-                        </div>
+                        {% else %}
+                            <button type="submit" class="btn btn-dark btn-submit-appointment" name="payment_type"
+                                    value="full">
+                                {% trans "Finish" %}
+                            </button>
+                        {% endif %}
                     {% else %}
                         <button type="submit" class="btn btn-dark btn-submit-appointment" name="payment_type"
-                                value="full">{{ buttonNext }}</button>
+                                value="full">
+                            {% trans "Finish" %}
+                        </button>
                     {% endif %}
-
                 </div>
             </form>
         </div>

@@ -515,6 +515,9 @@ def create_staff_member_service(post_data):
         }
         user = create_new_user(client_data=user_data)
         StaffMember.objects.create(user=user)
+        if not user.is_superuser:
+            user.is_staff = True
+            user.save()
         return user, True, None
     else:
         return None, False, get_error_message_in_form(form=form)

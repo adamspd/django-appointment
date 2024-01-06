@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load static %}
 {% block customCSS %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/app_admin/btn.css' %}"/>
     <link rel="stylesheet" type="text/css" href="{% static 'css/app_admin/user_profile.css' %}"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 {% endblock %}
@@ -48,18 +49,18 @@
                 {% if staff_member %}
                     <div class="section-content">
                         <p>
-                            <strong>{% trans 'Slot duration' %}:</strong> {{ staff_member.get_slot_duration_str }}
+                            <strong>{% trans 'Slot duration' %}:</strong> {{ staff_member.get_slot_duration_text }}
                             <i class="fas fa-info-circle" data-toggle="tooltip"
                                title="{{ slot_duration_help_text }}"></i>
                         </p>
                         <p><strong>{% trans 'General start time' %}:</strong> {{ staff_member.get_lead_time }}</p>
                         <p><strong>{% trans 'General end time' %}:</strong> {{ staff_member.get_finish_time }}</p>
                         <p>
-                            <strong>{% trans 'Weekend days you work' %}:</strong> {{ staff_member.get_weekend_days_worked_str }}
+                            <strong>{% trans 'Weekend days you work' %}:</strong> {{ staff_member.get_weekend_days_worked_text }}
                         </p>
 
                         <p>
-                            <strong>{% trans 'Appointment buffer time' %}:</strong> {{ staff_member.get_appointment_buffer_time_str }}
+                            <strong>{% trans 'Appointment buffer time' %}:</strong> {{ staff_member.get_appointment_buffer_time_text }}
                             <i class="fas fa-info-circle" data-toggle="tooltip" title="{{ buffer_time_help_text }}"></i>
                         </p>
 
@@ -239,7 +240,7 @@
                                 <td>{{ service.description }}</td>
                                 <td>{{ service.get_duration }}</td>
                                 <td>{{ service.get_price_text }}</td>
-                                <td>{{ service.get_down_payment_str }}</td>
+                                <td>{{ service.get_down_payment_text }}</td>
                             </tr>
                         {% empty %}
                             <tr>

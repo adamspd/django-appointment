@@ -60,11 +60,11 @@
                         </div>
                         <div class="appointment-detail {% if appointment.is_paid %} is-paid-true {% else %} is-paid-false {% endif %}">
                             <i class="fas fa-money-bill-wave"></i>
-                            <strong>{% trans 'Is paid' %}:</strong> {{ appointment.is_paid_txt }}
+                            <strong>{% trans 'Is paid' %}:</strong> {{ appointment.is_paid_text }}
                         </div>
                         <div class="appointment-detail hover-element">
                             <i class="fas fa-dollar-sign"></i>
-                            <strong>{% trans 'Service price' %}:</strong> {{ appointment.get_appointment_amount_to_pay_str }}
+                            <strong>{% trans 'Service price' %}:</strong> {{ appointment.get_appointment_amount_to_pay_text }}
                         </div>
                     </div>
                 </div>
