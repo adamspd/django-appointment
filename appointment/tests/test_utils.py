@@ -116,7 +116,7 @@ class UtilityTestCase(TestCase):
 
     def test_get_locale_others(self):
         with self.settings(LANGUAGE_CODE='de'):
-            self.assertEqual(get_locale(), 'en')
+            self.assertEqual(get_locale(), 'de')
 
     # Test cases for get_current_year
     def test_get_current_year(self):
