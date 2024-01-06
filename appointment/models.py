@@ -178,7 +178,7 @@ class StaffMember(models.Model):
         help_text=_("Time when the staff member stops working.")
     )
     appointment_buffer_time = models.FloatField(
-        default=0, blank=True,
+        blank=True, null=True,
         help_text=_("Time between now and the first available slot for the current day (doesn't affect tomorrow). "
                     "e.g: If you start working at 9:00 AM and the current time is 8:30 AM and you set it to 30 "
                     "minutes, the first available slot will be at 9:00 AM. If you set the appointment buffer time to "
