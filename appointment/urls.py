@@ -6,25 +6,24 @@ Author: Adams Pierre David
 Since: 1.0.0
 """
 
-from django.urls import path, include
+from django.urls import include, path
 
-from appointment.views import appointment_request, get_available_slots_ajax, get_next_available_date_ajax, \
-    appointment_request_submit, appointment_client_information, default_thank_you, enter_verification_code, \
+from appointment.views import appointment_client_information, appointment_request, appointment_request_submit, \
+    default_thank_you, enter_verification_code, get_available_slots_ajax, get_next_available_date_ajax, \
     get_non_working_days_ajax
-from appointment.views_admin import delete_appointment, delete_appointment_ajax, get_user_appointments, \
-    display_appointment, user_profile, \
-    update_working_hours, \
-    add_working_hours, delete_working_hours, add_day_off, update_day_off, delete_day_off, add_or_update_staff_info, \
-    fetch_service_list_for_staff, update_appt_min_info, update_appt_date_time, validate_appointment_date, \
-    email_change_verification_code, update_personal_info, create_new_staff_member, make_superuser_staff_member, \
-    remove_superuser_staff_member, add_or_update_service, delete_service, remove_staff_member, get_service_list
+from appointment.views_admin import add_day_off, add_or_update_service, add_or_update_staff_info, add_working_hours, \
+    create_new_staff_member, delete_appointment, delete_appointment_ajax, delete_day_off, delete_service, \
+    delete_working_hours, display_appointment, email_change_verification_code, fetch_service_list_for_staff, \
+    get_service_list, get_user_appointments, make_superuser_staff_member, remove_staff_member, \
+    remove_superuser_staff_member, update_appt_date_time, update_appt_min_info, update_day_off, update_personal_info, \
+    update_working_hours, user_profile, validate_appointment_date
 
 app_name = 'appointment'
 
 admin_urlpatterns = [
     # display the calendar with the events
-    path('user-event/<str:response_type>/', get_user_appointments, name='get_user_event_type'),
-    path('user-event/', get_user_appointments, name='get_user_appointments'),
+    path('appointments/<str:response_type>/', get_user_appointments, name='get_user_event_type'),
+    path('appointments/', get_user_appointments, name='get_user_appointments'),
 
     # create a new staff member and make/remove superuser staff member
     path('staff-member-personal-info/', create_new_staff_member, name='add_staff_member_personal_info'),
@@ -42,6 +41,7 @@ admin_urlpatterns = [
     path('delete-service/<int:service_id>/', delete_service, name='delete_service'),
     path('service-list/', get_service_list, name='get_service_list'),
     path('service-list/<str:response_type>/', get_service_list, name='get_service_list_type'),
+    path('view-service/<int:service_id>/<int:view>/', add_or_update_service, name='view_service'),
 
     # display details for one event
     path('display-appointment/<int:appointment_id>/', display_appointment, name='display_appointment'),

@@ -39,7 +39,7 @@ Failure to include this block might result in errors during asynchronous operati
 #### **Calendar & Appointments**:
 
 - **View Appointments on Calendar**:
-    - **Endpoint**: `user-event/` and `user-event/<str:response_type>/`
+    - **Endpoint**: `appointments/` and `appointments/<str:response_type>/`
     - **Description**: Displays the calendar with all appointments. While superusers can see all appointments, staff
       members will only see their own. The response type can be either HTML or JSON.
     - **Methods**: GET
@@ -50,12 +50,23 @@ Failure to include this block might result in errors during asynchronous operati
       on the provided `appointment_id`.
     - **Methods**: GET
 
+- **Delete Appointment**:
+    - **Endpoint**: `delete-appointment/<int:appointment_id>/`
+    - **Description**: Allows superusers to delete an appointment. The appointment to be deleted is identified
+      by `appointment_id`.
+    - **Methods**: GET
+
 #### **Staff Member Management**:
 
 - **Create New Staff Member**:
     - **Endpoint**: `create-staff-member/`
     - **Description**: Allows a superuser to create a new staff member account. The account details are captured through
       a form.
+    - **Methods**: GET (display form), POST (submit form)
+
+- **Update Staff Member Information**:
+    - **Endpoint**: `update-staff-member/<int:user_id>/`
+    - **Description**: Allows updating the personal information of an existing staff member. Accessible to superusers.
     - **Methods**: GET (display form), POST (submit form)
 
 - **Make Superuser a Staff Member**:
@@ -93,6 +104,17 @@ Failure to include this block might result in errors during asynchronous operati
       by `service_id`.
     - **Methods**: GET
 
+- **View All Services**:
+    - **Endpoint**: `service-list/` and `service-list/<str:response_type>/`
+    - **Description**: Displays a list of all services in the system.
+        - **Methods**: GET
+
+- **View One Service**:
+  **Endpoint**: `view-service/<int:service_id>/<int:view>/`
+    - **Description**: Displays detailed information about a particular service. The service is identified
+      by `service_id`. The `view` parameter is mandatory and should be `1`. If `0`, the view is not displayed.
+    - **Methods**: GET
+
 #### **Profile & Personal Information**:
 
 - **View User Profile**:
@@ -122,14 +144,16 @@ Failure to include this block might result in errors during asynchronous operati
     - **Methods**: GET (display form), POST (submit form)
 
 - **Update a Day Off**:
-    - **Endpoint**: `update-day-off/`, `update-day-off/<int:day_off_id>/`,
-      and `update-day-off/<int:day_off_id>/<int:staff_user_id>/`
-    - **Description**: Allows users to modify an existing day off. If the day off doesn't exist, an error page is
-      displayed.
+    - **Endpoint**: `update-day-off/<int:day_off_id>/`, `update-day-off/<int:day_off_id>/<int:staff_user_id>/`
+    - **Description**: Allows users to modify an existing day off. Staff members can only update their own days off,
+      while superusers can update for any user.
     - **Methods**: GET (display form with pre-filled data), POST (submit updated data)
 
 - **Delete a Day Off**:
-    - **Endpoint**: `delete-day-off/<int:day_off_id>/` and `delete-day-off/<int:day_off_id>/<int:staff_user_id>/`
+    - **Endpoint**: `delete-day-off/<int:day_off_id>/`, `delete-day-off/<int:day_off_id>/<int:staff_user_id>/`
+    - **Description**: Enables users to remove a day off. Staff members can only delete their own days off, while
+      superusers can delete any day off.
+    - **Methods**: GET
 
 - **Description**: Enables users to remove a day off. Staff members can only delete their own days off, while superusers
   can delete any day off.
@@ -156,6 +180,39 @@ Failure to include this block might result in errors during asynchronous operati
     - **Description**: Users can remove a working hours' entry.
       Superusers can delete any entry, while staff members can only delete their own.
     - **Methods**: GET
+
+#### **Ajax Endpoints**:
+
+- **Get Available Slots**:
+    - **Endpoint**: `available_slots/`
+    - **Description**: Provides AJAX functionality to get available slots for appointments.
+    - **Methods**: POST
+
+- **Request Next Available Slot**:
+    - **Endpoint**: `request_next_available_slot/<int:service_id>/`
+    - **Description**: Fetches the next available slot for a given service via AJAX. The service is identified
+      by `service_id`.
+    - **Methods**: GET
+
+- **Update Appointment Minimal Information**:
+    - **Endpoint**: `update_appt_min_info/`
+    - **Description**: This AJAX endpoint allows updating minimal information of an appointment, such as time or status.
+    - **Methods**: POST
+
+- **Update Appointment Date and Time**:
+    - **Endpoint**: `update_appt_date_time/`
+    - **Description**: An AJAX endpoint for updating the date and time of an existing appointment.
+    - **Methods**: POST
+
+- **Validate Appointment Date**:
+    - **Endpoint**: `validate_appointment_date/`
+    - **Description**: Provides AJAX functionality to validate the selected date for an appointment.
+    - **Methods**: POST
+
+- **Delete Appointment (Ajax)**:
+    - **Endpoint**: `delete_appointment/`
+    - **Description**: This endpoint provides an AJAX way to delete appointments.
+    - **Methods**: POST
 
 ### Note on updating personal info
 

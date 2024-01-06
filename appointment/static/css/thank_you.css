@@ -1,18 +1,12 @@
 /* thank_you.css */
 
-body, html {
+.content-body-apd {
     height: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 0;
-    margin: 0;
-    background-color: #f4f4f4;
-}
-
-.container {
-    max-width: 600px;
-    width: 100%;
+    margin-top: 50px;
+    margin-bottom: 50px;
 }
 
 .main-content {
