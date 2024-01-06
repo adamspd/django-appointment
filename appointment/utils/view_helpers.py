@@ -14,21 +14,15 @@ from appointment.settings import APP_TIME_ZONE
 
 
 def get_locale() -> str:
-    # TODO: To be better implemented in the future
-    """Get the current locale based on the user's language settings. Used in the javascript files.
+    """Get the current locale based on the user's language settings, without the country code.
+    Used in the javascript files.
     Can't use the lang_country format because it is not supported.
 
-    :return: The current locale as a string
+    :return: The current locale as a string (language code only)
     """
-    local = to_locale(get_language())
-    if local == 'en' or local == 'fr':
-        return local
-    elif local == 'en_US':
-        return 'en'
-    elif local == 'fr_FR':
-        return 'fr'
-    else:
-        return 'en'
+    locale = to_locale(get_language())
+    # Split the locale by '_' and take the first part (language code)
+    return locale.split('_')[0]
 
 
 def is_ajax(request):

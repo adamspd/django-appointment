@@ -8,15 +8,13 @@ from django.test.client import RequestFactory
 from django.utils.translation import gettext as _
 
 from appointment.forms import StaffDaysOffForm
-from appointment.services import fetch_user_appointments, prepare_appointment_display_data, prepare_user_profile_data, \
-    handle_entity_management_request, save_appointment, get_available_slots_for_staff, save_appt_date_time, \
-    update_personal_info_service, email_change_verification_service, create_staff_member_service, \
-    handle_service_management_request, handle_working_hours_form, handle_day_off_form
+from appointment.services import create_staff_member_service, email_change_verification_service, \
+    fetch_user_appointments, get_available_slots_for_staff, handle_day_off_form, handle_entity_management_request, \
+    handle_service_management_request, handle_working_hours_form, prepare_appointment_display_data, \
+    prepare_user_profile_data, save_appointment, save_appt_date_time, update_personal_info_service
 from appointment.tests.base.base_test import BaseTest
 from appointment.utils.date_time import convert_str_to_time, get_ar_end_time
-from appointment.utils.db_helpers import Appointment, AppointmentRequest, DayOff, WorkingHours, Config, \
-    EmailVerificationCode, \
-    StaffMember
+from appointment.utils.db_helpers import Config, DayOff, EmailVerificationCode, StaffMember, WorkingHours
 
 
 class FetchUserAppointmentsTests(BaseTest):

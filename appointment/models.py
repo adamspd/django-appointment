@@ -145,7 +145,7 @@ class Service(models.Model):
         else:
             return self.down_payment  # Return the original float value
 
-    def get_down_payment_str(self):
+    def get_down_payment_text(self):
         if self.down_payment == 0:
             return f"Free"
         return f"{self.get_down_payment()}{self.get_currency_icon()}"
@@ -178,7 +178,7 @@ class StaffMember(models.Model):
         help_text=_("Time when the staff member stops working.")
     )
     appointment_buffer_time = models.FloatField(
-        null=True,
+        blank=True, null=True,
         help_text=_("Time between now and the first available slot for the current day (doesn't affect tomorrow). "
                     "e.g: If you start working at 9:00 AM and the current time is 8:30 AM and you set it to 30 "
                     "minutes, the first available slot will be at 9:00 AM. If you set the appointment buffer time to "
@@ -198,7 +198,7 @@ class StaffMember(models.Model):
         config = Config.objects.first()
         return self.slot_duration or (config.slot_duration if config else 0)
 
-    def get_slot_duration_str(self):
+    def get_slot_duration_text(self):
         slot_duration = self.get_slot_duration()
         return convert_minutes_in_human_readable_format(slot_duration)
 
@@ -232,7 +232,7 @@ class StaffMember(models.Model):
             non_working_days.append(0)  # Sunday
         return non_working_days
 
-    def get_weekend_days_worked_str(self):
+    def get_weekend_days_worked_text(self):
         if self.work_on_saturday and self.work_on_sunday:
             return _("Saturday and Sunday")
         elif self.work_on_saturday:
@@ -245,14 +245,14 @@ class StaffMember(models.Model):
     def get_services_offered(self):
         return self.services_offered.all()
 
-    def get_service_offered_str(self):
+    def get_service_offered_text(self):
         return ', '.join([service.name for service in self.services_offered.all()])
 
     def get_appointment_buffer_time(self):
         config = Config.objects.first()
         return self.appointment_buffer_time or (config.appointment_buffer_time if config else 0)
 
-    def get_appointment_buffer_time_str(self):
+    def get_appointment_buffer_time_text(self):
         # convert buffer time (which is in minutes) in day hours minutes if necessary
         return convert_minutes_in_human_readable_format(self.get_appointment_buffer_time())
 
@@ -458,7 +458,7 @@ class Appointment(models.Model):
             return True
         return self.paid
 
-    def is_paid_txt(self):
+    def is_paid_text(self):
         return _("Yes") if self.is_paid() else _("No")
 
     def get_appointment_amount_to_pay(self):
@@ -468,7 +468,7 @@ class Appointment(models.Model):
         else:
             return self.amount_to_pay  # Return the original float value
 
-    def get_appointment_amount_to_pay_str(self):
+    def get_appointment_amount_to_pay_text(self):
         if self.amount_to_pay == 0:
             return "Free"
         return f"{self.get_appointment_amount_to_pay()}{self.get_service().get_currency_icon()}"
@@ -623,6 +623,9 @@ class PaymentInfo(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
+        return f"{self.appointment.get_service_name()} - {self.appointment.get_service_price()}"
+
+    def __repr__(self):
         return f"{self.appointment.get_service_name()} - {self.appointment.get_service_price()}"
 
     def get_id_request(self):

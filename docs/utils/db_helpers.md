@@ -16,7 +16,6 @@ system.
 ## Module Metadata:
 
 **Author**: Adams Pierre David
-**Version**: 1.2.0
 **Since**: 1.2.0
 
 ## Utility Functions:

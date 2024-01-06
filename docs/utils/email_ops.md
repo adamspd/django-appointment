@@ -11,7 +11,6 @@ This module provides functions to handle email-related operations in the Django 
 ## Module Metadata:
 
 **Author**: Adams Pierre David
-**Version**: 1.2.0
 **Since**: 1.1.0
 
 ## Email Message Retrieval:

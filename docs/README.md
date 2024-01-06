@@ -21,12 +21,14 @@ The application has nine (9) models:
 
 It represents a service provided by the system, including details such as the name, description, duration, price, and an
 image representing the service.
-It also handles the currency and down payment information...[more details](models.md#service).
+It also handles the currency and down payment information.
+[More details here](https://github.com/adamspd/django-appointment/blob/main/docs/models.md#service).
 
 ### StaffMember 🆕
 
 This model is linked to a user and represents a staff member who offers services. It contains information about the
-services offered, working hours, and availability on weekends...[more details](models.md#staffmember).
+services offered, working hours, and availability on weekends.
+[More details](https://github.com/adamspd/django-appointment/blob/main/docs/models.md#staffmember).
 
 ### Appointment Request
 
@@ -36,19 +38,22 @@ staff member, and payment type for the appointment.
 
 The appointment request is used to create the appointment. An appointment is considered having more information than
 that, and since we don't want to overload the appointment model, we use the appointment request to store all
-the information about the appointment...[more details](models.md#appointmentrequest).
+the information about the appointment. 
+[More details here](https://github.com/adamspd/django-appointment/blob/main/docs/models.md#appointmentrequest).
 
 ### Appointment
 
 The appointment model is used to define the last step in the appointment scheduling.
 A confirmed appointment is created when a client confirms an appointment request.
 It includes the client information, appointment request details, and additional information such as phone number and
-address...[more details](models.md#appointment).
+address.
+[More details here](https://github.com/adamspd/django-appointment/blob/main/docs/models.md#appointment).
 
 ### Config
 
 Hold the configuration settings for the appointment system such as slot duration, working hours, and buffer time
-between appointments...[more details](models.md#config).
+between appointments.
+[More details here](https://github.com/adamspd/django-appointment/blob/main/docs/models.md#config).
 
 ### PaymentInfo
 
@@ -122,6 +127,9 @@ APPOINTMENT_CLIENT_MODEL = 'auth.User'  # Deprecated
 It has been replaced with a more flexible approach, allowing for custom user models:
 
 ```python
+from django.apps import apps
+from django.conf import settings
+
 def get_user_model():
     """
     Fetch the client model from the settings file.

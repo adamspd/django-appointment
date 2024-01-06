@@ -3,6 +3,7 @@
 {% load static %}
 
 {% block customCSS %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/app_admin/btn.css' %}"/>
     <link rel="stylesheet" type="text/css" href="{% static 'css/app_admin/service.css' %}"/>
 {% endblock %}
 
@@ -14,7 +15,23 @@
                 <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
                     {{ form.as_p }}
-                    <button type="submit" class="btn btn-primary">{{ btn_text }}</button>
+                    {% if btn_txt %}
+                        <button type="submit" class="btn btn-primary">{{ btn_text }}</button>
+                    {% else %}
+                        {% if request.user.is_superuser %}
+                            <div class="service-btn-container">
+                                <a href="{% url 'appointment:update_service' service_id=service.id %}"
+                                   class="modify-btn button-color-blue service-btn">
+                                    <i class="fas fa-pen"></i>
+                                </a>
+                                <a href="javascript:void(0)"
+                                   onclick="showModal('{{ modal_title }}', '{{ d_modal_message }}', '{{ delete_btn_modal }}', '{% url 'appointment:delete_service' service_id=service.id %}', null)"
+                                   class="modify-btn button-color-red service-btn">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        {% endif %}
+                    {% endif %}
                 </form>
                 <div class="messages" style="margin: 20px 0">
                     {% if messages %}

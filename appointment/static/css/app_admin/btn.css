@@ -1,0 +1,144 @@
+.section-content-button {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
+
+.modify-btn {
+    color: #fff;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.3s; /* Consistent transition */
+}
+
+/* Button hover effects for a dynamic touch */
+.modify-btn:hover {
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+    transform: scale(1.05) translateY(-3px);
+}
+
+.button-color-blue {
+    background: linear-gradient(90deg, #007BFF, #0056b3);
+}
+
+.button-color-red {
+    background: linear-gradient(90deg, #dc3545, #c82333);
+}
+
+.button-color-green {
+    background: linear-gradient(90deg, #28a745, #218838);
+}
+
+.button-color-yellow {
+    background: linear-gradient(90deg, #ffc107, #d39e00);
+}
+
+.button-color-purple {
+    background: linear-gradient(90deg, #6f42c1, #5a32a3);
+}
+
+.button-color-orange {
+    background: linear-gradient(90deg, #fd7e14, #e66400);
+}
+
+.button-color-teal {
+    background: linear-gradient(90deg, #20c997, #17a2b8);
+}
+
+.button-color-pink {
+    background: linear-gradient(90deg, #e83e8c, #d63384);
+}
+
+.button-color-gray {
+    background: linear-gradient(90deg, #6c757d, #5a636e);
+}
+
+.button-color-blue:hover {
+    background: linear-gradient(90deg, #0056b3, #007BFF); /* Reverse gradient on hover */
+    transform: scale(1.05); /* Slight scale on hover for engagement */
+    color: #babaf5;
+}
+
+.button-color-red:hover {
+    background: linear-gradient(90deg, #c82333, #dc3545);
+    transform: scale(1.05);
+    color: #efcece;
+}
+
+.button-color-green:hover {
+    background: linear-gradient(90deg, #218838, #28a745);
+    transform: scale(1.05);
+    color: #c3e6cb;
+}
+
+.button-color-yellow:hover {
+    background: linear-gradient(90deg, #d39e00, #ffc107); /* Reverse gradient on hover */
+    transform: scale(1.05); /* Slight scale on hover for engagement */
+    color: #ffe58a;
+}
+
+.button-color-purple:hover {
+    background: linear-gradient(90deg, #5a32a3, #6f42c1);
+    transform: scale(1.05);
+    color: #d1b6e1;
+}
+
+.button-color-orange:hover {
+    background: linear-gradient(90deg, #e66400, #fd7e14);
+    transform: scale(1.05);
+    color: #ffcc99;
+}
+
+.button-color-teal:hover {
+    background: linear-gradient(90deg, #17a2b8, #20c997);
+    transform: scale(1.05);
+    color: #ace2e1;
+}
+
+.button-color-pink:hover {
+    background: linear-gradient(90deg, #d63384, #e83e8c);
+    transform: scale(1.05);
+    color: #f2a6c6;
+}
+
+.button-color-gray:hover {
+    background: linear-gradient(90deg, #5a636e, #6c757d);
+    transform: scale(1.05);
+    color: #d1d5d9;
+}
+
+.buttons-container {
+    display: flex;
+    gap: 5px; /* Provides space between the buttons */
+}
+
+.service-btn-container {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+}
+
+.service-btn {
+    padding: 8px 20px !important;
+}
+
+@media screen and (max-width: 768px) {
+    .modify-btn {
+        padding: 6px 10px;
+        font-size: 14px;
+    }
+}
+
+@media screen and (max-width: 487px) {
+    .section-content-button.modify-btn {
+        padding: 4px 8px;
+        font-size: 12px;
+    }
+
+    .buttons-container {
+        gap: 3px;
+    }
+}

@@ -3,8 +3,8 @@ from datetime import timedelta
 from django.db import IntegrityError
 from django.test import TestCase
 
-from appointment.models import StaffMember, Service
-from appointment.tests.mixins.base_mixin import UserMixin, ServiceMixin, StaffMemberMixin
+from appointment.models import Service, StaffMember
+from appointment.tests.mixins.base_mixin import ServiceMixin, StaffMemberMixin, UserMixin
 
 
 class StaffMemberModelTestCase(TestCase, UserMixin, ServiceMixin, StaffMemberMixin):

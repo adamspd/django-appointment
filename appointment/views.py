@@ -6,36 +6,34 @@ Author: Adams Pierre David
 Since: 1.0.0
 """
 
-from datetime import date, timedelta
-from datetime import datetime
+from datetime import date, datetime, timedelta
 
 import pytz
 from django.contrib import messages
 from django.contrib.auth import login
 from django.db.models import Q
 from django.http import HttpResponseRedirect
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.translation import gettext as _
 
 from appointment.email_sender import notify_admin
-from appointment.forms import AppointmentRequestForm, AppointmentForm
+from appointment.forms import AppointmentForm, AppointmentRequestForm
 from appointment.logger_config import logger
-from appointment.models import Config, Service, Appointment, AppointmentRequest, EmailVerificationCode, StaffMember, \
-    DayOff
-from appointment.utils.db_helpers import get_website_name, get_user_model, create_payment_info_and_get_url, \
-    get_user_by_email, \
-    get_non_working_days_for_staff, check_day_off_for_staff, create_new_user, create_and_save_appointment, \
-    get_weekday_num_from_date, is_working_day, username_in_user_model
+from appointment.models import Appointment, AppointmentRequest, Config, DayOff, EmailVerificationCode, Service, \
+    StaffMember
+from appointment.utils.db_helpers import check_day_off_for_staff, create_and_save_appointment, create_new_user, \
+    create_payment_info_and_get_url, get_non_working_days_for_staff, get_user_by_email, get_user_model, \
+    get_website_name, get_weekday_num_from_date, is_working_day, username_in_user_model
 from appointment.utils.email_ops import send_thank_you_email
-from appointment.utils.session import handle_existing_email, get_appointment_data_from_session
+from appointment.utils.session import get_appointment_data_from_session, handle_existing_email
 from appointment.utils.view_helpers import get_locale, get_timezone_txt
 from .decorators import require_ajax
-from .services import get_available_slots_for_staff, get_finish_button_text, get_appointments_and_slots
+from .services import get_appointments_and_slots, get_available_slots_for_staff
 from .settings import (APPOINTMENT_PAYMENT_URL, APPOINTMENT_THANK_YOU_URL, APP_TIME_ZONE)
-from .utils.date_time import convert_str_to_time, convert_str_to_date, get_current_year
+from .utils.date_time import convert_str_to_date, convert_str_to_time, get_current_year
 from .utils.error_codes import ErrorCode
-from .utils.json_context import json_response, get_generic_context_with_extra
+from .utils.json_context import get_generic_context_with_extra, json_response
 
 CLIENT_MODEL = get_user_model()
 
@@ -359,7 +357,7 @@ def appointment_client_information(request, appointment_request_id, id_request):
 
     extra_context = {
         'ar': ar,
-        'buttonNext': get_finish_button_text(ar),
+        'APPOINTMENT_PAYMENT_URL': APPOINTMENT_PAYMENT_URL,
         'form': appointment_form,
     }
     context = get_generic_context_with_extra(request, extra_context, admin=False)

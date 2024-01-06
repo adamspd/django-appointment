@@ -1,6 +1,6 @@
-from datetime import timedelta, date, time
+from datetime import date, time, timedelta
 
-from appointment.models import StaffMember, AppointmentRequest, Appointment, Service, Config
+from appointment.models import Appointment, AppointmentRequest, Config, Service, StaffMember
 from appointment.utils.db_helpers import get_user_model
 
 

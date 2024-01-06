@@ -1,12 +1,12 @@
 # django-appointment 📦
 
-**v2.1.5 🆕**
+**v3.0.0 🆕**
 
-## ___Release Notes for Version 2.1.5___
+## ___Release Notes for Version 3.0.0___
 
 ## Introduction 📜
 
-Version 2.1.5 of django-appointment introduces a series of refinements and updates, enhancing both the functionality and
+Version 3.0.0 of django-appointment introduces a series of refinements and updates, enhancing both the functionality and
 the user experience. This release focuses on improving documentation, workflow, community engagement, and
 internationalization, alongside some crucial library updates and new dynamic features.
 
@@ -58,6 +58,9 @@ internationalization, alongside some crucial library updates and new dynamic fea
 
 - Added an endpoint to delete an appointment. Either with an ajax call or a simple request.
 
+## Improvements 📈
+- `appointment_buffer_time` has a new default value of 0 and can be blank.
+
 ## Bug Fixes 🐛
 
 ---
@@ -66,7 +69,7 @@ internationalization, alongside some crucial library updates and new dynamic fea
   to access its appointment's page list (/app-admin/user-event/)
 
   #### Description of the bug
-  If a staff (Django-related role) is authenticated and tries to retrieved this endpoint :
+  If a staff (Django-related role) is authenticated and tries to retrieve this endpoint :
   `/app-admin/user-event/` he'll get the following error if debug = true
     ```
       Traceback (most recent call last):
@@ -111,8 +114,15 @@ internationalization, alongside some crucial library updates and new dynamic fea
 
 ### Breaking Changes 🚨
 
-- None
-
+- `get_down_payment_str` has been renamed to `get_down_payment_text` for consistency (Service models).
+- `get_slot_duration_str` has been renamed to `get_slot_duration_text` for consistency (StaffMember models).
+- `get_weekend_days_worked_str` has been renamed to `get_weekend_days_worked_text` for consistency (StaffMember
+  models).
+- `get_service_offered_str` has been renamed to `get_service_offered_text` for consistency (StaffMember models).
+- `get_appointment_buffer_time_str` has been renamed to `get_appointment_buffer_time_text` for consistency (StaffMember
+  models).
+- `get_appointment_amount_to_pay_str` has been renamed to `get_appointment_amount_to_pay_text` for consistency
+  (Appointment models).
 ## Previous Version Highlights (2.1.1) 🔙
 
 - For details on the previous version's features and updates, please refer
@@ -125,7 +135,7 @@ If you're upgrading from a previous version or installing for the first time, fo
 ### Installation 📥:
 
 ```bash
-pip install django-appointment==2.1.5
+pip install django-appointment==3.0.0
 ```
 
 ### Database Migration 🔧:
@@ -142,5 +152,5 @@ please refer to the provided resources.
 
 ## Conclusion 🎉
 
-Version 2.1.5 continues our commitment to providing a robust and user-friendly appointment management solution. With
+Version 3.0.0 continues our commitment to providing a robust and user-friendly appointment management solution. With
 these updates, Django Appointment becomes more adaptable, secure, and community-focused.
