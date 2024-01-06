@@ -5,7 +5,7 @@ from django.db import IntegrityError
 from django.test import TestCase
 
 from appointment.models import WorkingHours
-from appointment.tests.mixins.base_mixin import UserMixin, ServiceMixin, StaffMemberMixin
+from appointment.tests.mixins.base_mixin import ServiceMixin, StaffMemberMixin, UserMixin
 
 
 class WorkingHoursModelTestCase(TestCase, UserMixin, ServiceMixin, StaffMemberMixin):

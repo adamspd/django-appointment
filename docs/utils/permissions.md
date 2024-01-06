@@ -11,8 +11,7 @@ This module provides utility functions to handle user permissions and ownership 
 
 ## Module Metadata:
 
-**Author**: Adams Pierre David  
-**Version**: 1.2.0  
+**Author**: Adams Pierre David
 **Since**: 1.2.0
 
 ## Functions:

@@ -21,29 +21,38 @@ When this option is used, the system will redirect the user directly to the spec
 Even if you're using a direct external URL for payment, you might need to pass in details like the amount, description,
 and other meta-data to your payment gateway. Here's how you can retrieve this information:
 
-1. When you set the `APPOINTMENT_PAYMENT_URL` to a direct URL, make sure to include placeholders for the information
+**1.** When you set the `APPOINTMENT_PAYMENT_URL` to a direct URL, make sure to include placeholders for the information
    you'll be sending. For example:
 
-    ```python
-    APPOINTMENT_PAYMENT_URL = "https://paymentgateway.com/your_payment_page?amount={amount}&description={description}"
-    ```
+```python
+APPOINTMENT_PAYMENT_URL = "https://paymentgateway.com/your_payment_page?amount={amount}&description={description}"
+```
 
-2. Before redirecting the user to this URL, you'll need to replace these placeholders with the actual values. You can
+**2.** Before redirecting the user to this URL, you'll need to replace these placeholders with the actual values. You can
    fetch the required details from the `PaymentInfo` model using the `object_id` and `id_request` values:
 
-    ```python
-    payment_info = PaymentInfo.objects.get(id=object_id, id_request=id_request)
-    amount = payment_info.appointment.service.cost  # Or any other field you need
-    description = f"Payment for {payment_info.appointment.service.name}"  # As an example
-    ```
+```python
+from appointment.models import PaymentInfo
 
-3. Once you have retrieved the required details, replace the placeholders in the `APPOINTMENT_PAYMENT_URL`:
+object_id = 1  # Replace with the actual object ID
+id_request = "abc123"  # Replace with the actual ID request
 
-    ```python
-    payment_url = APPOINTMENT_PAYMENT_URL.format(amount=amount, description=description)
-    ```
+payment_info = PaymentInfo.objects.get(id=object_id, id_request=id_request)
+amount = payment_info.appointment.service.cost  # Or any other field you need
+description = f"Payment for {payment_info.appointment.service.name}"  # As an example
+```
 
-4. This `payment_url` can now be used to redirect the user to the payment gateway with the correct transaction details.
+**3.** Once you have retrieved the required details, replace the placeholders in the `APPOINTMENT_PAYMENT_URL`:
+
+```python
+APPOINTMENT_PAYMENT_URL = "https://paymentgateway.com/your_payment_page?amount={amount}&description={description}"
+amount = 300  # Replace with actual value like payment_info.appointment.service.price
+description = "Payment for service"  # Replace with actual value like payment_info.appointment.service.name
+
+payment_url = APPOINTMENT_PAYMENT_URL.format(amount=amount, description=description)
+```
+
+**4.** This `payment_url` can now be used to redirect the user to the payment gateway with the correct transaction details.
 
 Please note: The exact parameters (like `amount`, `description`, etc.) and their format depend on your payment gateway's
 API documentation. Ensure that you're sending the correct information as required by your payment provider.
@@ -64,38 +73,38 @@ APPOINTMENT_PAYMENT_URL = "appointment:process_payment"
 
 Here's a basic outline of how you can set up a custom Django view to handle the payment process:
 
-1. In your `urls.py`:
+**1.** In your `urls.py`:
 
-    ```python
-    from django.urls import path
-    from . import views
-    
-    urlpatterns = [
-        path('process_payment/<int:object_id>/<str:id_request>/', views.process_payment, name='process_payment'),
-        # ... other URL patterns ...
-    ]
-    ```
+```python
+from django.urls import path
+from appointment import views
 
-2. In your `views.py`:
+urlpatterns = [
+    path('process_payment/<int:object_id>/<str:id_request>/', views.process_payment, name='process_payment'),
+# ... other URL patterns ...
+]
+```
 
-    ```python
-    from django.shortcuts import render, get_object_or_404
-    from appointment.models import PaymentInfo
-    
-    def process_payment(request, object_id, id_request):
-        payment_info = get_object_or_404(PaymentInfo, id=object_id, id_request=id_request)
-        
-        # Here, you can extract necessary information from the payment_info object
-        # and integrate with your payment gateway's API or perform other required tasks.
-    
-        # For demonstration purposes:
-        amount_to_pay = payment_info.appointment.service.cost  # Just an example, adjust based on your model structure
-    
-        # Redirect to the payment gateway, render a payment form, or handle as needed:
-        return render(request, 'payment_page.html', {'amount': amount_to_pay})
-    
-    ```
+**2.** In your `views.py`:
 
-3. Ensure your view handles the payment process as required. You might need to integrate with a third-party payment
+```python
+from django.shortcuts import render, get_object_or_404
+from appointment.models import PaymentInfo
+
+def process_payment(request, object_id, id_request):
+  payment_info = get_object_or_404(PaymentInfo, id=object_id, id_request=id_request)
+  
+  # Here, you can extract necessary information from the payment_info object
+  # and integrate with your payment gateway's API or perform other required tasks.
+
+  # For demonstration purposes:
+  amount_to_pay = payment_info.appointment.get_service_price()  # Just an example, adjust based on your model structure
+
+  # Redirect to the payment gateway, render a payment form, or handle as needed:
+  return render(request, 'payment_page.html', {'amount': amount_to_pay})
+
+```
+
+**3.** Ensure your view handles the payment process as required. You might need to integrate with a third-party payment
    gateway, handle transaction verification, etc. The provided `object_id` and `id_request` allow you to fetch all
    relevant details about the payment from the `PaymentInfo` model.

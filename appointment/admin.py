@@ -9,9 +9,8 @@ Since: 1.0.0
 from django import forms
 from django.contrib import admin
 
-from .models import Service, AppointmentRequest, Appointment, EmailVerificationCode, Config, StaffMember, DayOff, \
-    WorkingHours
-from appointment.utils.db_helpers import get_user_model
+from .models import (
+    Appointment, AppointmentRequest, Config, DayOff, EmailVerificationCode, Service, StaffMember, WorkingHours)
 
 
 @admin.register(Service)

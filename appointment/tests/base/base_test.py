@@ -1,7 +1,7 @@
 from django.test import TestCase
 
-from appointment.tests.mixins.base_mixin import (UserMixin, StaffMemberMixin, ServiceMixin, AppointmentRequestMixin,
-                                                 AppointmentMixin)
+from appointment.tests.mixins.base_mixin import (AppointmentMixin, AppointmentRequestMixin, ServiceMixin,
+                                                 StaffMemberMixin, UserMixin)
 
 
 class BaseTest(TestCase, UserMixin, StaffMemberMixin, ServiceMixin, AppointmentRequestMixin, AppointmentMixin):

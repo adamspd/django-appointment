@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load static %}
 {% block customCSS %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/app_admin/btn.css' %}"/>
     <link rel="stylesheet" type="text/css" href="{% static 'css/app_admin/user_profile.css' %}"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 {% endblock %}
@@ -42,14 +43,21 @@
                             <tr>
                                 <td>{{ staff_member.user.first_name }} {{ staff_member.user.last_name }}</td>
                                 <td>{{ staff_member.user.email }}</td>
-                                <td><a href="{% url 'appointment:user_profile' staff_member.user.id %}"
-                                       class="modify-btn button-color-blue">{% trans 'View Profile' %}</a></td>
+                                <td>
+                                    <a href="{% url 'appointment:user_profile' staff_member.user.id %}"
+                                       class="modify-btn button-color-blue">{% trans 'View Profile' %}</a>
+                                    <a href="{% url 'appointment:remove_staff_member' staff_member.user.id %}"
+                                       class="modify-btn button-color-red">{% trans 'Remove' %}</a>
+                                </td>
                             </tr>
                         {% empty %}
                             <tr>
                                 <td colspan="3">{% trans 'No staff members found' %}.</td>
                             </tr>
                         {% endfor %}
+                        <small>
+                            {% trans "PS: Remove means, deleting the staff status of the user. The user account is still active." %}
+                        </small>
                         </tbody>
                     </table>
                 </div>

@@ -11,8 +11,7 @@ This module offers utility functions to manage session-based operations related 
 
 ## Module Metadata:
 
-**Author**: Adams Pierre David  
-**Version**: 1.2.0  
+**Author**: Adams Pierre David
 **Since**: 1.1.0
 
 ## Functions:

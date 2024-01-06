@@ -10,8 +10,7 @@ reporting.
 
 ## Module Metadata:
 
-**Author**: Adams Pierre David  
-**Version**: 1.2.0  
+**Author**: Adams Pierre David
 **Since**: 1.2.0
 
 ## Error Codes:
@@ -26,4 +25,6 @@ reporting.
 - **PAST_DATE**: Indicates that the provided date is in the past.
 - **STAFF_ID_REQUIRED**: Denotes that a staff ID is required but was not provided.
 - **WORKING_HOURS_NOT_FOUND**: Indicates that the specified working hours entry was not found.
-- **WORKING_HOURS_CONFLICT**: Denotes a conflict with an existing working hours entry.
+- **WORKING_HOURS_CONFLICT**: Denotes a conflict with an existing working hours' entry.
+- **SERVICE_NOT_FOUND**: Indicates that the specified service was not found.
+- **STAFF_MEMBER_NOT_FOUND**: Indicates that the specified staff member was not found.
