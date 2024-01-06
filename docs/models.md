@@ -89,7 +89,7 @@ The `AppointmentRequest` model represents an appointment request made by a clien
 is not associated with the client. It is created when the client chooses a service, staff member, and date/time for the
 appointment. 
 
-<img src="https://github.com/adamspd/django-appointment/tree/main/docs/screenshots/appointment_request.png" alt="Choosing staff member and date/time for appointment">
+![Choosing staff member and date/time for appointment](https://github.com/adamspd/django-appointment/tree/main/docs/screenshots/appointment_request.png?raw=true)
 
 It will be linked to an appointment when the client enters their information.
 
