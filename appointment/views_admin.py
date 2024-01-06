@@ -452,6 +452,10 @@ def delete_service(request, service_id):
 def remove_staff_member(request, staff_user_id):
     staff_member = get_object_or_404(StaffMember, user_id=staff_user_id)
     staff_member.delete()
+    user = get_user_model().objects.get(pk=staff_user_id)
+    if not user.is_superuser:
+        user.is_staff = False
+        user.save()
     messages.success(request, _("Staff member deleted successfully!"))
     return redirect('appointment:user_profile')
 
@@ -469,7 +473,7 @@ def get_service_list(request, response_type='html'):
                 'description': service.description,
                 'duration': service.get_duration(),
                 'price': service.get_price_text(),
-                'down_payment': service.get_down_payment_str(),
+                'down_payment': service.get_down_payment_text(),
                 'image': service.get_image_url(),
                 'background_color': service.background_color
             })

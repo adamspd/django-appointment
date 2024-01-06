@@ -14,6 +14,9 @@
 
 ## Models
 
+> **Notes**: All the models have a `created_at` and `updated_at` field. These fields are automatically updated when the
+> model is created or updated. They are not editable by the user.
+
 ### Service
 
 The `Service` model encapsulates a service provided by the appointment system.
@@ -28,29 +31,30 @@ The `Service` model encapsulates a service provided by the appointment system.
 - `image` (ImageField): Image representing the service.
 - `currency` (CharField): Currency for the price.
 - `background_color` (CharField): Background color for the service presentation.
-- `created_at` (DateTimeField): Timestamp when the service was created.
-- `updated_at` (DateTimeField): Timestamp when the service was last updated.
 
 #### Methods:
 
 - `to_dict`: Returns a dictionary representation of the service.
 - `get_duration_parts`: Returns the duration of the service as a tuple of days, hours, minutes, and seconds.
-- `get_duration`: Returns the duration of the service in a human-readable format.
+- `get_duration`: Returns the duration of the service in a human-readable format (as a string).
 - `get_price`: Returns the price of the service.
 - `get_currency_icon`: Returns the currency symbol.
-- `get_price_text`: Returns a formatted price text.
+- `get_price_text`: Returns a formatted price text (as a string) that you can use in your HTML code.
 - `get_down_payment`: Returns the down payment amount for the service.
-- `get_down_payment_str`: Returns a formatted down payment text.
-- `is_a_paid_service`: Returns whether the service is paid.
-- `accepts_down_payment`: Returns whether the service accepts a down payment.
+- `get_down_payment_text`: Returns a formatted down payment text that you can use in your HTML code.
+- `get_image_url`: Returns the URL of the image associated with the service.
+- `is_a_paid_service`: Returns whether the service is paid (true of false).
+- `accepts_down_payment`: Returns whether the service accepts a down payment (true of false).
 
 ### StaffMember
 
-The `StaffMember` model represents a staff member in the appointment system.
+The `StaffMember` model represents a staff member in the appointment system. A staff member is a user that offers
+one or more services in the one defined by the admin. He can't edit/add/delete services but can choose which one he
+offers. He can update his profile, change his working hours or add vacation days (days off).
 
 #### Fields:
 
-- `user` (OneToOneField): Related User model instance.
+- `user` (OneToOneField): Related User model instance, will be granted Django's staff status.
 - `services_offered` (ManyToManyField): Services offered by the staff member.
 - `slot_duration` (PositiveIntegerField): Minimum time for an appointment in minutes.
 - `lead_time` (TimeField): Time when the staff member starts working.
@@ -62,26 +66,34 @@ The `StaffMember` model represents a staff member in the appointment system.
 #### Methods:
 
 - `get_slot_duration`: Returns the slot duration.
-- `get_slot_duration_str`: Returns the slot duration in a human-readable format.
-- `get_lead_time`: Returns the lead time.
-- `get_finish_time`: Returns the finish time.
+- `get_slot_duration_text`: Returns the slot duration in a human-readable format.
+- `get_lead_time`: Returns the lead time defined by the staff member first else default one.
+- `get_finish_time`: Returns the finish time defined by the staff member first else default one.
 - `works_on_both_weekends_day`: Returns whether the staff member works on both weekend days.
 - `get_staff_member_name`: Returns the name of the staff member.
 - `get_staff_member_first_name`: Returns the first name of the staff member.
 - `get_non_working_days`: Returns a list of non-working days.
-- `get_weekend_days_worked_str`: Returns a string representation of the weekend days worked.
+- `get_weekend_days_worked_text`: Returns a string representation of the weekend days worked.
 - `get_services_offered`: Returns the services offered by the staff member.
-- `get_service_offered_str`: Returns a string representation of the services offered.
+- `get_service_offered_text`: Returns a string representation of the services offered.
 - `get_appointment_buffer_time`: Returns the appointment buffer time.
-- `get_appointment_buffer_time_str`: Returns the appointment buffer time in a human-readable format.
+- `get_appointment_buffer_time_text`: Returns the appointment buffer time in a human-readable format.
 - `get_days_off`: Returns the days off for the staff member.
 - `get_working_hours`: Returns the working hours for the staff member.
 - `update_upon_working_hours_deletion`: Updates the weekend working status upon deletion of working hours.
-- `is_working_day`: Returns whether a given day is a working day.
+- `is_working_day`: Returns whether a given day is a working day (true or false).
 
 ### AppointmentRequest
 
-The `AppointmentRequest` model represents an appointment request made by a client.
+The `AppointmentRequest` model represents an appointment request made by a client. It is not yet an appointment, and it
+is not associated with the client. It is created when the client chooses a service, staff member, and date/time for the
+appointment. 
+
+<img src="https://github.com/adamspd/django-appointment/tree/main/docs/screenshots/appointment_request.png" alt="Choosing staff member and date/time for appointment">
+
+It will be linked to an appointment when the client enters their information.
+
+
 
 #### Fields:
 

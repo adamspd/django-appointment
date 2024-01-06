@@ -11,10 +11,10 @@
 [![GitHub pull requests](https://img.shields.io/github/issues-pr/adamspd/django-appointment)](https://github.com/adamspd/django-appointment/pulls)
 [![GitHub contributors](https://img.shields.io/github/contributors/adamspd/django-appointment)](https://github.com/adamspd/django-appointment/graphs/contributors)
 
-⚠️ **IMPORTANT**: If upgrading from a version before 2.0.0, please note significant database changes were introduced in
+⚠️ **IMPORTANT**: If upgrading from a version before 2.x.x, please note significant database changes were introduced in
 Version 2.0.0 introduces significant database changes. Please read
 the [migration guide](https://github.com/adamspd/django-appointment/tree/main/docs/migration_guides/v2_1_0.md) before
-updating.
+updating. No significant database changes were introduced in version 3.0.0.
 
 Django-Appointment is a Django app engineered for managing appointment scheduling with ease and flexibility. It enables
 users to define custom configurations for time slots, lead time, and finish time, or utilize the default values
@@ -31,32 +31,37 @@ notes](https://github.com/adamspd/django-appointment/tree/main/docs/release_note
 1. Customizable time slots, lead time, and finish time.
 2. Competent handling of appointment conflicts and availability.
 3. Seamless integration with the Django admin interface for appointment management.
-4. User-friendly interface for viewing available time slots and scheduling appointments.
-5. Capability to send email notifications to clients upon scheduling an appointment.
+4. Custom admin interface for managing appointment/staff member editing, creation, availability, and conflicts.
+5. User-friendly interface for viewing available time slots and scheduling appointments.
+6. Capability to send email notifications to clients upon scheduling an appointment.
 
 ## Key features introduced in previous versions.
 
 - For more information, please refer to
   this [documentation](https://github.com/adamspd/django-appointment/tree/main/docs/history/readme_v2_1_1.md).
 
-## Added Features in version 2.1.5
+## Added Features in version 3.0.0
 
 This release of Django Appointment brings a series of improvements and updates aimed at enhancing the overall
 functionality and user experience:
 
-1. **Dynamic Label Customization in Appointment Pages (#19)**
+1. **Dynamic Appointment Management (#49, #55)**
 
-2. **Updated Documentation and Workflow Enhancements (#25, #26, #27)**
+2. **User Interface Enhancements and JavaScript Refactoring (#55)**
 
-3. **Community Engagement and Standards (#21, #22, #23, #24)**
+3. **Dynamic Label Customization in Appointment Pages (#19)**
 
-4. **Library Updates and Security Patches (#14, #15, #18)**
+4. **Updated Documentation and Workflow Enhancements (#25, #26, #27)**
 
-5. **Enhanced Project Visibility (#16)**
+5. **Community Engagement and Standards (#21, #22, #23, #24)**
 
-6. **Translation Refinements (#31)**
+6. **Library Updates and Security Patches (#14, #15, #18)**
 
-7. **Bug Fixes (#48)**
+7. **Enhanced Project Visibility (#16)**
+
+8. **Translation Refinements (#31)**
+
+9. **Bug Fixes (#48)**
 
 See more at the [release notes](https://github.com/adamspd/django-appointment/tree/main/docs/release_notes/latest.md).
 
@@ -68,10 +73,10 @@ our commitment to providing a high-quality and user-friendly appointment managem
 See the [release notes](https://github.com/adamspd/django-appointment/tree/main/docs/release_notes/latest.md)
 for more information.
 
-### Breaking Changes in version 2.1.5:
+### Breaking Changes in version 3.0.0:
 
-- None
-
+See the [release notes](https://github.com/adamspd/django-appointment/tree/main/docs/release_notes/latest.md) for more
+  information.
 
 ## Quick Start 🚀
 
@@ -178,7 +183,10 @@ information.
 
 ## Notes 📝⚠️
 
-Currently, the application does not send email reminders yet.
+Currently, the application does not send email reminders yet. I'm also working on a testing website for the application
+that is not fully functional yet, no hard feelings. But you can check it out
+at [https://django-appt.adamspierredavid.com/](https://django-appt.adamspierredavid.com/). Ideas are welcome here since
+I'm blocked on a few points.
 
 ## About the Author
 
