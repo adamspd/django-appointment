@@ -87,11 +87,13 @@ offers. He can update his profile, change his working hours or add vacation days
 
 The `AppointmentRequest` model represents an appointment request made by a client. It is not yet an appointment, and it
 is not associated with the client. It is created when the client chooses a service, staff member, and date/time for the
-appointment. 
+appointment (See screenshot below).
 
 ![Choosing staff member and date/time for appointment](https://github.com/adamspd/django-appointment/blob/main/docs/screenshots/appointment_request.png?raw=true)
 
-It will be linked to an appointment when the client enters their information.
+It will be linked to an appointment when the client enters their information. We make sure that the start time is before
+the end time and on save, we generate an `id_request` if none exists, make sure that the appointment request date is
+not in the past.
 
 
 
@@ -99,18 +101,14 @@ It will be linked to an appointment when the client enters their information.
 
 - `date` (DateField): The date of the appointment request.
 - `start_time` (TimeField): The starting time of the appointment.
-- `end_time` (TimeField): The ending time of the appointment.
+- `end_time` (TimeField): The ending time of the appointment, set automatically by adding service duration.
 - `service` (ForeignKey): The service being requested, linking to the `Service` model.
 - `staff_member` (ForeignKey): The staff member assigned to the appointment, linking to the `StaffMember` model.
 - `payment_type` (CharField): The type of payment for the appointment (e.g., 'full').
 - `id_request` (CharField): An ID for the appointment request.
-- `created_at` (DateTimeField): Timestamp when the appointment request was created.
-- `updated_at` (DateTimeField): Timestamp when the appointment request was last updated.
 
 #### Methods:
 
-- `clean`: Ensures that the `start_time` is before the `end_time`.
-- `save`: Overrides the default save method to generate an `id_request` if none exists.
 - `get_service_name`: Returns the name of the service.
 - `get_service_price`: Returns the price of the service.
 - `get_service_down_payment`: Returns the down payment amount for the service.
@@ -120,9 +118,6 @@ It will be linked to an appointment when the client enters their information.
 - `get_id_request`: Returns the ID of the appointment request.
 - `is_a_paid_service`: Returns whether the service is paid.
 - `accepts_down_payment`: Returns whether the service accepts a down payment.
-- `get_payment_type`: Returns the type of payment for the appointment.
-- `get_created_at`: Returns the timestamp when the appointment request was created.
-- `get_updated_at`: Returns the timestamp when the appointment request was last updated.
 
 ### Appointment
 
@@ -140,19 +135,16 @@ appointment request.
 - `paid` (BooleanField): Indicates if the appointment has been paid for.
 - `amount_to_pay` (DecimalField): The amount to be paid for the appointment.
 - `id_request` (CharField): An ID for the appointment.
-- `created_at` (DateTimeField): Timestamp when the appointment was created.
-- `updated_at` (DateTimeField): Timestamp when the appointment was last updated.
 
 #### Methods:
 
-- `save`: Overrides the default save method to calculate the amount to pay and generate an `id_request` if needed.
 - `get_client_name`: Returns the full name of the client.
-- `get_client_email`: Returns the email of the client.
 - `get_date`: Returns the date of the appointment.
 - `get_start_time`: Returns the starting time of the appointment.
 - `get_end_time`: Returns the ending time of the appointment.
 - `get_service`: Returns the service associated with the appointment.
 - `get_service_name`: Returns the name of the service.
+- `get_service_duration`: Returns the duration of the service.
 - `get_staff_member_name`: Returns the name of the staff member associated with the appointment.
 - `get_staff_member`: Returns the staff member associated with the appointment.
 - `get_service_price`: Returns the price of the service.
@@ -162,8 +154,9 @@ appointment request.
 - `get_service_description`: Returns the description of the service.
 - `get_appointment_date`: Returns the date of the appointment.
 - `is_paid`: Returns if the appointment has been paid for.
+- `is_paid_text`: Returns a string representation of the paid status.
 - `get_appointment_amount_to_pay`: Returns the amount to be paid for the appointment.
-- `get_appointment_amount_to_pay_str`: Returns a formatted amount to pay text.
+- `get_appointment_amount_to_pay_text`: Returns a formatted amount to pay text.
 - `get_appointment_currency`: Returns the currency of the appointment price.
 - `get_appointment_id_request`: Returns the ID of the appointment.
 - `set_appointment_paid_status`: Sets the paid status of the appointment.
@@ -171,6 +164,7 @@ appointment request.
 - `get_background_color`: Returns the background color of the service.
 - `is_valid_date`: Static method that checks if a given date is valid for an appointment.
 - `is_owner`: Returns whether the given user is the owner of the appointment.
+- `to_dict`: Returns a dictionary representation of the appointment.
 
 ### Config
 
@@ -185,6 +179,7 @@ in the database. If you want to change the settings, you must edit the existing 
 - `appointment_buffer_time` (FloatField): The time between the current moment and the first available slot for the
   current day (does not affect the next day).
 - `website_name` (CharField): The name of the website.
+- `app_offered_by_label` (CharField): The label for the app `offered by` the website (See screenshot below).
 
 #### Methods:
 

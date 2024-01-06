@@ -121,7 +121,8 @@ internationalization, alongside some crucial library updates and new dynamic fea
 - `get_service_offered_str` has been renamed to `get_service_offered_text` for consistency (StaffMember models).
 - `get_appointment_buffer_time_str` has been renamed to `get_appointment_buffer_time_text` for consistency (StaffMember
   models).
-
+- `get_appointment_amount_to_pay_str` has been renamed to `get_appointment_amount_to_pay_text` for consistency
+  (Appointment models).
 ## Previous Version Highlights (2.1.1) 🔙
 
 - For details on the previous version's features and updates, please refer

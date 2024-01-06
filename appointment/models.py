@@ -458,7 +458,7 @@ class Appointment(models.Model):
             return True
         return self.paid
 
-    def is_paid_txt(self):
+    def is_paid_text(self):
         return _("Yes") if self.is_paid() else _("No")
 
     def get_appointment_amount_to_pay(self):
@@ -468,7 +468,7 @@ class Appointment(models.Model):
         else:
             return self.amount_to_pay  # Return the original float value
 
-    def get_appointment_amount_to_pay_str(self):
+    def get_appointment_amount_to_pay_text(self):
         if self.amount_to_pay == 0:
             return "Free"
         return f"{self.get_appointment_amount_to_pay()}{self.get_service().get_currency_icon()}"

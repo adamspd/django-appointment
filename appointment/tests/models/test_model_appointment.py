@@ -78,9 +78,9 @@ class AppointmentModelTestCase(BaseTest):
         """Test if an appointment's paid status is correct."""
         self.assertFalse(self.appointment.is_paid())
 
-    def test_is_paid_txt(self):
+    def test_is_paid_text(self):
         """Test if an appointment's paid status is correct."""
-        self.assertEqual(self.appointment.is_paid_txt(), "No")
+        self.assertEqual(self.appointment.is_paid_text(), "No")
 
     # Test appointment amount to pay
     def test_get_appointment_amount_to_pay(self):
