@@ -95,8 +95,6 @@ It will be linked to an appointment when the client enters their information. We
 the end time and on save, we generate an `id_request` if none exists, make sure that the appointment request date is
 not in the past.
 
-
-
 #### Fields:
 
 - `date` (DateField): The date of the appointment request.
@@ -179,17 +177,16 @@ in the database. If you want to change the settings, you must edit the existing 
 - `appointment_buffer_time` (FloatField): The time between the current moment and the first available slot for the
   current day (does not affect the next day).
 - `website_name` (CharField): The name of the website.
-- `app_offered_by_label` (CharField): The label for the app `offered by` the website (See screenshot below).
+- `app_offered_by_label` (CharField): Label `offered by` on appointment's page. Can be anything you want
+  i.e.: `choose photographer` or `choose dentist` etc... (See screenshot below).
+
+![app_offered_by_label](https://github.com/adamspd/django-appointment/blob/main/docs/screenshots/offered_by.png?raw=true)
 
 #### Methods:
 
-- `clean`: Validates that only one `Config` object can exist and ensures that `lead_time` is before `finish_time`.
-- `save`: Overrides the default save method to enforce the single instance rule for the `Config` object and sets the
-  primary key to 1.
-- `delete`: Overrides the default delete method to prevent deletion of the `Config` object.
+- `delete`: Overrides the default delete method to prevent deletion of the `Config` object once created.
 - `get_instance`: Class method that returns the single instance of the `Config` object or creates one if it doesn't
   exist.
-- `__str__`: Returns a string representation of the `Config` object detailing its settings.
 
 ### PaymentInfo
 
@@ -199,12 +196,9 @@ The `PaymentInfo` model represents payment information for an appointment.
 
 - `appointment` (ForeignKey): The appointment for which the payment information is associated, linking to
   the `Appointment` model.
-- `created_at` (DateTimeField): Timestamp when the payment information was created.
-- `updated_at` (DateTimeField): Timestamp when the payment information was last updated.
 
 #### Methods:
 
-- `__str__`: Returns a string representation of the payment information, detailing the service name and its price.
 - `get_id_request`: Returns the ID of the associated appointment.
 - `get_amount_to_pay`: Returns the amount to be paid for the associated appointment.
 - `get_currency`: Returns the currency of the associated appointment's price.
@@ -223,12 +217,9 @@ database or when a user wants to change email addresses.
 
 - `user` (ForeignKey): The user associated with the verification code, linking to the User model.
 - `code` (CharField): The verification code itself.
-- `created_at` (DateTimeField): Timestamp when the verification code was created.
-- `updated_at` (DateTimeField): Timestamp when the verification code was last updated.
 
 #### Methods:
 
-- `__str__`: Returns a string representation of the verification code.
 - `generate_code`: Class method that generates a unique code comprised of uppercase letters and digits. It then
   associates this code with the provided user and saves it in the database. This method returns the generated code.
 - `check_code`: Compares the provided code with the stored code for the user and returns a boolean indicating if they
@@ -236,7 +227,9 @@ database or when a user wants to change email addresses.
 
 ### DayOff
 
-The `DayOff` model represents a day off for a staff member.
+The `DayOff` model represents a day off for a staff member. It has to be set for both holidays and vacations. If not, 
+clients will be able to book appointments on those days. `start_date` and `end_date` are checked to make sure that the
+start date is before the end date.
 
 #### Fields:
 
@@ -247,14 +240,13 @@ The `DayOff` model represents a day off for a staff member.
 
 #### Methods:
 
-- `__str__`: Returns a string representation of the day off, detailing the date range and description.
-- `clean`: Validates that the `start_date` is before the `end_date`.
 - `is_owner`: Returns a boolean indicating if the given user ID matches the user ID of the staff member associated with
   the day off.
 
 ### WorkingHours
 
-The `WorkingHours` model represents the working hours for a staff member on a specific day of the week.
+The `WorkingHours` model represents the working hours for a staff member on a specific day of the week. 
+`start_time` is checked to make sure that it is before `end_time`.
 
 #### Fields:
 
@@ -265,10 +257,6 @@ The `WorkingHours` model represents the working hours for a staff member on a sp
 
 #### Methods:
 
-- `__str__`: Returns a string representation of the working hours, detailing the day of the week and time range.
-- `save`: Overrides the default save method to update the staff member's weekend working status based on the specified
-  day of the week.
-- `clean`: Validates that the `start_time` is before the `end_time`.
 - `get_start_time`: Returns the start time of the working hours.
 - `get_end_time`: Returns the end time of the working hours.
 - `get_day_of_week_str`: Returns the name of the day.

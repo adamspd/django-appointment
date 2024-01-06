@@ -625,6 +625,9 @@ class PaymentInfo(models.Model):
     def __str__(self):
         return f"{self.appointment.get_service_name()} - {self.appointment.get_service_price()}"
 
+    def __repr__(self):
+        return f"{self.appointment.get_service_name()} - {self.appointment.get_service_price()}"
+
     def get_id_request(self):
         return self.appointment.get_appointment_id_request()
 
