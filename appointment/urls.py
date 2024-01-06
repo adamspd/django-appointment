@@ -41,6 +41,7 @@ admin_urlpatterns = [
     path('delete-service/<int:service_id>/', delete_service, name='delete_service'),
     path('service-list/', get_service_list, name='get_service_list'),
     path('service-list/<str:response_type>/', get_service_list, name='get_service_list_type'),
+    path('view-service/<int:service_id>/<int:view>/', add_or_update_service, name='view_service'),
 
     # display details for one event
     path('display-appointment/<int:appointment_id>/', display_appointment, name='display_appointment'),

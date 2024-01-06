@@ -406,7 +406,7 @@ def remove_superuser_staff_member(request):
 
 @require_user_authenticated
 @require_superuser
-def add_or_update_service(request, service_id=None):
+def add_or_update_service(request, service_id=None, view=0):
     if request.method == 'POST':
         service, is_valid, error_message = handle_service_management_request(request.POST, request.FILES, service_id)
         if is_valid:
@@ -422,8 +422,15 @@ def add_or_update_service(request, service_id=None):
     if service_id:
         service = get_object_or_404(Service, pk=service_id)
         form = ServiceForm(instance=service)
-        extra_context['btn_text'] = _("Update")
-        extra_context['page_title'] = _("Update Service")
+        if view != 1:
+            extra_context['btn_text'] = _("Update")
+            extra_context['page_title'] = _("Update Service")
+        else:
+            for field in form.fields.values():
+                field.disabled = True
+            extra_context['btn_text'] = None
+            extra_context['page_title'] = _("View Service")
+            extra_context['service'] = service
     else:
         form = ServiceForm()
     extra_context['form'] = form
