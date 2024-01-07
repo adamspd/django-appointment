@@ -26,7 +26,7 @@ from appointment.utils.db_helpers import (
     day_off_exists_for_date_range, exclude_booked_slots, get_all_appointments, get_all_staff_members,
     get_appointment_by_id, get_appointments_for_date_and_time, get_staff_member_appointment_list,
     get_staff_member_from_user_id_or_logged_in, get_times_from_config, get_user_by_email,
-    get_working_hours_for_staff_and_day, working_hours_exist)
+    get_working_hours_for_staff_and_day, parse_name, working_hours_exist)
 from appointment.utils.error_codes import ErrorCode
 from appointment.utils.json_context import convert_appointment_to_json, get_generic_context, json_response
 from appointment.utils.permissions import check_entity_ownership
@@ -310,8 +310,10 @@ def save_appointment(appt, client_name, client_email, start_time, phone_number, 
     :return: The modified appointment.
     """
     # Modify and save client details
+    first_name, last_name = parse_name(client_name)
     client = appt.client
-    client.name = client_name
+    client.first_name = first_name
+    client.last_name = last_name
     client.email = client_email
     client.save()
 
@@ -593,7 +595,6 @@ def create_new_appointment(data, request):
 def update_existing_appointment(data, request):
     try:
         appt = Appointment.objects.get(id=data.get("appointment_id"))
-        print(f"want_reminder: {data.get('want_reminder')}")
         want_reminder = data.get("want_reminder") == 'true'
         appt = save_appointment(
             appt,

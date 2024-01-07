@@ -255,7 +255,6 @@ def fetch_service_list_for_staff(request):
 def update_appt_min_info(request):
     data = json.loads(request.body)
     is_creating = data.get('isCreating', False)
-    print("this is the data", data)
 
     if is_creating:
         # Logic for creating a new appointment
