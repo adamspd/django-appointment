@@ -5,4 +5,4 @@ __description__ = "Managing appointment scheduling with customizable slots, staf
 __package_name__ = "django-appointment"
 __url__ = "https://github.com/adamspd/django-appointment"
 __version__ = "3.0.1"
-__test_version__ = True
+__test_version__ = False
