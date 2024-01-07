@@ -184,6 +184,7 @@ function displayEventList(events, date) {
     for (let item of eventItems) {
         item.addEventListener('click', function () {
             const eventId = this.getAttribute('data-event-id');
+            AppState.eventIdSelected = eventId;
             showEventModal(eventId, false, false).then(r => r);
         });
     }
@@ -320,6 +321,16 @@ function confirmDeleteAppointment(appointmentId) {
             }
             showErrorModal(data.message, successTxt);
             closeConfirmModal();  // Close the confirmation modal
+
+            // Remove the deleted appointment from the global appointments array
+            appointments = appointments.filter(appointment => appointment.id !== appointmentId);
+
+            // Refresh the event list for the current date
+            const currentDate = AppState.calendar.getDate();
+            const dateEvents = appointments
+                .filter(event => moment(currentDate).isSame(event.start_time, 'day'))
+                .sort((a, b) => new Date(a.start_time) - new Date(b.start_time));
+            displayEventList(dateEvents, currentDate);
         })
         .catch(error => {
             console.error('Error:', error);
@@ -533,6 +544,7 @@ function adjustModalButtonsVisibility(isEditMode, isCreatingMode) {
 // ################################################################ //
 
 function toggleEditMode() {
+    console.log("I was called in toggleEditMode")
     const modal = document.getElementById("eventDetailsModal");
     const appointment = appointments.find(app => Number(app.id) === Number(AppState.eventIdSelected));
     AppState.isCreating = false; // Turn off creating mode
@@ -541,6 +553,8 @@ function toggleEditMode() {
     if (appointment) {
         AppState.isEditingAppointment = !AppState.isEditingAppointment;  // Toggle the editing state
         updateModalUIForEditMode(modal, AppState.isEditingAppointment);
+    } else {
+        console.error("Appointment not found!");
     }
 }
 
