@@ -21,6 +21,9 @@ users to define custom configurations for time slots, lead time, and finish time
 provided. This app proficiently manages conflicts and availability for appointments, ensuring a seamless user
 experience.
 
+For a detailed walkthrough and live example of the system, please refer to 
+[this tutorial](https://github.com/adamspd/django-appointment/tree/main/docs/explanation.md).
+
 Detailed documentation can be found in
 the [docs' directory](https://github.com/adamspd/django-appointment/tree/main/docs/README.md).
 For changes and migration information, please refer to the [release
