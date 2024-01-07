@@ -15,10 +15,10 @@
                 <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
                     {{ form.as_p }}
-                    {% if btn_txt %}
+                    {% if btn_text %}
                         <button type="submit" class="btn btn-primary">{{ btn_text }}</button>
                     {% else %}
-                        {% if request.user.is_superuser %}
+                        {% if request.user.is_superuser and service.id %}
                             <div class="service-btn-container">
                                 <a href="{% url 'appointment:update_service' service_id=service.id %}"
                                    class="modify-btn button-color-blue service-btn">
