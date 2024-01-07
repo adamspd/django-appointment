@@ -307,7 +307,7 @@
         const getNonWorkingDaysURL = "{% url 'appointment:get_non_working_days_ajax' %}";
         const serviceId = "{{ service.id }}";
         const serviceDuration = parseInt("{{ service.duration.total_seconds }}") / 60;
-        const appointments = {{ appointments|safe }};
+        let appointments = {{ appointments|safe }};
         const fetchServiceListForStaffURL = "{% url 'appointment:fetch_service_list_for_staff' %}";
         const updateApptMinInfoURL = "{% url 'appointment:update_appt_min_info' %}";
         const updateApptDateURL = "{% url 'appointment:update_appt_date_time' %}";

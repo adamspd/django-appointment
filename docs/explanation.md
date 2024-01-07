@@ -83,4 +83,4 @@ In the admin interface, you have various options to manage appointments, such as
 
 For a more comprehensive guide, including visual demonstrations of these steps, please watch the following video tutorial:
 
-[Link to Video Tutorial]
+[Link to Short Video Demo](https://youtu.be/q1LSruYWKbk)
