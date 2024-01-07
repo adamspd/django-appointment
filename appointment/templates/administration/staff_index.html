@@ -312,6 +312,7 @@
         const updateApptMinInfoURL = "{% url 'appointment:update_appt_min_info' %}";
         const updateApptDateURL = "{% url 'appointment:update_appt_date_time' %}";
         const validateApptDateURL = "{% url 'appointment:validate_appointment_date' %}";
+        const isUserStaffAdminURL = "{% url 'appointment:is_user_staff_admin' %}";
     </script>
     <script>
         {# Text for translation #}
@@ -322,9 +323,11 @@
         const noEventTxt = "{% trans 'No events for this day.' %}";
         const newEventTxt = "{% trans 'New Event' %}";
         const successTxt = "{% trans 'Success' %}";
-        const errorTxt = "{% trans 'Error' %}"
-        const updateApptErrorTitleTxt = "{% trans 'Error: Unable to delete appointment.' %}"
-        const apptNotFoundTxt = "{% trans 'Appointment not found.' %}"
+        const errorTxt = "{% trans 'Error' %}";
+        const updateApptErrorTitleTxt = "{% trans 'Error: Unable to delete appointment.' %}";
+        const apptNotFoundTxt = "{% trans 'Appointment not found.' %}";
+        const notStaffMemberTxt = "{% trans "You're not a staff member. Can't perform this action !" %}";
+        const noServiceOfferedTxt = "{% trans "You don't offer any service. Add new service from your profile." %}";
     </script>
 
     <script src="{% static 'js/modal/error_modal.js' %}"></script>
