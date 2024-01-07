@@ -208,3 +208,15 @@ class AppointmentModelTestCase(BaseTest):
         actual_response = self.appointment.to_dict()
         actual_response.pop('id_request', None)
         self.assertEqual(actual_response, response)
+
+    def test_get_staff_member_name_with_staff_member(self):
+        """Test if you get_staff_member_name method returns the correct name when a staff member is associated."""
+        expected_name = self.staff_member1.get_staff_member_name()
+        actual_name = self.appointment.get_staff_member_name()
+        self.assertEqual(actual_name, expected_name)
+
+    def test_get_staff_member_name_without_staff_member(self):
+        """Test if you get_staff_member_name method returns an empty string when no staff member is associated."""
+        self.appointment.appointment_request.staff_member = None
+        self.appointment.appointment_request.save()
+        self.assertEqual(self.appointment.get_staff_member_name(), "")
