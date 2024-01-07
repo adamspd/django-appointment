@@ -239,13 +239,19 @@ def fetch_service_list_for_staff(request):
             # Ensure the staff member is associated with this appointment
             if not Appointment.objects.filter(id=appointment_id,
                                               appointment_request__staff_member=staff_member).exists():
-                return json_response("You do not have permission to access this appointment.", status_code=403)
+                return json_response(_("You do not have permission to access this appointment."), status_code=403)
     else:
         # Fetch all services for the staff member (create mode)
-        staff_member = StaffMember.objects.get(user=request.user)
+        try:
+            staff_member = StaffMember.objects.get(user=request.user)
+        except StaffMember.DoesNotExist:
+            return json_response(_("You're not a staff member. Can't perform this action !"), status=400, success=False)
 
     services = list(staff_member.get_services_offered().values('id', 'name'))
-    return json_response("Successfully fetched services.", custom_data={'services_offered': services})
+    if len(services) == 0:
+        return json_response(_("No services offered by this staff member."), status=404, success=False,
+                             error_code=ErrorCode.SERVICE_NOT_FOUND)
+    return json_response(_("Successfully fetched services."), custom_data={'services_offered': services})
 
 
 @require_user_authenticated
@@ -497,4 +503,15 @@ def delete_appointment_ajax(request):
     appointment_id = data.get("appointment_id")
     appointment = get_object_or_404(Appointment, pk=appointment_id)
     appointment.delete()
-    return json_response("Appointment deleted successfully.")
+    return json_response(_("Appointment deleted successfully."))
+
+
+@require_user_authenticated
+@require_staff_or_superuser
+def is_user_staff_admin(request):
+    user = request.user
+    try:
+        StaffMember.objects.get(user=user)
+        return json_response(_("User is a staff member."), custom_data={'is_staff_admin': True})
+    except StaffMember.DoesNotExist:
+        return json_response(_("User is not a staff member."), custom_data={'is_staff_admin': False})

@@ -14,7 +14,7 @@ from appointment.views import appointment_client_information, appointment_reques
 from appointment.views_admin import add_day_off, add_or_update_service, add_or_update_staff_info, add_working_hours, \
     create_new_staff_member, delete_appointment, delete_appointment_ajax, delete_day_off, delete_service, \
     delete_working_hours, display_appointment, email_change_verification_code, fetch_service_list_for_staff, \
-    get_service_list, get_user_appointments, make_superuser_staff_member, remove_staff_member, \
+    get_service_list, get_user_appointments, is_user_staff_admin, make_superuser_staff_member, remove_staff_member, \
     remove_superuser_staff_member, update_appt_date_time, update_appt_min_info, update_day_off, update_personal_info, \
     update_working_hours, user_profile, validate_appointment_date
 
@@ -88,6 +88,7 @@ ajax_urlpatterns = [
     path('validate_appointment_date/', validate_appointment_date, name="validate_appointment_date"),
     # delete appointment ajax
     path('delete_appointment/', delete_appointment_ajax, name="delete_appointment_ajax"),
+    path('is_user_staff_admin/', is_user_staff_admin, name="is_user_staff_admin"),
 ]
 
 urlpatterns = [

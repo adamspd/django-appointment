@@ -272,6 +272,40 @@ class ViewsTestCase(BaseTest):
             [{"id": service.id, "name": service.name} for service in staff_member_services]
         )
 
+    def test_fetch_service_list_for_staff_no_staff_member_instance(self):
+        """Test that a superuser without a StaffMember instance receives an appropriate error message."""
+        self.need_superuser_login()
+
+        # Ensure the superuser does not have a StaffMember instance
+        StaffMember.objects.filter(user=self.user1).delete()
+
+        url = reverse('appointment:fetch_service_list_for_staff')
+        response = self.client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+
+        # Check the response status code and content
+        self.assertEqual(response.status_code, 400)
+        response_data = response.json()
+        self.assertIn('message', response_data)
+        self.assertEqual(response_data['message'], _("You're not a staff member. Can't perform this action !"))
+        self.assertFalse(response_data['success'])
+
+    def test_fetch_service_list_for_staff_no_services_offered(self):
+        """Test fetching services for a staff member who offers no services."""
+        self.need_staff_login()
+
+        # Assuming self.staff_member1 offers no services
+        self.staff_member1.services_offered.clear()
+
+        url = reverse('appointment:fetch_service_list_for_staff')
+        response = self.client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+
+        # Check response status code and content
+        self.assertEqual(response.status_code, 404)
+        response_data = response.json()
+        self.assertIn('message', response_data)
+        self.assertEqual(response_data['message'], _("No services offered by this staff member."))
+        self.assertFalse(response_data['success'])
+
     def test_update_appt_min_info_create(self):
         self.need_staff_login()
 
@@ -441,3 +475,36 @@ class ViewsTestCase(BaseTest):
 
         # Check for a forbidden status code, as only superusers should be able to create staff members
         self.assertEqual(response.status_code, 403)
+
+    def test_is_user_staff_admin_with_staff_member(self):
+        """Test that a user with a StaffMember instance is identified as a staff admin."""
+        self.need_staff_login()
+
+        # Ensure the user has a StaffMember instance
+        if not StaffMember.objects.filter(user=self.user1).exists():
+            StaffMember.objects.create(user=self.user1)
+
+        url = reverse('appointment:is_user_staff_admin')
+        response = self.client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+
+        # Check the response status code and content
+        self.assertEqual(response.status_code, 200)
+        response_data = response.json()
+        self.assertIn('message', response_data)
+        self.assertEqual(response_data['message'], _("User is a staff member."))
+
+    def test_is_user_staff_admin_without_staff_member(self):
+        """Test that a user without a StaffMember instance is not identified as a staff admin."""
+        self.need_staff_login()
+
+        # Ensure the user does not have a StaffMember instance
+        StaffMember.objects.filter(user=self.user1).delete()
+
+        url = reverse('appointment:is_user_staff_admin')
+        response = self.client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+
+        # Check the response status code and content
+        self.assertEqual(response.status_code, 200)
+        response_data = response.json()
+        self.assertIn('message', response_data)
+        self.assertEqual(response_data['message'], _("User is not a staff member."))
