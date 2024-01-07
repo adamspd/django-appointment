@@ -595,7 +595,6 @@ def create_new_appointment(data, request):
 def update_existing_appointment(data, request):
     try:
         appt = Appointment.objects.get(id=data.get("appointment_id"))
-        print(f"want_reminder: {data.get('want_reminder')}")
         want_reminder = data.get("want_reminder") == 'true'
         appt = save_appointment(
             appt,

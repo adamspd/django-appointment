@@ -150,7 +150,6 @@
                 type: 'POST',
                 data: form.serialize(),
                 success: function (response) {
-                    console.log("response", response.success);
                     if (response.success) {
                         window.location.href = response.redirect_url;
                     } else {

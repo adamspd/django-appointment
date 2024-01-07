@@ -421,7 +421,6 @@ async function updateAppointmentDate(event, revertFunction) {
 
         const responseData = await response.json();
         if (response.ok) {
-            console.log("Updated message: " + responseData.message)
             showErrorModal(responseData.message, successTxt)
         } else {
             console.error('Failed to update appointment date. Server responded with:', response.statusText);
@@ -659,7 +658,6 @@ function validateEmail(email) {
     const emailError = document.getElementById("emailError");
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    console.log("Email: ", emailInput.value)
     if (!emailRegex.test(emailInput.value)) {
         emailInput.style.border = "1px solid red";
         emailError.textContent = "Invalid email address, yeah.";
@@ -679,8 +677,6 @@ async function sendAppointmentData(data) {
     const headers = {
         'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': getCSRFToken(),
     };
-
-    console.log("Sending data to server: ", data);
 
     return fetch(updateApptMinInfoURL, {
         method: 'POST', headers: headers, body: JSON.stringify(data)
