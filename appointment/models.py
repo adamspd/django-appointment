@@ -284,7 +284,7 @@ class AppointmentRequest(models.Model):
     start_time = models.TimeField()
     end_time = models.TimeField()
     service = models.ForeignKey(Service, on_delete=models.CASCADE)
-    staff_member = models.ForeignKey(StaffMember, on_delete=models.DO_NOTHING)
+    staff_member = models.ForeignKey(StaffMember, on_delete=models.SET_NULL, null=True)
     payment_type = models.CharField(max_length=4, choices=PAYMENT_TYPES, default='full')
     id_request = models.CharField(max_length=100, blank=True, null=True)
 
@@ -368,7 +368,7 @@ class Appointment(models.Model):
     Version: 1.1.0
     Since: 1.0.0
     """
-    client = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    client = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     appointment_request = models.OneToOneField(AppointmentRequest, on_delete=models.CASCADE)
     phone = PhoneNumberField(blank=True)
     address = models.CharField(max_length=255, blank=True, null=True, default="",
@@ -430,6 +430,8 @@ class Appointment(models.Model):
         return self.appointment_request.service.get_duration()
 
     def get_staff_member_name(self):
+        if not self.appointment_request.staff_member:
+            return ""
         return self.appointment_request.staff_member.get_staff_member_name()
 
     def get_staff_member(self):
