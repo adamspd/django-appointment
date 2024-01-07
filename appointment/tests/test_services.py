@@ -349,7 +349,7 @@ class SaveAppointmentTests(BaseTest):
                                         client_address, service_id)
 
         # Check client details
-        self.assertEqual(updated_appt.client.name, client_name)
+        self.assertEqual(updated_appt.client.get_full_name(), client_name)
         self.assertEqual(updated_appt.client.email, client_email)
 
         # Check appointment request details
