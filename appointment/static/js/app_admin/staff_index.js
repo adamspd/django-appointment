@@ -572,7 +572,6 @@ function adjustModalButtonsVisibility(isEditMode, isCreatingMode) {
 // ################################################################ //
 
 function toggleEditMode() {
-    console.log("I was called in toggleEditMode")
     const modal = document.getElementById("eventDetailsModal");
     const appointment = appointments.find(app => Number(app.id) === Number(AppState.eventIdSelected));
     AppState.isCreating = false; // Turn off creating mode
