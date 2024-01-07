@@ -10,7 +10,7 @@ const Constants = {
 
 // Application State
 const AppState = {
-    eventIdSelected: null, calendar: null, isEditingAppointment: false, isCreating: false,
+    eventIdSelected: null, calendar: null, isEditingAppointment: false, isCreating: false, isUserStaffAdmin: true,
 };
 
 document.addEventListener("DOMContentLoaded", initializeCalendar);
@@ -35,7 +35,9 @@ window.addEventListener('resize', function () {
 
 document.addEventListener("DOMContentLoaded", function () {
     // Wait for a 50ms after the DOM is ready before initializing the calendar
-    setTimeout(initializeCalendar, 50);
+    setUserStaffAdminFlag().then(() => {
+        setTimeout(initializeCalendar, 50);
+    });
 });
 
 
@@ -149,10 +151,12 @@ function getCalendarConfig(events) {
 
             if (dayCell.date >= currentDate && !tabletCheck()) {
                 // Attach right-click event listener only if the day is not in the past
-                dayCell.el.addEventListener('contextmenu', function (event) {
-                    event.preventDefault();
-                    handleCalendarRightClick(event, dayCell.date);
-                });
+                if (AppState.isUserStaffAdmin) {
+                    dayCell.el.addEventListener('contextmenu', function (event) {
+                        event.preventDefault();
+                        handleCalendarRightClick(event, dayCell.date);
+                    });
+                }
             }
         },
     };
@@ -223,7 +227,29 @@ function getCalendarHeight() {
     return '850px';
 }
 
+function setUserStaffAdminFlag() {
+    return fetch(isUserStaffAdminURL)
+        .then(response => response.json())
+        .then(data => {
+            if (data.is_staff_admin) {
+                AppState.isUserStaffAdmin = true;
+            } else {
+                console.error(data.message || "Error fetching user details.");
+                AppState.isUserStaffAdmin = false;
+            }
+        })
+        .catch(error => {
+            console.error("Error checking user's staff admin status: ", error);
+            AppState.isUserStaffAdmin = false;
+        });
+}
+
+
 function handleCalendarRightClick(event, date) {
+    if (!AppState.isUserStaffAdmin) {
+        showErrorModal(notStaffMemberTxt)
+        return;
+    }
     const contextMenu = document.getElementById("customContextMenu");
     contextMenu.style.top = `${event.pageY}px`;
     contextMenu.style.left = `${event.pageX}px`;
@@ -352,6 +378,9 @@ function fetchServices(isEditMode = false) {
 
 async function populateServices(selectedServiceId, isEditMode = false) {
     const services = await fetchServices(isEditMode);
+    if (!services) {
+        showErrorModal(noServiceOfferedTxt)
+    }
     const selectElement = document.createElement('select');
     services.forEach(service => {
         const option = document.createElement('option');

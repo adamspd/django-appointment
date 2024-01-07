@@ -1,132 +1,58 @@
 # django-appointment 📦
 
-**v3.0.0 🆕**
+**v3.0.1 🆕**
 
-## ___Release Notes for Version 3.0.0___
+## ___Release Notes for Version 3.0.1___
 
 ## Introduction 📜
 
-Version 3.0.0 of django-appointment introduces a series of refinements and updates, enhancing both the functionality and
-the user experience. This release focuses on improving documentation, workflow, community engagement, and
-internationalization, alongside some crucial library updates and new dynamic features.
+Version 3.0.1 of django-appointment brings further refinements to the package, focusing on enhancing user interactions
+within the administration panel, better error handling, and new AJAX-based functionalities. This minor version release
+ensures a smoother experience for both staff members and superusers.
 
 ## New Features ✨
 
-### Dynamic Appointment Management
+### Enhanced AJAX Functionality for Staff Members
 
-- AJAX-based appointment creation and update functionalities.
-- Enhanced endpoints for efficient appointment management.
+- Added AJAX-based checks to determine if the logged-in user is a staff admin, enhancing overall system security and
+  usability.
 
-### User Interface Enhancements and JavaScript Refactor
+### Improved Error Handling and User Feedback
 
-- Major updates to staff_index.js for improved interactivity and responsiveness.
-- New CSS for a more responsive and user-friendly interface in appointment and calendar views.
+- Implemented better error handling in `fetchServices` and `populateServices` functions, ensuring users are adequately
+  informed about the absence of services.
+- Enhanced user experience by providing clearer error messages for staff members who do not offer any services or do not
+  have a staff member profile.
 
-### Dynamic Label Customization in Appointment Pages (#19)
+### JavaScript Enhancements
 
-- Added a new configuration option `app_offered_by_label` to the `Config` model.
-- This feature allows for dynamic labeling in the appointment HTML page to showcase the staff members or services
-  offering the appointment.
-- The default value is "Offered by", which can be customized to fit different contexts, such as "Provided by" or "
-  Choose Photographer" for photography services.
-
-### Updated Documentation and Workflow Enhancements (#25, #26, #27)
-
-- Documentation has been made more user-friendly and clearer.
-- Workflow processes updated for more streamlined development and issue tracking.
-
-### Community Engagement and Standards (#21, #22, #23, #24)
-
-- `CODE_OF_CONDUCT.md` introduced to foster a respectful and inclusive community environment.
-- `CONTRIBUTING.md` created to guide contributors through the contribution process.
-- `SECURITY.md` established for addressing security protocols and reporting.
-- Issue templates for bug reports and feature requests refined for better community feedback and contributions.
-
-### Library Updates and Security Patches (#14, #15, #18)
-
-- Dependencies like `phonenumbers` and `django` updated to their latest versions for enhanced performance and security.
-
-### Enhanced Project Visibility (#16)
-
-- GitHub Badges added to the README for improved project metrics visibility like build status and versioning.
-
-### Translation Refinements (#31)
-
-- Inconsistencies in translations removed, improving the internationalization aspect.
-
-### Provided an endpoint to delete an appointment (#49)
-
-- Added an endpoint to delete an appointment. Either with an ajax call or a simple request.
-
-## Improvements 📈
-- `appointment_buffer_time` has a new default value of 0 and can be blank.
+- Added a new state `isUserStaffAdmin` in `AppState` to manage user roles more effectively within the admin panel.
+- Updated the JavaScript code in `staff_index.js` to include new checks and functions for better management of user
+  roles and permissions.
 
 ## Bug Fixes 🐛
 
----
+- Fixed an issue where users without a `StaffMember` instance could attempt actions they were not permitted to, such as
+  creating appointments.
+- Addressed a bug where the absence of services offered by a staff member led to unhandled exceptions.
 
-- Fixed a bug where a stack trace was displayed when a user that is staff but didn't have a staff member profile tried
-  to access its appointment's page list (/app-admin/user-event/)
+## Improvements 📈
 
-  #### Description of the bug
-  If a staff (Django-related role) is authenticated and tries to retrieve this endpoint :
-  `/app-admin/user-event/` he'll get the following error if debug = true
-    ```
-      Traceback (most recent call last):
-      File ".../django/core/handlers/exception.py", line 55, in inner
-        response = get_response(request)
-                   ^^^^^^^^^^^^^^^^^^^^^
-      File ".../django/core/handlers/base.py", line 197, in _get_response
-        response = wrapped_callback(request, *callback_args, **callback_kwargs)
-                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-      File ".../appointment/decorators.py", line 26, in wrapper
-        return func(request, *args, **kwargs)
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-      File ".../appointment/decorators.py", line 39, in wrapper
-        return func(request, *args, **kwargs)
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-      File ".../appointment/views_admin.py", line 39, in get_user_appointments
-        appointments = fetch_user_appointments(request.user)
-                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-      File ".../appointment/services.py", line 44, in fetch_user_appointments
-        staff_member_instance = user.staffmember
-                                ^^^^^^^^^^^^^^^^
-      File ".../django/utils/functional.py", line 268, in inner
-        return func(_wrapped, *args)
-               ^^^^^^^^^^^^^^^^^^^^^
-      File ".../django/db/models/fields/related_descriptors.py", line 492, in __get__
-        raise self.RelatedObjectDoesNotExist(
-        client.models.UserClient.staffmember.RelatedObjectDoesNotExist: UserClient has no staffmember.
-    ```
-  If debug = false, the user will get a 500 error
-  #### To Reproduce
-  ##### Steps to reproduce the behavior:
+- Enhanced `fetch_service_list_for_staff` view to handle cases where a user is a superuser but does not have
+  a `StaffMember` instance.
+- Improved the user interface to prevent actions (like right-click events for creating new appointments) for users who
+  are not staff members.
 
-      Create a user/account (user1)
-      Login as admin/superuser (admin) and add user1 to staff.
-      Login as user1 and go to /appointment/app-admin/user-event/
-      See error
+## Breaking Changes 🚨
 
-  #### Expected behavior
-  Not an error but a redirection or anything more concise than just an error or a 5xx code return.
+- No breaking changes introduced in this version.
 
----
+## Previous Version Highlights (3.0.0) 🔙
 
-### Breaking Changes 🚨
-
-- `get_down_payment_str` has been renamed to `get_down_payment_text` for consistency (Service models).
-- `get_slot_duration_str` has been renamed to `get_slot_duration_text` for consistency (StaffMember models).
-- `get_weekend_days_worked_str` has been renamed to `get_weekend_days_worked_text` for consistency (StaffMember
-  models).
-- `get_service_offered_str` has been renamed to `get_service_offered_text` for consistency (StaffMember models).
-- `get_appointment_buffer_time_str` has been renamed to `get_appointment_buffer_time_text` for consistency (StaffMember
-  models).
-- `get_appointment_amount_to_pay_str` has been renamed to `get_appointment_amount_to_pay_text` for consistency
-  (Appointment models).
-## Previous Version Highlights (2.1.1) 🔙
-
-- For details on the previous version's features and updates, please refer
-  to [release notes for version 2.1.1](https://github.com/adamspd/django-appointment/tree/main/docs/release_notes/v2_1_1.md).
+- Version 3.0.0 introduced dynamic appointment management, user interface enhancements, dynamic label customization,
+  updated documentation, library updates, and more.
+- For a complete list of features and updates in the previous version, refer
+  to [release notes for version 3.0.0](https://github.com/adamspd/django-appointment/tree/main/docs/release_notes/v3_0_0.md).
 
 ## Getting Started 🚀
 
@@ -135,7 +61,7 @@ If you're upgrading from a previous version or installing for the first time, fo
 ### Installation 📥:
 
 ```bash
-pip install django-appointment==3.0.0
+pip install django-appointment==3.0.1
 ```
 
 ### Database Migration 🔧:
