@@ -14,7 +14,7 @@
 ⚠️ **IMPORTANT**: If upgrading from a version before 2.x.x, please note significant database changes were introduced in
 Version 2.0.0 introduces significant database changes. Please read
 the [migration guide](https://github.com/adamspd/django-appointment/tree/main/docs/migration_guides/v2_1_0.md) before
-updating. No significant database changes were introduced in version 3.0.0.
+updating. No database changes were introduced in version 3.0.1.
 
 Django-Appointment is a Django app engineered for managing appointment scheduling with ease and flexibility. It enables
 users to define custom configurations for time slots, lead time, and finish time, or utilize the default values
@@ -43,7 +43,7 @@ notes](https://github.com/adamspd/django-appointment/tree/main/docs/release_note
 - For more information, please refer to
   this [documentation](https://github.com/adamspd/django-appointment/tree/main/docs/history/readme_v2_1_1.md).
 
-## Added Features in version 3.0.0
+## Added Features in version 3.0.1
 
 This release of Django Appointment brings a series of improvements and updates aimed at enhancing the overall
 functionality and user experience:
@@ -76,7 +76,7 @@ our commitment to providing a high-quality and user-friendly appointment managem
 See the [release notes](https://github.com/adamspd/django-appointment/tree/main/docs/release_notes/latest.md)
 for more information.
 
-### Breaking Changes in version 3.0.0:
+### Breaking Changes in version 3.0.1:
 
 See the [release notes](https://github.com/adamspd/django-appointment/tree/main/docs/release_notes/latest.md) for more
   information.
