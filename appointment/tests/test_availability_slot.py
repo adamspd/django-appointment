@@ -3,8 +3,8 @@ from datetime import date, time, timedelta
 from django.test import TestCase
 
 from appointment.models import Appointment, AppointmentRequest
-from appointment.tests.mixins.base_mixin import AppointmentMixin, AppointmentRequestMixin, ConfigMixin, ServiceMixin, \
-    StaffMemberMixin, UserMixin
+from appointment.tests.mixins.base_mixin import (
+    AppointmentMixin, AppointmentRequestMixin, ConfigMixin, ServiceMixin, StaffMemberMixin, UserMixin)
 from appointment.views import get_appointments_and_slots
 
 
