@@ -1,0 +1,75 @@
+documentation:
+  - CODE_OF_CONDUCT.md
+  - CONTRIBUTING.md
+  - LICENSE
+  - MANIFEST.in
+  - README.md
+  - SECURITY.md
+  - docs/**/*
+
+admin-interface:
+  - appointment/admin.py
+  - appointment/templates/administration/**/*
+  - appointment/views_admin.py
+
+user-interface:
+  - appointment/templates/**/*
+  - appointment/static/css/**/*
+  - appointment/static/js/**/*
+  - appointment/static/img/**/*
+
+models:
+  - appointment/models.py
+  - appointment/tests/models/**/*
+
+views:
+  - appointment/views.py
+  - appointment/tests/test_views.py
+
+forms:
+  - appointment/forms.py
+
+tests:
+  - appointment/tests/**/*
+  - appointment/mixins/**/*
+  - appointment/utils/test_*.py
+
+settings-config:
+  - appointment/settings.py
+  - appointment/utils/settings_helpers.py
+
+email-functionality:
+  - appointment/email_sender/**/*
+
+static-files:
+  - appointment/static/**/*
+
+utils:
+  - appointment/utils/**/*
+  - appointment/decorators.py
+  - appointment/logger_config.py
+  - appointment/messages_.py
+
+urls:
+  - appointment/urls.py
+
+services:
+  - appointment/services.py
+
+asgi-wsgi:
+  - appointments/asgi.py
+  - appointments/wsgi.py
+
+django-settings:
+  - appointments/settings.py
+  - appointments/urls.py
+  - pyproject.toml
+  - requirements.txt
+  - setup.cfg
+  - setup.py
+
+python-config:
+  - check_version.py
+
+migration-guides:
+  - docs/migration_guides/**/*
