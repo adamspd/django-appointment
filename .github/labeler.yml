@@ -1,0 +1,23 @@
+documentation:
+- changed-files:
+  - any-glob-to-any-file: ['**/*.md', 'LICENSE', 'docs/**/*']
+
+dependencies:
+- changed-files:
+  - any-glob-to-any-file: 'requirements.txt'
+
+enhancement:
+- changed-files:
+  - any-glob-to-any-file: '**'
+
+github-actions:
+- changed-files:
+  - any-glob-to-all-file: '.github/**/*'
+
+tests:
+- changed-files:
+  - any-glob-to-any-file: 'appointment/tests/**/*'
+
+user-interface:
+- changed-files:
+  - any-glob-to-any-file: ['appointment/templates/**/*', 'appointment/static/**/*']
