@@ -12,7 +12,7 @@ enhancement:
 
 github-actions:
 - changed-files:
-  - any-glob-to-all-file: '.github/**/*'
+  - any-glob-to-any-file: '.github/**/*'
 
 tests:
 - changed-files:
