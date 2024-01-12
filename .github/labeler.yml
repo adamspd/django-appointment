@@ -1,11 +1,23 @@
 documentation:
 - changed-files:
-  - any-glob-to-any-file: [ '**/*.md', 'LICENSE', 'MANIFEST.in', 'pyproject.toml', 'setup.cfg', 'setup.py', ' docs/**/*' ]
+  - any-glob-to-any-file: ['**/*.md', 'LICENSE', 'MANIFEST.in', 'pyproject.toml', 'setup.cfg', 'setup.py', 'docs/**/*']
 
 dependencies:
 - changed-files:
   - any-glob-to-all-file: 'requirements.txt'
 
-enhancements:
+enhancement:
 - changed-files:
-  - any-glob-to-all-file: ['appointment/**/*', 'appointments/**/*', '**/*.md', 'LICENSE', 'MANIFEST.in', 'pyproject.toml', 'setup.cfg', 'setup.py', '.github/**/*', '**/*.py', 'requirements.txt']
+  - any-glob-to-any-file: '**'
+
+github-actions:
+- changed-files:
+  - any-glob-to-all-file: '.github/**/*'
+
+tests:
+- changed-files:
+  - any-glob-to-all-file: 'appointment/tests/**/*'
+
+user-interface:
+- changed-files:
+  - any-glob-to-all-file: ['appointment/templates/**/*', 'appointment/static/**/*']
