@@ -1,32 +1,23 @@
 documentation:
-  - CODE_OF_CONDUCT.md
-  - CONTRIBUTING.md
-  - LICENSE
-  - MANIFEST.in
-  - README.md
-  - SECURITY.md
-  - docs/**/*
+- changed-files:
+  - any-glob-to-any-file: ['**/*.md', 'LICENSE', 'MANIFEST.in', 'pyproject.toml', 'setup.cfg', 'setup.py', 'docs/**/*']
 
 dependencies:
-  - requirements.txt
+- changed-files:
+  - any-glob-to-all-file: 'requirements.txt'
 
-enhancements:
-  # Paths from 'documentation'
-  - CODE_OF_CONDUCT.md
-  - CONTRIBUTING.md
-  - LICENSE
-  - MANIFEST.in
-  - README.md
-  - SECURITY.md
-  - docs/**/*
-  # Paths from 'dependencies'
-  - requirements.txt
-  # Additional paths for 'enhancements'
-  - appointment/**/*
-  - appointments/settings.py
-  - appointments/urls.py
-  - pyproject.toml
-  - check_version.py
-  - setup.cfg
-  - setup.py
-  - .github/**/*
+enhancement:
+- changed-files:
+  - any-glob-to-any-file: '**'
+
+github-actions:
+- changed-files:
+  - any-glob-to-all-file: '.github/**/*'
+
+tests:
+- changed-files:
+  - any-glob-to-all-file: 'appointment/tests/**/*'
+
+user-interface:
+- changed-files:
+  - any-glob-to-all-file: ['appointment/templates/**/*', 'appointment/static/**/*']
