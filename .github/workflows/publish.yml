@@ -1,45 +1,69 @@
-name: Upload Python Package to PyPI
+name: Publish Python Distribution [PyPi & GH Release | TestPyPi]
 
 on:
   push:
     branches:
       - main
+    tags:
+      - '*'
   workflow_dispatch:
 
 jobs:
-  deploy:
+  prepare-and-check:
     runs-on: ubuntu-latest
-
+    outputs:
+      publish_to_pypi: ${{ steps.version_check.outputs.publish_to_pypi }}
+      publish_to_testpypi: ${{ steps.version_check.outputs.publish_to_testpypi }}
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v5
       with:
         python-version: '3.x'
 
-    - name: Install dependencies
+    - name: Install dependencies for version check
       run: |
         python -m pip install --upgrade pip
-        pip install setuptools wheel twine requests 
+        pip install requests
 
-    # Check if the current version is already on PyPI
-    - name: Check version on PyPI
+    - name: Check version on PyPI or TestPyPI
       id: version_check
       run: |
-        python check_version.py
-      continue-on-error: true
+        python3 check_version.py ${{ github.ref }}
+      env:
+        GITHUB_OUTPUT: ${{ github.output }}
 
-    # Build the package (folder exclusion is handled by MANIFEST.in)
+  build-and-publish:
+    needs: prepare-and-check
+    if: needs.prepare-and-check.outputs.publish_to_pypi == 'true' || needs.prepare-and-check.outputs.publish_to_testpypi == 'true'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+
+    - name: Install build dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install setuptools wheel twine
+
     - name: Build package
-      if: steps.version_check.outputs.version_exists != 'true'
       run: |
         python setup.py sdist bdist_wheel
 
-    - name: Upload to PyPI
-      if: steps.version_check.outputs.version_exists != 'true'
+    - name: Publish to PyPI
+      if: needs.prepare-and-check.outputs.publish_to_pypi == 'true'
+      run: twine upload dist/*
       env:
         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
         TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-      run: |
-        twine upload dist/*
+
+    - name: Publish to TestPyPI
+      if: needs.prepare-and-check.outputs.publish_to_testpypi == 'true'
+      run: twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+      env:
+        TWINE_USERNAME: ${{ secrets.TEST_PYPI_USERNAME }}
+        TWINE_PASSWORD: ${{ secrets.TEST_PYPI_PASSWORD }}
