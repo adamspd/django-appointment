@@ -14,56 +14,100 @@ jobs:
     outputs:
       publish_to_pypi: ${{ steps.version_check.outputs.publish_to_pypi }}
       publish_to_testpypi: ${{ steps.version_check.outputs.publish_to_testpypi }}
+      version: ${{ steps.version_check.outputs.version }}
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.x'
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
 
-    - name: Install dependencies for version check
-      run: |
-        python -m pip install --upgrade pip
-        pip install requests
+      - name: Install dependencies for version check
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
 
-    - name: Check version on PyPI or TestPyPI
-      id: version_check
-      run: |
-        python3 check_version.py ${{ github.ref }}
-      env:
-        GITHUB_OUTPUT: ${{ github.output }}
+      - name: Check version on PyPI or TestPyPI
+        id: version_check
+        run: |
+          python3 check_version.py ${{ github.ref }}
+
+        env:
+          GITHUB_OUTPUT: ${{ github.output }}
 
   build-and-publish:
     needs: prepare-and-check
     if: needs.prepare-and-check.outputs.publish_to_pypi == 'true' || needs.prepare-and-check.outputs.publish_to_testpypi == 'true'
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.x'
+      - uses: actions/checkout@v4
 
-    - name: Install build dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install setuptools wheel twine
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
 
-    - name: Build package
-      run: |
-        python setup.py sdist bdist_wheel
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install setuptools wheel twine
 
-    - name: Publish to PyPI
-      if: needs.prepare-and-check.outputs.publish_to_pypi == 'true'
-      run: twine upload dist/*
-      env:
-        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+      - name: Build package
+        run: |
+          python setup.py sdist bdist_wheel
 
-    - name: Publish to TestPyPI
-      if: needs.prepare-and-check.outputs.publish_to_testpypi == 'true'
-      run: twine upload --repository-url https://test.pypi.org/legacy/ dist/*
-      env:
-        TWINE_USERNAME: ${{ secrets.TEST_PYPI_USERNAME }}
-        TWINE_PASSWORD: ${{ secrets.TEST_PYPI_PASSWORD }}
+      - name: Upload distribution packages as artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: python-package-distributions
+          path: dist/*
+
+      - name: Publish to PyPI
+        if: needs.prepare-and-check.outputs.publish_to_pypi == 'true'
+        run: twine upload dist/*
+        env:
+          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+
+      - name: Publish to TestPyPI
+        if: needs.prepare-and-check.outputs.publish_to_testpypi == 'true'
+        run: twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+        env:
+          TWINE_USERNAME: ${{ secrets.TEST_PYPI_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_PASSWORD }}
+
+  create-release:
+    needs: build-and-publish
+    if: needs.build-and-publish.outputs.publish_to_pypi == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download distribution packages for release
+        uses: actions/download-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/
+
+      - name: Sign the distributions with Sigstore
+        uses: sigstore/gh-action-sigstore-python@v2.1.1
+        with:
+          inputs: ./dist/*.tar.gz ./dist/*.whl
+
+      - name: Draft Release
+        id: draft_release
+        uses: release-drafter/release-drafter@v6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ needs.prepare-and-check.outputs.version }}
+          release_name: Release v${{ needs.prepare-and-check.outputs.version }}
+          body: ${{ steps.draft_release.outputs.body }}
+          draft: false
+          prerelease: false
