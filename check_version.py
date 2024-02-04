@@ -45,6 +45,7 @@ def check_package_version(package_name, current_version, github_ref_=None):
             f.write(f"version_exists={version_exists}\n")
             f.write(f"publish_to_pypi={publish_to_pypi}\n")
             f.write(f"publish_to_testpypi={publish_to_testpypi}\n")
+            f.write(f"version={current_version}\n")
 
 
 if __name__ == "__main__":
