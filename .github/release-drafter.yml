@@ -1,33 +1,66 @@
-name-template: 'Release v${{NEXT_VERSION}}'
-tag-template: 'v${{NEXT_VERSION}}'
+name-template: 'Release v${{ env.RELEASE_VERSION }}'
+tag-template: 'v${{ env.RELEASE_VERSION }}'
 categories:
   - title: '🚀 Features'
     labels:
       - 'feature'
-      - 'enhancement'
+    collapse-after: 3
   - title: '🐛 Bug Fixes'
     labels:
       - 'fix'
       - 'bugfix'
       - 'bug'
+    collapse-after: 3
   - title: '🧰 Maintenance'
     labels:
       - 'chore'
       - 'maintenance'
-change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
+    collapse-after: 3
+  - title: '🔨 Refactor'
+    labels:
+      - 'refactor'
+      - 'refactoring'
+    collapse-after: 3
+  - title: '🧪 Testing'
+    labels:
+      - 'tests'
+      - 'testing'
+      - 'test'
+      - 'unittest'
+      - 'pytest'
+    collapse-after: 3
+  - title: '📚 Documentation'
+    labels:
+      - 'docs'
+      - 'documentation'
+    collapse-after: 3
+  - title: '🔒 Security'
+    labels:
+      - 'security'
+      - 'vulnerability'
+      - 'vulnerabilities'
+      - 'security-fix'
+      - 'security-fixes'
+      - 'security-update'
+      - 'security-updates'
+      - 'security-patch'
+      - 'security-patches'
+      - 'security-release'
+      - 'security-releases'
+      - 'security-issue'
+      - 'security-issues'
+      - 'security-bug'
+      - 'security-bugs'
+      - 'security-vulnerability'
+      - 'security-vulnerabilities'
+      - 'security-notice'
+      - 'security-notices'
+    collapse-after: 3
+  - title: 'Enhancement'
+    collapse-after: 3
+change-template: '- $TITLE by @$AUTHOR in (#$NUMBER)'
 change-title-escapes: '\<*_&'
-version-resolver:
-  major:
-    labels:
-      - 'major'
-  minor:
-    labels:
-      - 'minor'
-  patch:
-    labels:
-      - 'patch'
-  default: patch
-template: |
-  ## Changes
 
+template: |
+  ## What’s Changed
   $CHANGES
