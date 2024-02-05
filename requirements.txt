@@ -4,5 +4,5 @@ phonenumbers==8.13.29
 django-phonenumber-field==7.3.0
 babel==2.14.0
 setuptools==69.0.3
-pytz~=2023.4
+pytz~=2024.1
 requests~=2.31.0
