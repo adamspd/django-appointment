@@ -52,3 +52,6 @@ chore:
 
 maintenance:
   - head-branch: [ '^maintenance', 'maintenance' ]
+
+security-fixes:
+  - head-branch: [ '^security', 'security' ]
