@@ -58,7 +58,7 @@ jobs:
           python setup.py sdist bdist_wheel
 
       - name: Upload distribution packages as artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: python-package-distributions
           path: dist/*
@@ -78,9 +78,13 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.TEST_PYPI_PASSWORD }}
 
   create-release:
-    needs: build-and-publish
-    if: needs.build-and-publish.outputs.publish_to_pypi == 'true'
+    needs: [prepare-and-check, build-and-publish]
+    if: needs.prepare-and-check.outputs.publish_to_pypi == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+
     steps:
       - uses: actions/checkout@v4
 
@@ -95,19 +99,29 @@ jobs:
         with:
           inputs: ./dist/*.tar.gz ./dist/*.whl
 
+      - name: Set Release Version Env
+        run: echo "RELEASE_VERSION=${{ needs.prepare-and-check.outputs.version }}" >> $GITHUB_ENV
+
       - name: Draft Release
         id: draft_release
         uses: release-drafter/release-drafter@v6
+        with:
+          commitish: main
+          tag: v${{ env.RELEASE_VERSION }}
+          name: Release ${{ env.RELEASE_VERSION }}
+          version: ${{ env.RELEASE_VERSION }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_VERSION: ${{ needs.prepare-and-check.outputs.version }}
 
       - name: Create GitHub Release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_VERSION: ${{ needs.prepare-and-check.outputs.version }}
         with:
-          tag_name: v${{ needs.prepare-and-check.outputs.version }}
-          release_name: Release v${{ needs.prepare-and-check.outputs.version }}
+          tag_name: v${{ env.RELEASE_VERSION }}
+          release_name: Release ${{ env.RELEASE_VERSION }}
           body: ${{ steps.draft_release.outputs.body }}
           draft: false
           prerelease: false
