@@ -1,20 +1,54 @@
 documentation:
-- "**/*.md"
-- LICENSE
-- "docs/**/*"
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/*.md"
+          - LICENSE
+          - "docs/**/*"
 
 dependencies:
-- requirements.txt
+  - changed-files:
+      - any-glob-to-any-file:
+          - requirements.txt
+          - requirements-dev.txt
 
-enhancement:
-- "**"
+publishing:
+  - changed-files:
+      - any-glob-to-any-file:
+          - check_version.py
+          - setup.py
+          - MANIFEST.in
+          - setup.cfg
 
 github-actions:
-- ".github/**/*"
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/**/*"
 
 tests:
-- "appointment/tests/**/*"
+  - changed-files:
+      - any-glob-to-any-file:
+          - "appointment/tests/**/*"
 
 user-interface:
-- "appointment/templates/**/*"
-- "appointment/static/**/*"
+  - changed-files:
+      - any-glob-to-any-file:
+          - "appointment/templates/**/*"
+          - "appointment/static/**/*"
+
+feature:
+  - head-branch: [ '^feature', 'feature' ]
+
+bug:
+  - head-branch: [ '^bug', 'bug' ]
+
+fix:
+  - head-branch: [ '^fix', 'fix' ]
+
+bugfix:
+  - head-branch: [ '^bugfix', 'bugfix' ]
+
+chore:
+  - head-branch: [ '^chore', 'chore' ]
+
+maintenance:
+  - head-branch: [ '^maintenance', 'maintenance' ]
