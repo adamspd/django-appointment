@@ -1,4 +1,4 @@
-name-template: 'Release v${{ env.RELEASE_VERSION }}'
+name-template: 'v${{ env.RELEASE_VERSION }}'
 tag-template: 'v${{ env.RELEASE_VERSION }}'
 categories:
   - title: '🚀 Features'
@@ -37,24 +37,7 @@ categories:
   - title: '🔒 Security'
     labels:
       - 'security'
-      - 'vulnerability'
-      - 'vulnerabilities'
-      - 'security-fix'
       - 'security-fixes'
-      - 'security-update'
-      - 'security-updates'
-      - 'security-patch'
-      - 'security-patches'
-      - 'security-release'
-      - 'security-releases'
-      - 'security-issue'
-      - 'security-issues'
-      - 'security-bug'
-      - 'security-bugs'
-      - 'security-vulnerability'
-      - 'security-vulnerabilities'
-      - 'security-notice'
-      - 'security-notices'
     collapse-after: 3
   - title: '✨ Enhancement'
     collapse-after: 3

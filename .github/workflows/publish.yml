@@ -108,7 +108,7 @@ jobs:
         with:
           commitish: main
           tag: v${{ env.RELEASE_VERSION }}
-          name: Release ${{ env.RELEASE_VERSION }}
+          name: v${{ env.RELEASE_VERSION }}
           version: ${{ env.RELEASE_VERSION }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -121,7 +121,7 @@ jobs:
           RELEASE_VERSION: ${{ needs.prepare-and-check.outputs.version }}
         with:
           tag_name: v${{ env.RELEASE_VERSION }}
-          release_name: Release ${{ env.RELEASE_VERSION }}
+          release_name: v${{ env.RELEASE_VERSION }}
           body: ${{ steps.draft_release.outputs.body }}
           draft: false
           prerelease: false
