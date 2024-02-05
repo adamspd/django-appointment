@@ -56,7 +56,7 @@ categories:
       - 'security-notice'
       - 'security-notices'
     collapse-after: 3
-  - title: 'Enhancement'
+  - title: '✨ Enhancement'
     collapse-after: 3
 change-template: '- $TITLE by @$AUTHOR in (#$NUMBER)'
 change-title-escapes: '\<*_&'
