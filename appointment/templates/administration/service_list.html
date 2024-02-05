@@ -4,7 +4,9 @@
 {% block customCSS %}
     <link rel="stylesheet" type="text/css" href="{% static 'css/app_admin/btn.css' %}"/>
     <link rel="stylesheet" type="text/css" href="{% static 'css/app_admin/user_profile.css' %}"/>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+          integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+          crossorigin="anonymous" referrerpolicy="no-referrer"/>
 {% endblock %}
 {% block title %}
     {% trans 'Service List' %}
@@ -38,9 +40,9 @@
                                 <td>
                                     <div class="buttons-container">
                                         <a href="{% url 'appointment:view_service' service_id=service.id view=1 %}"
-                                               class="modify-btn button-color-green">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
+                                           class="modify-btn button-color-green">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
                                         {% translate "Are you sure you want to delete this service?" as d_modal_message %}
                                         {% if request.user.is_superuser %}
                                             <a href="{% url 'appointment:update_service' service_id=service.id %}"
