@@ -38,7 +38,7 @@ staff member, and payment type for the appointment.
 
 The appointment request is used to create the appointment. An appointment is considered having more information than
 that, and since we don't want to overload the appointment model, we use the appointment request to store all
-the information about the appointment. 
+the information about the appointment.
 [More details here](https://github.com/adamspd/django-appointment/blob/main/docs/models.md#appointmentrequest).
 
 ### Appointment
@@ -106,6 +106,24 @@ APPOINTMENT_LEAD_TIME = (9, 0)  # Start time of the appointment slots (in 24-hou
 APPOINTMENT_FINISH_TIME = (16, 30)  # End time of the appointment slots (in 24-hour format)
 ```
 
+For email reminders with Django Q, you can configure the following settings after adding `django_q` to
+your `INSTALLED_APPS`:
+
+```python
+Q_CLUSTER = {
+    'name': 'DjangORM',
+    'workers': 4,
+    'timeout': 90,
+    'retry': 120,
+    'queue_limit': 50,
+    'bulk': 10,
+    'orm': 'default',
+}
+```
+
+If those settings are not provided, the application won't send email reminders. You also have to
+run `python manage.py qcluster` to start the Django Q cluster.
+
 ### Django Default Settings Utilization:
 
 The application leverages some of the default settings from your Django project.
@@ -129,6 +147,7 @@ It has been replaced with a more flexible approach, allowing for custom user mod
 ```python
 from django.apps import apps
 from django.conf import settings
+
 
 def get_user_model():
     """
