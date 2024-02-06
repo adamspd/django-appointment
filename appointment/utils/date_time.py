@@ -14,6 +14,16 @@ from django.utils.translation import gettext_lazy as _, ngettext
 from appointment.settings import APP_TIME_ZONE
 
 
+def combine_date_and_time(date, time) -> datetime.datetime:
+    """Combine a date and a time into a datetime object.
+
+    :param date: The date.
+    :param time: The time.
+    :return: A datetime object.
+    """
+    return datetime.datetime.combine(date, time)
+
+
 def convert_12_hour_time_to_24_hour_time(time_to_convert) -> str:
     """Convert a 12-hour time to a 24-hour time.
 
@@ -95,7 +105,7 @@ def convert_str_to_time(time_str: str) -> datetime.time:
     :param time_str: A string representation of time.
     :return: A Python `time` object.
     """
-    formats = ["%I:%M %p", "%H:%M:%S",  "%H:%M"]
+    formats = ["%I:%M %p", "%H:%M:%S", "%H:%M"]
 
     for fmt in formats:
         try:

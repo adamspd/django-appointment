@@ -1,0 +1,19 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% translate 'Appointment Reminder' %}</title>
+</head>
+<body>
+    <h1>{% translate 'Appointment Reminder' %}</h1>
+    <p>{% translate 'Dear' %} {{ first_name }},</p>
+    <p>{% translate 'This is a reminder for your upcoming appointment' %}.</p>
+    <p>{% translate 'Service' %}: {{ appointment.get_service_name }}</p>
+    <p>{% translate 'Date' %}: {{ appointment.appointment_request.date }}</p>
+    <p>{% translate 'Time' %}: {{ appointment.appointment_request.start_time }}</p>
+    <p>{% translate 'Location' %}: {{ appointment.address }}</p>
+    <p>{% translate 'If you have any questions or need to reschedule, please contact us' %}.</p>
+    <p>{% translate 'Thank you for choosing us' %}!</p>
+</body>
+</html>

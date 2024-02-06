@@ -26,7 +26,7 @@ from appointment.utils.db_helpers import (
     day_off_exists_for_date_range, exclude_booked_slots, get_all_appointments, get_all_staff_members,
     get_appointment_by_id, get_appointments_for_date_and_time, get_staff_member_appointment_list,
     get_staff_member_from_user_id_or_logged_in, get_times_from_config, get_user_by_email,
-    get_working_hours_for_staff_and_day, parse_name, working_hours_exist)
+    get_working_hours_for_staff_and_day, parse_name, update_appointment_reminder, working_hours_exist)
 from appointment.utils.error_codes import ErrorCode
 from appointment.utils.json_context import convert_appointment_to_json, get_generic_context, json_response
 from appointment.utils.permissions import check_entity_ownership
@@ -326,6 +326,11 @@ def save_appointment(appt, client_name, client_email, start_time, phone_number, 
 
     # Modify and save appointment request details
     appt_request = appt.appointment_request
+
+    # Update reminder here
+    update_appointment_reminder(appointment=appt, new_date=appt_request.date, new_start_time=start_time,
+                                want_reminder=want_reminder)
+
     appt_request.service = service
     appt_request.start_time = start_time
     appt_request.end_time = end_time
@@ -366,6 +371,9 @@ def save_appt_date_time(appt_start_time, appt_date, appt_id):
         appt_date_obj = datetime.datetime.strptime(appt_date, "%Y-%m-%d").date()
     else:
         appt_date_obj = appt_date
+
+    # Update reminder here
+    update_appointment_reminder(appointment=appt, new_date=appt_date_obj, new_start_time=appt_start_time_obj)
 
     # Modify and save appointment request details
     appt_request = appt.appointment_request
