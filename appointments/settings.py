@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     'appointment.apps.AppointmentConfig',
+    'django_q',
 ]
 
 MIDDLEWARE = [
@@ -131,3 +132,28 @@ LANGUAGES = (
     ('es', _('Spanish')),
     ('fr', _('French')),
 )
+
+# Email settings
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = "awesome.email@django-appointment.com"
+EMAIL_HOST_PASSWORD = "very-insecure-password"
+EMAIL_USE_TLS = True
+EMAIL_SUBJECT_PREFIX = ""
+EMAIL_USE_LOCALTIME = True
+SERVER_EMAIL = EMAIL_HOST_USER
+
+ADMINS = [
+    ('Adams', "adamspd.developer@gmail.com"),
+]
+
+Q_CLUSTER = {
+    'name': 'DjangORM',
+    'workers': 4,
+    'timeout': 90,
+    'retry': 120,
+    'queue_limit': 50,
+    'bulk': 10,
+    'orm': 'default',
+}
