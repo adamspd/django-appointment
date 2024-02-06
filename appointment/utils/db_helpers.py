@@ -12,15 +12,17 @@ from urllib.parse import urlparse
 
 from django.apps import apps
 from django.conf import settings
-from django.contrib.auth.hashers import make_password
 from django.core.cache import cache
 from django.core.exceptions import FieldDoesNotExist
 from django.urls import reverse
+from django.utils import timezone
+from django_q.models import Schedule
+from django_q.tasks import schedule
 
 from appointment.logger_config import logger
-from appointment.settings import APPOINTMENT_SLOT_DURATION, APPOINTMENT_LEAD_TIME, APPOINTMENT_FINISH_TIME, \
-    APPOINTMENT_BUFFER_TIME, APPOINTMENT_WEBSITE_NAME, APPOINTMENT_PAYMENT_URL
-from appointment.utils.date_time import get_weekday_num, get_current_year
+from appointment.settings import (APPOINTMENT_BUFFER_TIME, APPOINTMENT_FINISH_TIME, APPOINTMENT_LEAD_TIME,
+                                  APPOINTMENT_PAYMENT_URL, APPOINTMENT_SLOT_DURATION, APPOINTMENT_WEBSITE_NAME)
+from appointment.utils.date_time import combine_date_and_time, get_current_year, get_weekday_num
 
 Appointment = apps.get_model('appointment', 'Appointment')
 AppointmentRequest = apps.get_model('appointment', 'AppointmentRequest')
@@ -100,8 +102,94 @@ def create_and_save_appointment(ar, client_data: dict, appointment_data: dict):
         **appointment_data
     )
     appointment.save()
-    logger.info(f"New appointment created: {appointment}")
+    logger.info(f"New appointment created: {appointment.to_dict()}")
+    schedule_email_reminder(appointment)
     return appointment
+
+
+def schedule_email_reminder(appointment, appointment_datetime=None):
+    """Schedule an email reminder for the given appointment."""
+    # Check if the Django-Q cluster is running
+    from appointment.settings import check_q_cluster
+    if not check_q_cluster():
+        logger.warning("Django-Q cluster is not running. Email reminder will not be scheduled.")
+        return
+
+    # Calculate reminder datetime if not provided
+    if appointment_datetime is None:
+        appointment_datetime = combine_date_and_time(appointment.appointment_request.date,
+                                                     appointment.appointment_request.start_time)
+    if timezone.is_naive(appointment_datetime):
+        appointment_datetime = timezone.make_aware(appointment_datetime)
+
+    reminder_datetime = appointment_datetime - datetime.timedelta(days=1)
+
+    logger.info(f"Scheduling email reminder for appointment {appointment.id} at {reminder_datetime}")
+
+    # Schedule the email reminder task with Django-Q
+    schedule('appointment.tasks.send_email_reminder',
+             to_email=appointment.client.email,
+             name=f"reminder_{appointment.id_request}",
+             first_name=appointment.client.first_name,
+             appointment_id=appointment.id,
+             schedule_type=Schedule.ONCE,  # Use Schedule.ONCE for a one-time task
+             next_run=reminder_datetime)
+
+
+def update_appointment_reminder(appointment, new_date, new_start_time, want_reminder=None):
+    """
+    Updates or cancels the appointment reminder based on changes to the start time or date,
+    and the user's preference for receiving a reminder.
+
+    :param appointment: The Appointment instance being updated.
+    :param new_date: The new date as a string (format: "YYYY-MM-DD").
+    :param new_start_time: The new start time as a string (format: "HH:MM").
+    :param want_reminder: Boolean indicating if a reminder is desired.
+    """
+    # Convert new date and time strings to datetime objects for comparison
+    new_datetime = combine_date_and_time(new_date, new_start_time)
+
+    existing_datetime = combine_date_and_time(appointment.appointment_request.date,
+                                              appointment.appointment_request.start_time)
+
+    # Ensure new_datetime is timezone-aware
+    if timezone.is_naive(new_datetime):
+        new_datetime = timezone.make_aware(new_datetime)
+
+    # Ensure existing_datetime is timezone-aware
+    if timezone.is_naive(existing_datetime):
+        existing_datetime = timezone.make_aware(existing_datetime)
+
+    # Determine if there's been a change in the datetime or the reminder preference
+    want_reminder = want_reminder if want_reminder is not None else appointment.want_reminder
+    datetime_changed = new_datetime != existing_datetime
+    reminder_preference_changed = appointment.want_reminder != want_reminder
+
+    if datetime_changed or reminder_preference_changed:
+        # Cancel any existing reminder
+        cancel_existing_reminder(appointment.id_request)
+
+        # If a reminder is still desired and the appointment is in the future, schedule a new one
+        if want_reminder and new_datetime > timezone.now():
+            schedule_email_reminder(appointment, new_datetime)
+        else:
+            logger.info(
+                f"Reminder for appointment {appointment.id} is not scheduled per user's preference or past datetime.")
+
+    # Update the appointment's reminder preference
+    appointment.want_reminder = want_reminder
+    appointment.save()
+
+
+def cancel_existing_reminder(appointment_id_request):
+    """
+    Cancels any existing reminder for the appointment.
+    Placeholder function - implement based on your scheduling mechanism.
+    """
+    # Example: Delete existing scheduled tasks for this appointment
+    # This is highly dependent on how reminders are implemented and stored
+    task_name = f"reminder_{appointment_id_request}"
+    Schedule.objects.filter(name=task_name).delete()
 
 
 def generate_unique_username_from_email(email: str) -> str:
