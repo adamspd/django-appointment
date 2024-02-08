@@ -1,8 +1,12 @@
-from django.test import TestCase
+# test_tasks.py
+# Path: appointment/tests/test_tasks.py
+
 from unittest.mock import patch
+
+from django.utils.translation import gettext as _
+
 from appointment.tasks import send_email_reminder
 from appointment.tests.base.base_test import BaseTest
-from django.utils.translation import gettext as _
 
 
 class SendEmailReminderTest(BaseTest):

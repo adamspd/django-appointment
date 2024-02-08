@@ -1,15 +1,13 @@
+# test_json_context.py
+# Path: appointment/tests/utils/test_json_context.py
+
 import json
 
 from django.test import RequestFactory
 
 from appointment.tests.base.base_test import BaseTest
-from appointment.utils.json_context import (
-    convert_appointment_to_json,
-    json_response,
-    get_generic_context,
-    get_generic_context_with_extra,
-    handle_unauthorized_response
-)
+from appointment.utils.json_context import (convert_appointment_to_json, get_generic_context,
+                                            get_generic_context_with_extra, handle_unauthorized_response, json_response)
 
 
 class JsonContextTests(BaseTest):
