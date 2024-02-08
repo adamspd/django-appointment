@@ -1,4 +1,4 @@
-Django==4.2.8
+Django==4.2.10
 Pillow==10.2.0
 phonenumbers==8.13.29
 django-phonenumber-field==7.3.0
