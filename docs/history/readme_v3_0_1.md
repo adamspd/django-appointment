@@ -14,22 +14,20 @@
 ⚠️ **IMPORTANT**: If upgrading from a version before 2.x.x, please note significant database changes were introduced in
 Version 2.0.0 introduces significant database changes. Please read
 the [migration guide](https://github.com/adamspd/django-appointment/tree/main/docs/migration_guides/v2_1_0.md) before
-updating. Version 3.1.0 introduces the ability to send email reminders for appointments using Django Q for efficient
-task scheduling.
+updating. No database changes were introduced in version 3.0.1.
 
 Django-Appointment is a Django app engineered for managing appointment scheduling with ease and flexibility. It enables
 users to define custom configurations for time slots, lead time, and finish time, or utilize the default values
 provided. This app proficiently manages conflicts and availability for appointments, ensuring a seamless user
 experience.
 
-For a detailed walkthrough and live example of the system, please refer to
+For a detailed walkthrough and live example of the system, please refer to 
 [this tutorial](https://github.com/adamspd/django-appointment/tree/main/docs/explanation.md).
 
 Detailed documentation can be found in
 the [docs' directory](https://github.com/adamspd/django-appointment/tree/main/docs/README.md).
-For changes and migration information, please refer to the release
-notes [here](https://github.com/adamspd/django-appointment/releases)
-and [here](https://github.com/adamspd/django-appointment/tree/main/docs/release_notes).
+For changes and migration information, please refer to the [release
+notes](https://github.com/adamspd/django-appointment/tree/main/docs/release_notes/latest.md).
 
 ## Features ✨
 
@@ -38,19 +36,50 @@ and [here](https://github.com/adamspd/django-appointment/tree/main/docs/release_
 3. Seamless integration with the Django admin interface for appointment management.
 4. Custom admin interface for managing appointment/staff member editing, creation, availability, and conflicts.
 5. User-friendly interface for viewing available time slots and scheduling appointments.
-6. Capability to send email notifications to clients upon scheduling an appointment and email reminders for
-   appointments, leveraging Django Q for task scheduling and efficiency.
+6. Capability to send email notifications to clients upon scheduling an appointment.
 
 ## Key features introduced in previous versions.
 
 - For more information, please refer to
-  this [documentation](https://github.com/adamspd/django-appointment/tree/main/docs/history).
+  this [documentation](https://github.com/adamspd/django-appointment/tree/main/docs/history/readme_v2_1_1.md).
 
-## Added Features and Bug Fixes in version 3.1.0
+## Added Features in version 3.0.1
 
-See the [release notes](https://github.com/adamspd/django-appointment/releases/tag/v3.1.0).
-For older version,
-see their [release notes](https://github.com/adamspd/django-appointment/tree/main/docs/release_notes).
+This release of Django Appointment brings a series of improvements and updates aimed at enhancing the overall
+functionality and user experience:
+
+1. **Dynamic Appointment Management (#49, #55)**
+
+2. **User Interface Enhancements and JavaScript Refactoring (#55)**
+
+3. **Dynamic Label Customization in Appointment Pages (#19)**
+
+4. **Updated Documentation and Workflow Enhancements (#25, #26, #27)**
+
+5. **Community Engagement and Standards (#21, #22, #23, #24)**
+
+6. **Library Updates and Security Patches (#14, #15, #18)**
+
+7. **Enhanced Project Visibility (#16)**
+
+8. **Translation Refinements (#31)**
+
+9. **Bug Fixes (#48)**
+
+See more at the [release notes](https://github.com/adamspd/django-appointment/tree/main/docs/release_notes/latest.md).
+
+These updates collectively contribute to the robustness and versatility of the Django Appointment package, aligning with
+our commitment to providing a high-quality and user-friendly appointment management solution.
+
+### Bug Fixes 🆕
+
+See the [release notes](https://github.com/adamspd/django-appointment/tree/main/docs/release_notes/latest.md)
+for more information.
+
+### Breaking Changes in version 3.0.1:
+
+See the [release notes](https://github.com/adamspd/django-appointment/tree/main/docs/release_notes/latest.md) for more
+  information.
 
 ## Quick Start 🚀
 
@@ -60,7 +89,6 @@ see their [release notes](https://github.com/adamspd/django-appointment/tree/mai
    INSTALLED_APPS = [
        # other apps
        'appointment',
-       'django_q',
    ]
    ```
 
@@ -74,6 +102,7 @@ see their [release notes](https://github.com/adamspd/django-appointment/tree/mai
        path('appointment/', include('appointment.urls')),
    ]
    ```
+
 3. In your Django's `settings.py`, append the following:
 
    ```python
@@ -117,67 +146,11 @@ see their [release notes](https://github.com/adamspd/django-appointment/tree/mai
    <p>® 2023 {{ APPOINTMENT_WEBSITE_NAME }}. All Rights Reserved.</p>
    ```
 
-   Configure `Q_CLUSTER` in your Django's `settings.py` to enable Django Q task scheduling:
-   ```python
-      Q_CLUSTER = {
-        'name': 'DjangORM',
-        'workers': 4,
-        'timeout': 90,
-        'retry': 120,
-        'queue_limit': 50,
-        'bulk': 10,
-        'orm': 'default',
-      }
-    ```
-
-4. Run `python manage.py migrate` to create the appointment models.
-
-5. Start the Django Q cluster with `python manage.py qcluster`.
-
-6. Launch the development server and navigate to http://127.0.0.1:8000/admin/ to create appointments, manage
+4. Execute `python manage.py migrate` to create the appointment models.
+5. Launch the development server and navigate to http://127.0.0.1:8000/admin/ to create appointments, manage
    configurations, and handle appointment conflicts (the Admin app must be enabled).
-7. You must create at least one service before using the application on the admin page. If your service is free, input 0
+6. You must create at least one service before using the application on the admin page. If your service is free, input 0
    as the price. If your service is paid, input the price in the price field. You may also provide a description for
    your service.
-8. Visit http://127.0.0.1:8000/appointment/request/<service_id>/ to view the available time slots and schedule an
+7. Visit http://127.0.0.1:8000/appointment/request/<service_id>/ to view the available time slots and schedule an
    appointment.
-
-## Customization 🔧
-
-1. In your Django project's `settings.py`, you can override the default values for the appointment scheduler. More
-   information regarding available configurations can be found in
-   the [documentation](https://github.com/adamspd/django-appointment/tree/main/docs/README.md#configuration).
-2. Modify these values as needed for your application, and the app will adapt to the new settings.
-3. For further customization, you can extend the provided models, views, and templates or create your own.
-
-## Support 💬
-
-For support or inquiries regarding the Appointment Scheduler app, please refer to the documentation in the "docs"
-directory or visit the GitHub repository for more information.
-
-## Contributing 🤝
-
-Contributions are welcome! Please refer to
-the [contributing guidelines](https://github.com/adamspd/django-appointment/tree/main/CONTRIBUTING.md) for more
-information.
-
-## Code of Conduct 📜
-
-Please refer to the [code of conduct](https://github.com/adamspd/django-appointment/tree/main/CODE_OF_CONDUCT.md) for
-more information.
-
-## Security policy 🔒
-
-Please refer to the [security policy](https://github.com/adamspd/django-appointment/tree/main/SECURITY.md) for more
-information.
-
-## Notes 📝⚠️
-
-I'm working on a testing website for the application
-that is not fully functional yet, no hard feelings. But you can check it out
-at [https://django-appt.adamspierredavid.com/](https://django-appt.adamspierredavid.com/). Ideas are welcome here since
-I'm blocked on a few points.
-
-## About the Author
-
-Adams Pierre David - [Website](https://adamspierredavid.com/)

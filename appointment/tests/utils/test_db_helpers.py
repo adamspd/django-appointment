@@ -2,37 +2,35 @@
 # Path: appointment/tests/utils/test_db_helpers.py
 
 import datetime
-from unittest.mock import patch, ANY
+from unittest.mock import patch
 
 from django.apps import apps
 from django.conf import settings
-from django.contrib.auth.hashers import make_password
 from django.core.cache import cache
-from django.core.exceptions import FieldDoesNotExist
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
+from django_q.models import Schedule
 
 from appointment.models import DayOff, PaymentInfo
 from appointment.tests.base.base_test import BaseTest
 from appointment.utils.date_time import get_current_year
-from appointment.utils.db_helpers import (calculate_slots, check_day_off_for_staff, create_and_save_appointment,
-                                          create_payment_info_and_get_url, exclude_booked_slots,
-                                          day_off_exists_for_date_range, get_all_staff_members,
-                                          get_all_appointments, Config, get_appointment_buffer_time,
-                                          get_appointment_by_id, get_appointment_finish_time,
-                                          get_appointment_lead_time, get_appointment_slot_duration,
-                                          get_appointments_for_date_and_time, get_config,
-                                          get_day_off_by_id, WorkingHours, get_non_working_days_for_staff,
-                                          get_staff_member_appointment_list,
-                                          get_weekday_num_from_date, get_staff_member_start_time,
-                                          get_staff_member_end_time, get_staff_member_buffer_time,
-                                          get_staff_member_slot_duration, get_user_by_email, get_user_model,
-                                          get_staff_member_from_user_id_or_logged_in,
-                                          get_staff_member_by_user_id, working_hours_exist, is_working_day,
-                                          get_working_hours_for_staff_and_day,
-                                          get_working_hours_by_id, get_website_name, get_times_from_config,
-                                          create_new_user, generate_unique_username_from_email, parse_name,
-                                          create_user_with_email, create_user_with_username)
+from appointment.utils.db_helpers import (Config, WorkingHours, calculate_slots, cancel_existing_reminder,
+                                          check_day_off_for_staff, create_and_save_appointment, create_new_user,
+                                          create_payment_info_and_get_url, day_off_exists_for_date_range,
+                                          exclude_booked_slots, generate_unique_username_from_email,
+                                          get_all_appointments, get_all_staff_members, get_appointment_buffer_time,
+                                          get_appointment_by_id, get_appointment_finish_time, get_appointment_lead_time,
+                                          get_appointment_slot_duration, get_appointments_for_date_and_time, get_config,
+                                          get_day_off_by_id, get_non_working_days_for_staff,
+                                          get_staff_member_appointment_list, get_staff_member_buffer_time,
+                                          get_staff_member_by_user_id, get_staff_member_end_time,
+                                          get_staff_member_from_user_id_or_logged_in, get_staff_member_slot_duration,
+                                          get_staff_member_start_time, get_times_from_config, get_user_by_email,
+                                          get_user_model, get_website_name, get_weekday_num_from_date,
+                                          get_working_hours_by_id, get_working_hours_for_staff_and_day, is_working_day,
+                                          parse_name, schedule_email_reminder, update_appointment_reminder,
+                                          working_hours_exist)
 
 
 class TestCalculateSlots(TestCase):
@@ -147,6 +145,59 @@ def get_mock_reverse(url_name, **kwargs):
     if url_name == "app:view":
         return f'/mocked-url/{kwargs["kwargs"]["object_id"]}/{kwargs["kwargs"]["id_request"]}/'
     return reverse(url_name, **kwargs)
+
+
+class ScheduleEmailReminderTest(BaseTest):
+    def test_schedule_email_reminder_cluster_running(self):
+        appointment = self.create_appointment_for_user1()
+        with patch('appointment.settings.check_q_cluster', return_value=True), \
+                patch('appointment.utils.db_helpers.schedule') as mock_schedule:
+            schedule_email_reminder(appointment)
+            mock_schedule.assert_called_once()
+            # Further assertions can be made here based on the arguments passed to schedule
+
+    def test_schedule_email_reminder_cluster_not_running(self):
+        appointment = self.create_appointment_for_user2()
+        with patch('appointment.settings.check_q_cluster', return_value=False), \
+                patch('appointment.utils.db_helpers.logger') as mock_logger:
+            schedule_email_reminder(appointment)
+            mock_logger.warning.assert_called_with(
+                "Django-Q cluster is not running. Email reminder will not be scheduled.")
+
+
+class UpdateAppointmentReminderTest(BaseTest):
+    def test_update_appointment_reminder_date_time_changed(self):
+        appointment = self.create_appointment_for_user1()
+        new_date = timezone.now().date() + timezone.timedelta(days=10)
+        new_start_time = timezone.now().time()
+
+        with patch('appointment.utils.db_helpers.schedule_email_reminder') as mock_schedule_email_reminder, \
+                patch('appointment.utils.db_helpers.cancel_existing_reminder') as mock_cancel_existing_reminder:
+            update_appointment_reminder(appointment, new_date, new_start_time, True)
+            mock_cancel_existing_reminder.assert_called_once_with(appointment.id_request)
+            mock_schedule_email_reminder.assert_called_once()
+
+    def test_update_appointment_reminder_no_change(self):
+        appointment = self.create_appointment_for_user2()
+        # Use existing date and time
+        new_date = appointment.appointment_request.date
+        new_start_time = appointment.appointment_request.start_time
+
+        with patch('appointment.utils.db_helpers.schedule_email_reminder') as mock_schedule_email_reminder, \
+                patch('appointment.utils.db_helpers.cancel_existing_reminder') as mock_cancel_existing_reminder:
+            update_appointment_reminder(appointment, new_date, new_start_time, appointment.want_reminder)
+            mock_cancel_existing_reminder.assert_not_called()
+            mock_schedule_email_reminder.assert_not_called()
+
+
+class CancelExistingReminderTest(BaseTest):
+    def test_cancel_existing_reminder(self):
+        appointment = self.create_appointment_for_user1()
+        Schedule.objects.create(func='appointment.tasks.send_email_reminder', name=f"reminder_{appointment.id_request}")
+
+        self.assertEqual(Schedule.objects.count(), 1)
+        cancel_existing_reminder(appointment.id_request)
+        self.assertEqual(Schedule.objects.filter(name=f"reminder_{appointment.id_request}").count(), 0)
 
 
 class TestCreatePaymentInfoAndGetUrl(BaseTest):
@@ -786,4 +837,3 @@ class CreateNewUserTest(TestCase):
         user = create_new_user(client_data)
         password = f"{get_website_name()}{get_current_year()}"
         self.assertTrue(user.check_password(password))
-

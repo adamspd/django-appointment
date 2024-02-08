@@ -63,7 +63,7 @@ def get_available_slots_ajax(request):
         custom_data['error'] = False
         message = _('No staff member selected')
         return json_response(message=message, custom_data=custom_data, success=False,
-                             error_code=ErrorCode.STAFF_ID_REQUIRED)
+                             error_code=ErrorCode.STAFF_ID_REQUIRED, status=403)
 
     sm = get_object_or_404(StaffMember, pk=staff_id)
     custom_data['staff_member'] = sm.get_staff_member_name()

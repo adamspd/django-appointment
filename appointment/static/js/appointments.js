@@ -180,9 +180,28 @@ function formatTime(date) {
 }
 
 function getAvailableSlots(selectedDate, staffId = null) {
-    // Send an AJAX request to get the available slots for the selected date
-    if (staffId === null) {
-        return;
+    // Update the slot list with the available slots for the selected date
+    const slotList = $('#slot-list');
+    const slotContainer = $('.slot-container');
+    const errorMessageContainer = $('.error-message');
+
+    // Clear previous error messages and slots
+    slotList.empty();
+    errorMessageContainer.find('.djangoAppt_no-availability-text').remove();
+
+    // Remove the "Next available date" message
+    nextAvailableDateSelector = $('.djangoAppt_next-available-date'); // Update the selector
+    nextAvailableDateSelector.remove();
+
+    // Correctly check if staffId is 'none', null, or undefined and exit the function if true
+    // Check if staffId is 'none', null, or undefined and display an error message
+    if (staffId === 'none' || staffId === null || staffId === undefined) {
+        console.log('No staff ID provided, displaying error message.');
+        const errorMessage = $('<p class="djangoAppt_no-availability-text">'+ noStaffMemberSelectedTxt + '</p>');
+        errorMessageContainer.append(errorMessage);
+        // Optionally disable the submit button here
+        $('.btn-submit-appointment').attr('disabled', 'disabled');
+        return; // Exit the function early
     }
 
     let ajaxData = {
@@ -200,20 +219,13 @@ function getAvailableSlots(selectedDate, staffId = null) {
             console.error('Failed to get non-working days:', nonWorkingDays);
         }
     });
+
+    // Send an AJAX request to get the available slots for the selected date
     $.ajax({
         url: availableSlotsAjaxURL,
         data: ajaxData,
         dataType: 'json',
         success: function (data) {
-            // Update the slot list with the available slots for the selected date
-            const slotList = $('#slot-list');
-            slotList.empty();
-            const slotContainer = $('.slot-container');
-            // Remove the "Next available date" message
-            nextAvailableDateSelector = $('.djangoAppt_next-available-date'); // Update the selector
-            nextAvailableDateSelector.remove();
-            const errorMessageContainer = $('.error-message');
-
             if (data.available_slots.length === 0) {
                 const selectedDateObj = moment.tz(selectedDate, timezone);
                 const selectedD = selectedDateObj.toDate();
@@ -221,7 +233,6 @@ function getAvailableSlots(selectedDate, staffId = null) {
                 today.setHours(0, 0, 0, 0);
 
                 if (selectedD < today) {
-                    errorMessageContainer.find('.djangoAppt_no-availability-text').remove();
                     // Show an error message
                     errorMessageContainer.append('<p class="djangoAppt_no-availability-text">Date is in the past.</p>');
                     if (slotContainer.find('.djangoAppt_btn-request-next-slot').length === 0) {
