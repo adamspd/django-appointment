@@ -1,3 +1,6 @@
+# test_availability_slot.py
+# Path: appointment/tests/test_availability_slot.py
+
 from datetime import date, time, timedelta
 
 from django.test import TestCase

@@ -2,13 +2,11 @@
 # Path: appointment/tests/utils/test_db_helpers.py
 
 import datetime
-from unittest.mock import patch, ANY
+from unittest.mock import patch
 
 from django.apps import apps
 from django.conf import settings
-from django.contrib.auth.hashers import make_password
 from django.core.cache import cache
-from django.core.exceptions import FieldDoesNotExist
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -17,27 +15,22 @@ from django_q.models import Schedule
 from appointment.models import DayOff, PaymentInfo
 from appointment.tests.base.base_test import BaseTest
 from appointment.utils.date_time import get_current_year
-from appointment.utils.db_helpers import (calculate_slots, cancel_existing_reminder, check_day_off_for_staff,
-                                          create_and_save_appointment,
-                                          create_payment_info_and_get_url, exclude_booked_slots,
-                                          day_off_exists_for_date_range, get_all_staff_members,
-                                          get_all_appointments, Config, get_appointment_buffer_time,
-                                          get_appointment_by_id, get_appointment_finish_time,
-                                          get_appointment_lead_time, get_appointment_slot_duration,
-                                          get_appointments_for_date_and_time, get_config,
-                                          get_day_off_by_id, WorkingHours, get_non_working_days_for_staff,
-                                          get_staff_member_appointment_list,
-                                          get_weekday_num_from_date, get_staff_member_start_time,
-                                          get_staff_member_end_time, get_staff_member_buffer_time,
-                                          get_staff_member_slot_duration, get_user_by_email, get_user_model,
-                                          get_staff_member_from_user_id_or_logged_in,
-                                          get_staff_member_by_user_id, schedule_email_reminder,
-                                          update_appointment_reminder, working_hours_exist,
-                                          is_working_day,
-                                          get_working_hours_for_staff_and_day,
-                                          get_working_hours_by_id, get_website_name, get_times_from_config,
-                                          create_new_user, generate_unique_username_from_email, parse_name,
-                                          create_user_with_email, create_user_with_username)
+from appointment.utils.db_helpers import (Config, WorkingHours, calculate_slots, cancel_existing_reminder,
+                                          check_day_off_for_staff, create_and_save_appointment, create_new_user,
+                                          create_payment_info_and_get_url, day_off_exists_for_date_range,
+                                          exclude_booked_slots, generate_unique_username_from_email,
+                                          get_all_appointments, get_all_staff_members, get_appointment_buffer_time,
+                                          get_appointment_by_id, get_appointment_finish_time, get_appointment_lead_time,
+                                          get_appointment_slot_duration, get_appointments_for_date_and_time, get_config,
+                                          get_day_off_by_id, get_non_working_days_for_staff,
+                                          get_staff_member_appointment_list, get_staff_member_buffer_time,
+                                          get_staff_member_by_user_id, get_staff_member_end_time,
+                                          get_staff_member_from_user_id_or_logged_in, get_staff_member_slot_duration,
+                                          get_staff_member_start_time, get_times_from_config, get_user_by_email,
+                                          get_user_model, get_website_name, get_weekday_num_from_date,
+                                          get_working_hours_by_id, get_working_hours_for_staff_and_day, is_working_day,
+                                          parse_name, schedule_email_reminder, update_appointment_reminder,
+                                          working_hours_exist)
 
 
 class TestCalculateSlots(TestCase):
