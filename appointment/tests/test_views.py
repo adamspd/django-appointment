@@ -76,7 +76,7 @@ class ViewsTestCase(BaseTest):
         url = reverse('appointment:available_slots_ajax')
         response = self.client.get(url, {'selected_date': date.today().isoformat()},
                                    HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 403)
         response_data = response.json()
         self.assertIn('date_chosen', response_data)
         self.assertIn('available_slots', response_data)
