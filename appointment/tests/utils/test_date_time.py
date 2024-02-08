@@ -1,12 +1,15 @@
+# test_date_time.py
+# Path: appointment/tests/utils/test_date_time.py
+
 import datetime
 from unittest.mock import Mock, patch
 
 from django.test import TestCase
 
 from appointment.settings import APP_TIME_ZONE
-from appointment.utils.date_time import convert_12_hour_time_to_24_hour_time, \
-    convert_str_to_date, convert_str_to_time, get_ar_end_time, time_difference, get_timezone, get_current_year, \
-    get_weekday_num, get_timestamp, convert_minutes_in_human_readable_format
+from appointment.utils.date_time import convert_12_hour_time_to_24_hour_time, convert_minutes_in_human_readable_format, \
+    convert_str_to_date, convert_str_to_time, get_ar_end_time, get_current_year, get_timestamp, get_timezone, \
+    get_weekday_num, time_difference
 
 
 class Convert12HourTo24HourTimeTests(TestCase):

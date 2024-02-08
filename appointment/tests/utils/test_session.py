@@ -1,3 +1,6 @@
+# test_session.py
+# Path: appointment/tests/utils/test_session.py
+
 from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import Client
