@@ -197,7 +197,7 @@ function getAvailableSlots(selectedDate, staffId = null) {
     // Check if staffId is 'none', null, or undefined and display an error message
     if (staffId === 'none' || staffId === null || staffId === undefined) {
         console.log('No staff ID provided, displaying error message.');
-        const errorMessage = $('<p class="djangoAppt_no-availability-text">'+ noStaffMemberSelected + '</p>');
+        const errorMessage = $('<p class="djangoAppt_no-availability-text">'+ noStaffMemberSelectedTxt + '</p>');
         errorMessageContainer.append(errorMessage);
         // Optionally disable the submit button here
         $('.btn-submit-appointment').attr('disabled', 'disabled');
