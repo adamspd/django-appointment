@@ -6,13 +6,15 @@ from django.apps import apps
 from django.conf import settings
 from django.http import HttpRequest
 from django.test import TestCase
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from appointment.models import Appointment, AppointmentRequest, Config, Service, StaffMember
 from appointment.services import get_available_slots, get_finish_button_text
 from appointment.settings import APPOINTMENT_BUFFER_TIME, APPOINTMENT_FINISH_TIME, APPOINTMENT_LEAD_TIME, \
     APPOINTMENT_SLOT_DURATION, APPOINTMENT_WEBSITE_NAME
-from appointment.utils.date_time import convert_str_to_date, get_current_year, get_timestamp, get_timezone
+from appointment.utils.date_time import combine_date_and_time, convert_str_to_date, get_current_year, get_timestamp, \
+    get_timezone
 from appointment.utils.db_helpers import get_appointment_buffer_time, get_appointment_finish_time, \
     get_appointment_lead_time, get_appointment_slot_duration, get_user_model, get_website_name
 from appointment.utils.view_helpers import generate_random_id, get_locale, is_ajax
@@ -204,3 +206,43 @@ class UtilityTestCase(TestCase):
     def test_get_client_model(self):
         client_model = get_user_model()
         self.assertEqual(client_model, apps.get_model(settings.AUTH_USER_MODEL))
+
+
+class UtilityDateTimeTestCase(TestCase):
+    def test_combine_date_and_time_success(self):
+        """
+        Test combining a date and time into a datetime object successfully.
+        """
+        date = datetime.date(2024, 2, 5)
+        time = datetime.time(14, 30)
+        expected_datetime = datetime.datetime(2024, 2, 5, 14, 30)
+        combined_datetime = combine_date_and_time(date, time)
+        self.assertEqual(combined_datetime, expected_datetime)
+
+    def test_combine_date_and_time_with_timezone(self):
+        """
+        Test combining a date and time into a timezone-aware datetime object.
+        """
+        date = datetime.date(2024, 2, 5)
+        time = datetime.time(14, 30, tzinfo=timezone.utc)
+        combined_datetime = combine_date_and_time(date, time)
+        self.assertTrue(timezone.is_aware(combined_datetime), "The datetime object is not timezone-aware.")
+        self.assertEqual(combined_datetime.tzinfo, timezone.utc)
+
+    def test_combine_date_and_time_with_invalid_date(self):
+        """
+        Test handling of invalid date input.
+        """
+        date = "2024-02-05"  # Incorrect type. It should be datetime.date
+        time = datetime.time(14, 30)
+        with self.assertRaises(TypeError, msg="Expected TypeError when combining with invalid date type"):
+            combine_date_and_time(date, time)
+
+    def test_combine_date_and_time_with_invalid_time(self):
+        """
+        Test handling of invalid time input.
+        """
+        date = datetime.date(2024, 2, 5)
+        time = "14:30"  # Incorrect type. It should be datetime.time
+        with self.assertRaises(TypeError, msg="Expected TypeError when combining with invalid time type"):
+            combine_date_and_time(date, time)
