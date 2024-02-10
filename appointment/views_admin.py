@@ -239,7 +239,7 @@ def fetch_service_list_for_staff(request):
             # Ensure the staff member is associated with this appointment
             if not Appointment.objects.filter(id=appointment_id,
                                               appointment_request__staff_member=staff_member).exists():
-                return json_response(_("You do not have permission to access this appointment."), status_code=403)
+                return handle_unauthorized_response(request, _("You do not have permission to access this appointment."), response_type='html')
     else:
         # Fetch all services for the staff member (create mode)
         try:
@@ -346,7 +346,7 @@ def update_personal_info(request, staff_user_id=None):
         'email': user.email,
     }, user=user)
 
-    context = get_generic_context_with_extra(request=request, extra={'form': form})
+    context = get_generic_context_with_extra(request=request, extra={'form': form, 'btn_text': _("Update")})
     return render(request, 'administration/manage_staff_personal_info.html', context)
 
 
@@ -386,7 +386,7 @@ def create_new_staff_member(request):
             return redirect('appointment:add_staff_member_personal_info')
 
     form = PersonalInformationForm()
-    context = get_generic_context_with_extra(request=request, extra={'form': form})
+    context = get_generic_context_with_extra(request=request, extra={'form': form, 'btn_text': _("Create")})
     return render(request, 'administration/manage_staff_personal_info.html', context=context)
 
 
@@ -491,6 +491,9 @@ def get_service_list(request, response_type='html'):
 @require_staff_or_superuser
 def delete_appointment(request, appointment_id):
     appointment = get_object_or_404(Appointment, pk=appointment_id)
+    if not check_extensive_permissions(appointment.get_staff_member().user_id, request.user, appointment):
+        message = _("You can only delete your own appointments.")
+        return handle_unauthorized_response(request, message, 'html')
     appointment.delete()
     messages.success(request, _("Appointment deleted successfully!"))
     return redirect('appointment:get_user_appointments')
@@ -502,6 +505,9 @@ def delete_appointment_ajax(request):
     data = json.loads(request.body)
     appointment_id = data.get("appointment_id")
     appointment = get_object_or_404(Appointment, pk=appointment_id)
+    if not check_extensive_permissions(appointment.get_staff_member().user_id, request.user, appointment):
+        message = _("You can only delete your own appointments.")
+        return json_response(message, status=403, success=False, error_code=ErrorCode.NOT_AUTHORIZED)
     appointment.delete()
     return json_response(_("Appointment deleted successfully."))
 
