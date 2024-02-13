@@ -234,6 +234,7 @@ def appointment_request_submit(request):
                     f"date_f {form.cleaned_data['date']} start_time {form.cleaned_data['start_time']} end_time "
                     f"{form.cleaned_data['end_time']} service {form.cleaned_data['service']} staff {staff_member}")
                 ar = form.save()
+                request.session[f'appointment_completed_{ar.id_request}'] = False
                 # Redirect the user to the account creation page
                 return redirect('appointment:appointment_client_information', appointment_request_id=ar.id,
                                 id_request=ar.id_request)
@@ -331,6 +332,9 @@ def appointment_client_information(request, appointment_request_id, id_request):
     :return: The rendered HTML page.
     """
     ar = get_object_or_404(AppointmentRequest, pk=appointment_request_id)
+    if request.session.get(f'appointment_submitted_{id_request}', False):
+        context = get_generic_context_with_extra(request, {'service_id': ar.service_id}, admin=False)
+        return render(request, 'error_pages/304_already_submitted.html', context=context)
 
     if request.method == 'POST':
         appointment_form = AppointmentForm(request.POST)
@@ -351,6 +355,7 @@ def appointment_client_information(request, appointment_request_id, id_request):
 
             # Create a new appointment
             response = create_appointment(request, ar, client_data, appointment_data)
+            request.session.setdefault(f'appointment_submitted_{id_request}', True)
             return response
     else:
         appointment_form = AppointmentForm()
@@ -359,6 +364,7 @@ def appointment_client_information(request, appointment_request_id, id_request):
         'ar': ar,
         'APPOINTMENT_PAYMENT_URL': APPOINTMENT_PAYMENT_URL,
         'form': appointment_form,
+        'service_name': ar.service.name,
     }
     context = get_generic_context_with_extra(request, extra_context, admin=False)
     return render(request, 'appointment/appointment_client_information.html', context=context)
