@@ -5,14 +5,12 @@
     <link rel="stylesheet" type="text/css" href="{% static 'css/appointments-user-details.css' %}"/>
 {% endblock %}
 {% block title %}
-    {% blocktranslate %}
-        Client Information - {{ ar.get_service_name }}
-    {% endblocktranslate %}
+    {% translate 'Client Information' %} - {{ ar.get_service_name }}
 {% endblock %}
 {% block description %}
-    {% blocktranslate %}
-        Your appointment request for {{ ar.get_service_name }} has been submitted. Please provide your information to
-        create an account and complete the payment process.
+    {% blocktranslate with service_name=ar.get_service_name %}
+        Your appointment request for {{ service_name }} has been submitted.
+        Please provide your information to create an account and complete the payment process.
     {% endblocktranslate %}
 {% endblock %}
 {% block body %}
@@ -162,7 +160,7 @@
                 // Check if all required fields are filled
                 const allFieldsFilled = requiredFields.every(field => field.value.trim() !== '');
 
-                // Enable or disable the submit buttons based on whether all fields are filled
+                // Enable or disable the 'submit' buttons based on whether all fields are filled
                 submitButtons.forEach(button => button.disabled = !allFieldsFilled);
             });
         });
