@@ -78,7 +78,8 @@ def handle_unauthorized_response(request, message, response_type):
     # If not 'json', handle as HTML response by default.
     context = {
         'message': message,
-        'back_url': reverse('appointment:user_profile')
+        'back_url': reverse('appointment:user_profile'),
+        'BASE_TEMPLATE': APPOINTMENT_BASE_TEMPLATE,
     }
     # set return code to 403
     return render(request, 'error_pages/403_forbidden.html', context=context, status=403)

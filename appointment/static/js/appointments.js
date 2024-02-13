@@ -199,7 +199,7 @@ function getAvailableSlots(selectedDate, staffId = null) {
         console.log('No staff ID provided, displaying error message.');
         const errorMessage = $('<p class="djangoAppt_no-availability-text">'+ noStaffMemberSelectedTxt + '</p>');
         errorMessageContainer.append(errorMessage);
-        // Optionally disable the submit button here
+        // Optionally disable the "submit" button here
         $('.btn-submit-appointment').attr('disabled', 'disabled');
         return; // Exit the function early
     }
