@@ -14,6 +14,9 @@ from pathlib import Path
 
 from django.conf import locale
 from django.utils.translation import gettext_lazy as _
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -137,8 +140,8 @@ LANGUAGES = (
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
-EMAIL_HOST_USER = "awesome.email@django-appointment.com"
-EMAIL_HOST_PASSWORD = "very-insecure-password"
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', default="")
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', default="")
 EMAIL_USE_TLS = True
 EMAIL_SUBJECT_PREFIX = ""
 EMAIL_USE_LOCALTIME = True
