@@ -7,3 +7,4 @@ setuptools==69.1.0
 pytz~=2024.1
 requests~=2.31.0
 django-q2==1.6.1
+python-dotenv==1.0.1
