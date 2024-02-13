@@ -77,7 +77,7 @@ body.on('click', '.btn-submit-appointment', function () {
     const selectedSlot = $('.djangoAppt_appointment-slot.selected').text();
     const selectedDate = $('.djangoAppt_date_chosen').text();
     if (!selectedSlot || !selectedDate) {
-        alert('Please select a date and time');
+        alert(selectDateAndTimeAlertTxt);
         return;
     }
     if (selectedSlot && selectedDate) {
@@ -102,7 +102,7 @@ body.on('click', '.btn-submit-appointment', function () {
     } else {
         const warningContainer = $('.warning-message');
         if (warningContainer.find('submit-warning') === 0) {
-            warningContainer.append('<p class="submit-warning">Please select a time slot before submitting the appointment request.</p>');
+            warningContainer.append('<p class="submit-warning">' + selectTimeSlotWarningTxt + '</p>');
         }
     }
 });
@@ -194,7 +194,7 @@ function getAvailableSlots(selectedDate, staffId = null) {
     nextAvailableDateSelector.remove();
 
     // Correctly check if staffId is 'none', null, or undefined and exit the function if true
-    // Check if staffId is 'none', null, or undefined and display an error message
+    // Check if 'staffId' is 'none', null, or undefined and display an error message
     if (staffId === 'none' || staffId === null || staffId === undefined) {
         console.log('No staff ID provided, displaying error message.');
         const errorMessage = $('<p class="djangoAppt_no-availability-text">'+ noStaffMemberSelectedTxt + '</p>');
@@ -234,7 +234,7 @@ function getAvailableSlots(selectedDate, staffId = null) {
 
                 if (selectedD < today) {
                     // Show an error message
-                    errorMessageContainer.append('<p class="djangoAppt_no-availability-text">Date is in the past.</p>');
+                    errorMessageContainer.append('<p class="djangoAppt_no-availability-text">' + dateInPastErrorTxt + '</p>');
                     if (slotContainer.find('.djangoAppt_btn-request-next-slot').length === 0) {
                         slotContainer.append(`<button class="btn btn-danger djangoAppt_btn-request-next-slot" data-service-id="${serviceId}">` + requestNonAvailableSlotBtnTxt + `</button>`);
                     }
