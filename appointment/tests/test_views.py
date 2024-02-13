@@ -224,6 +224,41 @@ class ViewsTestCase(BaseTest):
         appointment_exists = Appointment.objects.filter(pk=self.appointment.id).exists()
         self.assertFalse(appointment_exists, "Appointment should be deleted but still exists.")
 
+    def test_delete_appointment_without_permission(self):
+        """Test that deleting an appointment without permission fails."""
+        self.need_staff_login()  # Login as a regular staff user
+
+        # Try to delete an appointment belonging to a different staff member
+        different_appointment = self.create_appointment_for_user2()
+        url = reverse('appointment:delete_appointment', args=[different_appointment.id])
+
+        response = self.client.post(url)
+
+        # Check that the user is redirected due to lack of permissions
+        self.assertEqual(response.status_code, 403)
+
+        # Verify that the appointment still exists in the database
+        self.assertTrue(Appointment.objects.filter(id=different_appointment.id).exists())
+
+    def test_delete_appointment_ajax_without_permission(self):
+        """Test that deleting an appointment via AJAX without permission fails."""
+        self.need_staff_login()  # Login as a regular staff user
+
+        # Try to delete an appointment belonging to a different staff member
+        different_appointment = self.create_appointment_for_user2()
+        url = reverse('appointment:delete_appointment_ajax')
+
+        response = self.client.post(url, {'appointment_id': different_appointment.id}, content_type='application/json')
+
+        # Check that the response indicates failure due to lack of permissions
+        self.assertEqual(response.status_code, 403)
+        response_data = response.json()
+        self.assertEqual(response_data['message'], _("You can only delete your own appointments."))
+        self.assertFalse(response_data['success'])
+
+        # Verify that the appointment still exists in the database
+        self.assertTrue(Appointment.objects.filter(id=different_appointment.id).exists())
+
     def test_remove_staff_member(self):
         self.need_superuser_login()
         self.clean_staff_member_objects()
