@@ -239,7 +239,7 @@ def fetch_service_list_for_staff(request):
             # Ensure the staff member is associated with this appointment
             if not Appointment.objects.filter(id=appointment_id,
                                               appointment_request__staff_member=staff_member).exists():
-                return handle_unauthorized_response(request, _("You do not have permission to access this appointment."), response_type='html')
+                return json_response(_("You do not have permission to access this appointment."), status_code=403)
     else:
         # Fetch all services for the staff member (create mode)
         try:
