@@ -33,7 +33,8 @@ from appointment.utils.error_codes import ErrorCode
 from appointment.utils.json_context import (
     convert_appointment_to_json, get_generic_context, get_generic_context_with_extra, handle_unauthorized_response,
     json_response)
-from appointment.utils.permissions import check_extensive_permissions, check_permissions
+from appointment.utils.permissions import check_extensive_permissions, check_permissions, \
+    has_permission_to_delete_appointment
 
 
 ###############################################################
@@ -454,6 +455,8 @@ def delete_service(request, service_id):
 
 ###############################################################
 # Remove staff member
+@require_user_authenticated
+@require_superuser
 def remove_staff_member(request, staff_user_id):
     staff_member = get_object_or_404(StaffMember, user_id=staff_user_id)
     staff_member.delete()
@@ -491,7 +494,7 @@ def get_service_list(request, response_type='html'):
 @require_staff_or_superuser
 def delete_appointment(request, appointment_id):
     appointment = get_object_or_404(Appointment, pk=appointment_id)
-    if not check_extensive_permissions(appointment.get_staff_member().user_id, request.user, appointment):
+    if not has_permission_to_delete_appointment(request.user, appointment):
         message = _("You can only delete your own appointments.")
         return handle_unauthorized_response(request, message, 'html')
     appointment.delete()
@@ -505,7 +508,7 @@ def delete_appointment_ajax(request):
     data = json.loads(request.body)
     appointment_id = data.get("appointment_id")
     appointment = get_object_or_404(Appointment, pk=appointment_id)
-    if not check_extensive_permissions(appointment.get_staff_member().user_id, request.user, appointment):
+    if not has_permission_to_delete_appointment(request.user, appointment):
         message = _("You can only delete your own appointments.")
         return json_response(message, status=403, success=False, error_code=ErrorCode.NOT_AUTHORIZED)
     appointment.delete()
