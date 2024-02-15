@@ -227,10 +227,10 @@ class UtilityDateTimeTestCase(TestCase):
         Test combining a date and time into a timezone-aware datetime object.
         """
         date = datetime.date(2024, 2, 5)
-        time = datetime.time(14, 30, tzinfo=timezone.utc)
+        time = datetime.time(14, 30, tzinfo=datetime.timezone.utc)
         combined_datetime = combine_date_and_time(date, time)
         self.assertTrue(timezone.is_aware(combined_datetime), "The datetime object is not timezone-aware.")
-        self.assertEqual(combined_datetime.tzinfo, timezone.utc)
+        self.assertEqual(combined_datetime.tzinfo, datetime.timezone.utc)
 
     def test_combine_date_and_time_with_invalid_date(self):
         """
