@@ -2,9 +2,11 @@ from datetime import datetime, time, timedelta
 
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
+from django.utils import timezone
 
-from appointment.models import Appointment
+from appointment.models import Appointment, DayOff, WorkingHours
 from appointment.tests.base.base_test import BaseTest
+from appointment.utils.date_time import get_weekday_num
 
 
 class AppointmentModelTestCase(BaseTest):
@@ -220,3 +222,48 @@ class AppointmentModelTestCase(BaseTest):
         self.appointment.appointment_request.staff_member = None
         self.appointment.appointment_request.save()
         self.assertEqual(self.appointment.get_staff_member_name(), "")
+
+    def test_get_service_img_url_no_image(self):
+        """Service should handle cases where no image is provided gracefully."""
+        self.assertEqual(self.appointment.get_service_img_url(), "")
+
+
+class AppointmentValidDateTestCase(BaseTest):
+    def setUp(self):
+        super().setUp()
+        self.weekday = "Monday"  # Example weekday
+        self.weekday_num = get_weekday_num(self.weekday)
+        WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=self.weekday_num,
+                                    start_time=time(9, 0),
+                                    end_time=time(17, 0))
+        self.appt_date = timezone.now().date() + timedelta(days=(self.weekday_num - timezone.now().weekday()) % 7)
+        self.start_time = timezone.now().replace(hour=10, minute=0, second=0, microsecond=0)
+        self.current_appointment_id = None
+
+    def test_staff_member_works_on_given_day(self):
+        is_valid, message = Appointment.is_valid_date(self.appt_date, self.start_time, self.staff_member1,
+                                                      self.current_appointment_id, self.weekday)
+        self.assertTrue(is_valid)
+
+    def test_staff_member_does_not_work_on_given_day(self):
+        non_working_day = "Sunday"
+        non_working_day_num = get_weekday_num(non_working_day)
+        appt_date = self.appt_date + timedelta(days=(non_working_day_num - self.weekday_num) % 7)
+        is_valid, message = Appointment.is_valid_date(appt_date, self.start_time, self.staff_member1,
+                                                      self.current_appointment_id, non_working_day)
+        self.assertFalse(is_valid)
+        self.assertIn("does not work on this day", message)
+
+    def test_start_time_outside_working_hours(self):
+        early_start_time = timezone.now().replace(hour=8, minute=0)  # Before working hours
+        is_valid, message = Appointment.is_valid_date(self.appt_date, early_start_time, self.staff_member1,
+                                                      self.current_appointment_id, self.weekday)
+        self.assertFalse(is_valid)
+        self.assertIn("outside of", message)
+
+    def test_staff_member_has_day_off(self):
+        DayOff.objects.create(staff_member=self.staff_member1, start_date=self.appt_date, end_date=self.appt_date)
+        is_valid, message = Appointment.is_valid_date(self.appt_date, self.start_time, self.staff_member1,
+                                                      self.current_appointment_id, self.weekday)
+        self.assertFalse(is_valid)
+        self.assertIn("has a day off on this date", message)
