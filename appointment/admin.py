@@ -9,8 +9,8 @@ Since: 1.0.0
 from django import forms
 from django.contrib import admin
 
-from .models import (
-    Appointment, AppointmentRequest, Config, DayOff, EmailVerificationCode, Service, StaffMember, WorkingHours)
+from .models import (Appointment, AppointmentRequest, AppointmentRescheduleHistory, Config, DayOff,
+                     EmailVerificationCode, Service, StaffMember, WorkingHours)
 
 
 @admin.register(Service)
@@ -76,3 +76,18 @@ class WorkingHoursAdmin(admin.ModelAdmin):
     list_display = ('staff_member', 'day_of_week', 'start_time', 'end_time')
     search_fields = ('day_of_week',)
     list_filter = ('day_of_week', 'start_time', 'end_time')
+
+
+@admin.register(AppointmentRescheduleHistory)
+class AppointmentRescheduleHistoryAdmin(admin.ModelAdmin):
+    list_display = (
+        'appointment_request', 'date', 'start_time',
+        'end_time', 'staff_member', 'reason_for_rescheduling', 'created_at'
+    )
+    search_fields = (
+        'appointment_request__id_request', 'staff_member__user__first_name',
+        'staff_member__user__last_name', 'reason_for_rescheduling'
+    )
+    list_filter = ('appointment_request__service', 'date', 'created_at')
+    date_hierarchy = 'created_at'
+    ordering = ('-created_at',)

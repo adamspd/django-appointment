@@ -4,20 +4,27 @@
 import datetime
 import json
 from datetime import date, time, timedelta
+from unittest.mock import MagicMock, patch
 
 from django.contrib import messages
 from django.contrib.messages import get_messages
 from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
+from django.core.exceptions import ValidationError
+from django.http import HttpResponseRedirect
 from django.test import Client
 from django.test.client import RequestFactory
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.translation import gettext as _
 
-from appointment.models import Appointment, AppointmentRequest, EmailVerificationCode, StaffMember
+from appointment.models import Appointment, AppointmentRequest, AppointmentRescheduleHistory, Config, \
+    DayOff, EmailVerificationCode, StaffMember
 from appointment.tests.base.base_test import BaseTest
 from appointment.utils.db_helpers import Service, WorkingHours
-from appointment.views import verify_user_and_login
+from appointment.utils.error_codes import ErrorCode
+from appointment.views import create_appointment, create_user_and_notify_admin, get_appointment_data_from_post_request, \
+    get_client_data_from_post, redirect_to_payment_or_thank_you_page, verify_user_and_login
 
 
 class ViewsTestCase(BaseTest):
@@ -50,8 +57,22 @@ class ViewsTestCase(BaseTest):
             'want_reminder': 'false', 'additional_info': '', 'start_time': '15:00:26',
             'date': self.tomorrow.strftime('%Y-%m-%d')
         }
+        self.url_display_appt = reverse('appointment:display_appointment', args=[self.appointment.id])
+        self.url_add_day_off = reverse('appointment:add_day_off', args=[self.staff_member.user_id])
+        self.other_staff_member = self.staff_member2
+        self.day_off = DayOff.objects.create(staff_member=self.staff_member,
+                                             start_date=date.today() + timedelta(days=1),
+                                             end_date=date.today() + timedelta(days=2), description="Day off")
+        self.random_user = self.create_user_()
 
-    def need_staff_login(self):
+    def need_normal_login(self):
+        self.client.force_login(self.random_user)
+
+    def need_staff_login(self, user=None):
+        if user is not None:
+            user.is_staff = True
+            user.save()
+            self.client.force_login(user)
         self.user1.is_staff = True
         self.user1.save()
         self.client.force_login(self.user1)
@@ -546,3 +567,563 @@ class ViewsTestCase(BaseTest):
         response_data = response.json()
         self.assertIn('message', response_data)
         self.assertEqual(response_data['message'], _("User is not a staff member."))
+
+    def test_display_appointment_authenticated_staff_user(self):
+        # Log in as staff user
+        self.need_staff_login()
+        response = self.client.get(self.url_display_appt)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'administration/display_appointment.html')
+
+    def test_display_appointment_authenticated_superuser(self):
+        # Log in as superuser
+        self.need_superuser_login()
+        response = self.client.get(self.url_display_appt)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'administration/display_appointment.html')
+
+    def test_display_appointment_unauthenticated_user(self):
+        # Attempt access without logging in
+        response = self.client.get(self.url_display_appt)
+        self.assertNotEqual(response.status_code, 200)  # Expect redirection or error
+
+    def test_display_appointment_authenticated_unauthorized_user(self):
+        # Log in as a regular user
+        self.need_normal_login()
+        response = self.client.get(self.url_display_appt)
+        self.assertNotEqual(response.status_code, 200)  # Expect redirection or error
+
+    def test_display_appointment_non_existent(self):
+        # Log in as staff user
+        self.need_superuser_login()
+        non_existent_url = reverse('appointment:display_appointment', args=[99999])  # Non-existent appointment ID
+        response = self.client.get(non_existent_url)
+        self.assertEqual(response.status_code, 404)  # Expect 404 error
+
+    def test_add_day_off_authenticated_staff_user(self):
+        # Log in as staff user
+        self.need_staff_login()
+        response = self.client.post(self.url_add_day_off, data={'start_date': '2050-01-01', 'end_date': '2050-01-01',
+                                                                'description': 'Test reason'})
+        self.assertEqual(response.status_code, 200)  # Assuming success redirects or shows a success message
+
+    def test_add_day_off_authenticated_superuser_for_other(self):
+        # Log in as superuser
+        self.need_superuser_login()
+        other_staff_user_id = self.other_staff_member.user.pk
+        response = self.client.post(reverse('appointment:add_day_off', args=[other_staff_user_id]),
+                                    data={'start_date': '2023-01-02', 'end_date': '2050-01-01',
+                                          'description': 'Admin adding for staff'})
+        self.assertEqual(response.status_code, 200)  # Assuming superuser can add for others
+
+    def test_add_day_off_unauthenticated_user(self):
+        # Attempt access without logging in
+        response = self.client.post(self.url_add_day_off, data={'start_date': '2050-01-01', 'end_date': '2050-01-01',
+                                                                'description': 'Test reason'})
+        self.assertNotEqual(response.status_code, 200)  # Expect redirection or error
+
+    def test_add_day_off_authenticated_unauthorized_user(self):
+        # Log in as a regular user
+        self.need_normal_login()
+        unauthorized_staff_user_id = self.other_staff_member.user.pk
+        response = self.client.post(reverse('appointment:add_day_off', args=[unauthorized_staff_user_id]),
+                                    data={'start_date': '2050-01-01', 'end_date': '2050-01-01',
+                                          'description': 'Trying to add for others'})
+        self.assertNotEqual(response.status_code, 200)  # Expect redirection or error due to unauthorized action
+
+    def test_update_day_off_authenticated_staff_user(self):
+        # Log in as staff user who owns the day off
+        self.need_staff_login()
+        url = reverse('appointment:update_day_off', args=[self.day_off.id])
+        response = self.client.post(url, {'start_date': '2050-01-01', 'end_date': '2050-01-01',
+                                          'description': 'Updated reason'})
+        self.assertEqual(response.status_code, 200)
+
+    def test_update_day_off_unauthorized_user(self):
+        # Log in as another staff user
+        self.need_normal_login()
+        url = reverse('appointment:update_day_off', args=[self.day_off.id])
+        response = self.client.post(url, {'start_date': '2050-01-01', 'end_date': '2050-01-01',
+                                          'description': 'Trying unauthorized update'}, 'json')
+        print(f"response: {response}")
+        self.assertEqual(response.status_code, 403)  # Expect forbidden error
+
+    def test_update_nonexistent_day_off(self):
+        self.need_staff_login()
+        non_existent_day_off_id = 99999
+        url = reverse('appointment:update_day_off', args=[non_existent_day_off_id])
+        response = self.client.post(url, data={'start_date': '2050-01-01', 'end_date': '2050-01-01',
+                                               'description': 'Non existent day off'})
+        self.assertEqual(response.status_code, 404)  # Expect 404 error
+
+    def test_delete_day_off_authenticated_super_user(self):
+        # Log in as staff user
+        self.need_superuser_login()
+        url = reverse('appointment:delete_day_off', args=[self.day_off.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 302)  # Assuming success redirects to the user profile
+
+    def test_delete_day_off_unauthorized_user(self):
+        # Log in as another staff user
+        self.need_normal_login()
+        url = reverse('appointment:delete_day_off', args=[self.day_off.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 403)  # Expect access denied
+
+    def test_delete_nonexistent_day_off(self):
+        self.need_staff_login()
+        non_existent_day_off_id = 99999
+        url = reverse('appointment:delete_day_off', args=[non_existent_day_off_id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404)
+
+
+class GetNonWorkingDaysAjaxTests(BaseTest):
+    def setUp(self):
+        super().setUp()
+        self.client = Client()
+        self.url = reverse('appointment:get_non_working_days_ajax')
+
+    def test_no_staff_member_selected(self):
+        """Test the response when no staff member is selected."""
+        response = self.client.get(self.url, {'staff_id': 'none'}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.status_code, 200)
+        response_data = response.json()
+        self.assertFalse(response_data['success'])
+        self.assertEqual(response_data['message'], _('No staff member selected'))
+        self.assertIn('errorCode', response_data)
+        self.assertEqual(response_data['errorCode'], ErrorCode.STAFF_ID_REQUIRED.value)
+
+    def test_valid_staff_member_selected(self):
+        """Test the response for a valid staff member selection."""
+        response = self.client.get(self.url, {'staff_id': self.staff_member1.id},
+                                   HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.status_code, 200)
+        response_data = response.json()
+        self.assertTrue(response_data['success'])
+        self.assertEqual(response_data['message'], _('Successfully retrieved non-working days'))
+        print(f"Response data: {response_data}")
+        self.assertIn('non_working_days', response_data)
+        self.assertTrue(isinstance(response_data['non_working_days'], list))
+
+    def test_ajax_required(self):
+        """Ensure the view only responds to AJAX requests."""
+        non_ajax_response = self.client.get(self.url, {'staff_id': self.staff_member1.id})
+        self.assertEqual(non_ajax_response.status_code, 200)
+
+
+class AppointmentClientInformationTest(BaseTest):
+    def setUp(self):
+        super().setUp()
+        self.client = Client()
+        self.ar = self.create_appt_request_for_sm1()
+        self.url = reverse('appointment:appointment_client_information', args=[self.ar.pk, self.ar.id_request])
+        self.factory = RequestFactory()
+        self.request = self.factory.get('/')
+        self.valid_form_data = {
+            'name': 'Test Client',
+            'service_id': '1',
+            'payment_type': 'full',
+            'email': 'testuser@example.com',
+            'phone': '+1234567890',
+            'address': '123 Test St.',
+        }
+
+    def test_get_request(self):
+        """Test the view with a GET request."""
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'appointment/appointment_client_information.html')
+
+    def test_post_request_invalid_form(self):
+        """Test the view with an invalid POST request."""
+        response = self.client.post(self.url, {})  # Empty data for invalid form
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'appointment/appointment_client_information.html')
+
+    def test_already_submitted_session(self):
+        """Test the view when the appointment has already been submitted."""
+        session = self.client.session
+        session[f'appointment_submitted_{self.ar.id_request}'] = True
+        session.save()
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'error_pages/304_already_submitted.html')
+
+
+class PrepareRescheduleAppointmentViewTests(BaseTest):
+    def setUp(self):
+        super().setUp()
+        self.client = Client()
+        self.ar = self.create_appt_request_for_sm1()
+        self.url = reverse('appointment:prepare_reschedule_appointment', args=[self.ar.id_request])
+
+    @patch('appointment.utils.db_helpers.can_appointment_be_rescheduled', return_value=True)
+    def test_reschedule_appointment_allowed(self, mock_can_appointment_be_rescheduled):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('all_staff_members', response.context)
+        self.assertIn('available_slots', response.context)
+        self.assertIn('service', response.context)
+        self.assertIn('staff_member', response.context)
+
+    def test_reschedule_appointment_not_allowed(self):
+        self.service1.reschedule_limit = 0
+        self.service1.allow_rescheduling = True
+        self.service1.save()
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 403)
+        self.assertTemplateUsed(response, 'error_pages/403_forbidden_rescheduling.html')
+
+    def test_reschedule_appointment_context_data(self):
+        Config.objects.create(app_offered_by_label="Test Label")
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['label'], "Test Label")
+        self.assertEqual(response.context['page_title'], f"Rescheduling appointment for {self.service1.name}")
+        self.assertTrue('date_chosen' in response.context)
+        self.assertTrue('page_description' in response.context)
+        self.assertTrue('timezoneTxt' in response.context)
+
+
+class RescheduleAppointmentSubmitViewTests(BaseTest):
+    def setUp(self):
+        super().setUp()
+        self.client = Client()
+        self.ar = self.create_appt_request_for_sm1(date_=timezone.now().date() + datetime.timedelta(days=1))
+        self.appointment = self.create_appointment_for_user1(appointment_request=self.ar)
+        self.url = reverse('appointment:reschedule_appointment_submit')
+        self.post_data = {
+            'appointment_request_id': self.ar.id_request,
+            'date': (timezone.now().date() + datetime.timedelta(days=2)).isoformat(),
+            'start_time': '10:00',
+            'end_time': '11:00',
+            'staff_member': self.staff_member1.id,
+            'reason_for_rescheduling': 'Need a different time',
+        }
+
+    def test_post_request_with_valid_form(self):
+        with patch('appointment.views.AppointmentRequestForm.is_valid', return_value=True), \
+                patch('appointment.views.send_reschedule_confirmation_email') as mock_send_email:
+            response = self.client.post(self.url, self.post_data)
+            self.assertEqual(response.status_code, 200)
+            self.assertTemplateUsed(response, 'appointment/rescheduling_thank_you.html')
+            mock_send_email.assert_called_once()
+            self.assertTrue(AppointmentRescheduleHistory.objects.exists())
+
+    def test_post_request_with_invalid_form(self):
+        # Simulate an invalid form submission
+        response = self.client.post(self.url, {})
+        self.assertEqual(response.status_code, 404)
+
+    def test_get_request(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'appointment/appointments.html')
+
+    def test_reschedule_not_allowed(self):
+        # Simulate the scenario where rescheduling is not allowed by setting the reschedule limit to 0
+        self.service1.reschedule_limit = 0
+        self.service1.allow_rescheduling = False
+        self.service1.save()
+
+        response = self.client.post(self.url, self.post_data)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'appointment/appointments.html')
+        messages_list = list(get_messages(response.wsgi_request))
+        self.assertTrue(any(
+            _("There was an error in your submission. Please check the form and try again.") in str(message) for message
+            in messages_list))
+
+
+class ConfirmRescheduleViewTests(BaseTest):
+    def setUp(self):
+        super().setUp()
+        self.client = Client()
+        self.ar = self.create_appt_request_for_sm1()
+        self.create_appointment_for_user1(appointment_request=self.ar)
+        self.reschedule_history = AppointmentRescheduleHistory.objects.create(
+            appointment_request=self.ar,
+            date=timezone.now().date() + timezone.timedelta(days=2),
+            start_time='10:00',
+            end_time='11:00',
+            staff_member=self.staff_member1,
+            id_request='unique_id_request',
+            reschedule_status='pending'
+        )
+        self.url = reverse('appointment:confirm_reschedule', args=[self.reschedule_history.id_request])
+
+    def test_confirm_reschedule_valid(self):
+        response = self.client.get(self.url)
+        self.reschedule_history.refresh_from_db()
+        self.ar.refresh_from_db()
+        self.assertEqual(self.reschedule_history.reschedule_status, 'confirmed')
+        self.assertEqual(response.status_code, 302)  # Redirect to thank you page
+        self.assertRedirects(response, reverse('appointment:default_thank_you', args=[self.ar.appointment.id]))
+
+    def test_confirm_reschedule_invalid_status(self):
+        self.reschedule_history.reschedule_status = 'confirmed'
+        self.reschedule_history.save()
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 404)  # Render 404_not_found with error message
+
+    def test_confirm_reschedule_no_longer_valid(self):
+        with patch('appointment.models.AppointmentRescheduleHistory.still_valid', return_value=False):
+            response = self.client.get(self.url)
+            self.assertEqual(response.status_code, 404)  # Render 404_not_found with error message
+
+    def test_confirm_reschedule_updates(self):
+        """Ensure that the appointment request and reschedule history are updated correctly."""
+        self.client.get(self.url)
+        self.ar.refresh_from_db()
+        self.reschedule_history.refresh_from_db()
+        self.assertEqual(self.ar.staff_member, self.reschedule_history.staff_member)
+        self.assertEqual(self.reschedule_history.reschedule_status, 'confirmed')
+
+    @patch('appointment.views.notify_admin_about_reschedule')
+    def test_notify_admin_about_reschedule_called(self, mock_notify_admin):
+        self.client.get(self.url)
+        mock_notify_admin.assert_called_once()
+        self.assertTrue(mock_notify_admin.called)
+
+
+class CreateUserAndNotifyAdminTests(BaseTest):
+    def setUp(self):
+        self.client_data = {
+            'email': 'test@example.com',
+            'first_name': 'Test',
+            'last_name': 'User'
+        }
+        self.appointment_data = {
+            'service_id': 1,
+            'appointment_time': '10:00 AM'
+        }
+        self.factory = RequestFactory()
+
+        self.request = self.factory.get('/')
+        self.middleware = SessionMiddleware(lambda req: None)
+        self.middleware.process_request(self.request)
+        self.request.session.save()
+
+        self.middleware = MessageMiddleware(lambda req: None)
+        self.middleware.process_request(self.request)
+        self.request.session.save()
+
+    @patch('appointment.views.create_new_user')
+    @patch('appointment.views.notify_admin')
+    def test_create_user_and_notify_admin_success(self, mock_notify_admin, mock_create_new_user):
+        """Test creating a new user and notifying the admin."""
+        mock_user = mock_create_new_user.return_value
+        mock_user.email = self.client_data['email']
+
+        user = create_user_and_notify_admin(self.request, self.client_data, self.appointment_data)
+
+        # Check that the create_new_user function was called with the right parameters
+        mock_create_new_user.assert_called_once_with(self.client_data)
+        # Check that the notify_admin function was called with the right parameters
+        mock_notify_admin.assert_called_once()
+        subject_arg = mock_notify_admin.call_args[1]['subject']
+        message_arg = mock_notify_admin.call_args[1]['message']
+        self.assertIn("New Appointment Request", subject_arg)
+        self.assertIn(self.client_data['email'], message_arg)
+        self.assertIn(str(self.appointment_data), message_arg)
+        # Check that a success message was added to the request
+        messages_list = list(get_messages(self.request))
+        self.assertTrue(any(msg.message == "An account was created for you." for msg in messages_list))
+        # Check that the returned user is the mock user
+        self.assertEqual(user.email, self.client_data['email'])
+
+    @patch('appointment.views.create_new_user', side_effect=Exception('Test Exception'))
+    def test_create_user_and_notify_admin_failure(self, mock_create_new_user):
+        """Test handling exceptions when creating a new user."""
+        request = self.factory.get('/')
+        middleware = SessionMiddleware(lambda req: None)
+        middleware.process_request(request)
+        request.session.save()
+
+        middleware = MessageMiddleware(lambda req: None)
+        middleware.process_request(request)
+        request.session.save()
+
+        with self.assertRaises(Exception) as context:
+            create_user_and_notify_admin(request, self.client_data, self.appointment_data)
+
+        # Check that the exception message is correct
+        self.assertTrue('Test Exception' in str(context.exception))
+        # Check that the create_new_user function was called with the right parameters
+        mock_create_new_user.assert_called_once_with(self.client_data)
+
+
+class GetAppointmentDataFromPostRequestTests(BaseTest):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.post_data = {
+            'phone': '1234567890',
+            'want_reminder': 'on',
+            'address': '123 Test St, Test City',
+            'additional_info': 'Please ring the bell.'
+        }
+
+    def test_get_appointment_data_from_post_request_with_data(self):
+        """Test retrieving appointment data from a POST request with all data provided."""
+        request = self.factory.post('/fake-url/', self.post_data)
+
+        appointment_data = get_appointment_data_from_post_request(request)
+
+        self.assertEqual(appointment_data['phone'], self.post_data['phone'])
+        self.assertTrue(appointment_data['want_reminder'])
+        self.assertEqual(appointment_data['address'], self.post_data['address'])
+        self.assertEqual(appointment_data['additional_info'], self.post_data['additional_info'])
+
+    def test_get_appointment_data_from_post_request_partial_data(self):
+        """Test retrieving appointment data from a POST request with partial data provided."""
+        partial_post_data = {
+            'phone': '1234567890',
+            # 'want_reminder' omitted to simulate unchecked checkbox
+            'address': '123 Test St, Test City',
+            # 'additional_info' omitted to simulate empty field
+        }
+        request = self.factory.post('/fake-url/', partial_post_data)
+
+        appointment_data = get_appointment_data_from_post_request(request)
+
+        self.assertEqual(appointment_data['phone'], partial_post_data['phone'])
+        self.assertFalse(appointment_data['want_reminder'], "want_reminder should be False if not 'on'")
+        self.assertEqual(appointment_data['address'], partial_post_data['address'])
+        self.assertEqual(appointment_data['additional_info'], None, "additional_info should be None if not provided")
+
+    def test_get_appointment_data_from_post_request_missing_data(self):
+        """Test retrieving appointment data from a POST request with missing data."""
+        missing_data_post = {}
+        request = self.factory.post('/fake-url/', missing_data_post)
+
+        appointment_data = get_appointment_data_from_post_request(request)
+
+        self.assertEqual(appointment_data['phone'], None, "phone should be None if not provided")
+        self.assertFalse(appointment_data['want_reminder'], "want_reminder should be False if not provided")
+        self.assertEqual(appointment_data['address'], None, "address should be None if not provided")
+        self.assertEqual(appointment_data['additional_info'], None, "additional_info should be None if not provided")
+
+
+class GetClientDataFromPostTests(BaseTest):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+    def test_get_client_data_with_full_data(self):
+        """Test retrieving client data from a POST request with all fields provided."""
+        post_data = {
+            'name': 'John Doe',
+            'email': 'john.doe@example.com',
+        }
+        request = self.factory.post('/fake-url/', post_data)
+
+        client_data = get_client_data_from_post(request)
+
+        self.assertEqual(client_data['name'], post_data['name'])
+        self.assertEqual(client_data['email'], post_data['email'])
+
+    def test_get_client_data_with_missing_name(self):
+        """Test retrieving client data from a POST request with the name missing."""
+        post_data = {
+            # 'name' is missing
+            'email': 'john.doe@example.com',
+        }
+        request = self.factory.post('/fake-url/', post_data)
+
+        client_data = get_client_data_from_post(request)
+
+        self.assertIsNone(client_data['name'], "name should be None if not provided")
+        self.assertEqual(client_data['email'], post_data['email'])
+
+    def test_get_client_data_with_missing_email(self):
+        """Test retrieving client data from a POST request with the email missing."""
+        post_data = {
+            'name': 'John Doe',
+            # 'email' is missing
+        }
+        request = self.factory.post('/fake-url/', post_data)
+
+        client_data = get_client_data_from_post(request)
+
+        self.assertEqual(client_data['name'], post_data['name'])
+        self.assertIsNone(client_data['email'], "email should be None if not provided")
+
+    def test_get_client_data_with_empty_fields(self):
+        """Test retrieving client data from a POST request with empty fields."""
+        post_data = {
+            'name': '',
+            'email': '',
+        }
+        request = self.factory.post('/fake-url/', post_data)
+
+        client_data = get_client_data_from_post(request)
+
+        self.assertEqual(client_data['name'], '', "name should be empty string if provided as such")
+        self.assertEqual(client_data['email'], '', "email should be empty string if provided as such")
+
+
+class RedirectToPaymentOrThankYouPageTests(BaseTest):
+    def setUp(self):
+        super().setUp()
+        self.appointment = self.create_appointment_for_user1()
+
+    @patch('appointment.views.APPOINTMENT_PAYMENT_URL', 'http://example.com/payment/')
+    @patch('appointment.views.create_payment_info_and_get_url')
+    def test_redirect_to_payment_page(self, mock_create_payment_info_and_get_url):
+        """Test redirection to the payment page when APPOINTMENT_PAYMENT_URL is set."""
+        mock_create_payment_info_and_get_url.return_value = 'http://example.com/payment/12345'
+        response = redirect_to_payment_or_thank_you_page(self.appointment)
+
+        self.assertIsInstance(response, HttpResponseRedirect)
+        self.assertEqual(response.url, 'http://example.com/payment/12345')
+
+    @patch('appointment.views.APPOINTMENT_PAYMENT_URL', '')
+    @patch('appointment.views.APPOINTMENT_THANK_YOU_URL', 'appointment:default_thank_you')
+    def test_redirect_to_custom_thank_you_page(self):
+        """Test redirection to a custom thank-you page when APPOINTMENT_THANK_YOU_URL is set."""
+        response = redirect_to_payment_or_thank_you_page(self.appointment)
+
+        self.assertIsInstance(response, HttpResponseRedirect)
+        self.assertTrue(response.url.startswith(
+            reverse('appointment:default_thank_you', kwargs={'appointment_id': self.appointment.id})))
+
+    @patch('appointment.views.APPOINTMENT_PAYMENT_URL', '')
+    @patch('appointment.views.APPOINTMENT_THANK_YOU_URL', '')
+    def test_redirect_to_default_thank_you_page(self):
+        """Test redirection to the default thank-you page when no specific URL is set."""
+        response = redirect_to_payment_or_thank_you_page(self.appointment)
+
+        self.assertIsInstance(response, HttpResponseRedirect)
+        self.assertTrue(response.url.startswith(
+            reverse('appointment:default_thank_you', kwargs={'appointment_id': self.appointment.id})))
+
+
+class CreateAppointmentTests(BaseTest):
+    def setUp(self):
+        super().setUp()
+        self.appointment_request = self.create_appt_request_for_sm1()
+        self.client_data = {'name': 'John Doe', 'email': 'john@example.com'}
+        self.appointment_data = {'phone': '1234567890', 'want_reminder': True, 'address': '123 Test St.',
+                                 'additional_info': 'Test info'}
+        self.request = RequestFactory().get('/')
+
+    @patch('appointment.views.create_and_save_appointment')
+    @patch('appointment.views.redirect_to_payment_or_thank_you_page')
+    def test_create_appointment_success(self, mock_redirect, mock_create_and_save):
+        """Test successful creation of an appointment and redirection."""
+        # Mock the appointment creation to return an Appointment instance
+        mock_appointment = MagicMock()
+        mock_create_and_save.return_value = mock_appointment
+
+        # Mock the redirection function to simulate a successful redirection
+        mock_redirect.return_value = MagicMock()
+
+        create_appointment(self.request, self.appointment_request, self.client_data, self.appointment_data)
+
+        # Verify that create_and_save_appointment was called with the correct arguments
+        mock_create_and_save.assert_called_once_with(self.appointment_request, self.client_data, self.appointment_data,
+                                                     self.request)
+
+        # Verify that the redirect_to_payment_or_thank_you_page was called with the created appointment
+        mock_redirect.assert_called_once_with(mock_appointment)

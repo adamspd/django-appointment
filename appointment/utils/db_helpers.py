@@ -20,8 +20,10 @@ from django_q.models import Schedule
 from django_q.tasks import schedule
 
 from appointment.logger_config import logger
-from appointment.settings import (APPOINTMENT_BUFFER_TIME, APPOINTMENT_FINISH_TIME, APPOINTMENT_LEAD_TIME,
-                                  APPOINTMENT_PAYMENT_URL, APPOINTMENT_SLOT_DURATION, APPOINTMENT_WEBSITE_NAME)
+from appointment.settings import (
+    APPOINTMENT_BUFFER_TIME, APPOINTMENT_FINISH_TIME, APPOINTMENT_LEAD_TIME, APPOINTMENT_PAYMENT_URL,
+    APPOINTMENT_SLOT_DURATION, APPOINTMENT_WEBSITE_NAME
+)
 from appointment.utils.date_time import combine_date_and_time, get_current_year, get_weekday_num
 
 Appointment = apps.get_model('appointment', 'Appointment')
@@ -33,6 +35,7 @@ StaffMember = apps.get_model('appointment', 'StaffMember')
 Config = apps.get_model('appointment', 'Config')
 Service = apps.get_model('appointment', 'Service')
 EmailVerificationCode = apps.get_model('appointment', 'EmailVerificationCode')
+AppointmentRescheduleHistory = apps.get_model('appointment', 'AppointmentRescheduleHistory')
 
 
 def calculate_slots(start_time, end_time, buffer_time, slot_duration):
@@ -71,7 +74,8 @@ def calculate_staff_slots(date, staff_member):
     # Convert the buffer duration in minutes to a timedelta object
     buffer_duration_minutes = get_staff_member_buffer_time(staff_member, date)
     buffer_duration = datetime.timedelta(minutes=buffer_duration_minutes)
-    buffer_time = datetime.datetime.now() + buffer_duration
+    buffer_time_init = datetime.datetime.combine(date, staff_member_start_time)
+    buffer_time = buffer_time_init + buffer_duration
 
     # Convert slot duration to a timedelta object
     slot_duration_minutes = get_staff_member_slot_duration(staff_member, date)
@@ -88,12 +92,13 @@ def check_day_off_for_staff(staff_member, date) -> bool:
     return DayOff.objects.filter(staff_member=staff_member, start_date__lte=date, end_date__gte=date).exists()
 
 
-def create_and_save_appointment(ar, client_data: dict, appointment_data: dict):
+def create_and_save_appointment(ar, client_data: dict, appointment_data: dict, request):
     """Create and save a new appointment based on the provided appointment request and client data.
 
     :param ar: The appointment request associated with the new appointment.
     :param client_data: The data of the client making the appointment.
     :param appointment_data: Additional data for the appointment, including phone number, address, etc.
+    :param request: The request object.
     :return: The newly created appointment.
     """
     user = get_user_by_email(client_data['email'])
@@ -103,11 +108,11 @@ def create_and_save_appointment(ar, client_data: dict, appointment_data: dict):
     )
     appointment.save()
     logger.info(f"New appointment created: {appointment.to_dict()}")
-    schedule_email_reminder(appointment)
+    schedule_email_reminder(appointment, request)
     return appointment
 
 
-def schedule_email_reminder(appointment, appointment_datetime=None):
+def schedule_email_reminder(appointment, request, appointment_datetime=None):
     """Schedule an email reminder for the given appointment."""
     # Check if the Django-Q cluster is running
     from appointment.settings import check_q_cluster
@@ -124,6 +129,10 @@ def schedule_email_reminder(appointment, appointment_datetime=None):
 
     reminder_datetime = appointment_datetime - datetime.timedelta(days=1)
 
+    ar_id_request = appointment.appointment_request.get_id_request()
+    relative_reschedule_url = reverse('appointment:prepare_reschedule_appointment', args=[ar_id_request])
+    reschedule_link = get_absolute_url_(relative_reschedule_url, request)
+
     logger.info(f"Scheduling email reminder for appointment {appointment.id} at {reminder_datetime}")
 
     # Schedule the email reminder task with Django-Q
@@ -131,20 +140,16 @@ def schedule_email_reminder(appointment, appointment_datetime=None):
              to_email=appointment.client.email,
              name=f"reminder_{appointment.id_request}",
              first_name=appointment.client.first_name,
+             reschedule_link=reschedule_link,
              appointment_id=appointment.id,
              schedule_type=Schedule.ONCE,  # Use Schedule.ONCE for a one-time task
              next_run=reminder_datetime)
 
 
-def update_appointment_reminder(appointment, new_date, new_start_time, want_reminder=None):
+def update_appointment_reminder(appointment, new_date, new_start_time, request, want_reminder=None):
     """
     Updates or cancels the appointment reminder based on changes to the start time or date,
     and the user's preference for receiving a reminder.
-
-    :param appointment: The Appointment instance being updated.
-    :param new_date: The new date as a string (format: "YYYY-MM-DD").
-    :param new_start_time: The new start time as a string (format: "HH:MM").
-    :param want_reminder: Boolean indicating if a reminder is desired.
     """
     # Convert new date and time strings to datetime objects for comparison
     new_datetime = combine_date_and_time(new_date, new_start_time)
@@ -171,7 +176,7 @@ def update_appointment_reminder(appointment, new_date, new_start_time, want_remi
 
         # If a reminder is still desired and the appointment is in the future, schedule a new one
         if want_reminder and new_datetime > timezone.now():
-            schedule_email_reminder(appointment, new_datetime)
+            schedule_email_reminder(appointment, request, new_datetime)
         else:
             logger.info(
                 f"Reminder for appointment {appointment.id} is not scheduled per user's preference or past datetime.")
@@ -184,12 +189,35 @@ def update_appointment_reminder(appointment, new_date, new_start_time, want_remi
 def cancel_existing_reminder(appointment_id_request):
     """
     Cancels any existing reminder for the appointment.
-    Placeholder function - implement based on your scheduling mechanism.
     """
-    # Example: Delete existing scheduled tasks for this appointment
-    # This is highly dependent on how reminders are implemented and stored
     task_name = f"reminder_{appointment_id_request}"
     Schedule.objects.filter(name=task_name).delete()
+
+
+def can_appointment_be_rescheduled(appointment_request):
+    # Datetime 5 minutes ago from now
+    five_minutes_ago = timezone.now() - timezone.timedelta(minutes=5)
+
+    # Filter reschedule histories to those created within the last 5 minutes
+    recent_reschedule_count = appointment_request.reschedule_histories.filter(created_at__gte=five_minutes_ago).count()
+    service = appointment_request.service
+    config = Config.get_instance()
+
+    # Determine which rescheduled limit to use based on service settings
+    if service.allow_rescheduling:
+        # If rescheduling is allowed
+        logger.info(f"Rescheduling is allowed for service {service.name} -> "
+                    f"Reschedule count: {recent_reschedule_count}, Reschedule limit: {service.reschedule_limit}")
+        return recent_reschedule_count < service.reschedule_limit
+    else:
+        # Rescheduling is allowed but no specific limit set; use system default
+        logger.info(f"Rescheduling is allowed but no specific limit set for service {service.name} -> "
+                    f"Reschedule count: {recent_reschedule_count}, Reschedule limit: {config.default_reschedule_limit}")
+        return recent_reschedule_count < config.default_reschedule_limit
+
+
+def staff_change_allowed_on_reschedule():
+    return Config.objects.first().allow_staff_change_on_reschedule
 
 
 def generate_unique_username_from_email(email: str) -> str:
@@ -211,11 +239,12 @@ def parse_name(name: str):
 
 def create_user_with_email(client_data: dict):
     CLIENT_MODEL = get_user_model()
-    user_data = {
-        'email': client_data['email'],
-        'first_name': client_data.get('first_name', ''),
-        'last_name': client_data.get('last_name', '')
-    }
+    # Valid fields
+    valid_fields = ['email', 'first_name', 'last_name', 'username']
+
+    # Filter client_data to include only valid fields
+    user_data = {field: client_data.get(field, '') for field in valid_fields}
+
     user = CLIENT_MODEL.objects.create_user(**user_data)
     return user
 
@@ -312,6 +341,32 @@ def exclude_booked_slots(appointments, slots, slot_duration=None):
         if is_available:
             available_slots.append(slot)
     return available_slots
+
+
+def exclude_pending_reschedules(slots, staff_member, date):
+    """
+    Exclude the slots that are pending reschedule for the given staff member and date.
+    """
+
+    # Calculate the time window for "last 5 minutes"
+    ten_minutes_ago = timezone.now() - datetime.timedelta(minutes=5)
+    pending_reschedules = AppointmentRescheduleHistory.objects.filter(
+        appointment_request__staff_member=staff_member,
+        date=date,
+        reschedule_status='pending',
+        created_at__gte=ten_minutes_ago
+    )
+
+    # Filter out slots that overlap with any pending rescheduling
+    filtered_slots = slots[:]
+    for reschedule in pending_reschedules:
+        reschedule_start_time = datetime.datetime.combine(date, reschedule.start_time)
+        reschedule_end_time = datetime.datetime.combine(date, reschedule.end_time)
+
+        filtered_slots = [slot for slot in filtered_slots if
+                          not (reschedule_start_time <= slot < reschedule_end_time)]
+
+    return filtered_slots
 
 
 def day_off_exists_for_date_range(staff_member, start_date, end_date, days_off_id=None) -> bool:
@@ -633,3 +688,7 @@ def is_working_day(staff_member: StaffMember, day: int) -> bool:
 def working_hours_exist(day_of_week, staff_member):
     """Check if working hours exist for the given day of the week and staff member."""
     return WorkingHours.objects.filter(day_of_week=day_of_week, staff_member=staff_member).exists()
+
+
+def get_absolute_url_(relative_url, request):
+    return request.build_absolute_uri(relative_url)

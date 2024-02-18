@@ -20,12 +20,18 @@ from django.utils.translation import gettext as _
 from appointment.email_sender import notify_admin
 from appointment.forms import AppointmentForm, AppointmentRequestForm
 from appointment.logger_config import logger
-from appointment.models import Appointment, AppointmentRequest, Config, DayOff, EmailVerificationCode, Service, \
+from appointment.models import (
+    Appointment, AppointmentRequest, AppointmentRescheduleHistory, Config, DayOff, EmailVerificationCode, Service,
     StaffMember
-from appointment.utils.db_helpers import check_day_off_for_staff, create_and_save_appointment, create_new_user, \
-    create_payment_info_and_get_url, get_non_working_days_for_staff, get_user_by_email, get_user_model, \
-    get_website_name, get_weekday_num_from_date, is_working_day, username_in_user_model
-from appointment.utils.email_ops import send_thank_you_email
+)
+from appointment.utils.db_helpers import (
+    can_appointment_be_rescheduled, check_day_off_for_staff, create_and_save_appointment, create_new_user,
+    create_payment_info_and_get_url, get_non_working_days_for_staff, get_user_by_email, get_user_model,
+    get_website_name, get_weekday_num_from_date, is_working_day, staff_change_allowed_on_reschedule,
+    username_in_user_model
+)
+from appointment.utils.email_ops import notify_admin_about_reschedule, send_reschedule_confirmation_email, \
+    send_thank_you_email
 from appointment.utils.session import get_appointment_data_from_session, handle_existing_email
 from appointment.utils.view_helpers import get_locale, get_timezone_txt
 from .decorators import require_ajax
@@ -276,7 +282,7 @@ def create_appointment(request, appointment_request_obj, client_data, appointmen
     :param appointment_data: The appointment data.
     :return: The redirect response.
     """
-    appointment = create_and_save_appointment(appointment_request_obj, client_data, appointment_data)
+    appointment = create_and_save_appointment(appointment_request_obj, client_data, appointment_data, request)
     return redirect_to_payment_or_thank_you_page(appointment)
 
 
@@ -443,7 +449,6 @@ def default_thank_you(request, appointment_id):
     email = appointment.client.email
     appointment_details = {
         _('Service'): appointment.get_service_name(),
-        _('Appointment ID'): appointment.id_request,
         _('Appointment Date'): appointment.get_appointment_date(),
         _('Appointment Time'): appointment.appointment_request.start_time,
         _('Duration'): appointment.get_service_duration()
@@ -461,3 +466,122 @@ def default_thank_you(request, appointment_id):
     }
     context = get_generic_context_with_extra(request, extra_context, admin=False)
     return render(request, 'appointment/default_thank_you.html', context=context)
+
+
+def prepare_reschedule_appointment(request, id_request):
+    ar = get_object_or_404(AppointmentRequest, id_request=id_request)
+
+    if not can_appointment_be_rescheduled(ar):
+        url = reverse('appointment:appointment_request', kwargs={'service_id': ar.service.id})
+        context = get_generic_context_with_extra(request, {'url': url, }, admin=False)
+        logger.error(f"Appointment with id_request {id_request} cannot be rescheduled")
+        return render(request, 'error_pages/403_forbidden_rescheduling.html', context=context, status=403)
+
+    service = ar.service
+    selected_sm = ar.staff_member
+    config = Config.objects.first()
+    label = config.app_offered_by_label if config else _("Offered by")
+    # if staff change allowed, filter all staff offering the service otherwise, filter only the selected staff member
+    staff_filter_criteria = {'id': ar.staff_member.id} if not staff_change_allowed_on_reschedule() else {
+        'services_offered': ar.service}
+    all_staff_members = StaffMember.objects.filter(**staff_filter_criteria)
+    available_slots = get_available_slots_for_staff(ar.date, selected_sm)
+    page_title = f"Rescheduling appointment for {service.name}"
+    page_description = _("Reschedule your appointment for {s} at {wn}.").format(s=service.name, wn=get_website_name())
+    date_chosen = ar.date.strftime("%a, %B %d, %Y")
+
+    extra_context = {
+        'service': service,
+        'staff_member': selected_sm,
+        'all_staff_members': all_staff_members,
+        'page_title': page_title,
+        'page_description': page_description,
+        'available_slots': available_slots,
+        'date_chosen': date_chosen,
+        'locale': get_locale(),
+        'timezoneTxt': get_timezone_txt(),
+        'label': label,
+        'rescheduled_date': ar.date.strftime("%Y-%m-%d"),
+        'page_header': page_title,
+        'ar_id_request': ar.id_request,
+    }
+    context = get_generic_context_with_extra(request, extra_context, admin=False)
+    return render(request, 'appointment/appointments.html', context=context)
+
+
+def reschedule_appointment_submit(request):
+    if request.method == 'POST':
+        form = AppointmentRequestForm(request.POST)
+        # get form values:
+        ar_id_request = request.POST.get('appointment_request_id')
+        ar = get_object_or_404(AppointmentRequest, id_request=ar_id_request)
+        date_str = request.POST.get('date')
+        date_ = convert_str_to_date(date_str)
+        start_time = request.POST.get('start_time')
+        end_time = request.POST.get('end_time')
+        sm_id = request.POST.get('staff_member')
+        staff_member = get_object_or_404(StaffMember, id=sm_id)
+        reason_for_rescheduling = request.POST.get('reason_for_rescheduling')
+        if form.is_valid():
+            arh = AppointmentRescheduleHistory.objects.create(
+                appointment_request=ar,
+                date=date_,
+                start_time=start_time,
+                end_time=end_time,
+                staff_member=staff_member,
+                reason_for_rescheduling=reason_for_rescheduling
+            )
+            messages.success(request, _("Appointment rescheduled successfully"))
+            context = get_generic_context_with_extra(request, {}, admin=False)
+            client_first_name = Appointment.objects.get(appointment_request=ar).client.first_name
+            email = Appointment.objects.get(appointment_request=ar).client.email
+            send_reschedule_confirmation_email(request=request, reschedule_history=arh, first_name=client_first_name,
+                                               email=email, appointment_request=ar)
+            return render(request, 'appointment/rescheduling_thank_you.html', context=context)
+        else:
+            print(f"form is invalid", form.errors)
+            messages.error(request, _("There was an error in your submission. Please check the form and try again."))
+    else:
+        form = AppointmentRequestForm()
+    context = get_generic_context_with_extra(request, {'form': form}, admin=False)
+    return render(request, 'appointment/appointments.html', context=context)
+
+
+def confirm_reschedule(request, id_request):
+    reschedule_history = get_object_or_404(AppointmentRescheduleHistory, id_request=id_request)
+
+    if reschedule_history.reschedule_status != 'pending' or not reschedule_history.still_valid():
+        error_message = _("O-o-oh! This link is no longer valid.") if not reschedule_history.still_valid() else _(
+            "O-o-oh! Can't find the pending reschedule request.")
+        context = get_generic_context_with_extra(request, {"error_message": error_message}, admin=False)
+        return render(request, 'error_pages/404_not_found.html', status=404, context=context)
+
+    ar = reschedule_history.appointment_request
+
+    # Store previous details for logging or other purposes
+    previous_details = {
+        'date': ar.date,
+        'start_time': ar.start_time,
+        'end_time': ar.end_time,
+        'staff_member': ar.staff_member,
+    }
+
+    # Update AppointmentRequest with new details
+    ar.date = reschedule_history.date
+    ar.start_time = reschedule_history.start_time
+    ar.end_time = reschedule_history.end_time
+    ar.staff_member = reschedule_history.staff_member
+    ar.save(update_fields=['date', 'start_time', 'end_time', 'staff_member'])
+
+    reschedule_history.date = previous_details['date']
+    reschedule_history.start_time = previous_details['start_time']
+    reschedule_history.end_time = previous_details['end_time']
+    reschedule_history.staff_member = previous_details['staff_member']
+    reschedule_history.reschedule_status = 'confirmed'
+    reschedule_history.save(update_fields=['date', 'start_time', 'end_time', 'staff_member', 'reschedule_status'])
+
+    messages.success(request, _("Appointment rescheduled successfully"))
+    # notify admin and the concerned staff admin about client's rescheduling
+    client_name = Appointment.objects.get(appointment_request=ar).client.get_full_name()
+    notify_admin_about_reschedule(reschedule_history, ar, client_name)
+    return redirect('appointment:default_thank_you', appointment_id=ar.appointment.id)

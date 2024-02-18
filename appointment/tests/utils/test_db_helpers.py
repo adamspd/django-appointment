@@ -2,35 +2,39 @@
 # Path: appointment/tests/utils/test_db_helpers.py
 
 import datetime
-from unittest.mock import patch
+from unittest.mock import MagicMock, PropertyMock, patch
 
 from django.apps import apps
 from django.conf import settings
 from django.core.cache import cache
+from django.core.exceptions import FieldDoesNotExist
 from django.test import TestCase
+from django.test.client import RequestFactory
 from django.urls import reverse
 from django.utils import timezone
 from django_q.models import Schedule
 
 from appointment.models import DayOff, PaymentInfo
 from appointment.tests.base.base_test import BaseTest
+from appointment.tests.mixins.base_mixin import ConfigMixin
 from appointment.utils.date_time import get_current_year
-from appointment.utils.db_helpers import (Config, WorkingHours, calculate_slots, cancel_existing_reminder,
-                                          check_day_off_for_staff, create_and_save_appointment, create_new_user,
-                                          create_payment_info_and_get_url, day_off_exists_for_date_range,
-                                          exclude_booked_slots, generate_unique_username_from_email,
-                                          get_all_appointments, get_all_staff_members, get_appointment_buffer_time,
-                                          get_appointment_by_id, get_appointment_finish_time, get_appointment_lead_time,
-                                          get_appointment_slot_duration, get_appointments_for_date_and_time, get_config,
-                                          get_day_off_by_id, get_non_working_days_for_staff,
-                                          get_staff_member_appointment_list, get_staff_member_buffer_time,
-                                          get_staff_member_by_user_id, get_staff_member_end_time,
-                                          get_staff_member_from_user_id_or_logged_in, get_staff_member_slot_duration,
-                                          get_staff_member_start_time, get_times_from_config, get_user_by_email,
-                                          get_user_model, get_website_name, get_weekday_num_from_date,
-                                          get_working_hours_by_id, get_working_hours_for_staff_and_day, is_working_day,
-                                          parse_name, schedule_email_reminder, update_appointment_reminder,
-                                          working_hours_exist)
+from appointment.utils.db_helpers import (
+    Config, WorkingHours, calculate_slots, calculate_staff_slots, can_appointment_be_rescheduled,
+    cancel_existing_reminder, check_day_off_for_staff,
+    create_and_save_appointment, create_new_user, create_payment_info_and_get_url, create_user_with_email,
+    day_off_exists_for_date_range,
+    exclude_booked_slots, exclude_pending_reschedules, generate_unique_username_from_email, get_absolute_url_,
+    get_all_appointments,
+    get_all_staff_members,
+    get_appointment_buffer_time, get_appointment_by_id, get_appointment_finish_time, get_appointment_lead_time,
+    get_appointment_slot_duration, get_appointments_for_date_and_time, get_config, get_day_off_by_id,
+    get_non_working_days_for_staff, get_staff_member_appointment_list, get_staff_member_buffer_time,
+    get_staff_member_by_user_id, get_staff_member_end_time, get_staff_member_from_user_id_or_logged_in,
+    get_staff_member_slot_duration, get_staff_member_start_time, get_times_from_config, get_user_by_email,
+    get_user_model, get_website_name, get_weekday_num_from_date, get_working_hours_by_id,
+    get_working_hours_for_staff_and_day, is_working_day, parse_name, schedule_email_reminder,
+    staff_change_allowed_on_reschedule, update_appointment_reminder, username_in_user_model, working_hours_exist
+)
 
 
 class TestCalculateSlots(TestCase):
@@ -85,6 +89,43 @@ class TestCalculateSlots(TestCase):
         self.assertEqual(result, expected)
 
 
+class TestCalculateStaffSlots(BaseTest):
+    def setUp(self):
+        super().setUp()
+        self.slot_duration = datetime.timedelta(minutes=30)
+        # Not working today but tomorrow
+        self.date_not_working = datetime.date.today()
+        self.working_date = datetime.date.today() + datetime.timedelta(days=1)
+        weekday_num = get_weekday_num_from_date(self.working_date)
+        WorkingHours.objects.create(
+            staff_member=self.staff_member1,
+            day_of_week=weekday_num,
+            start_time=datetime.time(9, 0),
+            end_time=datetime.time(17, 0)
+        )
+        self.staff_member1.appointment_buffer_time = 25.0
+        self.buffer_time = datetime.timedelta(minutes=25)
+
+    def test_calculate_slots_on_working_day_without_appointments(self):
+        slots = calculate_staff_slots(self.working_date, self.staff_member1)
+        # Slot duration is 30 minutes, so 8 working hours minus 25-minute buffer, divided by slot duration
+        expected_number_of_slots = int((8 * 60 - 25) / 30)
+        # 15 slots should be available instead of 16 because of the 25-minute buffer
+        self.assertEqual(len(slots), expected_number_of_slots)
+
+        # Asserting the first slot starts at 9:30 AM because of the 25-minute buffer
+        self.assertEqual(slots[0].time(), datetime.time(9, 30))
+
+        # Asserting the last slot starts before the end time minus slot duration (16:30)
+        self.assertTrue((datetime.datetime.combine(self.working_date, slots[-1].time()) +
+                         self.slot_duration).time() <= datetime.time(17, 0))
+
+    def test_calculate_slots_on_non_working_day(self):
+        """Test that no slots are returned on a day the staff member is not working."""
+        slots = calculate_staff_slots(self.date_not_working, self.staff_member1)
+        self.assertEqual(slots, [])
+
+
 class TestCheckDayOffForStaff(BaseTest):
     def setUp(self):
         super().setUp()  # Call the parent class setup
@@ -117,6 +158,8 @@ class TestCreateAndSaveAppointment(BaseTest):
         super().setUp()  # Call the parent class setup
         # Specific setups for this test class
         self.ar = self.create_appt_request_for_sm1()
+        self.factory = RequestFactory()
+        self.request = self.factory.get('/')
 
     def test_create_and_save_appointment(self):
         client_data = {
@@ -130,7 +173,7 @@ class TestCreateAndSaveAppointment(BaseTest):
             'additional_info': 'Additional Test Info'
         }
 
-        appointment = create_and_save_appointment(self.ar, client_data, appointment_data)
+        appointment = create_and_save_appointment(self.ar, client_data, appointment_data, self.request)
 
         self.assertIsNotNone(appointment)
         self.assertEqual(appointment.client.email, client_data['email'])
@@ -148,11 +191,16 @@ def get_mock_reverse(url_name, **kwargs):
 
 
 class ScheduleEmailReminderTest(BaseTest):
+    def setUp(self):
+        super().setUp()
+        self.factory = RequestFactory()
+        self.request = self.factory.get('/')
+
     def test_schedule_email_reminder_cluster_running(self):
         appointment = self.create_appointment_for_user1()
         with patch('appointment.settings.check_q_cluster', return_value=True), \
                 patch('appointment.utils.db_helpers.schedule') as mock_schedule:
-            schedule_email_reminder(appointment)
+            schedule_email_reminder(appointment, self.request)
             mock_schedule.assert_called_once()
             # Further assertions can be made here based on the arguments passed to schedule
 
@@ -160,12 +208,18 @@ class ScheduleEmailReminderTest(BaseTest):
         appointment = self.create_appointment_for_user2()
         with patch('appointment.settings.check_q_cluster', return_value=False), \
                 patch('appointment.utils.db_helpers.logger') as mock_logger:
-            schedule_email_reminder(appointment)
+            schedule_email_reminder(appointment, self.request)
             mock_logger.warning.assert_called_with(
                 "Django-Q cluster is not running. Email reminder will not be scheduled.")
 
 
 class UpdateAppointmentReminderTest(BaseTest):
+    def setUp(self):
+        super().setUp()
+        self.factory = RequestFactory()
+        self.request = self.factory.get('/')
+        self.appointment = self.create_appointment_for_user1()
+
     def test_update_appointment_reminder_date_time_changed(self):
         appointment = self.create_appointment_for_user1()
         new_date = timezone.now().date() + timezone.timedelta(days=10)
@@ -173,7 +227,7 @@ class UpdateAppointmentReminderTest(BaseTest):
 
         with patch('appointment.utils.db_helpers.schedule_email_reminder') as mock_schedule_email_reminder, \
                 patch('appointment.utils.db_helpers.cancel_existing_reminder') as mock_cancel_existing_reminder:
-            update_appointment_reminder(appointment, new_date, new_start_time, True)
+            update_appointment_reminder(appointment, new_date, new_start_time, self.request, True)
             mock_cancel_existing_reminder.assert_called_once_with(appointment.id_request)
             mock_schedule_email_reminder.assert_called_once()
 
@@ -185,9 +239,157 @@ class UpdateAppointmentReminderTest(BaseTest):
 
         with patch('appointment.utils.db_helpers.schedule_email_reminder') as mock_schedule_email_reminder, \
                 patch('appointment.utils.db_helpers.cancel_existing_reminder') as mock_cancel_existing_reminder:
-            update_appointment_reminder(appointment, new_date, new_start_time, appointment.want_reminder)
+            update_appointment_reminder(appointment, new_date, new_start_time, self.request, appointment.want_reminder)
             mock_cancel_existing_reminder.assert_not_called()
             mock_schedule_email_reminder.assert_not_called()
+
+    @patch('appointment.utils.db_helpers.logger')  # Adjust the import path as necessary
+    def test_reminder_not_scheduled_due_to_user_preference(self, mock_logger):
+        # Scenario where user does not want a reminder
+        want_reminder = False
+        new_date = timezone.now().date() + datetime.timedelta(days=1)
+        new_start_time = timezone.now().time()
+
+        update_appointment_reminder(self.appointment, new_date, new_start_time, self.request, want_reminder)
+
+        # Check that the logger.info was called with the expected message
+        mock_logger.info.assert_called_once_with(
+            f"Reminder for appointment {self.appointment.id} is not scheduled per user's preference or past datetime."
+        )
+
+    @patch('appointment.utils.db_helpers.logger')  # Adjust the import path as necessary
+    def test_reminder_not_scheduled_due_to_past_datetime(self, mock_logger):
+        # Scenario where the new datetime is in the past
+        want_reminder = True
+        new_date = timezone.now().date() - datetime.timedelta(days=1)  # Date in the past
+        new_start_time = timezone.now().time()
+
+        update_appointment_reminder(self.appointment, new_date, new_start_time, self.request, want_reminder)
+
+        # Check that the logger.info was called with the expected message
+        mock_logger.info.assert_called_once_with(
+            f"Reminder for appointment {self.appointment.id} is not scheduled per user's preference or past datetime."
+        )
+
+
+# Helper method for modifying service rescheduling settings
+def modify_service_rescheduling(service, **kwargs):
+    for key, value in kwargs.items():
+        setattr(service, key, value)
+    service.save()
+
+
+class CanAppointmentBeRescheduledTests(BaseTest, ConfigMixin):
+    def setUp(self):
+        super().setUp()
+        self.appointment = self.create_appointment_for_user1()
+
+    @patch('appointment.models.Service.reschedule_limit', new_callable=PropertyMock)
+    @patch('appointment.models.Config.default_reschedule_limit', new=3)
+    def test_can_appointment_be_rescheduled(self, mock_reschedule_limit):
+        mock_reschedule_limit.return_value = 3
+        self.assertTrue(can_appointment_be_rescheduled(self.appointment.appointment_request))
+
+    def test_appointment_cannot_be_rescheduled_due_to_service_limit(self):
+        modify_service_rescheduling(self.service1, allow_rescheduling=True, reschedule_limit=0)
+        self.assertFalse(can_appointment_be_rescheduled(self.appointment.appointment_request))
+
+    def test_rescheduling_allowed_exceeds_limit(self):
+        modify_service_rescheduling(self.service1, allow_rescheduling=True, reschedule_limit=3)
+        ar = self.create_appointment_request_with_histories(service=self.service1, count=4)
+        self.assertFalse(can_appointment_be_rescheduled(ar))
+
+    def test_rescheduling_with_default_limit(self):
+        ar = self.create_appointment_request_with_histories(service=self.service1, count=2, use_default_limit=True)
+        self.assertTrue(can_appointment_be_rescheduled(ar))
+        self.create_appointment_reschedule_for_user1(appointment_request=ar)
+        self.assertFalse(can_appointment_be_rescheduled(ar))
+
+    # Helper method to create appointment request with rescheduled histories
+    def create_appointment_request_with_histories(self, service, count, use_default_limit=False):
+        ar = self.create_appointment_request_(service=service, staff_member=self.staff_member1)
+        for _ in range(count):
+            self.create_appointment_reschedule_for_user1(appointment_request=ar)
+        return ar
+
+
+class StaffChangeAllowedOnRescheduleTests(TestCase):
+    @patch('appointment.models.Config.objects.first')
+    def test_staff_change_allowed(self, mock_config_first):
+        # Mock the Config object to return True for allow_staff_change_on_reschedule
+        mock_config = MagicMock()
+        mock_config.allow_staff_change_on_reschedule = True
+        mock_config_first.return_value = mock_config
+
+        # Call the function and assert that staff change is allowed
+        self.assertTrue(staff_change_allowed_on_reschedule())
+
+    @patch('appointment.models.Config.objects.first')
+    def test_staff_change_not_allowed(self, mock_config_first):
+        # Mock the Config object to return False for allow_staff_change_on_reschedule
+        mock_config = MagicMock()
+        mock_config.allow_staff_change_on_reschedule = False
+        mock_config_first.return_value = mock_config
+
+        # Call the function and assert that staff change is not allowed
+        self.assertFalse(staff_change_allowed_on_reschedule())
+
+
+class CreateUserWithEmailTests(TestCase):
+    def setUp(self):
+        self.User = get_user_model()
+        self.User.USERNAME_FIELD = 'email'
+
+    def test_create_user_with_full_data(self):
+        """Test creating a user with complete client data."""
+        client_data = {
+            'email': 'test@example.com',
+            'first_name': 'Test',
+            'last_name': 'User',
+            'username': 'test_user',
+        }
+        user = create_user_with_email(client_data)
+
+        # Verify that the user was created with the correct attributes
+        self.assertEqual(user.email, 'test@example.com')
+        self.assertEqual(user.first_name, 'Test')
+        self.assertEqual(user.last_name, 'User')
+        self.assertTrue(user.is_active)
+        self.assertFalse(user.is_staff)
+        self.assertFalse(user.is_superuser)
+
+    def test_create_user_with_partial_data(self):
+        """Test creating a user with only an email provided."""
+        client_data = {
+            'email': 'partial@example.com',
+            'username': 'partial_user',
+            # First name and last name are omitted
+        }
+        user = create_user_with_email(client_data)
+
+        # Verify that the user was created with default values for missing attributes
+        self.assertEqual(user.email, 'partial@example.com')
+        self.assertEqual(user.first_name, '')
+        self.assertEqual(user.last_name, '')
+
+    def test_create_user_with_duplicate_email(self):
+        """Test attempting to create a user with a duplicate email."""
+        client_data = {
+            'email': 'duplicate@example.com',
+            'first_name': 'Original',
+            'last_name': 'User',
+            'username': 'original_user',
+        }
+        # Create the first user
+        create_user_with_email(client_data)
+
+        # Attempt to create another user with the same email
+        with self.assertRaises(Exception) as context:
+            create_user_with_email(client_data)
+
+        # Verify that the expected exception is raised (e.g., IntegrityError for duplicate key)
+        self.assertTrue('duplicate key value violates unique constraint' in str(context.exception) or
+                        'UNIQUE constraint failed' in str(context.exception))
 
 
 class CancelExistingReminderTest(BaseTest):
@@ -837,3 +1039,109 @@ class CreateNewUserTest(TestCase):
         user = create_new_user(client_data)
         password = f"{get_website_name()}{get_current_year()}"
         self.assertTrue(user.check_password(password))
+
+
+class UsernameInUserModelTests(TestCase):
+
+    @patch('django.contrib.auth.models.User._meta.get_field')
+    def test_username_field_exists(self, mock_get_field):
+        """
+        Test that `username_in_user_model` returns True when the 'username' field exists.
+        """
+        mock_get_field.return_value = True  # Mocking as if 'username' field exists
+        self.assertTrue(username_in_user_model())
+
+    @patch('django.contrib.auth.models.User._meta.get_field')
+    def test_username_field_does_not_exist(self, mock_get_field):
+        """
+        Test that `username_in_user_model` returns False when the 'username' field does not exist.
+        """
+        mock_get_field.side_effect = FieldDoesNotExist  # Simulating 'username' field does not exist
+        self.assertFalse(username_in_user_model())
+
+
+class ExcludePendingReschedulesTests(BaseTest):
+
+    def setUp(self):
+        super().setUp()
+        self.date = timezone.now().date()
+        self.start_time = timezone.now().time()
+        self.end_time = (datetime.datetime.combine(datetime.datetime.today(), self.start_time) + datetime.timedelta(
+            hours=1)).time()
+
+        self.slots = [
+            datetime.datetime.combine(self.date, self.start_time),
+            datetime.datetime.combine(self.date, self.end_time)
+        ]
+
+    def test_exclude_no_pending_reschedules(self):
+        """Slots should remain unchanged if there are no pending rescheduling."""
+        filtered_slots = exclude_pending_reschedules(self.slots, self.staff_member1, self.date)
+        self.assertEqual(len(filtered_slots), len(self.slots))
+
+    def test_exclude_with_pending_reschedules_outside_last_5_minutes(self):
+        """Slots should remain unchanged if pending reschedules are outside the last 5 minutes."""
+        appointment_request = self.create_appointment_request_(self.service1, self.staff_member1)
+        self.create_reschedule_history_(
+            appointment_request,
+            date_=self.date,
+            start_time=(timezone.now() - datetime.timedelta(minutes=10)).time(),
+            end_time=(timezone.now() - datetime.timedelta(minutes=5)).time(),
+            staff_member=self.staff_member1,
+            reason_for_rescheduling="Scheduling conflict"
+        )
+        filtered_slots = exclude_pending_reschedules(self.slots, self.staff_member1, self.date)
+        self.assertEqual(len(filtered_slots), len(self.slots))
+
+    def test_exclude_with_pending_reschedules_within_last_5_minutes(self):
+        """Slots overlapping with pending rescheduling within the last 5 minutes should be excluded."""
+        appointment_request = self.create_appointment_request_(self.service1, self.staff_member1)
+        reschedule_start_time = (timezone.now() - datetime.timedelta(minutes=4)).time()
+        reschedule_end_time = (timezone.now() + datetime.timedelta(minutes=1)).time()
+        self.create_reschedule_history_(
+            appointment_request,
+            date_=self.date,
+            start_time=reschedule_start_time,
+            end_time=reschedule_end_time,
+            staff_member=self.staff_member1,
+            reason_for_rescheduling="Client request"
+        )
+        filtered_slots = exclude_pending_reschedules(self.slots, self.staff_member1, self.date)
+        self.assertEqual(len(filtered_slots), len(self.slots) - 1)  # Assuming only one slot overlaps
+
+    def test_exclude_with_non_pending_reschedules_within_last_5_minutes(self):
+        """Slots should remain unchanged if reschedules within the last 5 minutes are not pending."""
+        appointment_request = self.create_appointment_request_(self.service1, self.staff_member1)
+        reschedule_start_time = (timezone.now() - datetime.timedelta(minutes=4)).time()
+        reschedule_end_time = (timezone.now() + datetime.timedelta(minutes=1)).time()
+        reschedule = self.create_reschedule_history_(
+            appointment_request,
+            date_=self.date,
+            start_time=reschedule_start_time,
+            end_time=reschedule_end_time,
+            staff_member=self.staff_member1,
+            reason_for_rescheduling="Urgent issue"
+        )
+        reschedule.reschedule_status = 'confirmed'
+        reschedule.save()
+        filtered_slots = exclude_pending_reschedules(self.slots, self.staff_member1, self.date)
+        self.assertEqual(len(filtered_slots), len(self.slots))
+
+
+class GetAbsoluteUrlTests(TestCase):
+
+    def setUp(self):
+        # Create a RequestFactory instance
+        self.factory = RequestFactory()
+
+    def test_get_absolute_url_with_request(self):
+        # Create a request object using RequestFactory
+        request = self.factory.get('/some-path/')
+        relative_url = '/test-url/'
+        expected_url = request.build_absolute_uri(relative_url)
+
+        # Call the function with the request object
+        result_url = get_absolute_url_(relative_url, request)
+
+        # Assert the result matches the expected URL
+        self.assertEqual(result_url, expected_url)

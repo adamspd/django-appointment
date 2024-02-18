@@ -1,0 +1,74 @@
+{% extends BASE_TEMPLATE %}
+{% load i18n %}
+{% load static %}
+{% block customCSS %}
+    <style>
+        .content-body-apd {
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 40vh;
+        }
+        .confirmation-message {
+            max-width: 600px;
+            text-align: center;
+            padding: 20px;
+            background-color: #ffffff;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            box-shadow: 0 4px 6px rgba(0,0,0,.1);
+        }
+        .confirmation-message h1 {
+            color: #333;
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .confirmation-message p {
+            color: #555;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        .confirmation-message a {
+            display: inline-block;
+            margin-top: 25px;
+            padding: 10px 25px;
+            background-color: #007bff;
+            color: #ffffff;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .confirmation-message a:hover {
+            background-color: #0056b3;
+        }
+    </style>
+{% endblock %}
+{% block title %}
+    {% trans "Rescheduling Successful" %}
+{% endblock %}
+{% block description %}
+    {% trans "Your appointment rescheduling was successful. Please confirm via email." %}
+{% endblock %}
+{% block body %}
+    <div class="container content-body-apd">
+        <div class="main-content">
+            <div class="confirmation-message">
+                <h1>{% trans "Rescheduling Successful" %}</h1>
+                <p>{% trans "Your appointment rescheduling request has been successfully submitted. Please check your email and click on the confirmation link to finalize the rescheduling process." %}</p>
+                <a href="/">{% trans "Go to Homepage" %}</a>
+            </div>
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
+                         role="alert">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
+{% block customJS %}
+    <script src="{% static 'js/js-utils.js' %}"></script>
+{% endblock %}

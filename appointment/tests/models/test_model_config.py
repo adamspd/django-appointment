@@ -77,3 +77,8 @@ class ConfigModelTestCase(TestCase):
 
         updated_config = Config.objects.get(pk=self.config.pk)
         self.assertEqual(updated_config.website_name, new_name)
+
+    def test_cant_delete_config(self):
+        """Test that a configuration cannot be deleted."""
+        self.config.delete()
+        self.assertIsNotNone(Config.objects.first())
