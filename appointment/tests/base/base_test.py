@@ -1,10 +1,15 @@
+from datetime import timedelta
+
 from django.test import TestCase
 
-from appointment.tests.mixins.base_mixin import (AppointmentMixin, AppointmentRequestMixin, ServiceMixin,
-                                                 StaffMemberMixin, UserMixin)
+from appointment.tests.mixins.base_mixin import (
+    AppointmentMixin, AppointmentRequestMixin, ServiceMixin, StaffMemberMixin, UserMixin,
+    AppointmentRescheduleHistoryMixin
+)
 
 
-class BaseTest(TestCase, UserMixin, StaffMemberMixin, ServiceMixin, AppointmentRequestMixin, AppointmentMixin):
+class BaseTest(TestCase, UserMixin, StaffMemberMixin, ServiceMixin, AppointmentRequestMixin, AppointmentMixin,
+               AppointmentRescheduleHistoryMixin):
     def setUp(self):
         # Users
         self.user1 = self.create_user_(email="tester1@gmail.com", username="tester1")
@@ -37,3 +42,16 @@ class BaseTest(TestCase, UserMixin, StaffMemberMixin, ServiceMixin, AppointmentR
         if not appointment_request:
             appointment_request = self.create_appt_request_for_sm2()
         return self.create_appointment_(user=self.client2, appointment_request=appointment_request)
+
+    def create_appointment_reschedule_for_user1(self, appointment_request=None, reason_for_rescheduling="Reason"):
+        if not appointment_request:
+            appointment_request = self.create_appt_request_for_sm1()
+        date_ = appointment_request.date + timedelta(days=1)
+        return self.create_reschedule_history_(
+            appointment_request=appointment_request,
+            date_=date_,
+            start_time=appointment_request.start_time,
+            end_time=appointment_request.end_time,
+            staff_member=appointment_request.staff_member,
+            reason_for_rescheduling=reason_for_rescheduling,
+        )

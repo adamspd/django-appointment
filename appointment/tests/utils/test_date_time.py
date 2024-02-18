@@ -7,9 +7,12 @@ from unittest.mock import Mock, patch
 from django.test import TestCase
 
 from appointment.settings import APP_TIME_ZONE
-from appointment.utils.date_time import convert_12_hour_time_to_24_hour_time, convert_minutes_in_human_readable_format, \
-    convert_str_to_date, convert_str_to_time, get_ar_end_time, get_current_year, get_timestamp, get_timezone, \
-    get_weekday_num, time_difference
+from appointment.utils.date_time import (
+    combine_date_and_time, convert_12_hour_time_to_24_hour_time, convert_24_hour_time_to_12_hour_time,
+    convert_minutes_in_human_readable_format, convert_str_to_date,
+    convert_str_to_time, get_ar_end_time, get_current_year, get_timestamp, get_timezone, get_weekday_num,
+    time_difference
+)
 
 
 class Convert12HourTo24HourTimeTests(TestCase):
@@ -64,6 +67,50 @@ class Convert12HourTo24HourTimeTests(TestCase):
             convert_12_hour_time_to_24_hour_time("Random String")
         with self.assertRaises(ValueError):
             convert_12_hour_time_to_24_hour_time("01:60 AM")
+
+
+class Convert24HourTimeTo12HourTimeTests(TestCase):
+
+    def test_valid_24_hour_time_strings(self):
+        self.assertEqual(convert_24_hour_time_to_12_hour_time("13:00"), "01:00 PM")
+        self.assertEqual(convert_24_hour_time_to_12_hour_time("00:00"), "12:00 AM")
+        self.assertEqual(convert_24_hour_time_to_12_hour_time("23:59"), "11:59 PM")
+        self.assertEqual(convert_24_hour_time_to_12_hour_time("12:00"), "12:00 PM")
+        self.assertEqual(convert_24_hour_time_to_12_hour_time("01:00"), "01:00 AM")
+
+    def test_valid_24_hour_time_with_seconds(self):
+        self.assertEqual(convert_24_hour_time_to_12_hour_time("13:00:01"), "01:00:01 PM")
+        self.assertEqual(convert_24_hour_time_to_12_hour_time("00:00:59"), "12:00:59 AM")
+
+    def test_datetime_time_object_input(self):
+        time_input = datetime.time(13, 15)
+        self.assertEqual(convert_24_hour_time_to_12_hour_time(time_input), "01:15 PM")
+        time_input = datetime.time(0, 0)
+        self.assertEqual(convert_24_hour_time_to_12_hour_time(time_input), "12:00 AM")
+
+    def test_invalid_time_strings(self):
+        with self.assertRaises(ValueError):
+            convert_24_hour_time_to_12_hour_time("25:00")
+        with self.assertRaises(ValueError):
+            convert_24_hour_time_to_12_hour_time("-01:00")
+        with self.assertRaises(ValueError):
+            convert_24_hour_time_to_12_hour_time("13:60")
+        with self.assertRaises(ValueError):
+            convert_24_hour_time_to_12_hour_time("invalid")
+
+    def test_incorrect_format(self):
+        with self.assertRaises(ValueError):
+            convert_24_hour_time_to_12_hour_time("1 PM")
+        with self.assertRaises(ValueError):
+            convert_24_hour_time_to_12_hour_time("13 PM")
+        with self.assertRaises(ValueError):
+            convert_24_hour_time_to_12_hour_time("24:00")
+
+    def test_edge_cases(self):
+        self.assertEqual(convert_24_hour_time_to_12_hour_time("12:00"), "12:00 PM")
+        self.assertEqual(convert_24_hour_time_to_12_hour_time("00:00"), "12:00 AM")
+        self.assertEqual(convert_24_hour_time_to_12_hour_time("11:59"), "11:59 AM")
+        self.assertEqual(convert_24_hour_time_to_12_hour_time("23:59"), "11:59 PM")
 
 
 class ConvertMinutesInHumanReadableFormatTests(TestCase):
@@ -218,6 +265,15 @@ class GetAppointmentRequestEndTimeTests(TestCase):
         # hence "23:30:00" + 60 minutes = "00:30:00".
         self.assertEqual(get_ar_end_time("23:30:00", 60), datetime.time(0, 30))
 
+    def test_invalid_start_time_type(self):
+        """Test that an invalid start_time type raises a TypeError."""
+        with self.assertRaises(TypeError):
+            get_ar_end_time([], 60)  # Passing a list instead of a datetime.time object or string
+        with self.assertRaises(TypeError):
+            get_ar_end_time(12345, 30)  # Passing an integer
+        with self.assertRaises(TypeError):
+            get_ar_end_time(None, 30)  # Passing None
+
 
 class TimeDifferenceTests(TestCase):
 
@@ -248,6 +304,66 @@ class TimeDifferenceTests(TestCase):
         datetime2 = datetime.datetime(2023, 1, 1, 11, 0)
         with self.assertRaises(ValueError):
             time_difference(datetime2, datetime1)
+
+    def test_mismatched_input_types(self):
+        """Test that providing one 'datetime.time' and one datetime.datetime raises a ValueError."""
+        time_obj = datetime.time(10, 0)
+        datetime_obj = datetime.datetime(2023, 1, 1, 11, 0)
+
+        with self.assertRaises(ValueError) as context:
+            time_difference(time_obj, datetime_obj)
+
+        self.assertEqual(str(context.exception),
+                         "Both inputs should be of the same type, either datetime.time or datetime.datetime")
+
+        # Test the reverse case as well for completeness
+        with self.assertRaises(ValueError) as context:
+            time_difference(datetime_obj, time_obj)
+
+        self.assertEqual(str(context.exception),
+                         "Both inputs should be of the same type, either datetime.time or datetime.datetime")
+
+
+class CombineDateAndTimeTests(TestCase):
+    def test_combine_valid_date_and_time(self):
+        """Test combining a valid date and time."""
+        date = datetime.date(2023, 1, 1)
+        time = datetime.time(12, 30)
+        expected_datetime = datetime.datetime(2023, 1, 1, 12, 30)
+        result = combine_date_and_time(date, time)
+        self.assertEqual(result, expected_datetime)
+
+    def test_combine_with_midnight(self):
+        """Test combining a date with a midnight time."""
+        date = datetime.date(2023, 1, 1)
+        time = datetime.time(0, 0)
+        expected_datetime = datetime.datetime(2023, 1, 1, 0, 0)
+        result = combine_date_and_time(date, time)
+        self.assertEqual(result, expected_datetime)
+
+    def test_combine_with_leap_year_date(self):
+        """Test combining a leap year date and time."""
+        date = datetime.date(2024, 2, 29)
+        time = datetime.time(23, 59)
+        expected_datetime = datetime.datetime(2024, 2, 29, 23, 59)
+        result = combine_date_and_time(date, time)
+        self.assertEqual(result, expected_datetime)
+
+    def test_combine_with_end_of_day(self):
+        """Test combining a date with 'end of day time'."""
+        date = datetime.date(2023, 1, 1)
+        time = datetime.time(23, 59, 59)
+        expected_datetime = datetime.datetime(2023, 1, 1, 23, 59, 59)
+        result = combine_date_and_time(date, time)
+        self.assertEqual(result, expected_datetime)
+
+    def test_combine_with_microseconds(self):
+        """Test combining a date and time with microseconds."""
+        date = datetime.date(2023, 1, 1)
+        time = datetime.time(12, 30, 15, 123456)
+        expected_datetime = datetime.datetime(2023, 1, 1, 12, 30, 15, 123456)
+        result = combine_date_and_time(date, time)
+        self.assertEqual(result, expected_datetime)
 
 
 class TimestampTests(TestCase):

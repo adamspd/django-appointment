@@ -43,6 +43,31 @@ def convert_12_hour_time_to_24_hour_time(time_to_convert) -> str:
         raise ValueError(f"Unsupported data type for time conversion: {type(time_to_convert)}")
 
 
+def convert_24_hour_time_to_12_hour_time(time_to_convert) -> str:
+    """Convert a 24-hour time to a 12-hour time.
+
+    :param time_to_convert: The time to convert in 'HH:MM' or 'HH:MM:SS' format, or a datetime.time object.
+    :return: The converted time in 'HH:MM AM/PM' or 'HH:MM:SS AM/PM' format.
+    :raises ValueError: If the input time is not in the correct format or is invalid.
+    """
+    # Handle datetime.time object directly
+    if isinstance(time_to_convert, datetime.time):
+        return time_to_convert.strftime('%I:%M %p')
+
+    # Handle string input
+    for source_fmt, dest_fmt in zip(['%H:%M:%S', '%H:%M'], ['%I:%M:%S %p', '%I:%M %p']):
+        try:
+            # Parse the input string according to the 24-hour format
+            parsed_time = datetime.datetime.strptime(time_to_convert, source_fmt)
+            # Convert and return the time in 12-hour format
+            return parsed_time.strftime(dest_fmt)
+        except ValueError:
+            continue  # Try the next format if there was a parsing error
+
+    # If input was not datetime.time and did not match string formats, raise an error
+    raise ValueError(f"Invalid 24-hour time format: {time_to_convert}")
+
+
 def convert_minutes_in_human_readable_format(minutes: float) -> str:
     """Convert a number of minutes in a human-readable format.
 
@@ -75,8 +100,6 @@ def convert_minutes_in_human_readable_format(minutes: float) -> str:
         return _("{first_part} and {second_part}").format(first_part=parts[0], second_part=parts[1])
     elif len(parts) == 3:
         return _("{days}, {hours} and {minutes}").format(days=parts[0], hours=parts[1], minutes=parts[2])
-    else:
-        return ""
 
 
 def convert_str_to_date(date_str: str) -> datetime.date:

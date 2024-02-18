@@ -1,9 +1,11 @@
 from datetime import timedelta
 
 from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 
 from appointment.models import Service
+from django.conf import settings
 
 
 class ServiceModelTestCase(TestCase):
@@ -88,23 +90,6 @@ class ServiceModelTestCase(TestCase):
         """Test if a service can be created with a currency."""
         self.assertEqual(self.service.currency, "USD")
 
-    def test_get_service_image(self):
-        """test_get_service_image's implementation not finished yet."""
-        pass
-        # self.assertIsNone(self.service.get_image())
-        # Add a sample image file and test the method
-        # self.service.image = 'path/to/sample/image.jpg'
-        # self.assertEqual(self.service.get_image(), 'path/to/sample/image.jpg')
-
-    def test_get_service_image_url(self):
-        """test_get_service_image_url's implementation not finished yet."""
-        pass
-        # self.assertIsNone(self.service.get_image_url())
-        # Add a sample image file and test the method
-        # self.service.image = 'path/to/sample/image.jpg'
-        # self.service.save()
-        # self.assertEqual(self.service.get_image_url(), '/media/path/to/sample/image.jpg')
-
     def test_service_created_at(self):
         """Test if a service can be created with a created at date."""
         self.assertIsNotNone(self.service.created_at)
@@ -164,3 +149,105 @@ class ServiceModelTestCase(TestCase):
         """A service cannot be created with no name."""
         with self.assertRaises(ValidationError):
             Service.objects.create(name="", duration=timedelta(hours=1), price=100)
+
+    def test_service_with_invalid_duration(self):
+        """Service should not be created with a negative or zero duration."""
+        with self.assertRaises(ValidationError):
+            Service.objects.create(name="Invalid Duration Service", duration=timedelta(seconds=-1), price=50)
+        with self.assertRaises(ValidationError):
+            Service.objects.create(name="Zero Duration Service", duration=timedelta(seconds=0), price=50)
+
+    def test_service_with_empty_name(self):
+        """Service should not be created with an empty name."""
+        with self.assertRaises(ValidationError):
+            Service.objects.create(name="", duration=timedelta(hours=1), price=50)
+
+    def test_service_with_negative_price(self):
+        """Service should not be created with a negative price."""
+        with self.assertRaises(ValidationError):
+            Service.objects.create(name="Negative Price Service", duration=timedelta(hours=1), price=-1)
+
+    def test_service_with_negative_down_payment(self):
+        """Service should not have a negative down payment."""
+        with self.assertRaises(ValidationError):
+            Service.objects.create(name="Service with Negative Down Payment", duration=timedelta(hours=1), price=50,
+                                   down_payment=-1)
+
+    def test_service_auto_generate_background_color(self):
+        """Service should auto-generate a background color if none is provided."""
+        service = Service.objects.create(name="Service with Auto Background", duration=timedelta(hours=1), price=50)
+        self.assertIsNotNone(service.background_color)
+        self.assertNotEqual(service.background_color, "")
+
+    def test_reschedule_limit_and_allowance(self):
+        """Service should correctly handle reschedule limits and rescheduling allowance."""
+        service = Service.objects.create(name="Reschedulable Service", duration=timedelta(hours=1), price=50,
+                                         reschedule_limit=3, allow_rescheduling=True)
+        self.assertEqual(service.reschedule_limit, 3)
+        self.assertTrue(service.allow_rescheduling)
+
+    def test_get_service_image_url_no_image(self):
+        """Service should handle cases where no image is provided gracefully."""
+        service = Service.objects.create(name="Service without Image", duration=timedelta(hours=1), price=50)
+        self.assertEqual(service.get_image_url(), "")
+
+    def test_to_dict_method(self):
+        """Test the to_dict method returns the correct dictionary representation of the Service instance."""
+        service = Service.objects.create(name="Test Service", duration=timedelta(hours=1), price=150,
+                                         description="A test service")
+        expected_dict = {
+            "id": service.id,
+            "name": "Test Service",
+            "description": "A test service",
+            "price": "150"
+        }
+        self.assertEqual(service.to_dict(), expected_dict)
+
+    def test_get_down_payment_as_integer(self):
+        """Test the get_down_payment method returns an integer if the down payment has no decimal part."""
+        service = Service.objects.create(name="Test Service", duration=timedelta(hours=1), price=100, down_payment=50)
+        self.assertEqual(service.get_down_payment(), 50)
+
+    def test_get_down_payment_as_decimal(self):
+        """Test the get_down_payment method returns the original decimal value if it has a decimal part."""
+        service = Service.objects.create(name="Test Service", duration=timedelta(hours=1), price=100,
+                                         down_payment=50.50)
+        self.assertEqual(service.get_down_payment(), 50.50)
+
+    def test_get_down_payment_text_free(self):
+        """Test the get_down_payment_text method returns 'Free' if the down payment is 0."""
+        service = Service.objects.create(name="Free Service", duration=timedelta(hours=1), price=100, down_payment=0)
+        self.assertEqual(service.get_down_payment_text(), "Free")
+
+    def test_get_down_payment_text_with_value(self):
+        """Test the get_down_payment_text method returns the down payment amount followed by the currency icon."""
+        service = Service.objects.create(name="Paid Service", duration=timedelta(hours=1), price=100, down_payment=25)
+        # Assuming get_currency_icon method returns "$" for USD
+        expected_text = "25$"
+        self.assertEqual(service.get_down_payment_text(), expected_text)
+
+    def test_get_down_payment_text_with_decimal(self):
+        """Test the get_down_payment_text method for a service with a decimal down payment."""
+        service = Service.objects.create(name="Service with Decimal Down Payment", duration=timedelta(hours=1),
+                                         price=100, down_payment=25.75)
+        # Assuming get_currency_icon method returns "$" for USD
+        expected_text = "25.75$"
+        self.assertEqual(service.get_down_payment_text(), expected_text)
+
+    def test_str_method(self):
+        """Test the string representation of the Service model."""
+        service_name = "Test Service"
+        service = Service.objects.create(name=service_name, duration=timedelta(hours=1), price=100)
+        self.assertEqual(str(service), service_name)
+
+    def test_get_service_image_url_with_image(self):
+        """Service should return the correct URL for the image if provided."""
+        # Create an image and attach it to the service
+        image_path = settings.BASE_DIR / 'appointment/static/img/texture.webp'  # Adjust the path as necessary
+        image = SimpleUploadedFile(name='test_image.png', content=open(image_path, 'rb').read(),
+                                   content_type='image/png')
+        service = Service.objects.create(name="Service with Image", duration=timedelta(hours=1), price=50, image=image)
+
+        # Assuming you have MEDIA_URL set in your settings for development like '/media/'
+        expected_url = f"{settings.MEDIA_URL}{service.image}"
+        self.assertTrue(service.get_image_url().endswith(expected_url))

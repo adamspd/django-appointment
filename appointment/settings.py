@@ -65,6 +65,6 @@ def check_q_cluster():
         for warning in missing_conf:
             logger.warning(warning)
         return False
-    print(f"Mising conf: {missing_conf}")
+    print(f"Missing conf: {missing_conf}")
     # Both 'django_q' is installed and 'Q_CLUSTER' is configured
     return True
