@@ -14,8 +14,8 @@
 ⚠️ **IMPORTANT**: If upgrading from a version before 2.x.x, please note significant database changes were introduced in
 Version 2.0.0 introduces significant database changes. Please read
 the [migration guide](https://github.com/adamspd/django-appointment/tree/main/docs/migration_guides/v2_1_0.md) before
-updating. Version 3.1.0 introduces the ability to send email reminders for appointments using Django Q for efficient
-task scheduling.
+updating. Version 3.x.x introduces the ability to send email reminders for appointments using Django Q for efficient
+task scheduling. It also allows clients to reschedule appointments if it is allowed by admins.
 
 Django-Appointment is a Django app engineered for managing appointment scheduling with ease and flexibility. It enables
 users to define custom configurations for time slots, lead time, and finish time, or utilize the default values
@@ -46,9 +46,9 @@ and [here](https://github.com/adamspd/django-appointment/tree/main/docs/release_
 - For more information, please refer to
   this [documentation](https://github.com/adamspd/django-appointment/tree/main/docs/history).
 
-## Added Features and Bug Fixes in version 3.1.0
+## Added Features and Bug Fixes in version 3.x.x
 
-See the [release notes](https://github.com/adamspd/django-appointment/releases/tag/v3.1.0).
+See the [release notes](https://github.com/adamspd/django-appointment/releases/tag/v3.2.0).
 For older version,
 see their [release notes](https://github.com/adamspd/django-appointment/tree/main/docs/release_notes).
 
