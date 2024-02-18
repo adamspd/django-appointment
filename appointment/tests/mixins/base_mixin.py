@@ -1,6 +1,8 @@
 from datetime import date, time, timedelta
 
-from appointment.models import Appointment, AppointmentRequest, Config, Service, StaffMember
+from appointment.models import (
+    Appointment, AppointmentRequest, AppointmentRescheduleHistory, Config, Service, StaffMember
+)
 from appointment.utils.db_helpers import get_user_model
 
 
@@ -71,6 +73,23 @@ class AppointmentMixin:
             appointment_request=appointment_request,
             phone=phone,
             address=address
+        )
+
+
+class AppointmentRescheduleHistoryMixin:
+    def __init__(self):
+        pass
+
+    @classmethod
+    def create_reschedule_history_(cls, appointment_request, date_, start_time, end_time, staff_member,
+                                   reason_for_rescheduling=""):
+        return AppointmentRescheduleHistory.objects.create(
+            appointment_request=appointment_request,
+            date=date_,
+            start_time=start_time,
+            end_time=end_time,
+            staff_member=staff_member,
+            reason_for_rescheduling=reason_for_rescheduling
         )
 
 
