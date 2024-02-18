@@ -5,7 +5,6 @@
 Author: Adams Pierre David
 Since: 2.0.0
 """
-import datetime
 
 import pytz
 from django.http import JsonResponse

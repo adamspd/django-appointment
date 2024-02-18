@@ -24,19 +24,19 @@ class SendEmailReminderTest(BaseTest):
         appointment_id = appointment.id
 
         # Call the function under test
-        send_email_reminder(to_email, first_name, appointment_id)
+        send_email_reminder(to_email, first_name, "", appointment_id)
 
         # Verify send_email was called with correct parameters
         mock_send_email.assert_called_once_with(
             recipient_list=[to_email],
             subject=_("Reminder: Upcoming Appointment"),
             template_url='email_sender/reminder_email.html',
-            context={'first_name': first_name, 'appointment': appointment}
+            context={'first_name': first_name, 'appointment': appointment, 'reschedule_link': ""}
         )
 
         # Verify notify_admin was called with correct parameters
         mock_notify_admin.assert_called_once_with(
             subject=_("Admin Reminder: Upcoming Appointment"),
             template_url='email_sender/reminder_email.html',
-            context={'first_name': first_name, 'appointment': appointment}
+            context={'first_name': first_name, 'appointment': appointment, 'reschedule_link': ""}
         )

@@ -8,15 +8,19 @@ Since: 1.0.0
 
 from django.urls import include, path
 
-from appointment.views import appointment_client_information, appointment_request, appointment_request_submit, \
-    default_thank_you, enter_verification_code, get_available_slots_ajax, get_next_available_date_ajax, \
-    get_non_working_days_ajax
-from appointment.views_admin import add_day_off, add_or_update_service, add_or_update_staff_info, add_working_hours, \
-    create_new_staff_member, delete_appointment, delete_appointment_ajax, delete_day_off, delete_service, \
-    delete_working_hours, display_appointment, email_change_verification_code, fetch_service_list_for_staff, \
-    get_service_list, get_user_appointments, is_user_staff_admin, make_superuser_staff_member, remove_staff_member, \
-    remove_superuser_staff_member, update_appt_date_time, update_appt_min_info, update_day_off, update_personal_info, \
+from appointment.views import (
+    appointment_client_information, appointment_request, appointment_request_submit, confirm_reschedule,
+    default_thank_you, enter_verification_code, get_available_slots_ajax, get_next_available_date_ajax,
+    get_non_working_days_ajax, prepare_reschedule_appointment, reschedule_appointment_submit
+)
+from appointment.views_admin import (
+    add_day_off, add_or_update_service, add_or_update_staff_info, add_working_hours, create_new_staff_member,
+    delete_appointment, delete_appointment_ajax, delete_day_off, delete_service, delete_working_hours,
+    display_appointment, email_change_verification_code, fetch_service_list_for_staff, get_service_list,
+    get_user_appointments, is_user_staff_admin, make_superuser_staff_member, remove_staff_member,
+    remove_superuser_staff_member, update_appt_date_time, update_appt_min_info, update_day_off, update_personal_info,
     update_working_hours, user_profile, validate_appointment_date
+)
 
 app_name = 'appointment'
 
@@ -95,6 +99,10 @@ urlpatterns = [
     # homepage
     path('request/<int:service_id>/', appointment_request, name='appointment_request'),
     path('request-submit/', appointment_request_submit, name='appointment_request_submit'),
+    path('appointment/<str:id_request>/reschedule/', prepare_reschedule_appointment,
+         name='prepare_reschedule_appointment'),
+    path('appointment-reschedule-submit/', reschedule_appointment_submit, name='reschedule_appointment_submit'),
+    path('confirm-reschedule/<str:id_request>/', confirm_reschedule, name='confirm_reschedule'),
     path('client-info/<int:appointment_request_id>/<str:id_request>/', appointment_client_information,
          name='appointment_client_information'),
     path('verification-code/<int:appointment_request_id>/<str:id_request>/', enter_verification_code,
