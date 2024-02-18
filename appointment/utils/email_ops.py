@@ -8,13 +8,16 @@ Since: 1.1.0
 
 import datetime
 
+from django.conf import settings
+from django.urls import reverse
 from django.utils.translation import gettext as _
 
 from appointment import messages_ as email_messages
-from appointment.email_sender import send_email
-from appointment.models import EmailVerificationCode, AppointmentRequest
+from appointment.email_sender import notify_admin, send_email
+from appointment.models import AppointmentRequest, EmailVerificationCode
 from appointment.settings import APPOINTMENT_PAYMENT_URL
-from appointment.utils.db_helpers import get_website_name
+from appointment.utils.date_time import convert_24_hour_time_to_12_hour_time
+from appointment.utils.db_helpers import get_absolute_url_, get_website_name
 
 
 def get_thank_you_message(ar: AppointmentRequest) -> str:
@@ -83,3 +86,59 @@ def send_verification_email(user, email: str):
     code = EmailVerificationCode.generate_code(user=user)
     message = _("Your verification code is {code}.").format(code=code)
     send_email(recipient_list=[email], subject=_("Email Verification"), message=message)
+
+
+def send_reschedule_confirmation_email(request, reschedule_history, appointment_request, first_name: str, email: str):
+    """Send a rescheduling confirmation email to the client."""
+    # Generate a URL for the confirmation action
+    relative_confirmation_link = reverse('appointment:confirm_reschedule', args=[reschedule_history.id_request])
+    confirmation_link = get_absolute_url_(relative_confirmation_link, request)
+
+    # Email context
+    email_context = {
+        'is_confirmation': True,
+        'first_name': first_name,
+        'old_date': appointment_request.date.strftime("%A, %d %B %Y"),
+        'reschedule_date': reschedule_history.date.strftime("%A, %d %B %Y"),
+        'old_start_time': convert_24_hour_time_to_12_hour_time(appointment_request.start_time),
+        'start_time': convert_24_hour_time_to_12_hour_time(reschedule_history.start_time),
+        'old_end_time': convert_24_hour_time_to_12_hour_time(appointment_request.end_time),
+        'end_time': convert_24_hour_time_to_12_hour_time(reschedule_history.end_time),
+        'confirmation_link': confirmation_link,
+        'company': get_website_name(),
+    }
+
+    subject = _("Confirm Your Appointment Rescheduling")
+    send_email(
+        recipient_list=[email], subject=subject,
+        template_url='email_sender/reschedule_email.html', context=email_context
+    )
+
+
+def notify_admin_about_reschedule(reschedule_history, appointment_request, client_name: str):
+    """Notify the admin and the staff member about a rescheduled appointment request."""
+    # Assuming you have a way to fetch these additional details
+    service_name = appointment_request.service.name
+    reason_for_rescheduling = reschedule_history.reason_for_rescheduling
+
+    email_context = {
+        'is_confirmation': False,
+        'client_name': client_name,
+        'service_name': service_name,
+        'reason_for_rescheduling': reason_for_rescheduling,
+        'old_date': appointment_request.date.strftime("%A, %d %B %Y"),
+        'reschedule_date': reschedule_history.date.strftime("%A, %d %B %Y"),
+        'old_start_time': convert_24_hour_time_to_12_hour_time(appointment_request.start_time),
+        'start_time': convert_24_hour_time_to_12_hour_time(reschedule_history.start_time),
+        'old_end_time': convert_24_hour_time_to_12_hour_time(appointment_request.end_time),
+        'end_time': convert_24_hour_time_to_12_hour_time(reschedule_history.end_time),
+        'company': get_website_name(),
+    }
+
+    subject = _("Reschedule Request for ") + client_name
+    staff_member = appointment_request.staff_member
+    # Assuming notify_admin and send_email are previously defined functions
+    notify_admin(subject=subject, template_url='email_sender/reschedule_email.html', context=email_context)
+    if staff_member.user.email not in settings.ADMINS:
+        send_email(recipient_list=[staff_member.user.email], subject=subject,
+                   template_url='email_sender/reschedule_email.html', context=email_context)

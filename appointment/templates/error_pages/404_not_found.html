@@ -208,9 +208,17 @@
             </g>
         </svg>
 
-        <p id="errorText">{% trans "O-o-oh! Something broke." %}</p>
+        <p id="errorText">{% if error_message %}
+            {{ error_message }}
+        {% else %}
+            {% trans "O-o-oh! Something broke." %}
+        {% endif %} </p>
         <button type="button" class="btn btn-primary" id="back" onclick="Back()">
-            <i class="fa fa-undo"></i> {% trans "Go back" %}
+            <i class="fa fa-undo"></i> {% if error_message %}
+            {% trans "Go home" %}
+        {% else %}
+            {% trans "Go back" %}
+        {% endif %}
         </button>
     </div>
 
@@ -337,7 +345,14 @@
 {% endblock %}
 {% block customJS %}
     <script>
+        const errorMessage = "{{ error_message }}";
+
         function Back() {
+            if (errorMessage !== "" && errorMessage !== undefined) {
+                // go home / index
+                console.log("redirecting to home")
+                window.location.href = "/"
+            }
             window.history.back()
         }
     </script>

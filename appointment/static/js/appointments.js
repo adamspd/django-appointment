@@ -2,12 +2,13 @@ const calendarEl = document.getElementById('calendar');
 let nextAvailableDateSelector = $('.djangoAppt_next-available-date')
 const body = $('body');
 let nonWorkingDays = [];
-let selectedDate = null;
+let selectedDate = rescheduledDate || null;
 let staffId = $('#staff_id').val() || null;
 let previouslySelectedCell = null;
 
 const calendar = new FullCalendar.Calendar(calendarEl, {
     initialView: 'dayGridMonth',
+    initialDate: selectedDate,
     headerToolbar: {
         left: 'title',
         right: 'prev,today,next',
@@ -43,6 +44,9 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
         selectedDate = info.dateStr;
         getAvailableSlots(info.dateStr, staffId);
     },
+    datesSet: function (info) {
+        highlightSelectedDate();
+    },
     selectAllow: function (info) {
         const day = info.start.getDay();  // Get the day of the week (0 for Sunday, 6 for Saturday)
         if (nonWorkingDays.includes(day)) {
@@ -64,9 +68,19 @@ calendar.setOption('locale', locale);
 $(document).ready(function () {
     staffId = $('#staff_id').val() || null;
     calendar.render();
-    const currentDate = moment.tz(timezone).format('YYYY-MM-DD');
+    const currentDate = rescheduledDate || moment.tz(timezone).format('YYYY-MM-DD');
     getAvailableSlots(currentDate, staffId);
 });
+
+function highlightSelectedDate() {
+    setTimeout(function () {
+        const dateCell = document.querySelector(`.fc-daygrid-day[data-date='${selectedDate}']`);
+        if (dateCell) {
+            dateCell.classList.add('selected-cell');
+            previouslySelectedCell = dateCell;
+        }
+    }, 10);
+}
 
 body.on('click', '.djangoAppt_btn-request-next-slot', function () {
     const serviceId = $(this).data('service-id');
@@ -91,13 +105,22 @@ body.on('click', '.btn-submit-appointment', function () {
         const date = formattedDate.toISOString().slice(0, 10);
         const endTimeDate = new Date(formattedDate.getTime() + serviceDuration * 60000);
         const endTime = formatTime(endTimeDate);
-
+        const reasonForRescheduling = $('#reason_for_rescheduling').val();
         const form = $('.appointment-form');
-
+        let formAction = rescheduledDate ? appointmentRescheduleURL : appointmentRequestSubmitURL;
+        form.attr('action', formAction);
+        if (!form.find('input[name="appointment_request_id"]').length) {
+            form.append($('<input>', {
+                type: 'hidden',
+                name: 'appointment_request_id',
+                value: appointmentRequestId
+            }));
+        }
         form.append($('<input>', {type: 'hidden', name: 'date', value: date}));
         form.append($('<input>', {type: 'hidden', name: 'start_time', value: startTime}));
         form.append($('<input>', {type: 'hidden', name: 'end_time', value: endTime}));
         form.append($('<input>', {type: 'hidden', name: 'service', value: serviceId}));
+        form.append($('<input>', {type: 'hidden', name: 'reason_for_rescheduling', value: reasonForRescheduling}));
         form.submit();
     } else {
         const warningContainer = $('.warning-message');
@@ -197,7 +220,7 @@ function getAvailableSlots(selectedDate, staffId = null) {
     // Check if 'staffId' is 'none', null, or undefined and display an error message
     if (staffId === 'none' || staffId === null || staffId === undefined) {
         console.log('No staff ID provided, displaying error message.');
-        const errorMessage = $('<p class="djangoAppt_no-availability-text">'+ noStaffMemberSelectedTxt + '</p>');
+        const errorMessage = $('<p class="djangoAppt_no-availability-text">' + noStaffMemberSelectedTxt + '</p>');
         errorMessageContainer.append(errorMessage);
         // Optionally disable the "submit" button here
         $('.btn-submit-appointment').attr('disabled', 'disabled');

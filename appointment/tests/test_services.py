@@ -337,6 +337,8 @@ class SaveAppointmentTests(BaseTest):
 
         # Assuming self.create_default_appointment creates an appointment with default values
         self.appt = self.create_appointment_for_user1()
+        self.factory = RequestFactory()
+        self.request = self.factory.get('/')
 
     def test_save_appointment(self):
         """Test if an appointment can be saved with valid data."""
@@ -349,7 +351,7 @@ class SaveAppointmentTests(BaseTest):
 
         # Call the function
         updated_appt = save_appointment(self.appt, client_name, client_email, start_time_str, phone_number,
-                                        client_address, service_id)
+                                        client_address, service_id, self.request)
 
         # Check client details
         self.assertEqual(updated_appt.client.get_full_name(), client_name)
@@ -373,6 +375,8 @@ class SaveApptDateTimeTests(BaseTest):
 
         # Assuming create_appointment_for_user1 creates an appointment for user1 with default values
         self.appt = self.create_appointment_for_user1()
+        self.factory = RequestFactory()
+        self.request = self.factory.get('/')
 
     def test_save_appt_date_time(self):
         """Test if an appointment's date and time can be updated."""
@@ -382,7 +386,7 @@ class SaveApptDateTimeTests(BaseTest):
         appt_id = self.appt.id
 
         # Call the function
-        updated_appt = save_appt_date_time(appt_start_time_str, appt_date_str, appt_id)
+        updated_appt = save_appt_date_time(appt_start_time_str, appt_date_str, appt_id, self.request)
 
         # Convert given date and time strings to appropriate formats
         time_format = "%H:%M:%S.%fZ"
@@ -399,11 +403,21 @@ class SaveApptDateTimeTests(BaseTest):
         self.assertEqual(updated_appt.appointment_request.end_time, end_time_obj)
 
 
-def get_next_weekday(d, weekday):  # weekday: 0 = Monday, 1=Tuesday, 2=Wednesday, ...
+def get_next_weekday(d, weekday):
+    """
+    Get the date of the next weekday from the given date.
+    This function uses python's weekday format, where Monday is 0, and Sunday is 6.
+    Remember that in my implementation for work days, I had to use a custom one where Monday is 1, and Sunday is 0.
+    So in the setup, I will use my format to create day-offs, working hours, etc. But when calling this function, I will
+    use the python format.
+    """
+    days_of_week = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
     days_ahead = weekday - d.weekday()
     if days_ahead <= 0:  # Target day already happened this week
         days_ahead += 7
-    return d + datetime.timedelta(days_ahead)
+    next_day = d + datetime.timedelta(days_ahead)
+    print(f"Day asked is {days_of_week[weekday]}, which is {next_day.strftime('%Y-%m-%d')}")
+    return next_day
 
 
 class GetAvailableSlotsTests(BaseTest):
@@ -412,29 +426,46 @@ class GetAvailableSlotsTests(BaseTest):
         super().setUp()
         cache.clear()
         self.today = datetime.date.today()
-        self.wh = WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=1,
-                                              start_time=datetime.time(9, 0), end_time=datetime.time(17, 0))
-        DayOff.objects.create(staff_member=self.staff_member1, start_date=get_next_weekday(self.today, 1),
+        # Staff member1 works only on Mondays and Wednesday (day_of_week: 1, 3)
+        self.wh1 = WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=1,
+                                               start_time=datetime.time(9, 0), end_time=datetime.time(17, 0))
+        self.wh2 = WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=3,
+                                               start_time=datetime.time(9, 0), end_time=datetime.time(17, 0))
+        # But decides to take a day off next Monday
+        DayOff.objects.create(staff_member=self.staff_member1, start_date=get_next_weekday(self.today, 0),
                               end_date=get_next_weekday(self.today, 1))
         Config.objects.create(slot_duration=60, lead_time=datetime.time(9, 0), finish_time=datetime.time(17, 0),
                               appointment_buffer_time=0)
 
     def test_day_off(self):
         """Test if a day off is handled correctly when getting available slots."""
-        # Get a day in the future that is a Tuesday (for python weekday: 1 = Tuesday)
-        date = get_next_weekday(datetime.datetime.today(), 1)
+        # Get a day in the future that is a Monday (for python weekday: 0 = Monday)
+        date = get_next_weekday(datetime.datetime.today(), 0)
+        # Ask for slots for it, and it should return an empty list since next Monday is a day off
         slots = get_available_slots_for_staff(date, self.staff_member1)
         self.assertEqual(slots, [])
 
     def test_staff_does_not_work(self):
         """Test if a staff member who doesn't work on a given day is handled correctly when getting available slots."""
-        date = datetime.date(2023, 1, 2)
-        slots = get_available_slots_for_staff(date, self.staff_member1)
+        # For next week, the staff member works only on Monday and Wednesday, but puts a day off on Monday
+        # So the staff member should not have any available slots except for Wednesday, which is day #2 (python weekday)
+        slots = get_available_slots_for_staff(get_next_weekday(self.today, 1), self.staff_member1)
+        self.assertEqual(slots, [])
+        slots = get_available_slots_for_staff(get_next_weekday(self.today, 3), self.staff_member1)
+        self.assertEqual(slots, [])
+        slots = get_available_slots_for_staff(get_next_weekday(self.today, 4), self.staff_member1)
+        self.assertEqual(slots, [])
+        slots = get_available_slots_for_staff(get_next_weekday(self.today, 5), self.staff_member1)
+        self.assertEqual(slots, [])
+        slots = get_available_slots_for_staff(get_next_weekday(self.today, 6), self.staff_member1)
+        self.assertEqual(slots, [])
+        slots = get_available_slots_for_staff(get_next_weekday(self.today, 0), self.staff_member1)
         self.assertEqual(slots, [])
 
     def test_available_slots(self):
         """Test if available slots are returned correctly."""
-        date = get_next_weekday(self.today, 0)
+        # On a Wednesday, the staff member should have slots from 9 AM to 5 PM
+        date = get_next_weekday(self.today, 2)
         slots = get_available_slots_for_staff(date, self.staff_member1)
         expected_slots = [f"{hour:02d}:00 AM" for hour in range(9, 12)] + ["12:00 PM"] + \
                          [f"{hour:02d}:00 PM" for hour in range(1, 5)]
@@ -442,22 +473,29 @@ class GetAvailableSlotsTests(BaseTest):
 
     def test_booked_slots(self):
         """On a given day, if a staff member has an appointment, that time slot should not be available."""
-        appt_date = get_next_weekday(self.today, 0)
+        # Let's book a slot for the staff member on next Wednesday
+        appt_date = get_next_weekday(self.today, 2)
         start_time = datetime.time(10, 0)
         end_time = datetime.time(11, 0)
+
         # Create an appointment request for that time
         appt_request = self.create_appointment_request_(service=self.service1, staff_member=self.staff_member1,
                                                         date_=appt_date, start_time=start_time, end_time=end_time)
         # Create an appointment using that request
         self.create_appointment_(user=self.client1, appointment_request=appt_request)
+
+        # Now, the staff member should not have that slot available
         slots = get_available_slots_for_staff(appt_date, self.staff_member1)
         expected_slots = ['09:00 AM', '11:00 AM', '12:00 PM', '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM']
         self.assertEqual(slots, expected_slots)
 
     def test_no_working_hours(self):
         """If a staff member doesn't have working hours on a given day, no slots should be available."""
+        # Let's ask for slots on a Thursday, which the staff member doesn't work
         date = get_next_weekday(self.today, 3)
+        # Let's remove the config object also since it may contain default working days
         Config.objects.all().delete()
+        # Now no slots should be available
         slots = get_available_slots_for_staff(date, self.staff_member1)
         self.assertEqual(slots, [])
 
