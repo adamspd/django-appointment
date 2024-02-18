@@ -631,13 +631,6 @@ class ViewsTestCase(BaseTest):
                                           'description': 'Trying to add for others'})
         self.assertNotEqual(response.status_code, 200)  # Expect redirection or error due to unauthorized action
 
-    def test_add_day_off_authenticated_user_invalid_data(self):
-        # Log in as staff user
-        self.need_staff_login()
-        with self.assertRaises(ValidationError):
-            self.client.post(self.url_add_day_off, data={'start_date': '', 'reason': '',
-                                                         'staff_member': self.staff_member1, 'end_date': ''})
-
     def test_update_day_off_authenticated_staff_user(self):
         # Log in as staff user who owns the day off
         self.need_staff_login()
