@@ -70,7 +70,7 @@ def display_appointment(request, appointment_id):
 
     if error_message:
         context = get_generic_context(request=request)
-        return render(request, 'error_pages/404_not_found.html', context=context)
+        return render(request, 'error_pages/404_not_found.html', context=context, status=status_code)
     # If everything is okay, render the HTML template.
     extra_context = {
         'appointment': appointment,
@@ -118,7 +118,7 @@ def update_day_off(request, day_off_id, staff_user_id=None, response_type='html'
                                  error_code=ErrorCode.DAY_OFF_NOT_FOUND)
         else:
             context = get_generic_context(request=request)
-            return render(request, 'error_pages/404_not_found.html', context=context)
+            return render(request, 'error_pages/404_not_found.html', context=context, status=404)
     staff_user_id = staff_user_id or request.user.pk
     if not check_extensive_permissions(staff_user_id, request.user, day_off):
         message = _("You can only update your own days off.")
@@ -311,7 +311,7 @@ def update_appt_date_time(request):
 
     # save the data
     try:
-        appt = save_appt_date_time(start_time, appt_date, appointment_id)
+        appt = save_appt_date_time(start_time, appt_date, appointment_id, request)
     except Appointment.DoesNotExist:
         return json_response(_("Appointment does not exist."), status=404, success=False,
                              error_code=ErrorCode.APPOINTMENT_NOT_FOUND)

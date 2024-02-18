@@ -23,7 +23,8 @@ from appointment.utils.date_time import (
 from appointment.utils.db_helpers import (
     Appointment, AppointmentRequest, EmailVerificationCode, Service, StaffMember, WorkingHours, calculate_slots,
     calculate_staff_slots, check_day_off_for_staff, create_and_save_appointment, create_new_user,
-    day_off_exists_for_date_range, exclude_booked_slots, get_all_appointments, get_all_staff_members,
+    day_off_exists_for_date_range, exclude_booked_slots, exclude_pending_reschedules, get_all_appointments,
+    get_all_staff_members,
     get_appointment_by_id, get_appointments_for_date_and_time, get_staff_member_appointment_list,
     get_staff_member_from_user_id_or_logged_in, get_times_from_config, get_user_by_email,
     get_working_hours_for_staff_and_day, parse_name, update_appointment_reminder, working_hours_exist)
@@ -304,7 +305,7 @@ def get_working_hours_and_days_off_context(request, btn_txt, form_name, form, us
     return context
 
 
-def save_appointment(appt, client_name, client_email, start_time, phone_number, client_address, service_id,
+def save_appointment(appt, client_name, client_email, start_time, phone_number, client_address, service_id, request,
                      want_reminder=False, additional_info=None):
     """Save an appointment's details.
     :return: The modified appointment.
@@ -329,7 +330,7 @@ def save_appointment(appt, client_name, client_email, start_time, phone_number, 
 
     # Update reminder here
     update_appointment_reminder(appointment=appt, new_date=appt_request.date, new_start_time=start_time,
-                                want_reminder=want_reminder)
+                                want_reminder=want_reminder, request=request)
 
     appt_request.service = service
     appt_request.start_time = start_time
@@ -345,12 +346,13 @@ def save_appointment(appt, client_name, client_email, start_time, phone_number, 
     return appt
 
 
-def save_appt_date_time(appt_start_time, appt_date, appt_id):
+def save_appt_date_time(appt_start_time, appt_date, appt_id, request):
     """Save the date and time of an appointment request.
 
     :param appt_start_time: The start time of the appointment request.
     :param appt_date: The date of the appointment request.
     :param appt_id: The ID of the appointment to modify.
+    :param request: The request object.
     :return: The modified appointment.
     """
     appt = Appointment.objects.get(id=appt_id)
@@ -373,7 +375,8 @@ def save_appt_date_time(appt_start_time, appt_date, appt_id):
         appt_date_obj = appt_date
 
     # Update reminder here
-    update_appointment_reminder(appointment=appt, new_date=appt_date_obj, new_start_time=appt_start_time_obj)
+    update_appointment_reminder(appointment=appt, new_date=appt_date_obj, new_start_time=appt_start_time_obj,
+                                request=request)
 
     # Modify and save appointment request details
     appt_request = appt.appointment_request
@@ -422,6 +425,7 @@ def get_available_slots_for_staff(date, staff_member):
 
     slot_duration = datetime.timedelta(minutes=staff_member.get_slot_duration())
     slots = calculate_staff_slots(date, staff_member)
+    slots = exclude_pending_reschedules(slots, staff_member, date)
     appointments = get_appointments_for_date_and_time(date, working_hours_dict['start_time'],
                                                       working_hours_dict['end_time'], staff_member)
     slots = exclude_booked_slots(appointments, slots, slot_duration)
@@ -594,7 +598,7 @@ def create_new_appointment(data, request):
         'additional_info': data.get("additional_info", ""),
         'paid': False
     }
-    appointment = create_and_save_appointment(appointment_request, client_data, appointment_data)
+    appointment = create_and_save_appointment(appointment_request, client_data, appointment_data, request)
     appointment_list = convert_appointment_to_json(request, [appointment])
 
     return json_response("Appointment created successfully.", custom_data={'appt': appointment_list})
@@ -613,7 +617,8 @@ def update_existing_appointment(data, request):
             client_address=data.get("client_address"),
             service_id=data.get("service_id"),
             want_reminder=want_reminder,
-            additional_info=data.get("additional_info")
+            additional_info=data.get("additional_info"),
+            request=request,
         )
         appointments_json = convert_appointment_to_json(request, [appt])[0]
         return json_response(appt_updated_successfully, custom_data={'appt': appointments_json})

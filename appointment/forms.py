@@ -11,7 +11,10 @@ from django.utils.translation import gettext as _
 from phonenumber_field.formfields import PhoneNumberField
 from phonenumber_field.widgets import PhoneNumberPrefixWidget
 
-from .models import Appointment, AppointmentRequest, DayOff, Service, StaffMember, WorkingHours
+from .models import (
+    Appointment, AppointmentRequest, AppointmentRescheduleHistory, DayOff, Service, StaffMember,
+    WorkingHours
+)
 from .utils.db_helpers import get_user_model
 
 
@@ -19,6 +22,15 @@ class AppointmentRequestForm(forms.ModelForm):
     class Meta:
         model = AppointmentRequest
         fields = ('date', 'start_time', 'end_time', 'service', 'staff_member')
+
+
+class ReschedulingForm(forms.ModelForm):
+    class Meta:
+        model = AppointmentRescheduleHistory
+        fields = ['reason_for_rescheduling']
+        widgets = {
+            'reason_for_rescheduling': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Reason for rescheduling...'}),
+        }
 
 
 class AppointmentForm(forms.ModelForm):
