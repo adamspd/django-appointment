@@ -16,6 +16,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MaxLengthValidator, MinLengthValidator, MinValueValidator
 from django.db import models
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.modelfields import PhoneNumberField
 
@@ -70,6 +71,14 @@ class Service(models.Model):
     image = models.ImageField(upload_to='services/', blank=True, null=True)
     currency = models.CharField(max_length=3, default='USD', validators=[MaxLengthValidator(3), MinLengthValidator(3)])
     background_color = models.CharField(max_length=50, null=True, blank=True, default="")
+    reschedule_limit = models.PositiveIntegerField(
+        default=0,
+        help_text=_("Maximum number of times an appointment can be rescheduled.")
+    )
+    allow_rescheduling = models.BooleanField(
+        default=False,
+        help_text=_("Indicates whether appointments for this service can be rescheduled.")
+    )
 
     # meta data
     created_at = models.DateTimeField(auto_now_add=True)
@@ -88,6 +97,8 @@ class Service(models.Model):
         # price shouldn't be negative
         if self.price < 0:
             raise ValidationError(_("Price cannot be negative"))
+        if self.down_payment < 0:
+            raise ValidationError(_("Down payment cannot be negative"))
         if self.background_color == "":
             self.background_color = generate_rgb_color()
         return super().save(*args, **kwargs)
@@ -287,6 +298,7 @@ class AppointmentRequest(models.Model):
     staff_member = models.ForeignKey(StaffMember, on_delete=models.SET_NULL, null=True)
     payment_type = models.CharField(max_length=4, choices=PAYMENT_TYPES, default='full')
     id_request = models.CharField(max_length=100, blank=True, null=True)
+    reschedule_attempts = models.PositiveIntegerField(default=0)
 
     # meta data
     created_at = models.DateTimeField(auto_now_add=True)
@@ -301,7 +313,6 @@ class AppointmentRequest(models.Model):
                 raise ValueError(_("Start time must be before end time"))
             if self.start_time == self.end_time:
                 raise ValueError(_("Start time and end time cannot be the same"))
-
         # Check for valid date
         try:
             # This will raise a ValueError if the date is not valid
@@ -358,6 +369,76 @@ class AppointmentRequest(models.Model):
 
     def accepts_down_payment(self):
         return self.service.accepts_down_payment()
+
+    def can_be_rescheduled(self):
+        return self.reschedule_attempts < self.service.reschedule_limit
+
+    def increment_reschedule_attempts(self):
+        self.reschedule_attempts += 1
+        self.save(update_fields=['reschedule_attempts'])
+
+    def get_reschedule_history(self):
+        return self.reschedule_histories.all().order_by('-created_at')
+
+
+class AppointmentRescheduleHistory(models.Model):
+    appointment_request = models.ForeignKey(
+        'AppointmentRequest',
+        on_delete=models.CASCADE, related_name='reschedule_histories'
+    )
+    date = models.DateField(help_text=_("The previous date of the appointment before it was rescheduled."))
+    start_time = models.TimeField(
+        help_text=_("The previous start time of the appointment before it was rescheduled.")
+    )
+    end_time = models.TimeField(
+        help_text=_("The previous end time of the appointment before it was rescheduled.")
+    )
+    staff_member = models.ForeignKey(
+        StaffMember, on_delete=models.SET_NULL, null=True,
+        help_text=_("The previous staff member of the appointment before it was rescheduled.")
+    )
+    reason_for_rescheduling = models.TextField(
+        blank=True, null=True,
+        help_text=_("Reason for the appointment reschedule.")
+    )
+    reschedule_status = models.CharField(
+        max_length=10,
+        choices=[('pending', 'Pending'), ('confirmed', 'Confirmed')],
+        default='pending',
+        help_text=_("Indicates the status of the reschedule action.")
+    )
+    id_request = models.CharField(max_length=100, blank=True, null=True)
+
+    # meta data
+    created_at = models.DateTimeField(auto_now_add=True, help_text=_("The date and time the reschedule was recorded."))
+    updated_at = models.DateTimeField(auto_now=True, help_text=_("The date and time the reschedule was confirmed."))
+
+    class Meta:
+        verbose_name = _("Appointment Reschedule History")
+        verbose_name_plural = _("Appointment Reschedule Histories")
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Reschedule history for {self.appointment_request} from {self.date}"
+
+    def save(self, *args, **kwargs):
+        # if no id_request is provided, generate one
+        if self.id_request is None:
+            self.id_request = f"{get_timestamp()}{generate_random_id()}"
+        # date should not be in the past
+        if self.date < datetime.date.today():
+            raise ValidationError(_("Date cannot be in the past"))
+        try:
+            datetime.datetime.strptime(str(self.date), '%Y-%m-%d')
+        except ValueError:
+            raise ValidationError(_("The date is not valid"))
+        return super().save(*args, **kwargs)
+
+    def still_valid(self):
+        # if more than 5 minutes have passed, it is no longer valid
+        now = timezone.now()  # This is offset-aware to match self.created_at
+        delta = now - self.created_at
+        return delta.total_seconds() < 300
 
 
 class Appointment(models.Model):
@@ -578,8 +659,19 @@ class Config(models.Model):
         default="",
         help_text=_("Name of your website."),
     )
-    app_offered_by_label = models.CharField(max_length=255, default=_("Offered by"),
-                                            help_text=_("Label for `Offered by` on the appointment page"))
+    app_offered_by_label = models.CharField(
+        max_length=255,
+        default=_("Offered by"),
+        help_text=_("Label for `Offered by` on the appointment page")
+    )
+    default_reschedule_limit = models.PositiveIntegerField(
+        default=3,
+        help_text=_("Default maximum number of times an appointment can be rescheduled across all services.")
+    )
+    allow_staff_change_on_reschedule = models.BooleanField(
+        default=True,
+        help_text=_("Allows clients to change the staff member when rescheduling an appointment.")
+    )
 
     # meta data
     created_at = models.DateTimeField(auto_now_add=True)
