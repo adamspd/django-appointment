@@ -1,3 +1,4 @@
+import datetime
 from datetime import date, time, timedelta
 
 from django.core.exceptions import ValidationError
@@ -9,6 +10,7 @@ class AppointmentRequestModelTestCase(BaseTest):
     def setUp(self):
         super().setUp()
         self.ar = self.create_appointment_request_(self.service1, self.staff_member1)
+        self.today = date.today()
 
     def test_appointment_request_creation(self):
         """Test if an appointment request can be created."""
@@ -115,3 +117,53 @@ class AppointmentRequestModelTestCase(BaseTest):
         with self.assertRaises(ValidationError):
             self.create_appointment_request_(self.service1, self.staff_member1, start_time=time(9, 0),
                                              end_time=time(13, 0))
+
+    def test_reschedule_attempts_limit(self):
+        """Test appointment request's ability to be rescheduled based on service's limit."""
+        self.service1.reschedule_limit = 2
+        self.service1.save()
+
+        # Simulate rescheduling attempts
+        self.ar.increment_reschedule_attempts()
+        self.assertTrue(self.ar.can_be_rescheduled())
+
+        self.ar.increment_reschedule_attempts()
+        self.assertFalse(self.ar.can_be_rescheduled(),
+                         "Should not be reschedulable after reaching the limit")
+
+    def test_appointment_request_with_invalid_date(self):
+        """Appointment date should be valid and not in the past."""
+        invalid_date = self.today - timedelta(days=1)
+        with self.assertRaises(ValidationError, msg="Date cannot be in the past"):
+            self.create_appointment_request_(
+                self.service1, self.staff_member1, date_=invalid_date, start_time=time(10, 0), end_time=time(11, 0)
+            )
+        with self.assertRaises(ValidationError, msg="The date is not valid"):
+            date_ = datetime.datetime.strptime("31-03-2021", "%d-%m-%Y").date()
+            self.create_appointment_request_(
+                self.service1, self.staff_member1, date_=date_,
+                start_time=time(10, 0), end_time=time(11, 0)
+            )
+
+    def test_start_time_after_end_time(self):
+        """Start time should not be after end time."""
+        with self.assertRaises(ValueError, msg="Start time must be before end time"):
+            self.create_appointment_request_(
+                self.service1, self.staff_member1, date_=self.today, start_time=time(11, 0), end_time=time(10, 0)
+            )
+
+    def test_start_time_equals_end_time(self):
+        """Start time and end time should not be the same."""
+        with self.assertRaises(ValidationError, msg="Start time and end time cannot be the same"):
+            self.create_appointment_request_(
+                self.service1, self.staff_member1, date_=self.today, start_time=time(10, 0), end_time=time(10, 0)
+            )
+
+    def test_appointment_duration_not_exceed_service(self):
+        """Appointment duration should not exceed the service's duration."""
+        extended_end_time = time(11, 30)  # 2.5 hours, exceeding the 1-hour service duration
+        with self.assertRaises(ValidationError, msg="Duration cannot exceed the service duration"):
+            self.create_appointment_request_(
+                self.service1, self.staff_member1, date_=self.today, start_time=time(9, 0), end_time=extended_end_time
+            )
+
