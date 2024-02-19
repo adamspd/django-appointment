@@ -1,4 +1,4 @@
-name: Publish Python Distribution [PyPi & GH Release | TestPyPi]
+name: Publishing
 
 on:
   push:
