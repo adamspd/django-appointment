@@ -1,0 +1,54 @@
+{% extends BASE_TEMPLATE %}
+{% load i18n %}
+{% load static %}
+{% block customCSS %}
+    <style>
+        /* Add your custom CSS here */
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #f7f7f7;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            background: #ffffff;
+            margin: 40px auto;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .title {
+            color: #333;
+            text-align: center;
+        }
+
+        .message {
+            font-size: 18px;
+            text-align: center;
+            line-height: 1.6;
+            margin-top: 20px;
+        }
+    </style>
+{% endblock %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block description %}{{ page_description }}{% endblock %}
+{% block body %}
+    <div class="container">
+        <h1 class="title">{{ page_title }}</h1>
+        <p class="message">
+            {{ page_message }}
+        </p>
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
+                     role="alert">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    </div>
+{% endblock %}
+{% block customJS %}
+    <script src="{% static 'js/js-utils.js' %}"></script>
+{% endblock %}
