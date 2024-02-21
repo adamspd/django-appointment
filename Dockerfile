@@ -10,8 +10,7 @@ COPY . /app
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Labels
-LABEL author="Adams Pierre David"
-LABEL maintainer="Adams Pierre David"
+MAINTAINER Adams Pierre David <adamspd.developer@gmail.com>
 LABEL version="1.0"
 LABEL description="Docker Image to test django-appointment package in a container."
 
