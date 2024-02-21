@@ -10,7 +10,7 @@ from django import forms
 from django.contrib import admin
 
 from .models import (Appointment, AppointmentRequest, AppointmentRescheduleHistory, Config, DayOff,
-                     EmailVerificationCode, Service, StaffMember, WorkingHours)
+                     EmailVerificationCode, PasswordResetToken, Service, StaffMember, WorkingHours)
 
 
 @admin.register(Service)
@@ -91,3 +91,12 @@ class AppointmentRescheduleHistoryAdmin(admin.ModelAdmin):
     list_filter = ('appointment_request__service', 'date', 'created_at')
     date_hierarchy = 'created_at'
     ordering = ('-created_at',)
+
+
+@admin.register(PasswordResetToken)
+class PasswordResetTokenAdmin(admin.ModelAdmin):
+    list_display = ('user', 'token', 'expires_at', 'status')
+    search_fields = ('user__email', 'token')
+    list_filter = ('status', 'expires_at')
+    date_hierarchy = 'expires_at'
+    ordering = ('-expires_at',)
