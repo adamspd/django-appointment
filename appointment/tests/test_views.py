@@ -3,6 +3,7 @@
 
 import datetime
 import json
+import uuid
 from datetime import date, time, timedelta
 from unittest.mock import MagicMock, patch
 
@@ -10,21 +11,27 @@ from django.contrib import messages
 from django.contrib.messages import get_messages
 from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
-from django.core.exceptions import ValidationError
 from django.http import HttpResponseRedirect
 from django.test import Client
 from django.test.client import RequestFactory
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 from django.utils.translation import gettext as _
 
-from appointment.models import Appointment, AppointmentRequest, AppointmentRescheduleHistory, Config, \
-    DayOff, EmailVerificationCode, StaffMember
+from appointment.messages_ import passwd_error
+from appointment.models import (
+    Appointment, AppointmentRequest, AppointmentRescheduleHistory, Config, DayOff, EmailVerificationCode,
+    PasswordResetToken, StaffMember
+)
 from appointment.tests.base.base_test import BaseTest
-from appointment.utils.db_helpers import Service, WorkingHours
+from appointment.utils.db_helpers import Service, WorkingHours, create_user_with_username
 from appointment.utils.error_codes import ErrorCode
-from appointment.views import create_appointment, create_user_and_notify_admin, get_appointment_data_from_post_request, \
-    get_client_data_from_post, redirect_to_payment_or_thank_you_page, verify_user_and_login
+from appointment.views import (
+    create_appointment, get_appointment_data_from_post_request, get_client_data_from_post,
+    redirect_to_payment_or_thank_you_page, verify_user_and_login
+)
 
 
 class ViewsTestCase(BaseTest):
@@ -645,7 +652,6 @@ class ViewsTestCase(BaseTest):
         url = reverse('appointment:update_day_off', args=[self.day_off.id])
         response = self.client.post(url, {'start_date': '2050-01-01', 'end_date': '2050-01-01',
                                           'description': 'Trying unauthorized update'}, 'json')
-        print(f"response: {response}")
         self.assertEqual(response.status_code, 403)  # Expect forbidden error
 
     def test_update_nonexistent_day_off(self):
@@ -678,6 +684,74 @@ class ViewsTestCase(BaseTest):
         self.assertEqual(response.status_code, 404)
 
 
+class SetPasswordViewTests(BaseTest):
+    def setUp(self):
+        super().setUp()
+        user_data = {
+            'username': 'test_user', 'email': 'test@example.com', 'password': 'oldpassword', 'first_name': 'John',
+            'last_name': 'Doe'
+        }
+        self.user = create_user_with_username(user_data)
+        self.token = PasswordResetToken.create_token(user=self.user, expiration_minutes=2880)  # 2 days expiration
+        self.ui_db64 = urlsafe_base64_encode(force_bytes(self.user.pk))
+        self.relative_set_passwd_link = reverse('appointment:set_passwd', args=[self.ui_db64, self.token.token])
+        self.valid_link = reverse('appointment:set_passwd', args=[self.ui_db64, str(self.token.token)])
+
+    def test_get_request_with_valid_token(self):
+        assert PasswordResetToken.objects.filter(user=self.user, token=self.token.token).exists(), ("Token not found "
+                                                                                                    "in database")
+        response = self.client.get(self.valid_link)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "form")
+        self.assertNotContains(response, "The password reset link is invalid or has expired.")
+
+    def test_post_request_with_valid_token_and_correct_password(self):
+        new_password_data = {'new_password1': 'newstrongpassword123', 'new_password2': 'newstrongpassword123'}
+        response = self.client.post(self.valid_link, new_password_data)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password(new_password_data['new_password1']))
+        messages_ = list(get_messages(response.wsgi_request))
+        self.assertTrue(any(msg.message == _("Password reset successfully.") for msg in messages_))
+
+    def test_get_request_with_expired_token(self):
+        expired_token = PasswordResetToken.create_token(user=self.user, expiration_minutes=-60)
+        expired_token_link = reverse('appointment:set_passwd', args=[self.ui_db64, str(expired_token.token)])
+        response = self.client.get(expired_token_link)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('messages', response.context)
+        self.assertEqual(response.context['page_message'], passwd_error)
+
+    def test_get_request_with_invalid_token(self):
+        invalid_token = str(uuid.uuid4())
+        invalid_token_link = reverse('appointment:set_passwd', args=[self.ui_db64, invalid_token])
+        response = self.client.get(invalid_token_link, follow=True)
+        self.assertEqual(response.status_code, 200)
+        messages_ = list(get_messages(response.wsgi_request))
+        self.assertTrue(
+            any(msg.message == _("The password reset link is invalid or has expired.") for msg in messages_))
+
+    def test_post_request_with_invalid_token(self):
+        invalid_token = str(uuid.uuid4())
+        invalid_token_link = reverse('appointment:set_passwd', args=[self.ui_db64, invalid_token])
+        new_password = 'newpassword123'
+        post_data = {'new_password1': new_password, 'new_password2': new_password}
+        response = self.client.post(invalid_token_link, post_data)
+        self.user.refresh_from_db()
+        self.assertFalse(self.user.check_password(new_password))
+        messages_ = list(get_messages(response.wsgi_request))
+        self.assertTrue(any(_("The password reset link is invalid or has expired.") in str(m) for m in messages_))
+
+    def test_post_request_with_expired_token(self):
+        expired_token = PasswordResetToken.create_token(user=self.user, expiration_minutes=-60)
+        expired_token_link = reverse('appointment:set_passwd', args=[self.ui_db64, str(expired_token.token)])
+        new_password_data = {'new_password1': 'newpassword', 'new_password2': 'newpassword'}
+        response = self.client.post(expired_token_link, new_password_data)
+        self.assertEqual(response.status_code, 200)
+        messages_ = list(get_messages(response.wsgi_request))
+        self.assertTrue(
+            any(msg.message == _("The password reset link is invalid or has expired.") for msg in messages_))
+
+
 class GetNonWorkingDaysAjaxTests(BaseTest):
     def setUp(self):
         super().setUp()
@@ -702,7 +776,6 @@ class GetNonWorkingDaysAjaxTests(BaseTest):
         response_data = response.json()
         self.assertTrue(response_data['success'])
         self.assertEqual(response_data['message'], _('Successfully retrieved non-working days'))
-        print(f"Response data: {response_data}")
         self.assertIn('non_working_days', response_data)
         self.assertTrue(isinstance(response_data['non_working_days'], list))
 
@@ -886,73 +959,6 @@ class ConfirmRescheduleViewTests(BaseTest):
         self.client.get(self.url)
         mock_notify_admin.assert_called_once()
         self.assertTrue(mock_notify_admin.called)
-
-
-class CreateUserAndNotifyAdminTests(BaseTest):
-    def setUp(self):
-        self.client_data = {
-            'email': 'test@example.com',
-            'first_name': 'Test',
-            'last_name': 'User'
-        }
-        self.appointment_data = {
-            'service_id': 1,
-            'appointment_time': '10:00 AM'
-        }
-        self.factory = RequestFactory()
-
-        self.request = self.factory.get('/')
-        self.middleware = SessionMiddleware(lambda req: None)
-        self.middleware.process_request(self.request)
-        self.request.session.save()
-
-        self.middleware = MessageMiddleware(lambda req: None)
-        self.middleware.process_request(self.request)
-        self.request.session.save()
-
-    @patch('appointment.views.create_new_user')
-    @patch('appointment.views.notify_admin')
-    def test_create_user_and_notify_admin_success(self, mock_notify_admin, mock_create_new_user):
-        """Test creating a new user and notifying the admin."""
-        mock_user = mock_create_new_user.return_value
-        mock_user.email = self.client_data['email']
-
-        user = create_user_and_notify_admin(self.request, self.client_data, self.appointment_data)
-
-        # Check that the create_new_user function was called with the right parameters
-        mock_create_new_user.assert_called_once_with(self.client_data)
-        # Check that the notify_admin function was called with the right parameters
-        mock_notify_admin.assert_called_once()
-        subject_arg = mock_notify_admin.call_args[1]['subject']
-        message_arg = mock_notify_admin.call_args[1]['message']
-        self.assertIn("New Appointment Request", subject_arg)
-        self.assertIn(self.client_data['email'], message_arg)
-        self.assertIn(str(self.appointment_data), message_arg)
-        # Check that a success message was added to the request
-        messages_list = list(get_messages(self.request))
-        self.assertTrue(any(msg.message == "An account was created for you." for msg in messages_list))
-        # Check that the returned user is the mock user
-        self.assertEqual(user.email, self.client_data['email'])
-
-    @patch('appointment.views.create_new_user', side_effect=Exception('Test Exception'))
-    def test_create_user_and_notify_admin_failure(self, mock_create_new_user):
-        """Test handling exceptions when creating a new user."""
-        request = self.factory.get('/')
-        middleware = SessionMiddleware(lambda req: None)
-        middleware.process_request(request)
-        request.session.save()
-
-        middleware = MessageMiddleware(lambda req: None)
-        middleware.process_request(request)
-        request.session.save()
-
-        with self.assertRaises(Exception) as context:
-            create_user_and_notify_admin(request, self.client_data, self.appointment_data)
-
-        # Check that the exception message is correct
-        self.assertTrue('Test Exception' in str(context.exception))
-        # Check that the create_new_user function was called with the right parameters
-        mock_create_new_user.assert_called_once_with(self.client_data)
 
 
 class GetAppointmentDataFromPostRequestTests(BaseTest):

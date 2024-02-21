@@ -87,7 +87,9 @@
 
 <!-- HIDDEN PRE-HEADER TEXT -->
 <div style="display: none; font-size: 1px; color: #fefefe; line-height: 1px; font-family: Open Sans, Helvetica, Arial, sans-serif; max-height: 0; max-width: 0; opacity: 0; overflow: hidden;">
-    {% trans "Booking session successfully saved." %}
+    {% if pre_header %}
+        {{ pre_header }}
+    {% endif %}
 </div>
 
 <table border="0" cellpadding="0" cellspacing="0" width="100%">
@@ -109,7 +111,7 @@
                 <tr>
                     <td align="center" valign="top"
                         style="padding: 0; font-family: Open Sans, Helvetica, Arial, sans-serif;">
-                        <h1 style="font-size: 40px; color: #ffffff;">{% trans "Appointment successfully scheduled" %}</h1>
+                        <h1 style="font-size: 28px; color: #ffffff;">{{ main_title }}</h1>
                     </td>
                 </tr>
                 <tr>
@@ -136,8 +138,8 @@
                     <td align="center" valign="top"
                         style="font-family: Open Sans, Helvetica, Arial, sans-serif; padding-bottom: 30px;">
 
-                        <p style="color: #ffffff; font-size: 16px; line-height: 24px; margin: 0;">
-                            Hi {{ first_name }}, <br> {{ message }}
+                        <p style="color: #ffffff; font-size: 14px; line-height: 24px; margin: 0;">
+                            {% trans 'Thank you for choosing us.' %}
                         </p>
                     </td>
                 </tr>
@@ -163,20 +165,37 @@
                     <tr>
                         <td align="left" valign="top"
                             style="padding: 0; font-family: Open Sans, Helvetica, Arial, sans-serif;">
-                            <p style="font-size: 16px; margin-top: 15px !important;">{{ account_message }}</p>
+                            <p style="font-size: 14px; margin-top: 15px !important;">Hi {{ first_name }},</p>
+                            <p style="font-size: 14px; margin-top: 5px !important;">{{ message_1 }}</p>
                         </td>
                     </tr>
                     <tr>
                         <td align="left" valign="top"
                             style="padding: 0; font-family: Open Sans, Helvetica, Arial, sans-serif;">
-                            <h2 style="color: #000000; font-size: 25px">{% trans "Account Details" %}</h2>
+                            <p style="font-size: 14px; margin-top: 5px !important;">{{ message_2 }}</p>
                         </td>
                     </tr>
+                    {% if activation_link %}
+                        <tr>
+                            <td align="left" valign="top"
+                                style="padding: 0; font-family: Open Sans, Helvetica, Arial, sans-serif;">
+                                <h3>{% trans 'Account Activation' %}</h3>
+                                <p style="font-size: 14px; margin-top: 15px !important;">
+                                    {% blocktranslate with link=activation_link %}
+                                        To activate your account and set your password, please use the following secure
+                                        link: <a href="{{ link }}" style="color: #1155cc;">Set Your Password</a>. Please
+                                        note that this link will expire in 2 days for your security.
+                                    {% endblocktranslate %}
+                                </p>
+                            </td>
+                        <tr>
+                    {% endif %}
+                </tr>
                     <tr>
                         <td align="left" valign="top"
                             style="font-family: Open Sans, Helvetica, Arial, sans-serif; padding-top: 0;">
-
-                            <div style="color: #000000; font-size: 16px; line-height: 24px; margin-top: -30px !important;">
+                            <h3>{% trans "Account Information" %}</h3>
+                            <div style="color: #000000; font-size: 14px; line-height: 24px; margin-top: -30px !important;">
                                 <ul>
                                     {% for key, value in account_details.items %}
                                         <li>{{ key }}: {{ value }}</li>
@@ -190,21 +209,9 @@
                 {% if more_details %}
                     <tr>
                         <td align="left" valign="top"
-                            style="padding: 0; font-family: Open Sans, Helvetica, Arial, sans-serif;">
-                            <p style="font-size: 16px; margin-top: 15px !important;">{{ message }}</p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td align="left" valign="top"
-                            style="padding: 0; font-family: Open Sans, Helvetica, Arial, sans-serif;">
-                            <h2 style="color: #000000; font-size: 25px">{% trans "Appointment details" %}</h2>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td align="left" valign="top"
                             style="font-family: Open Sans, Helvetica, Arial, sans-serif; padding-top: 0;">
-
-                            <div style="color: #000000; font-size: 16px; line-height: 24px; margin-top: -30px !important;">
+                            <h3>{% trans "Appointment Details" %}</h3>
+                            <div style="color: #000000; font-size: 14px; line-height: 24px; margin-top: -30px !important;">
                                 <ul>
                                     {% for key, value in more_details.items %}
                                         <li>{{ key }}: {{ value }}</li>
@@ -215,17 +222,36 @@
                         </td>
                     </tr>
                 {% endif %}
+                {% if reschedule_link %}
+                    <tr>
+                        <td align="left" valign="top"
+                            style="padding: 0; font-family: Open Sans, Helvetica, Arial, sans-serif;">
+                            <h3>{% trans 'Rescheduling' %}</h3>
+                            <p style="margin-top: 15px !important; font-size: 14px">
+                                {% translate 'If your plans change and you need to reschedule your appointment, you can easily do so by following this link: ' %}
+                                <a href="{{ reschedule_link }}">
+                                    {% translate 'Reschedule Appointment' %}
+                                </a>
+                            </p>
+                        </td>
+                    </tr>
+                {% endif %}
+
                 <tr>
                     <td align="left" valign="top"
-                        style="padding: 0; font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 16px">
-                        <p style="margin-top: 15px !important;">
+                        style="padding: 0; font-family: Open Sans, Helvetica, Arial, sans-serif;">
+                        <h3>{% trans 'Support' %}</h3>
+                        <p style="margin-top: 15px !important; font-size: 14px">
                             {% blocktranslate %}
-                                If you have any questions or need assistance, please don't hesitate to reach out to our
-                                support team.
+                                Should you have any inquiries or require further assistance, our support team is here to
+                                help. You can reach us anytime.
                             {% endblocktranslate %}
                         </p>
-                        <p>{% trans "Best regards" %},</p>
-                        <p>{% trans "The Team" %}</p>
+                        <p style="margin-top: 15px !important; font-size: 14px">
+                            {% trans "We look forward to serving you and ensuring that your experience with us is both rewarding and satisfactory." %}
+                        </p>
+                        <p style="margin-top: 15px !important; font-size: 14px">{% trans "Warm regards" %},</p>
+                        <p style="margin-top: 15px !important; font-size: 14px">{% trans "The Team" %}</p>
                     </td>
                 </tr>
             </table>

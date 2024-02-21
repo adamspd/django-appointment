@@ -416,7 +416,6 @@ def get_next_weekday(d, weekday):
     if days_ahead <= 0:  # Target day already happened this week
         days_ahead += 7
     next_day = d + datetime.timedelta(days_ahead)
-    print(f"Day asked is {days_of_week[weekday]}, which is {next_day.strftime('%Y-%m-%d')}")
     return next_day
 
 
