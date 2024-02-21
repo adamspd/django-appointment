@@ -20,7 +20,6 @@ from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
 from django.utils.translation import gettext as _
 
-from appointment.email_sender import notify_admin
 from appointment.forms import AppointmentForm, AppointmentRequestForm
 from appointment.logger_config import logger
 from appointment.models import (
@@ -43,7 +42,7 @@ from .decorators import require_ajax
 from .messages_ import passwd_error, passwd_set_successfully
 from .services import get_appointments_and_slots, get_available_slots_for_staff
 from .settings import (APPOINTMENT_PAYMENT_URL, APPOINTMENT_THANK_YOU_URL, APP_TIME_ZONE)
-from .utils.date_time import convert_str_to_date, convert_str_to_time, get_current_year
+from .utils.date_time import convert_str_to_date, convert_str_to_time
 from .utils.error_codes import ErrorCode
 from .utils.json_context import get_generic_context_with_extra, json_response
 
