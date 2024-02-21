@@ -162,6 +162,7 @@ Here's how you can set up Django-Appointment for local development or testing wi
    ```bash
    git clone https://github.com/adamspd/django-appointment.git
    ```
+   
    or using SSH:
    ```bash
    git clone git@github.com:adamspd/django-appointment.git
