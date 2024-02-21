@@ -10,11 +10,13 @@ import datetime
 
 from django.conf import settings
 from django.urls import reverse
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 from django.utils.translation import gettext as _
 
 from appointment import messages_ as email_messages
 from appointment.email_sender import notify_admin, send_email
-from appointment.models import AppointmentRequest, EmailVerificationCode
+from appointment.models import AppointmentRequest, EmailVerificationCode, PasswordResetToken
 from appointment.settings import APPOINTMENT_PAYMENT_URL
 from appointment.utils.date_time import convert_24_hour_time_to_12_hour_time
 from appointment.utils.db_helpers import get_absolute_url_, get_website_name
@@ -40,37 +42,66 @@ def get_thank_you_message(ar: AppointmentRequest) -> str:
     return message
 
 
-def send_thank_you_email(ar: AppointmentRequest, first_name: str, email: str, appointment_details=None,
+def send_thank_you_email(ar: AppointmentRequest, user, request, email: str, appointment_details=None,
                          account_details=None):
     """Send a thank-you email to the client for booking an appointment.
 
     :param ar: The appointment request associated with the booking.
-    :param first_name: The first name of the client.
+    :param user: The user who booked the appointment.
     :param email: The email address of the client.
     :param appointment_details: Additional details about the appointment (default None).
     :param account_details: Additional details about the account (default None).
+    :param request: The request object.
     :return: None
     """
-    message = _("We've created an account for you to manage your appointment for the requested service ")
-    message += _("{s}. Your password is temporary. Please change it on your first login.").format(s=ar.service)
     # Month and year like "J A N 2 0 2 1"
     month_year = ar.date.strftime("%b %Y").upper()
     day = ar.date.strftime("%d")
+    token = PasswordResetToken.create_token(user=user, expiration_minutes=2880)  # 2 days expiration
+    ui_db64 = urlsafe_base64_encode(force_bytes(user.pk))
+    relative_set_passwd_link = reverse('appointment:set_passwd', args=[ui_db64, token.token])
+    set_passwd_link = get_absolute_url_(relative_set_passwd_link, request=request)
+
+    relative_reschedule_url = reverse('appointment:prepare_reschedule_appointment', args=[ar.get_id_request()])
+    reschedule_link = get_absolute_url_(relative_reschedule_url, request)
+
+    message = _("To enhance your experience, we have created a personalized account for you. It will allow "
+                "you to manage your appointments, view service details, and make any necessary adjustments with ease.")
+
     email_context = {
-        'first_name': first_name,
-        'message': get_thank_you_message(ar),
+        'first_name': user.first_name,
+        'message_1': get_thank_you_message(ar),
         'current_year': datetime.datetime.now().year,
         'company': get_website_name(),
         'more_details': appointment_details,
         'account_details': account_details,
-        'account_message': message if account_details is not None else None,
+        'message_2': message if account_details is not None else None,
         'month_year': month_year,
         'day': day,
+        'activation_link': set_passwd_link,
+        'main_title': _("Appointment successfully scheduled"),
+        'reschedule_link': reschedule_link,
     }
     send_email(
         recipient_list=[email], subject=_("Thank you for booking us."),
         template_url='email_sender/thank_you_email.html', context=email_context
     )
+
+
+def notify_admin_about_appointment(appointment, client_name: str):
+    """Notify the admin and the staff member about a new appointment request."""
+    email_context = {
+        'client_name': client_name,
+        'appointment': appointment
+    }
+
+    subject = _("New Appointment Request for ") + client_name
+    staff_member = appointment.get_staff_member()
+    # Assuming notify_admin and send_email are previously defined functions
+    notify_admin(subject=subject, template_url='email_sender/admin_new_appointment_email.html', context=email_context)
+    if staff_member.user.email not in settings.ADMINS:
+        send_email(recipient_list=[staff_member.user.email], subject=subject,
+                   template_url='email_sender/admin_new_appointment_email.html', context=email_context)
 
 
 def send_verification_email(user, email: str):

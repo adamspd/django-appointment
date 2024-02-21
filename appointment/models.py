@@ -9,6 +9,7 @@ import colorsys
 import datetime
 import random
 import string
+import uuid
 
 from babel.numbers import get_currency_symbol
 from django.conf import settings
@@ -774,6 +775,84 @@ class EmailVerificationCode(models.Model):
 
     def check_code(self, code):
         return self.code == code
+
+
+class PasswordResetToken(models.Model):
+    """
+    Represents a password reset token for users.
+
+    Author: Adams Pierre David
+    Version: 3.x.x
+    Since: 3.x.x
+    """
+
+    class TokenStatus(models.TextChoices):
+        ACTIVE = 'active', 'Active'
+        VERIFIED = 'verified', 'Verified'
+        INVALIDATED = 'invalidated', 'Invalidated'
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='password_reset_tokens')
+    token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    expires_at = models.DateTimeField()
+    status = models.CharField(max_length=11, choices=TokenStatus.choices, default=TokenStatus.ACTIVE)
+
+    # meta data
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Password reset token for {self.user} [{self.token} status: {self.status} expires at {self.expires_at}]"
+
+    @property
+    def is_expired(self):
+        """Checks if the token has expired."""
+        return timezone.now() >= self.expires_at
+
+    @property
+    def is_verified(self):
+        """Checks if the token has been verified."""
+        return self.status == self.TokenStatus.VERIFIED
+
+    @property
+    def is_active(self):
+        """Checks if the token is still active."""
+        return self.status == self.TokenStatus.ACTIVE
+
+    @property
+    def is_invalidated(self):
+        """Checks if the token has been invalidated."""
+        return self.status == self.TokenStatus.INVALIDATED
+
+    @classmethod
+    def create_token(cls, user, expiration_minutes=60):
+        """
+        Generates a new token for the user with a specified expiration time.
+        Before creating a new token, invalidate all previous active tokens by marking them as invalidated.
+        """
+        cls.objects.filter(user=user, expires_at__gte=timezone.now(), status=cls.TokenStatus.ACTIVE).update(
+            status=cls.TokenStatus.INVALIDATED)
+        expires_at = timezone.now() + timezone.timedelta(minutes=expiration_minutes)
+        token = cls.objects.create(user=user, expires_at=expires_at, status=cls.TokenStatus.ACTIVE)
+        return token
+
+    def mark_as_verified(self):
+        """
+        Marks the token as verified.
+        """
+        self.status = self.TokenStatus.VERIFIED
+        self.save(update_fields=['status'])
+
+    @classmethod
+    def verify_token(cls, user, token):
+        """
+        Verifies if the provided token is valid and belongs to the given user.
+        Additionally, checks if the token has not been marked as verified.
+        """
+        try:
+            return cls.objects.get(user=user, token=token, expires_at__gte=timezone.now(),
+                                   status=cls.TokenStatus.ACTIVE)
+        except cls.DoesNotExist:
+            return None
 
 
 class DayOff(models.Model):

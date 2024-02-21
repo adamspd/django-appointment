@@ -3,25 +3,94 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% translate 'Appointment Reminder' %}</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+            color: #636363;
+        }
+
+        .email-container {
+            max-width: 600px;
+            background: #ffffff;
+            margin: 0 auto;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .email-header {
+            color: #ffffff;
+            background-color: rgb(5, 100, 129);
+            padding: 15px;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            text-align: center;
+        }
+
+        .email-body {
+            padding: 25px;
+            line-height: 1.6;
+        }
+
+        .email-footer {
+            padding-top: 20px;
+            font-size: 14px;
+            text-align: left;
+            color: #aaaaaa;
+        }
+
+        .button {
+            background-color: rgb(5, 100, 129);
+            color: #ffffff;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 20px;
+        }
+
+        .button:hover {
+            background-color: #37aee9;
+            color: #ffffff;
+            text-decoration: none;
+        }
+    </style>
 </head>
 <body>
-<h1>{% translate 'Appointment Reminder' %}</h1>
-<p>{% translate 'Dear' %} {{ first_name }},</p>
-<p>{% translate 'This is a reminder for your upcoming appointment' %}.</p>
-<p>{% translate 'Service' %}: {{ appointment.get_service_name }}</p>
-<p>{% translate 'Date' %}: {{ appointment.appointment_request.date }}</p>
-<p>{% translate 'Time' %}: {{ appointment.appointment_request.start_time }}</p>
-<p>{% translate 'Location' %}: {{ appointment.address }}</p>
-<p>
-    {% translate 'If you need to reschedule, please click the link below or contact us for further assistance.' %}
-</p>
-<p>
-    <a href="{{ reschedule_link }}"
-       style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
-        {% translate 'Reschedule Appointment' %}
-    </a>
-</p>
-<p>{% translate 'Thank you for choosing us' %}!</p>
+<div class="email-container">
+    <div class="email-header">
+        <h2>{% translate 'Appointment Reminder' %}</h2>
+    </div>
+    <div class="email-body">
+        <p>
+            {% if recipient_type == 'client' %}
+                {% translate 'Dear' %} {{ first_name }},
+            {% else %}
+                {% translate 'Dear Administrator,' %}
+            {% endif %}
+        </p>
+        <p>{% translate 'This is a reminder for your upcoming appointment.' %}</p>
+        <p><strong>{% translate 'Service' %}:</strong> {{ appointment.get_service_name }}</p>
+        <p><strong>{% translate 'Date' %}:</strong> {{ appointment.appointment_request.date }}</p>
+        <p><strong>{% translate 'Time' %}:</strong> {{ appointment.appointment_request.start_time }}
+            - {{ appointment.appointment_request.end_time }}</p>
+        <p><strong>{% translate 'Location' %}:</strong> {{ appointment.address }}</p>
+        {% if recipient_type == 'client' %}
+            <p>{% translate 'If you need to reschedule, please click the button below or contact us for further assistance.' %}</p>
+            <a href="{{ reschedule_link }}" class="button">{% translate 'Reschedule Appointment' %}</a>
+            <p>{% translate 'Thank you for choosing us!' %}</p>
+        {% else %}
+            <p>{% translate 'Please ensure the appointment setup is complete and ready for the client.' %}</p>
+        {% endif %}
+    </div>
+    <div class="email-footer">
+        {% translate 'This is an automated message. Please do not reply directly to this email.' %}
+    </div>
+</div>
 </body>
 </html>
