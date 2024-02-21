@@ -2,10 +2,9 @@ from datetime import timedelta
 
 from django.test import TestCase
 
-from appointment.tests.mixins.base_mixin import (
-    AppointmentMixin, AppointmentRequestMixin, ServiceMixin, StaffMemberMixin, UserMixin,
-    AppointmentRescheduleHistoryMixin
-)
+from appointment.tests.mixins.base_mixin import (AppointmentMixin, AppointmentRequestMixin,
+                                                 AppointmentRescheduleHistoryMixin, ServiceMixin, StaffMemberMixin,
+                                                 UserMixin)
 
 
 class BaseTest(TestCase, UserMixin, StaffMemberMixin, ServiceMixin, AppointmentRequestMixin, AppointmentMixin,

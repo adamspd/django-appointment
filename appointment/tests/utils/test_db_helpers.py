@@ -17,7 +17,6 @@ from django_q.models import Schedule
 from appointment.models import DayOff, PaymentInfo
 from appointment.tests.base.base_test import BaseTest
 from appointment.tests.mixins.base_mixin import ConfigMixin
-from appointment.utils.date_time import get_current_year
 from appointment.utils.db_helpers import (
     Config, WorkingHours, calculate_slots, calculate_staff_slots, can_appointment_be_rescheduled,
     cancel_existing_reminder, check_day_off_for_staff,
