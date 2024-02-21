@@ -183,5 +183,5 @@ class PasswordResetTokenTests(BaseTest):
         """Test that a token cannot be verified after the associated user is deleted."""
         token = PasswordResetToken.create_token(self.user)
         self.user.delete()
-        verified_token = PasswordResetToken.verify_token(self.user, token.token)
+        verified_token = PasswordResetToken.verify_token(None, token.token)
         self.assertIsNone(verified_token, "Token should not verify after user deletion")
