@@ -276,11 +276,6 @@ def create_new_user(client_data: dict):
         user = create_user_with_username(client_data)
     except FieldDoesNotExist:
         user = create_user_with_email(client_data)
-
-    password = f"{get_website_name()}{get_current_year()}"
-    user.set_password(password)
-    user.save()
-
     return user
 
 
