@@ -11,17 +11,21 @@ from datetime import date, datetime, timedelta
 import pytz
 from django.contrib import messages
 from django.contrib.auth import login
+from django.contrib.auth.forms import SetPasswordForm
 from django.db.models import Q
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils.encoding import force_str
+from django.utils.http import urlsafe_base64_decode
 from django.utils.translation import gettext as _
 
 from appointment.email_sender import notify_admin
 from appointment.forms import AppointmentForm, AppointmentRequestForm
 from appointment.logger_config import logger
 from appointment.models import (
-    Appointment, AppointmentRequest, AppointmentRescheduleHistory, Config, DayOff, EmailVerificationCode, Service,
+    Appointment, AppointmentRequest, AppointmentRescheduleHistory, Config, DayOff, EmailVerificationCode,
+    PasswordResetToken, Service,
     StaffMember
 )
 from appointment.utils.db_helpers import (
@@ -30,11 +34,13 @@ from appointment.utils.db_helpers import (
     get_website_name, get_weekday_num_from_date, is_working_day, staff_change_allowed_on_reschedule,
     username_in_user_model
 )
-from appointment.utils.email_ops import notify_admin_about_reschedule, send_reschedule_confirmation_email, \
+from appointment.utils.email_ops import notify_admin_about_appointment, notify_admin_about_reschedule, \
+    send_reschedule_confirmation_email, \
     send_thank_you_email
 from appointment.utils.session import get_appointment_data_from_session, handle_existing_email
 from appointment.utils.view_helpers import get_locale, get_timezone_txt
 from .decorators import require_ajax
+from .messages_ import passwd_error, passwd_set_successfully
 from .services import get_appointments_and_slots, get_available_slots_for_staff
 from .settings import (APPOINTMENT_PAYMENT_URL, APPOINTMENT_THANK_YOU_URL, APP_TIME_ZONE)
 from .utils.date_time import convert_str_to_date, convert_str_to_time, get_current_year
@@ -283,6 +289,7 @@ def create_appointment(request, appointment_request_obj, client_data, appointmen
     :return: The redirect response.
     """
     appointment = create_and_save_appointment(appointment_request_obj, client_data, appointment_data, request)
+    notify_admin_about_appointment(appointment, appointment.client.first_name)
     return redirect_to_payment_or_thank_you_page(appointment)
 
 
@@ -310,23 +317,6 @@ def get_appointment_data_from_post_request(request):
         'address': request.POST.get('address'),
         'additional_info': request.POST.get('additional_info'),
     }
-
-
-def create_user_and_notify_admin(request, client_data, appointment_data):
-    """This function creates a new user, sends a thank-you email, and notifies the admin.
-
-    :param request: The request instance.
-    :param client_data: The client data.
-    :param appointment_data: The appointment data.
-    :return: The newly created user.
-    """
-    logger.info("Creating a new user with the given information {client_data}")
-    user = create_new_user(client_data)
-
-    notify_admin(subject="New Appointment Request",
-                 message=f"New appointment request from {client_data['email']} for {appointment_data}")
-    messages.success(request, _("An account was created for you."))
-    return user
 
 
 def appointment_client_information(request, appointment_request_id, id_request):
@@ -357,7 +347,9 @@ def appointment_client_information(request, appointment_request_id, id_request):
             if is_email_in_db:
                 return handle_existing_email(request, client_data, appointment_data, appointment_request_id, id_request)
 
-            create_user_and_notify_admin(request, client_data, appointment_data)
+            logger.info(f"Creating a new user with the given information {client_data}")
+            user = create_new_user(client_data)
+            messages.success(request, _("An account was created for you."))
 
             # Create a new appointment
             response = create_appointment(request, ar, client_data, appointment_data)
@@ -414,13 +406,12 @@ def enter_verification_code(request, appointment_request_id, id_request):
             appointment = Appointment.objects.get(appointment_request=appointment_request_object)
             appointment_details = {
                 'Service': appointment.get_service_name(),
-                'Appointment ID': appointment.id_request,
                 'Appointment Date': appointment.get_appointment_date(),
                 'Appointment Time': appointment.appointment_request.start_time,
                 'Duration': appointment.get_service_duration()
             }
-            send_thank_you_email(ar=appointment_request_object, first_name=user.first_name, email=email,
-                                 appointment_details=appointment_details)
+            send_thank_you_email(ar=appointment_request_object, user=user, email=email,
+                                 appointment_details=appointment_details, request=request)
             return response
         else:
             messages.error(request, _("Invalid verification code."))
@@ -445,7 +436,6 @@ def default_thank_you(request, appointment_id):
     """
     appointment = get_object_or_404(Appointment, pk=appointment_id)
     ar = appointment.appointment_request
-    first_name = appointment.client.first_name
     email = appointment.client.email
     appointment_details = {
         _('Service'): appointment.get_service_name(),
@@ -454,18 +444,56 @@ def default_thank_you(request, appointment_id):
         _('Duration'): appointment.get_service_duration()
     }
     account_details = {
-        _('The email address linked to this account'): email,
-        _('Your temporary password'): f"{get_website_name()}{get_current_year()}",
+        _('Email address'): email,
     }
     if username_in_user_model():
-        account_details[_('Your username')] = appointment.client.username
-    send_thank_you_email(ar=ar, first_name=first_name, email=email, appointment_details=appointment_details,
-                         account_details=account_details)
+        account_details[_('Username')] = appointment.client.username
+    send_thank_you_email(ar=ar, user=appointment.client, email=email, appointment_details=appointment_details,
+                         account_details=account_details, request=request)
     extra_context = {
         'appointment': appointment,
     }
     context = get_generic_context_with_extra(request, extra_context, admin=False)
     return render(request, 'appointment/default_thank_you.html', context=context)
+
+
+def set_passwd(request, uidb64, token):
+    extra = {
+        'page_title': _("Error"),
+        'page_message': passwd_error,
+        'page_description': _("Please try resetting your password again or contact support for help."),
+    }
+    context_ = get_generic_context_with_extra(request, extra, admin=False)
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = get_user_model().objects.get(pk=uid)
+        token_verification = PasswordResetToken.verify_token(user, token)
+        if token_verification is not None:
+            if request.method == 'POST':
+                form = SetPasswordForm(user, request.POST)
+                if form.is_valid():
+                    form.save()
+                    messages.success(request, _("Password reset successfully."))
+                    # Invalidate the token after successful password reset
+                    token_verification.mark_as_verified()
+                    extra = {
+                        'page_title': _("Password Reset Successful"),
+                        'page_message': passwd_set_successfully,
+                        'page_description': _("You can now use your new password to log in.")
+                    }
+                    context = get_generic_context_with_extra(request, extra, admin=False)
+                    return render(request, 'appointment/thank_you.html', context=context)
+            else:
+                form = SetPasswordForm(user)  # Display empty form for GET request
+        else:
+            messages.error(request, passwd_error)
+            return render(request, 'appointment/thank_you.html', context=context_)
+    except (TypeError, ValueError, OverflowError, get_user_model().DoesNotExist):
+        messages.error(request, _("The password reset link is invalid or has expired."))
+        return render(request, 'appointment/thank_you.html', context=context_)
+
+    context_.update({'form': form})
+    return render(request, 'appointment/set_password.html', context_)
 
 
 def prepare_reschedule_appointment(request, id_request):
@@ -486,7 +514,7 @@ def prepare_reschedule_appointment(request, id_request):
         'services_offered': ar.service}
     all_staff_members = StaffMember.objects.filter(**staff_filter_criteria)
     available_slots = get_available_slots_for_staff(ar.date, selected_sm)
-    page_title = f"Rescheduling appointment for {service.name}"
+    page_title = _("Rescheduling appointment for {s}").format(s=service.name)
     page_description = _("Reschedule your appointment for {s} at {wn}.").format(s=service.name, wn=get_website_name())
     date_chosen = ar.date.strftime("%a, %B %d, %Y")
 
