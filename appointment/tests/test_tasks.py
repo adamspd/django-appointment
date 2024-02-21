@@ -31,12 +31,14 @@ class SendEmailReminderTest(BaseTest):
             recipient_list=[to_email],
             subject=_("Reminder: Upcoming Appointment"),
             template_url='email_sender/reminder_email.html',
-            context={'first_name': first_name, 'appointment': appointment, 'reschedule_link': ""}
+            context={'first_name': first_name, 'appointment': appointment, 'reschedule_link': "",
+                     'recipient_type': 'admin'}
         )
 
         # Verify notify_admin was called with correct parameters
         mock_notify_admin.assert_called_once_with(
             subject=_("Admin Reminder: Upcoming Appointment"),
             template_url='email_sender/reminder_email.html',
-            context={'first_name': first_name, 'appointment': appointment, 'reschedule_link': ""}
+            context={'first_name': first_name, 'appointment': appointment, 'reschedule_link': "",
+                     'recipient_type': 'admin'}
         )

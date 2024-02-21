@@ -1037,8 +1037,8 @@ class CreateNewUserTest(TestCase):
         """Test creating a new user with a password."""
         client_data = {'name': 'John Doe', 'email': 'john.doe@example.com'}
         user = create_new_user(client_data)
-        password = f"{get_website_name()}{get_current_year()}"
-        self.assertTrue(user.check_password(password))
+        # Check that no password has been set
+        self.assertFalse(user.has_usable_password())
 
 
 class UsernameInUserModelTests(TestCase):
