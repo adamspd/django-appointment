@@ -525,8 +525,10 @@ def get_staff_member_appointment_list(staff_member: StaffMember) -> list:
     return Appointment.objects.filter(appointment_request__staff_member=staff_member)
 
 
-def get_weekday_num_from_date(date: datetime.date) -> int:
+def get_weekday_num_from_date(date: datetime.date = None) -> int:
     """Get the number of the weekday from the given date."""
+    if date is None:
+        date = datetime.date.today()
     return get_weekday_num(date.strftime("%A"))
 
 
