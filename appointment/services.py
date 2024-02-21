@@ -27,7 +27,8 @@ from appointment.utils.db_helpers import (
     get_all_staff_members,
     get_appointment_by_id, get_appointments_for_date_and_time, get_staff_member_appointment_list,
     get_staff_member_from_user_id_or_logged_in, get_times_from_config, get_user_by_email,
-    get_working_hours_for_staff_and_day, parse_name, update_appointment_reminder, working_hours_exist)
+    get_weekday_num_from_date, get_working_hours_for_staff_and_day, parse_name, update_appointment_reminder,
+    working_hours_exist)
 from appointment.utils.error_codes import ErrorCode
 from appointment.utils.json_context import convert_appointment_to_json, get_generic_context, json_response
 from appointment.utils.permissions import check_entity_ownership
@@ -418,7 +419,7 @@ def get_available_slots_for_staff(date, staff_member):
         return []
 
     # Check if the staff member works on the provided date
-    day_of_week = date.weekday()  # Python's weekday starts from Monday (0) to Sunday (6)
+    day_of_week = get_weekday_num_from_date()  # Python's weekday starts from Monday (0) to Sunday (6)
     working_hours_dict = get_working_hours_for_staff_and_day(staff_member, day_of_week)
     if not working_hours_dict:
         return []
