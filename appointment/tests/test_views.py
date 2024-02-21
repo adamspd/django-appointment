@@ -652,7 +652,6 @@ class ViewsTestCase(BaseTest):
         url = reverse('appointment:update_day_off', args=[self.day_off.id])
         response = self.client.post(url, {'start_date': '2050-01-01', 'end_date': '2050-01-01',
                                           'description': 'Trying unauthorized update'}, 'json')
-        print(f"response: {response}")
         self.assertEqual(response.status_code, 403)  # Expect forbidden error
 
     def test_update_nonexistent_day_off(self):
@@ -703,7 +702,6 @@ class SetPasswordViewTests(BaseTest):
                                                                                                     "in database")
         response = self.client.get(self.valid_link)
         self.assertEqual(response.status_code, 200)
-        print(f"response: {response}")
         self.assertContains(response, "form")
         self.assertNotContains(response, "The password reset link is invalid or has expired.")
 
@@ -729,9 +727,6 @@ class SetPasswordViewTests(BaseTest):
         response = self.client.get(invalid_token_link, follow=True)
         self.assertEqual(response.status_code, 200)
         messages_ = list(get_messages(response.wsgi_request))
-        print(f"messages: {messages_}")
-        for msg in messages_:
-            print(f"message: {msg}")
         self.assertTrue(
             any(msg.message == _("The password reset link is invalid or has expired.") for msg in messages_))
 
@@ -781,7 +776,6 @@ class GetNonWorkingDaysAjaxTests(BaseTest):
         response_data = response.json()
         self.assertTrue(response_data['success'])
         self.assertEqual(response_data['message'], _('Successfully retrieved non-working days'))
-        print(f"Response data: {response_data}")
         self.assertIn('non_working_days', response_data)
         self.assertTrue(isinstance(response_data['non_working_days'], list))
 
