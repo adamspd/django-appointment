@@ -24,7 +24,7 @@ from appointment.settings import (
     APPOINTMENT_BUFFER_TIME, APPOINTMENT_FINISH_TIME, APPOINTMENT_LEAD_TIME, APPOINTMENT_PAYMENT_URL,
     APPOINTMENT_SLOT_DURATION, APPOINTMENT_WEBSITE_NAME
 )
-from appointment.utils.date_time import combine_date_and_time, get_current_year, get_weekday_num
+from appointment.utils.date_time import combine_date_and_time, get_weekday_num
 
 Appointment = apps.get_model('appointment', 'Appointment')
 AppointmentRequest = apps.get_model('appointment', 'AppointmentRequest')
@@ -251,7 +251,10 @@ def create_user_with_email(client_data: dict):
 
 def create_user_with_username(client_data: dict):
     CLIENT_MODEL = get_user_model()
-    username = generate_unique_username_from_email(client_data['email'])
+    if 'username' not in client_data:
+        username = generate_unique_username_from_email(client_data['email'])
+    else:
+        username = client_data['username']
     user_data = {
         'username': username,
         'email': client_data['email'],
