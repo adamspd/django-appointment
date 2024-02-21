@@ -567,7 +567,6 @@ def reschedule_appointment_submit(request):
                                                email=email, appointment_request=ar)
             return render(request, 'appointment/rescheduling_thank_you.html', context=context)
         else:
-            print(f"form is invalid", form.errors)
             messages.error(request, _("There was an error in your submission. Please check the form and try again."))
     else:
         form = AppointmentRequestForm()
