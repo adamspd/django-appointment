@@ -144,6 +144,67 @@ see their [release notes](https://github.com/adamspd/django-appointment/tree/mai
 8. Visit http://127.0.0.1:8000/appointment/request/<service_id>/ to view the available time slots and schedule an
    appointment.
 
+## Docker Support 🐳
+
+Django-Appointment now supports Docker, making it easier to set up, develop, and deploy. With Docker and Docker Compose,
+you can quickly get the project running in a consistent environment, streamline the development process, and simplify
+deployment across different platforms.
+
+### Getting Started with Docker for Development or Local Testing
+
+Using Django-Appointment with Docker is primarily intended for development purposes or local testing. This means you'll
+need to clone the project from the GitHub repository to get started.
+
+Here's how you can set up Django-Appointment for local development or testing with Docker:
+
+1. **Clone the Repository**: Clone the Django-Appointment repository to your local machine:
+
+   ```bash
+   git clone https://github.com/adamspd/django-appointment.git
+   ```
+   
+   or using SSH:
+   ```bash
+   git clone git@github.com:adamspd/django-appointment.git
+   ```
+
+2. **Prepare .env File**: Create an `.env` file in the root directory of your project with your configuration settings.
+   You should include your email host user and password for Django's email functionality:
+
+   ```plaintext
+   EMAIL_HOST_USER=your_email@gmail.com
+   EMAIL_HOST_PASSWORD=your_password
+   ```
+3. **Build and Run the Docker Containers**: Run the following command to build and run the Docker containers:
+
+   ```bash
+   docker-compose up -d --build
+   ```
+
+4. **Create a Superuser**: After the containers are running, create a superuser to access the Django admin interface:
+
+   ```bash
+    docker-compose exec web python manage.py createsuperuser
+    ```
+
+5. **Access the Application**: Once the containers are running, you can access the application at `localhost:8000`. The
+   Django admin interface is available at `localhost:8000/admin`.
+6. **Shut Down the Containers**: When you're finished, you can shut down the containers with the following command:
+
+   ```bash
+   docker-compose down
+   ```
+7. **(Optional) Run Migrations**: If you make changes to the models or database, you can run the migrations with the
+   following command:
+
+   ```bash
+   docker-compose exec web python manage.py migrate
+   ```
+
+> **Note:** I use the default database settings for the Docker container. If you want to use a different database, you
+> can
+> modify the Dockerfile and docker-compose.yml files to use your preferred database.
+
 ## Customization 🔧
 
 1. In your Django project's `settings.py`, you can override the default values for the appointment scheduler. More
