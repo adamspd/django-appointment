@@ -9,8 +9,10 @@ Since: 1.0.0
 from django import forms
 from django.contrib import admin
 
-from .models import (Appointment, AppointmentRequest, AppointmentRescheduleHistory, Config, DayOff,
-                     EmailVerificationCode, PasswordResetToken, Service, StaffMember, WorkingHours)
+from .models import (
+    Appointment, AppointmentRequest, AppointmentRescheduleHistory, Config, DayOff, EmailVerificationCode,
+    PasswordResetToken, Service, StaffMember, WorkingHours
+)
 
 
 @admin.register(Service)
