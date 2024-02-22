@@ -166,4 +166,3 @@ class AppointmentRequestModelTestCase(BaseTest):
             self.create_appointment_request_(
                 self.service1, self.staff_member1, date_=self.today, start_time=time(9, 0), end_time=extended_end_time
             )
-

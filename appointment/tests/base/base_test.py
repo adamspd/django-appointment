@@ -3,8 +3,8 @@ from datetime import timedelta
 from django.test import TestCase
 
 from appointment.tests.mixins.base_mixin import (
-    AppointmentMixin, AppointmentRequestMixin, ServiceMixin, StaffMemberMixin, UserMixin,
-    AppointmentRescheduleHistoryMixin
+    AppointmentMixin, AppointmentRequestMixin, AppointmentRescheduleHistoryMixin, ServiceMixin, StaffMemberMixin,
+    UserMixin
 )
 
 

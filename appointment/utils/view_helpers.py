@@ -8,7 +8,7 @@ Since: 2.0.0
 
 import uuid
 
-from django.utils.translation import to_locale, get_language
+from django.utils.translation import get_language, to_locale
 
 from appointment.settings import APP_TIME_ZONE
 

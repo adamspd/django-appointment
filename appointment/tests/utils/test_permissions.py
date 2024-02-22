@@ -5,7 +5,7 @@ import datetime
 
 from appointment.tests.base.base_test import BaseTest
 from appointment.utils.db_helpers import WorkingHours
-from appointment.utils.permissions import check_permissions, check_extensive_permissions, check_entity_ownership
+from appointment.utils.permissions import check_entity_ownership, check_extensive_permissions, check_permissions
 
 
 class PermissionTests(BaseTest):

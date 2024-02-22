@@ -481,7 +481,8 @@ class GetAvailableSlotsTests(BaseTest):
 
         # Create an appointment request for that time
         appt_request = self.create_appointment_request_(service=self.service1, staff_member=self.staff_member1,
-                                                        date_=self.next_wednesday, start_time=start_time, end_time=end_time)
+                                                        date_=self.next_wednesday, start_time=start_time,
+                                                        end_time=end_time)
         # Create an appointment using that request
         self.create_appointment_(user=self.client1, appointment_request=appt_request)
 
