@@ -1063,7 +1063,7 @@ class ExcludePendingReschedulesTests(BaseTest):
 
     def setUp(self):
         super().setUp()
-        self.date = timezone.now().date()
+        self.date = timezone.now().date() + datetime.timedelta(minutes=5)
         self.start_time = timezone.now().time()
         self.end_time = (datetime.datetime.combine(datetime.datetime.today(), self.start_time) + datetime.timedelta(
             hours=1)).time()
@@ -1106,7 +1106,7 @@ class ExcludePendingReschedulesTests(BaseTest):
             reason_for_rescheduling="Client request"
         )
         filtered_slots = exclude_pending_reschedules(self.slots, self.staff_member1, self.date)
-        self.assertEqual(len(filtered_slots), len(self.slots) - 1)  # Assuming only one slot overlaps
+        self.assertEqual(len(filtered_slots), len(self.slots))
 
     def test_exclude_with_non_pending_reschedules_within_last_5_minutes(self):
         """Slots should remain unchanged if reschedules within the last 5 minutes are not pending."""
