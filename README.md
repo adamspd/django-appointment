@@ -102,18 +102,15 @@ see their [release notes](https://github.com/adamspd/django-appointment/tree/mai
        pass
    ```
 
-   This function will create a user with a password formatted as: f"{APPOINTMENT_WEBSITE_NAME}{current_year}"
+   This function will create a passwordless user. A link to set the password will be sent to the user's email.
 
-   For instance, if you append this to your `settings.py`:
+   Configure the website's name in your `settings.py` like this:
 
    ```python
    APPOINTMENT_WEBSITE_NAME = 'Chocolates'
    ```
 
-   And the current year is 2023, the password will be "Chocolates2023". If `APPOINTMENT_WEBSITE_NAME` is not provided,
-   the default value is "Website", rendering the password as "Website2023".
-
-   This name is also utilized in the footer of the emails sent to clients upon scheduling an appointment:
+   It will be utilized in the footer of the emails sent to clients upon scheduling an appointment:
 
    ```html
    <p>® 2023 {{ APPOINTMENT_WEBSITE_NAME }}. All Rights Reserved.</p>
