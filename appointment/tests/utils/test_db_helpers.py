@@ -17,7 +17,6 @@ from django_q.models import Schedule
 from appointment.models import DayOff, PaymentInfo
 from appointment.tests.base.base_test import BaseTest
 from appointment.tests.mixins.base_mixin import ConfigMixin
-from appointment.utils.date_time import get_current_year
 from appointment.utils.db_helpers import (
     Config, WorkingHours, calculate_slots, calculate_staff_slots, can_appointment_be_rescheduled,
     cancel_existing_reminder, check_day_off_for_staff,
@@ -1064,10 +1063,9 @@ class ExcludePendingReschedulesTests(BaseTest):
 
     def setUp(self):
         super().setUp()
-        self.date = timezone.now().date()
-        self.start_time = timezone.now().time()
-        self.end_time = (datetime.datetime.combine(datetime.datetime.today(), self.start_time) + datetime.timedelta(
-            hours=1)).time()
+        self.date = timezone.now().date() + datetime.timedelta(minutes=5)
+        self.start_time = (timezone.now() - datetime.timedelta(minutes=4)).time()
+        self.end_time = (timezone.now() + datetime.timedelta(minutes=1)).time()
 
         self.slots = [
             datetime.datetime.combine(self.date, self.start_time),

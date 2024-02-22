@@ -1,10 +1,10 @@
+import datetime
 import time
 
 from django.utils import timezone
 
 from appointment.models import PasswordResetToken
 from appointment.tests.base.base_test import BaseTest
-import datetime
 
 
 class PasswordResetTokenTests(BaseTest):

@@ -3,8 +3,7 @@
 
 from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
-from django.test import Client
-from django.test import override_settings
+from django.test import Client, override_settings
 from django.test.client import RequestFactory
 
 from appointment.tests.base.base_test import BaseTest
