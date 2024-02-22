@@ -14,13 +14,13 @@
 [![GitHub contributors](https://img.shields.io/github/contributors/adamspd/django-appointment)](https://github.com/adamspd/django-appointment/graphs/contributors)
 
 ⚠️ **IMPORTANT**: If upgrading from a version before 2.x.x, please note significant database changes were introduced in
-Version 2.0.0 introduces significant database changes. Please read
+version 2.0.0. Please read
 the [migration guide](https://github.com/adamspd/django-appointment/tree/main/docs/migration_guides/v2_1_0.md) before
 updating. Version 3.x.x introduces the ability to send email reminders for appointments using Django Q for efficient
 task scheduling. It also allows clients to reschedule appointments if it is allowed by admins.
 
 Django-Appointment is a Django app engineered for managing appointment scheduling with ease and flexibility. It enables
-users to define custom configurations for time slots, lead time, and finish time, or utilize the default values
+users to define custom configurations for time slots, lead time, and finish time, or use the default values
 provided. This app proficiently manages conflicts and availability for appointments, ensuring a seamless user
 experience.
 
@@ -40,7 +40,7 @@ and [here](https://github.com/adamspd/django-appointment/tree/main/docs/release_
 3. Seamless integration with the Django admin interface for appointment management.
 4. Custom admin interface for managing appointment/staff member editing, creation, availability, and conflicts.
 5. User-friendly interface for viewing available time slots and scheduling appointments.
-6. Capability to send email notifications to clients upon scheduling an appointment and email reminders for
+6. Ability to send email notifications to clients upon scheduling an appointment and email reminders for
    appointments, leveraging Django Q for task scheduling and efficiency.
 
 ## Key features introduced in previous versions.
@@ -50,13 +50,13 @@ and [here](https://github.com/adamspd/django-appointment/tree/main/docs/release_
 
 ## Added Features and Bug Fixes in version 3.x.x
 
-See the [release notes](https://github.com/adamspd/django-appointment/releases/tag/v3.2.0).
+See the [release notes](https://github.com/adamspd/django-appointment/releases/tag/v3.3.1).
 For older version,
 see their [release notes](https://github.com/adamspd/django-appointment/tree/main/docs/release_notes).
 
 ## Quick Start 🚀
 
-1. Add "appointment" to your `INSTALLED_APPS` setting like so:
+1. Add "appointment" (& "django_q" if you want to enable email reminders) to your `INSTALLED_APPS` setting like so:
 
    ```python
    INSTALLED_APPS = [
@@ -66,7 +66,7 @@ see their [release notes](https://github.com/adamspd/django-appointment/tree/mai
    ]
    ```
 
-2. Incorporate the appointment URLconf in your project's `urls.py` like so:
+2. Then, incorporate the appointment URLconf in your project's `urls.py`:
 
    ```python
    from django.urls import path, include
@@ -82,57 +82,61 @@ see their [release notes](https://github.com/adamspd/django-appointment/tree/mai
    AUTH_USER_MODEL = 'models.UserModel'  # Optional if you use Django's user model
    ```
 
-   For instance, if you employ a custom user model:
+   For instance, if you employ a custom user model called `UserClient` in an app named `client`, you would add it like:
 
    ```python
    AUTH_USER_MODEL = 'client.UserClient'
    ```
 
-   If you're utilizing the default Django user model, there's no need to add this line since Django automatically sets
-   it to:
+   But if you're using the default Django user model (like most of us), there's no need to add this line since Django 
+   automatically sets it to:
 
    ```python
    AUTH_USER_MODEL = 'auth.User'
    ```
 
-   Ensure your `create_user` function includes the following arguments, even if they are not all utilized:
+   Ensure your `create_user` function includes the following arguments, even if they are not all used (in case you're 
+   using a custom user model with your own logic for creating users):
 
    ```python
    def create_user(first_name, email, username, last_name=None, **extra_fields):
        pass
    ```
 
-   This function will create a user with a password formatted as: f"{APPOINTMENT_WEBSITE_NAME}{current_year}"
+   This function will create a passwordless user.
+   After doing so, a link to set the password will be sent to the user's email upon completing the appointment request.
 
-   For instance, if you append this to your `settings.py`:
+   Another variable that is worth configuring is the website's name in your `settings.py`:
 
    ```python
    APPOINTMENT_WEBSITE_NAME = 'Chocolates'
    ```
 
-   And the current year is 2023, the password will be "Chocolates2023". If `APPOINTMENT_WEBSITE_NAME` is not provided,
-   the default value is "Website", rendering the password as "Website2023".
-
-   This name is also utilized in the footer of the emails sent to clients upon scheduling an appointment:
+   It will be used in the footer of the emails sent to clients upon scheduling an appointment:
 
    ```html
    <p>® 2023 {{ APPOINTMENT_WEBSITE_NAME }}. All Rights Reserved.</p>
    ```
 
-   Configure `Q_CLUSTER` in your Django's `settings.py` to enable Django Q task scheduling:
-   ```python
-      Q_CLUSTER = {
-        'name': 'DjangORM',
-        'workers': 4,
-        'timeout': 90,
-        'retry': 120,
-        'queue_limit': 50,
-        'bulk': 10,
-        'orm': 'default',
-      }
-    ```
+   To be able to send email reminders after adding `django_q` to your `INSTALLED_APPS`, you must add this variable
+   `Q_CLUSTER` in your Django's `settings.py`. If done, and users check the box to receive reminders, you and them
+   will receive an email reminder 24 hours before the appointment.
+      
+   Here's a configuration example, that you can use without modification (if you don't want to do much research):
 
-4. Run `python manage.py migrate` to create the appointment models.
+   ```python
+   Q_CLUSTER = {
+      'name': 'DjangORM',
+      'workers': 4,
+      'timeout': 90,
+      'retry': 120,
+      'queue_limit': 50,
+      'bulk': 10,
+      'orm': 'default',
+   }
+   ```
+
+4. Next would be to run `python manage.py migrate` to create the appointment models.
 
 5. Start the Django Q cluster with `python manage.py qcluster`.
 
@@ -146,35 +150,37 @@ see their [release notes](https://github.com/adamspd/django-appointment/tree/mai
 
 ## Docker Support 🐳
 
-Django-Appointment now supports Docker, making it easier to set up, develop, and deploy. With Docker and Docker Compose,
-you can quickly get the project running in a consistent environment, streamline the development process, and simplify
-deployment across different platforms.
+Django-Appointment now supports Docker, making it easier to set up, develop, and test.
 
 ### Getting Started with Docker for Development or Local Testing
 
-Using Django-Appointment with Docker is primarily intended for development purposes or local testing. This means you'll
-need to clone the project from the GitHub repository to get started.
+Using Django-Appointment with Docker is primarily intended for **development purposes** or **local testing**.
+This means you'll need to ___clone the project from the GitHub repository___ to get started.
 
-Here's how you can set up Django-Appointment for local development or testing with Docker:
+Here's how you can set it up:
 
 1. **Clone the Repository**: Clone the Django-Appointment repository to your local machine:
 
    ```bash
    git clone https://github.com/adamspd/django-appointment.git
    ```
-   
+
    or using SSH:
    ```bash
    git clone git@github.com:adamspd/django-appointment.git
    ```
 
-2. **Prepare .env File**: Create an `.env` file in the root directory of your project with your configuration settings.
-   You should include your email host user and password for Django's email functionality:
+2. **Prepare an .env File**: Create an `.env` file in the root directory of your project with your configuration 
+   settings.
+   You should include your email host user and password for Django's email functionality (if you want it to work):
 
    ```plaintext
    EMAIL_HOST_USER=your_email@gmail.com
    EMAIL_HOST_PASSWORD=your_password
    ```
+   
+   > **Note:** The `.env` file is used to store sensitive information and should not be committed to version control.
+
 3. **Build and Run the Docker Containers**: Run the following command to build and run the Docker containers:
 
    ```bash
@@ -201,9 +207,9 @@ Here's how you can set up Django-Appointment for local development or testing wi
    docker-compose exec web python manage.py migrate
    ```
 
-> **Note:** I use the default database settings for the Docker container. If you want to use a different database, you
-> can
-> modify the Dockerfile and docker-compose.yml files to use your preferred database.
+   > **Note:** I used the default database settings for the Docker container.
+   > If you want to use a different database, you can modify the Dockerfile and docker-compose.yml files to use your 
+   > preferred database.
 
 ## Customization 🔧
 
