@@ -1105,7 +1105,7 @@ class ExcludePendingReschedulesTests(BaseTest):
             reason_for_rescheduling="Client request"
         )
         filtered_slots = exclude_pending_reschedules(self.slots, self.staff_member1, self.date)
-        self.assertEqual(len(filtered_slots), len(self.slots) -1)  # Assuming only one slot overlaps
+        self.assertEqual(len(filtered_slots), len(self.slots) - 1)  # Assuming only one slot overlaps
 
     def test_exclude_with_non_pending_reschedules_within_last_5_minutes(self):
         """Slots should remain unchanged if reschedules within the last 5 minutes are not pending."""
