@@ -197,8 +197,18 @@ Here's how you can set it up:
    docker compose up -d --build
    ```
 
-4. **Run Migrations**: Run the migrations with the following command:
+4. **Make Migrations and Run**: Create the migrations with the following command:
 
+   ```bash
+   docker-compose exec web python manage.py makemigrations appointment
+   ```
+
+   or
+    ```bash
+   docker compose exec web python manage.py makemigrations appointment
+   ```
+   
+    Then, apply the migrations with the following command:
    ```bash
    docker-compose exec web python manage.py migrate
    ```
