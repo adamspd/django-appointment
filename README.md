@@ -170,6 +170,11 @@ Here's how you can set it up:
    git clone git@github.com:adamspd/django-appointment.git
    ```
 
+   then go to the project's directory:
+   ```bash
+   cd django-appointment
+   ```
+
 2. **Prepare an .env File**: Create an `.env` file in the root directory of your project with your configuration 
    settings.
    You should include your email host user and password for Django's email functionality (if you want it to work):
@@ -187,24 +192,41 @@ Here's how you can set it up:
    docker-compose up -d --build
    ```
 
-4. **Create a Superuser**: After the containers are running, create a superuser to access the Django admin interface:
+   or
+   ```bash
+   docker compose up -d --build
+   ```
+
+4. **Run Migrations**: Run the migrations with the following command:
+
+   ```bash
+   docker-compose exec web python manage.py migrate
+   ```
+
+   or
+    ```bash
+   docker compose exec web python manage.py migrate
+   ```
+
+5. **Create a Superuser**: After the containers are running, create a superuser to access the Django admin interface:
 
    ```bash
     docker-compose exec web python manage.py createsuperuser
     ```
 
-5. **Access the Application**: Once the containers are running, you can access the application at `localhost:8000`. The
-   Django admin interface is available at `localhost:8000/admin`.
-6. **Shut Down the Containers**: When you're finished, you can shut down the containers with the following command:
+   or
+   ```bash
+    docker compose exec web python manage.py createsuperuser
+    ```
+
+6. **Access the Application**: Once the containers are running, you can access the application at `localhost:8000`. The
+   Django admin interface is available at `localhost:8000/admin`. And from there, add the necessary configurations.
+   [Follow this documentation](https://github.com/adamspd/django-appointment/blob/main/docs/explanation.md).
+7. **Shut Down the Containers**: When you're finished, you can shut down the containers with the following command:
 
    ```bash
    docker-compose down
-   ```
-7. **(Optional) Run Migrations**: If you make changes to the models or database, you can run the migrations with the
-   following command:
-
-   ```bash
-   docker-compose exec web python manage.py migrate
+   # docker compose down
    ```
 
    > **Note:** I used the default database settings for the Docker container.
