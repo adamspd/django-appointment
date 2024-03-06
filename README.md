@@ -56,7 +56,13 @@ see their [release notes](https://github.com/adamspd/django-appointment/tree/mai
 
 ## Quick Start 🚀
 
-1. Add "appointment" (& "django_q" if you want to enable email reminders) to your `INSTALLED_APPS` setting like so:
+1. Install Django-Appointment in your project using pip:
+
+   ```bash
+   pip install django-appointment
+   ```
+
+2. Add "appointment" (& "django_q" if you want to enable email reminders) to your `INSTALLED_APPS` setting like so:
 
    ```python
    INSTALLED_APPS = [
@@ -66,7 +72,7 @@ see their [release notes](https://github.com/adamspd/django-appointment/tree/mai
    ]
    ```
 
-2. Then, incorporate the appointment URLconf in your project's `urls.py`:
+3. Then, incorporate the appointment URLconf in your project's `urls.py`:
 
    ```python
    from django.urls import path, include
@@ -76,7 +82,7 @@ see their [release notes](https://github.com/adamspd/django-appointment/tree/mai
        path('appointment/', include('appointment.urls')),
    ]
    ```
-3. In your Django's `settings.py`, append the following:
+4. In your Django's `settings.py`, append the following:
 
    ```python
    AUTH_USER_MODEL = 'models.UserModel'  # Optional if you use Django's user model
@@ -136,16 +142,16 @@ see their [release notes](https://github.com/adamspd/django-appointment/tree/mai
    }
    ```
 
-4. Next would be to run `python manage.py migrate` to create the appointment models.
+5. Next would be to run `python manage.py migrate` to create the appointment models.
 
-5. Start the Django Q cluster with `python manage.py qcluster`.
+6. Start the Django Q cluster with `python manage.py qcluster`.
 
-6. Launch the development server and navigate to http://127.0.0.1:8000/admin/ to create appointments, manage
+7. Launch the development server and navigate to http://127.0.0.1:8000/admin/ to create appointments, manage
    configurations, and handle appointment conflicts (the Admin app must be enabled).
-7. You must create at least one service before using the application on the admin page. If your service is free, input 0
+8. You must create at least one service before using the application on the admin page. If your service is free, input 0
    as the price. If your service is paid, input the price in the price field. You may also provide a description for
    your service.
-8. Visit http://127.0.0.1:8000/appointment/request/<service_id>/ to view the available time slots and schedule an
+9. Visit http://127.0.0.1:8000/appointment/request/<service_id>/ to view the available time slots and schedule an
    appointment.
 
 ## Docker Support 🐳
