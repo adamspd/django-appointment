@@ -82,9 +82,9 @@ generate_markdown_table() {
   echo "" >> compatibility_matrix.md
   echo "## Test Results Explanation" >> compatibility_matrix.md
   echo "" >> compatibility_matrix.md
-  echo "The compatibility matrix above demonstrates which combinations of Django and Python versions are compatible based on the conducted tests. A 'PASS' indicates a successful compatibility test, whereas a 'FAIL' denotes an incompatibility or an issue encountered during testing. Versions marked with '-' were not tested due to known incompatibilities or other constraints." >> compatibility_matrix.md
+  echo "The compatibility matrix above demonstrates which combinations of Django and Python versions the package is compatible with based on the conducted tests. A 'PASS' indicates a successful compatibility test, whereas a 'FAIL' denotes an incompatibility or an issue encountered during testing. Versions marked with '-' were not tested due to known incompatibilities of django with python or other constraints." >> compatibility_matrix.md
   echo "" >> compatibility_matrix.md
-  echo "See [django's official documentation about supported python versions](https://docs.djangoproject.com/en/5.0/faq/install/#what-python-version-can-i-use-with-django) for more details."
+  echo "See [django's official documentation about supported python versions](https://docs.djangoproject.com/en/5.0/faq/install/#what-python-version-can-i-use-with-django) for more details." >> compatibility_matrix.md
   echo "" >> compatibility_matrix.md
   echo "It's important to ensure that your environment matches these compatible combinations to avoid potential issues. If a specific combination you're interested in is marked as 'FAIL', it's recommended to check the corresponding test logs for details and consider alternative versions or addressing the identified issues." >> compatibility_matrix.md
 }
