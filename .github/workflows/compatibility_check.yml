@@ -24,7 +24,7 @@ jobs:
       run: sudo apt-get update && sudo apt-get install jq -y
 
     - name: Run Compatibility Matrix Script
-      run: sudo bash compatibility_matrix.sh 3
+      run: sudo bash compatibility_matrix.sh 5
 
     - name: Commit and Push if not on main branch
       env:
