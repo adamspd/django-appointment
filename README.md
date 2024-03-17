@@ -12,9 +12,7 @@
 [![GitHub issues](https://img.shields.io/github/issues/adamspd/django-appointment)](https://github.com/adamspd/django-appointment/issues)
 [![GitHub pull requests](https://img.shields.io/github/issues-pr/adamspd/django-appointment)](https://github.com/adamspd/django-appointment/pulls)
 [![GitHub contributors](https://img.shields.io/github/contributors/adamspd/django-appointment)](https://github.com/adamspd/django-appointment/graphs/contributors)
-[![GitHub forks](https://img.shields.io/github/forks/adamspd/django-appointment)](https://github.com/adamspd/django-appointment/forks)
 [![GitHub stars](https://img.shields.io/github/stars/adamspd/django-appointment)](https://github.com/adamspd/django-appointment/stargazers)
-[![GitHub license](https://img.shields.io/github/license/adamspd/django-appointment)](https://github.com/adamspd/django-appointment/blob/main/LICENSE)
 [![Django compatible version](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/adamspd/django-appointment/main/django_compatible.json)](https://github.com/adamspd/django-appointment/blob/main/compatibility_matrix.md)
 [![Python compatible version](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/adamspd/django-appointment/main/python_compatible.json)](https://github.com/adamspd/django-appointment/blob/main/compatibility_matrix.md)
 
@@ -281,6 +279,9 @@ directory or visit the GitHub repository for more information.
 Contributions are welcome! Please refer to
 the [contributing guidelines](https://github.com/adamspd/django-appointment/tree/main/CONTRIBUTING.md) for more
 information.
+
+> **Important**: Please consider starring the repository if you find it useful. It helps me to know that the project is
+> appreciated and that I should continue to maintain it. Thank you!
 
 ## Code of Conduct 📜
 
