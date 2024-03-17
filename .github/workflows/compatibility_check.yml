@@ -1,4 +1,4 @@
-name: Compatibility Check Workflow
+name: Compatibility Check
 
 on:
   workflow_dispatch:
@@ -27,12 +27,12 @@ jobs:
       run: sudo bash compatibility_matrix.sh 3
 
     - name: Commit and Push if not on main branch
+      env:
+        MY_PERSONAL_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
       if: github.ref_name != 'main'
       run: |
         git config --global user.email "actions@github.com"
         git config --global user.name "GitHub Actions"
         git add .
-        git commit -m "Update compatibility matrix and badges"
-        git push
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        git commit -m "Update compatibility matrix and badges" -a || echo "No changes to commit"
+        git push https://${MY_PERSONAL_TOKEN}@github.com/${{ github.repository }} HEAD:${{ github.ref_name }}
