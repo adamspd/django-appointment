@@ -24,7 +24,7 @@ jobs:
       run: sudo apt-get update && sudo apt-get install jq -y
 
     - name: Run Compatibility Matrix Script
-      run: sudo bash compatibility_matrix.sh 3
+      run: sudo bash compatibility_matrix.sh 5
 
     - name: Commit and Push if not on main branch
       env:
@@ -35,4 +35,4 @@ jobs:
         git config --global user.name "GitHub Actions"
         git add .
         git commit -m "Update compatibility matrix and badges" -a || echo "No changes to commit"
-        git push https://${MY_PERSONAL_TOKEN}@github.com/${{ github.repository }} HEAD:${{ github.ref_name }}
+        git push https://x-access-token:${MY_PERSONAL_TOKEN}@github.com/${{ github.repository }} HEAD:refs/heads/${{ github.ref_name }}
