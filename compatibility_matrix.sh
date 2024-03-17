@@ -99,28 +99,37 @@ generate_badge_json() {
       local combined_key="${dj_ver}_${py_ver}"
       # shellcheck disable=SC2155
       local result=$(jq -r --arg key "$combined_key" '.[$key]' "$result_file")
-      echo "Checking result for $combined_key: $result"
       if [[ "$result" == "PASS" ]]; then
-        python_compatible+=("$py_ver")
-        django_compatible+=("$dj_ver")
+        # shellcheck disable=SC2076
+        if ! [[ " ${python_compatible[*]} " =~ " ${py_ver} " ]]; then
+          python_compatible+=("$py_ver")
+        fi
+        # shellcheck disable=SC2076
+        if ! [[ " ${django_compatible[*]} " =~ " ${dj_ver} " ]]; then
+          django_compatible+=("$dj_ver")
+        fi
       fi
     done
   done
 
-  echo "Python compatible versions: ${python_compatible[*]}"
-  echo "Django compatible versions: ${django_compatible[*]}"
+  # Remove duplicates and sort versions
+  readarray -t unique_python_versions < <(printf '%s\n' "${python_compatible[@]}" | sort -uV)
+  readarray -t unique_django_versions < <(printf '%s\n' "${django_compatible[@]}" | sort -uV)
+
+  echo "Python compatible versions: ${unique_python_versions[*]}"
+  echo "Django compatible versions: ${unique_django_versions[*]}"
 
   echo "{
     \"schemaVersion\": 1,
-    \"label\": \"python\",
-    \"message\": \"$(IFS=, ; echo "${python_compatible[*]}")\",
+    \"label\": \"compatible python\",
+    \"message\": \"$(IFS=' | '; echo "${unique_python_versions[*]}")\",
     \"color\": \"blue\"
   }" > "python_compatible.json"
 
   echo "{
     \"schemaVersion\": 1,
-    \"label\": \"django\",
-    \"message\": \"$(IFS=, ; echo "${django_compatible[*]}")\",
+    \"label\": \"compatible django\",
+    \"message\": \"$(IFS=' | '; echo "${unique_django_versions[*]}")\",
     \"color\": \"blue\"
   }" > "django_compatible.json"
 }
@@ -131,16 +140,17 @@ post_cleanup() {
 
   echo "Removing docker images..."
   # shellcheck disable=SC2155
-  local dangling_images=$(docker images -q --filter "dangling=true")
-  if [ -n "$dangling_images" ]; then
-    docker rmi "$dangling_images"
-  fi
+#  local dangling_images=$(docker images -q --filter "dangling=true")
+#  if [ -n "$dangling_images" ]; then
+#    docker rmi "$dangling_images"
+#  fi
 
   echo "Cleanup complete."
 }
 
 # Define directories and files
 result_dir="test_results"
+post_cleanup  # Clean up any previous test results
 result_file="${result_dir}/results.json"
 
 # Compatible Python versions for each Django version with prefixed keys
@@ -184,5 +194,6 @@ generate_markdown_table
 echo "Compatibility matrix has been generated: compatibility_matrix.md"
 echo "Generating compatibility badges..."
 generate_badge_json
+echo "Compatibility badges have been generated: python_compatible.json, django_compatible.json"
 echo "Cleaning up..."
 post_cleanup
