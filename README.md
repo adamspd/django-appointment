@@ -12,6 +12,12 @@
 [![GitHub issues](https://img.shields.io/github/issues/adamspd/django-appointment)](https://github.com/adamspd/django-appointment/issues)
 [![GitHub pull requests](https://img.shields.io/github/issues-pr/adamspd/django-appointment)](https://github.com/adamspd/django-appointment/pulls)
 [![GitHub contributors](https://img.shields.io/github/contributors/adamspd/django-appointment)](https://github.com/adamspd/django-appointment/graphs/contributors)
+[![GitHub forks](https://img.shields.io/github/forks/adamspd/django-appointment)](https://github.com/adamspd/django-appointment/forks)
+[![GitHub stars](https://img.shields.io/github/stars/adamspd/django-appointment)](https://github.com/adamspd/django-appointment/stargazers)
+[![GitHub license](https://img.shields.io/github/license/adamspd/django-appointment)](https://github.com/adamspd/django-appointment/blob/main/LICENSE)
+[![Django compatible version](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/adamspd/django-appointment/main/django_compatible.json)](https://github.com/adamspd/django-appointment/blob/main/compatibility_matrix.md)
+[![Python compatible version](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/adamspd/django-appointment/main/python_compatible.json)](https://github.com/adamspd/django-appointment/blob/main/compatibility_matrix.md)
+
 
 ⚠️ **IMPORTANT**: If upgrading from a version before 2.x.x, please note significant database changes were introduced in
 version 2.0.0. Please read
@@ -142,7 +148,8 @@ see their [release notes](https://github.com/adamspd/django-appointment/tree/mai
    }
    ```
 
-5. Next would be to run `python manage.py migrate` to create the appointment models.
+5. Next would be to create the migrations and run them by doing `python manage.py makemigrations appointment` and right 
+   after, run `python manage.py migrate` to create the appointment models.
 
 6. Start the Django Q cluster with `python manage.py qcluster`.
 
@@ -256,6 +263,13 @@ Here's how you can set it up:
    the [documentation](https://github.com/adamspd/django-appointment/tree/main/docs/README.md#configuration).
 2. Modify these values as needed for your application, and the app will adapt to the new settings.
 3. For further customization, you can extend the provided models, views, and templates or create your own.
+
+## Compatibility Matrix 📊
+
+A compatibility matrix is available to help you determine which versions of Django and Python are compatible with the
+package. 
+The matrix is updated regularly to reflect the latest compatibility test results. For more information, please
+refer to the [compatibility matrix here](https://github.com/adamspd/django-appointment/blob/main/compatibility_matrix.md).
 
 ## Support 💬
 
