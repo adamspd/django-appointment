@@ -30,7 +30,6 @@ run_tests() {
     (
       echo "Testing with Python ${py_ver} and Django ${dj_ver}"
       local individual_result_file="${result_dir}/${dj_ver}_${py_ver}.json"
-      # Replace this with your actual Docker-based test command
       if docker build -f Dockerfile.test --build-arg PYTHON_VERSION="${py_ver}" --build-arg DJANGO_VERSION="${dj_ver}" -t django_appointment_test:"${py_ver}_${dj_ver}" . && \
          docker run --rm django_appointment_test:"${py_ver}_${dj_ver}"; then
         echo "{\"result\": \"PASS\"}" > "$individual_result_file"
@@ -132,17 +131,16 @@ post_cleanup() {
 
   echo "Removing docker images..."
   # shellcheck disable=SC2155
-#  local dangling_images=$(docker images -q --filter "dangling=true")
-#  if [ -n "$dangling_images" ]; then
-#    docker rmi "$dangling_images"
-#  fi
+  local dangling_images=$(docker images -q --filter "dangling=true")
+  if [ -n "$dangling_images" ]; then
+    docker rmi "$dangling_images"
+  fi
 
   echo "Cleanup complete."
 }
 
 # Define directories and files
 result_dir="test_results"
-post_cleanup  # Clean up any previous test results
 result_file="${result_dir}/results.json"
 
 # Compatible Python versions for each Django version with prefixed keys
