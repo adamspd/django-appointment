@@ -35,4 +35,4 @@ jobs:
         git config --global user.name "GitHub Actions"
         git add .
         git commit -m "Update compatibility matrix and badges" -a || echo "No changes to commit"
-        git push https://${MY_PERSONAL_TOKEN}@github.com/${{ github.repository }} HEAD:${{ github.ref_name }}
+        git push https://x-access-token:${MY_PERSONAL_TOKEN}@github.com/${{ github.repository }} HEAD:refs/heads/${{ github.ref_name }}
