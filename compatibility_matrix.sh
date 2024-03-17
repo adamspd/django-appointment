@@ -121,14 +121,14 @@ generate_badge_json() {
 
   echo "{
     \"schemaVersion\": 1,
-    \"label\": \"compatible python\",
+    \"label\": \"compatible with python\",
     \"message\": \"$(IFS=' | '; echo "${unique_python_versions[*]}")\",
     \"color\": \"blue\"
   }" > "python_compatible.json"
 
   echo "{
     \"schemaVersion\": 1,
-    \"label\": \"compatible django\",
+    \"label\": \"compatible with django\",
     \"message\": \"$(IFS=' | '; echo "${unique_django_versions[*]}")\",
     \"color\": \"blue\"
   }" > "django_compatible.json"
