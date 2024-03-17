@@ -5,7 +5,7 @@
 | 3.2 | PASS | PASS | PASS | PASS | PASS | - | - |
 | 4.0 | - | - | PASS | PASS | PASS | - | - |
 | 4.1 | - | - | PASS | PASS | PASS | PASS | - |
-| 4.2 | - | - | PASS | PASS | PASS | PASS | FAIL |
+| 4.2 | - | - | PASS | PASS | PASS | PASS | PASS |
 | 5.0 | - | - | - | - | PASS | PASS | PASS |
 
 ## Test Results Explanation
