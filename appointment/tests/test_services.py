@@ -4,6 +4,7 @@
 import datetime
 import json
 from _decimal import Decimal
+from unittest.mock import patch
 
 from django.core.cache import cache
 from django.test import Client
@@ -589,6 +590,10 @@ class CreateStaffMemberServiceTest(BaseTest):
 
     def setUp(self):
         super().setUp()
+        self.factory = RequestFactory()
+
+        # Setup request object
+        self.request = self.factory.post('/')
 
     def test_valid_data(self):
         """Test if a staff member can be created with valid data."""
@@ -597,7 +602,7 @@ class CreateStaffMemberServiceTest(BaseTest):
             'last_name': 'Doe',
             'email': 'john.doe@gmail.com'
         }
-        user, success, error_message = create_staff_member_service(post_data)
+        user, success, error_message = create_staff_member_service(post_data, self.request)
 
         self.assertTrue(success)
         self.assertIsNotNone(user)
@@ -613,7 +618,7 @@ class CreateStaffMemberServiceTest(BaseTest):
             'last_name': 'Doe',
             'email': 'john.doe@gmail.com'
         }
-        user, success, error_message = create_staff_member_service(post_data)
+        user, success, error_message = create_staff_member_service(post_data, self.request)
 
         self.assertFalse(success)
         self.assertIsNone(user)
@@ -627,11 +632,26 @@ class CreateStaffMemberServiceTest(BaseTest):
             'last_name': 'Doe',
             'email': 'existing@gmail.com'  # Using an email that already exists
         }
-        user, success, error_message = create_staff_member_service(post_data)
+        user, success, error_message = create_staff_member_service(post_data, self.request)
 
         self.assertFalse(success)
         self.assertIsNone(user)
         self.assertEqual(error_message, "email: This email is already taken.")
+
+    @patch('appointment.services.send_reset_link_to_staff_member')
+    def test_send_reset_link_to_new_staff_member(self, mock_send_reset_link):
+        """Test if a reset password link is sent to a new staff member."""
+        post_data = {
+            'first_name': 'Jane',
+            'last_name': 'Smith',
+            'email': 'jane.smith@gmail.com'
+        }
+        user, success, _ = create_staff_member_service(post_data, self.request)
+        self.assertTrue(success)
+        self.assertIsNotNone(user)
+
+        # Check that the mock_send_reset_link function was called once
+        mock_send_reset_link.assert_called_once_with(user, self.request, user.email)
 
 
 class HandleServiceManagementRequestTest(BaseTest):
