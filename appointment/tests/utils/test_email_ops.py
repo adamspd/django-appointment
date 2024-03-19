@@ -1,7 +1,6 @@
 from unittest import mock
 from unittest.mock import MagicMock, patch
 
-from django.test import TestCase
 from django.test.client import RequestFactory
 from django.utils import timezone
 from django.utils.translation import gettext as _
@@ -10,12 +9,48 @@ from appointment.messages_ import thank_you_no_payment, thank_you_payment, thank
 from appointment.models import AppointmentRescheduleHistory
 from appointment.tests.base.base_test import BaseTest
 from appointment.utils.email_ops import (
-    get_thank_you_message, notify_admin_about_appointment, send_reschedule_confirmation_email, send_thank_you_email,
+    get_thank_you_message, notify_admin_about_appointment, send_reschedule_confirmation_email,
+    send_reset_link_to_staff_member, send_thank_you_email,
     send_verification_email
 )
 
 
-class GetThankYouMessageTests(TestCase):
+class SendResetLinkToStaffMemberTests(BaseTest):
+
+    def setUp(self):
+        super().setUp()
+        self.user = self.user1
+        self.user.is_staff = True
+        self.user.save()
+        self.factory = RequestFactory()
+        self.request = self.factory.get('/')
+        self.email = 'staff@example.com'
+
+    @mock.patch('appointment.utils.email_ops.send_email')
+    @mock.patch('appointment.models.PasswordResetToken.create_token')
+    def test_send_reset_link(self, mock_create_token, mock_send_email):
+        # Setup the token
+        mock_token = mock.Mock()
+        mock_token.token = 'token123'
+        mock_create_token.return_value = mock_token
+
+        # Assume get_absolute_url_ and get_website_name are utility functions you've defined somewhere
+        with mock.patch('appointment.utils.email_ops.get_absolute_url_') as mock_get_absolute_url:
+            with mock.patch('appointment.utils.email_ops.get_website_name') as mock_get_website_name:
+                mock_get_absolute_url.return_value = 'http://testserver/reset_password'
+                mock_get_website_name.return_value = 'TestCompany'
+
+                send_reset_link_to_staff_member(self.user, self.request, self.email)
+
+                # Check send_email was called with correct parameters
+                mock_send_email.assert_called_once()
+                args, kwargs = mock_send_email.call_args
+                self.assertEqual(kwargs['recipient_list'], [self.email])
+                self.assertIn('TestCompany', kwargs['message'])
+                self.assertIn('http://testserver/reset_password', kwargs['message'])
+
+
+class GetThankYouMessageTests(BaseTest):
     def test_thank_you_no_payment(self):
         with patch('appointment.utils.email_ops.APPOINTMENT_PAYMENT_URL', None):
             ar = MagicMock()
