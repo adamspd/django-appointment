@@ -88,6 +88,54 @@ def send_thank_you_email(ar: AppointmentRequest, user, request, email: str, appo
     )
 
 
+def send_reset_link_to_staff_member(user, request, email: str, account_details=None):
+    """Email the staff member to set a password.
+
+    :param user: The user who booked the appointment.
+    :param email: The email address of the client.
+    :param account_details: Additional details about the account (default None).
+    :param request: The request object.
+    :return: None
+    """
+    # Month and year like "J A N 2 0 2 1"
+    token = PasswordResetToken.create_token(user=user, expiration_minutes=10080)  # 7 days expiration
+    ui_db64 = urlsafe_base64_encode(force_bytes(user.pk))
+    relative_set_passwd_link = reverse('appointment:set_passwd', args=[ui_db64, token.token])
+    set_passwd_link = get_absolute_url_(relative_set_passwd_link, request=request)
+
+    message = _("""
+        Hello {first_name},
+
+        A request has been received to set a password for your staff account for the year {current_year} at {company}.
+
+        Please click the link below to set up your new password:
+        {activation_link}
+        
+        To login, if ask for a username, use '{username}', otherwise use your email address.
+
+        If you did not request this, please ignore this email.
+
+        {account_details}
+
+        Regards,
+        {company}
+        """).format(
+        first_name=user.first_name,
+        current_year=datetime.datetime.now().year,
+        company=get_website_name(),
+        activation_link=set_passwd_link,
+        account_details=account_details if account_details else _("No additional details provided."),
+        username=user.username
+    )
+
+    # Assuming send_email is a method you have that sends an email
+    send_email(
+        recipient_list=[email],
+        subject=_("Set Your Password for {company}").format(company=get_website_name()),
+        message=message,
+    )
+
+
 def notify_admin_about_appointment(appointment, client_name: str):
     """Notify the admin and the staff member about a new appointment request."""
     email_context = {

@@ -589,6 +589,10 @@ class CreateStaffMemberServiceTest(BaseTest):
 
     def setUp(self):
         super().setUp()
+        self.factory = RequestFactory()
+
+        # Setup request object
+        self.request = self.factory.post('/')
 
     def test_valid_data(self):
         """Test if a staff member can be created with valid data."""
@@ -597,7 +601,7 @@ class CreateStaffMemberServiceTest(BaseTest):
             'last_name': 'Doe',
             'email': 'john.doe@gmail.com'
         }
-        user, success, error_message = create_staff_member_service(post_data)
+        user, success, error_message = create_staff_member_service(post_data, self.request)
 
         self.assertTrue(success)
         self.assertIsNotNone(user)
@@ -613,7 +617,7 @@ class CreateStaffMemberServiceTest(BaseTest):
             'last_name': 'Doe',
             'email': 'john.doe@gmail.com'
         }
-        user, success, error_message = create_staff_member_service(post_data)
+        user, success, error_message = create_staff_member_service(post_data, self.request)
 
         self.assertFalse(success)
         self.assertIsNone(user)
@@ -627,7 +631,7 @@ class CreateStaffMemberServiceTest(BaseTest):
             'last_name': 'Doe',
             'email': 'existing@gmail.com'  # Using an email that already exists
         }
-        user, success, error_message = create_staff_member_service(post_data)
+        user, success, error_message = create_staff_member_service(post_data, self.request)
 
         self.assertFalse(success)
         self.assertIsNone(user)
