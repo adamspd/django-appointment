@@ -29,6 +29,7 @@ from appointment.utils.db_helpers import (
     get_staff_member_from_user_id_or_logged_in, get_times_from_config, get_user_by_email,
     get_weekday_num_from_date, get_working_hours_for_staff_and_day, parse_name, update_appointment_reminder,
     working_hours_exist)
+from appointment.utils.email_ops import send_reset_link_to_staff_member
 from appointment.utils.error_codes import ErrorCode
 from appointment.utils.json_context import convert_appointment_to_json, get_generic_context, json_response
 from appointment.utils.permissions import check_entity_ownership
@@ -513,7 +514,7 @@ def email_change_verification_service(code, email, old_email):
     return False
 
 
-def create_staff_member_service(post_data):
+def create_staff_member_service(post_data, request):
     form = PersonalInformationForm(post_data)
     if form.is_valid():
         first_name = form.cleaned_data['first_name']
@@ -533,6 +534,7 @@ def create_staff_member_service(post_data):
         if not user.is_superuser:
             user.is_staff = True
             user.save()
+        send_reset_link_to_staff_member(user, request, user.email)
         return user, True, None
     else:
         return None, False, get_error_message_in_form(form=form)
