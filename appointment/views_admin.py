@@ -379,7 +379,7 @@ def email_change_verification_code(request):
 @require_superuser
 def create_new_staff_member(request):
     if request.method == 'POST':
-        user, is_valid, error_message = create_staff_member_service(request.POST)
+        user, is_valid, error_message = create_staff_member_service(request.POST, request)
         if is_valid:
             return redirect('appointment:user_profile', staff_user_id=user.pk)
         else:
