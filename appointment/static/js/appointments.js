@@ -5,6 +5,7 @@ let nonWorkingDays = [];
 let selectedDate = rescheduledDate || null;
 let staffId = $('#staff_id').val() || null;
 let previouslySelectedCell = null;
+let isRequestInProgress = false;
 
 const calendar = new FullCalendar.Calendar(calendarEl, {
     initialView: 'dayGridMonth',
@@ -203,6 +204,11 @@ function formatTime(date) {
 }
 
 function getAvailableSlots(selectedDate, staffId = null) {
+    if (isRequestInProgress) {
+        return; // Exit the function if a request is already in progress
+    }
+    isRequestInProgress = true;
+
     // Update the slot list with the available slots for the selected date
     const slotList = $('#slot-list');
     const slotContainer = $('.slot-container');
@@ -305,6 +311,10 @@ function getAvailableSlots(selectedDate, staffId = null) {
             // Update the date chosen
             $('.djangoAppt_date_chosen').text(data.date_chosen);
             $('#service-datetime-chosen').text(data.date_chosen);
+            isRequestInProgress = false;
+        },
+        error: function() {
+            isRequestInProgress = false; // Ensure the flag is reset even if the request fails
         }
     });
 }
