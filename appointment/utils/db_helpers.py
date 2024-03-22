@@ -240,7 +240,7 @@ def parse_name(name: str):
 def create_user_with_email(client_data: dict):
     CLIENT_MODEL = get_user_model()
     # Valid fields
-    valid_fields = ['email', 'first_name', 'last_name', 'username']
+    valid_fields = ['email', 'first_name', 'last_name']
 
     # Filter client_data to include only valid fields
     user_data = {field: client_data.get(field, '') for field in valid_fields}
