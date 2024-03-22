@@ -278,6 +278,7 @@ def create_new_user(client_data: dict):
         CLIENT_MODEL._meta.get_field('username')
         user = create_user_with_username(client_data)
     except FieldDoesNotExist:
+        client_data.pop('username', None)
         user = create_user_with_email(client_data)
     return user
 
