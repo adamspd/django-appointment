@@ -304,6 +304,7 @@ function getAvailableSlots(selectedDate, staffId = null) {
             }
             // Update the date chosen
             $('.djangoAppt_date_chosen').text(data.date_chosen);
+            $('#service-datetime-chosen').text(data.date_chosen);
         }
     });
 }
