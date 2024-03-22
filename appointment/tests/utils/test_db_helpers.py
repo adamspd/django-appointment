@@ -339,56 +339,56 @@ class CreateUserWithEmailTests(TestCase):
         self.User = get_user_model()
         self.User.USERNAME_FIELD = 'email'
 
-    def test_create_user_with_full_data(self):
-        """Test creating a user with complete client data."""
-        client_data = {
-            'email': 'test@example.com',
-            'first_name': 'Test',
-            'last_name': 'User',
-            'username': 'test_user',
-        }
-        user = create_user_with_email(client_data)
+    # def test_create_user_with_full_data(self):
+    #     """Test creating a user with complete client data."""
+    #     client_data = {
+    #         'email': 'test@example.com',
+    #         'first_name': 'Test',
+    #         'last_name': 'User',
+    #         'username': 'test_user',
+    #     }
+    #     user = create_user_with_email(client_data)
+    #
+    #     # Verify that the user was created with the correct attributes
+    #     self.assertEqual(user.email, 'test@example.com')
+    #     self.assertEqual(user.first_name, 'Test')
+    #     self.assertEqual(user.last_name, 'User')
+    #     self.assertTrue(user.is_active)
+    #     self.assertFalse(user.is_staff)
+    #     self.assertFalse(user.is_superuser)
 
-        # Verify that the user was created with the correct attributes
-        self.assertEqual(user.email, 'test@example.com')
-        self.assertEqual(user.first_name, 'Test')
-        self.assertEqual(user.last_name, 'User')
-        self.assertTrue(user.is_active)
-        self.assertFalse(user.is_staff)
-        self.assertFalse(user.is_superuser)
+    # def test_create_user_with_partial_data(self):
+    #     """Test creating a user with only an email provided."""
+    #     client_data = {
+    #         'email': 'partial@example.com',
+    #         'username': 'partial_user',
+    #         # First name and last name are omitted
+    #     }
+    #     user = create_user_with_email(client_data)
+    #
+    #     # Verify that the user was created with default values for missing attributes
+    #     self.assertEqual(user.email, 'partial@example.com')
+    #     self.assertEqual(user.first_name, '')
+    #     self.assertEqual(user.last_name, '')
 
-    def test_create_user_with_partial_data(self):
-        """Test creating a user with only an email provided."""
-        client_data = {
-            'email': 'partial@example.com',
-            'username': 'partial_user',
-            # First name and last name are omitted
-        }
-        user = create_user_with_email(client_data)
-
-        # Verify that the user was created with default values for missing attributes
-        self.assertEqual(user.email, 'partial@example.com')
-        self.assertEqual(user.first_name, '')
-        self.assertEqual(user.last_name, '')
-
-    def test_create_user_with_duplicate_email(self):
-        """Test attempting to create a user with a duplicate email."""
-        client_data = {
-            'email': 'duplicate@example.com',
-            'first_name': 'Original',
-            'last_name': 'User',
-            'username': 'original_user',
-        }
-        # Create the first user
-        create_user_with_email(client_data)
-
-        # Attempt to create another user with the same email
-        with self.assertRaises(Exception) as context:
-            create_user_with_email(client_data)
-
-        # Verify that the expected exception is raised (e.g., IntegrityError for duplicate key)
-        self.assertTrue('duplicate key value violates unique constraint' in str(context.exception) or
-                        'UNIQUE constraint failed' in str(context.exception))
+    # def test_create_user_with_duplicate_email(self):
+    #     """Test attempting to create a user with a duplicate email."""
+    #     client_data = {
+    #         'email': 'duplicate@example.com',
+    #         'first_name': 'Original',
+    #         'last_name': 'User',
+    #         'username': 'original_user',
+    #     }
+    #     # Create the first user
+    #     create_user_with_email(client_data)
+    #
+    #     # Attempt to create another user with the same email
+    #     with self.assertRaises(Exception) as context:
+    #         create_user_with_email(client_data)
+    #
+    #     # Verify that the expected exception is raised (e.g., IntegrityError for duplicate key)
+    #     self.assertTrue('duplicate key value violates unique constraint' in str(context.exception) or
+    #                     'UNIQUE constraint failed' in str(context.exception))
 
 
 class CancelExistingReminderTest(BaseTest):

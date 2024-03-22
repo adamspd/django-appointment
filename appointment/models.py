@@ -542,6 +542,9 @@ class Appointment(models.Model):
             return True
         return self.paid
 
+    def service_is_paid(self):
+        return self.get_service_price() != 0
+
     def is_paid_text(self):
         return _("Yes") if self.is_paid() else _("No")
 
