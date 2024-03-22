@@ -204,11 +204,6 @@ function formatTime(date) {
 }
 
 function getAvailableSlots(selectedDate, staffId = null) {
-    if (isRequestInProgress) {
-        return; // Exit the function if a request is already in progress
-    }
-    isRequestInProgress = true;
-
     // Update the slot list with the available slots for the selected date
     const slotList = $('#slot-list');
     const slotContainer = $('.slot-container');
@@ -250,6 +245,10 @@ function getAvailableSlots(selectedDate, staffId = null) {
     });
 
     // Send an AJAX request to get the available slots for the selected date
+    if (isRequestInProgress) {
+        return; // Exit the function if a request is already in progress
+    }
+    isRequestInProgress = true;
     $.ajax({
         url: availableSlotsAjaxURL,
         data: ajaxData,
