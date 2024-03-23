@@ -2,6 +2,7 @@
 
 ![Tests](https://github.com/adamspd/django-appointment/actions/workflows/tests.yml/badge.svg)
 ![Published on PyPi](https://github.com/adamspd/django-appointment/actions/workflows/publish.yml/badge.svg)
+[![Doc](https://github.com/adamspd/django-appointment-doc/actions/workflows/build-docs.yml/badge.svg)](https://django-appt-doc.adamspierredavid.com/overview.html)
 [![Current Release Version](https://img.shields.io/github/release/adamspd/django-appointment.svg?style=flat-square&logo=github)](https://github.com/adamspd/django-appointment/releases)
 [![pypi Version](https://img.shields.io/pypi/v/django-appointment.svg?style=flat-square&logo=pypi&logoColor=white)](https://pypi.org/project/django-appointment/)
 [![PyPi downloads](https://static.pepy.tech/personalized-badge/django-appointment?period=total&units=international_system&left_color=grey&right_color=orange&left_text=pip%20downloads)](https://pypi.org/project/django-appointment/)
@@ -16,6 +17,9 @@
 [![Django compatible version](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/adamspd/django-appointment/main/django_compatible.json)](https://github.com/adamspd/django-appointment/blob/main/compatibility_matrix.md)
 [![Python compatible version](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/adamspd/django-appointment/main/python_compatible.json)](https://github.com/adamspd/django-appointment/blob/main/compatibility_matrix.md)
 
+🆕 **New**: The documentation website is now
+available [here](https://django-appt-doc.adamspierredavid.com/overview.html). It includes reasons for using the
+application, its features, and detailed configuration instructions.
 
 ⚠️ **IMPORTANT**: If upgrading from a version before 2.x.x, please note significant database changes were introduced in
 version 2.0.0. Please read
@@ -98,14 +102,14 @@ see their [release notes](https://github.com/adamspd/django-appointment/tree/mai
    AUTH_USER_MODEL = 'client.UserClient'
    ```
 
-   But if you're using the default Django user model (like most of us), there's no need to add this line since Django 
+   But if you're using the default Django user model (like most of us), there's no need to add this line since Django
    automatically sets it to:
 
    ```python
    AUTH_USER_MODEL = 'auth.User'
    ```
 
-   Ensure your `create_user` function includes the following arguments, even if they are not all used (in case you're 
+   Ensure your `create_user` function includes the following arguments, even if they are not all used (in case you're
    using a custom user model with your own logic for creating users):
 
    ```python
@@ -131,7 +135,7 @@ see their [release notes](https://github.com/adamspd/django-appointment/tree/mai
    To be able to send email reminders after adding `django_q` to your `INSTALLED_APPS`, you must add this variable
    `Q_CLUSTER` in your Django's `settings.py`. If done, and users check the box to receive reminders, you and them
    will receive an email reminder 24 hours before the appointment.
-      
+
    Here's a configuration example, that you can use without modification (if you don't want to do much research):
 
    ```python
@@ -146,7 +150,7 @@ see their [release notes](https://github.com/adamspd/django-appointment/tree/mai
    }
    ```
 
-5. Next would be to create the migrations and run them by doing `python manage.py makemigrations appointment` and right 
+5. Next would be to create the migrations and run them by doing `python manage.py makemigrations appointment` and right
    after, run `python manage.py migrate` to create the appointment models.
 
 6. Start the Django Q cluster with `python manage.py qcluster`.
@@ -186,7 +190,7 @@ Here's how you can set it up:
    cd django-appointment
    ```
 
-2. **Prepare an .env File**: Create an `.env` file in the root directory of your project with your configuration 
+2. **Prepare an .env File**: Create an `.env` file in the root directory of your project with your configuration
    settings.
    You should include your email host user and password for Django's email functionality (if you want it to work):
 
@@ -194,7 +198,7 @@ Here's how you can set it up:
    EMAIL_HOST_USER=your_email@gmail.com
    EMAIL_HOST_PASSWORD=your_password
    ```
-   
+
    > **Note:** The `.env` file is used to store sensitive information and should not be committed to version control.
 
 3. **Build and Run the Docker Containers**: Run the following command to build and run the Docker containers:
@@ -218,8 +222,8 @@ Here's how you can set it up:
     ```bash
    docker compose exec web python manage.py makemigrations appointment
    ```
-   
-    Then, apply the migrations with the following command:
+
+   Then, apply the migrations with the following command:
    ```bash
    docker-compose exec web python manage.py migrate
    ```
@@ -251,7 +255,7 @@ Here's how you can set it up:
    ```
 
    > **Note:** I used the default database settings for the Docker container.
-   > If you want to use a different database, you can modify the Dockerfile and docker-compose.yml files to use your 
+   > If you want to use a different database, you can modify the Dockerfile and docker-compose.yml files to use your
    > preferred database.
 
 ## Customization 🔧
@@ -265,9 +269,10 @@ Here's how you can set it up:
 ## Compatibility Matrix 📊
 
 A compatibility matrix is available to help you determine which versions of Django and Python are compatible with the
-package. 
+package.
 The matrix is updated regularly to reflect the latest compatibility test results. For more information, please
-refer to the [compatibility matrix here](https://github.com/adamspd/django-appointment/blob/main/compatibility_matrix.md).
+refer to
+the [compatibility matrix here](https://github.com/adamspd/django-appointment/blob/main/compatibility_matrix.md).
 
 ## Support 💬
 
