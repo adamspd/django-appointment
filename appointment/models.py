@@ -311,9 +311,9 @@ class AppointmentRequest(models.Model):
     def clean(self):
         if self.start_time is not None and self.end_time is not None:
             if self.start_time >= self.end_time:
-                raise ValueError(_("Start time must be before end time"))
+                raise ValidationError(_("Start time must be before end time"))
             if self.start_time == self.end_time:
-                raise ValueError(_("Start time and end time cannot be the same"))
+                raise ValidationError(_("Start time and end time cannot be the same"))
         # Check for valid date
         try:
             # This will raise a ValueError if the date is not valid
