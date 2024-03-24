@@ -310,16 +310,10 @@ class AppointmentRequest(models.Model):
 
     def clean(self):
         if self.start_time is not None and self.end_time is not None:
-            if self.start_time >= self.end_time:
-                raise ValueError(_("Start time must be before end time"))
+            if self.start_time > self.end_time:
+                raise ValidationError(_("Start time must be before end time"))
             if self.start_time == self.end_time:
-                raise ValueError(_("Start time and end time cannot be the same"))
-        # Check for valid date
-        try:
-            # This will raise a ValueError if the date is not valid
-            datetime.datetime.strptime(str(self.date), '%Y-%m-%d')
-        except ValueError:
-            raise ValidationError(_("The date is not valid"))
+                raise ValidationError(_("Start time and end time cannot be the same"))
 
         # Ensure the date is not in the past:
         if self.date < datetime.date.today():
@@ -338,10 +332,6 @@ class AppointmentRequest(models.Model):
         # duration should not exceed the service duration
         if time_difference(self.start_time, self.end_time) > self.service.duration:
             raise ValidationError(_("Duration cannot exceed the service duration"))
-        try:
-            datetime.datetime.strptime(str(self.date), '%Y-%m-%d')
-        except ValueError:
-            raise ValidationError(_("The date is not valid"))
         return super().save(*args, **kwargs)
 
     def get_service_name(self):
