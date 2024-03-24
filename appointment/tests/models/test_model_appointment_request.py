@@ -29,7 +29,7 @@ class AppointmentRequestModelTestCase(BaseTest):
         """Start time must be before end time"""
         self.ar.start_time = time(11, 0)
         self.ar.end_time = time(9, 0)
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ValidationError):
             self.ar.full_clean()
 
     def test_invalid_payment_type(self):

@@ -316,7 +316,7 @@ class AppointmentRequest(models.Model):
                 raise ValidationError(_("Start time and end time cannot be the same"))
 
         # Ensure the date is not in the past:
-        if self.date < datetime.date.today():
+        if self.date and self.date < datetime.date.today():
             raise ValidationError(_("Date cannot be in the past"))
 
     def save(self, *args, **kwargs):
