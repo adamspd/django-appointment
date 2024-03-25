@@ -137,8 +137,8 @@ class ServiceModelTestCase(TestCase):
 
     def test_service_duration_zero(self):
         """A service cannot be created with a duration of zero."""
-        with self.assertRaises(ValidationError):
-            Service.objects.create(name="Test Service", duration=timedelta(), price=100)
+        service = Service(name="Test Service", duration=timedelta(0), price=100)
+        self.assertRaises(ValidationError, service.full_clean)
 
     def test_price_and_down_payment_same(self):
         """A service can be created with a price and down payment of the same value."""
@@ -148,30 +148,31 @@ class ServiceModelTestCase(TestCase):
     def test_service_with_no_name(self):
         """A service cannot be created with no name."""
         with self.assertRaises(ValidationError):
-            Service.objects.create(name="", duration=timedelta(hours=1), price=100)
+            Service.objects.create(name="", duration=timedelta(hours=1), price=100).full_clean()
 
     def test_service_with_invalid_duration(self):
         """Service should not be created with a negative or zero duration."""
-        with self.assertRaises(ValidationError):
-            Service.objects.create(name="Invalid Duration Service", duration=timedelta(seconds=-1), price=50)
-        with self.assertRaises(ValidationError):
-            Service.objects.create(name="Zero Duration Service", duration=timedelta(seconds=0), price=50)
+        service = Service(name="Invalid Duration Service", duration=timedelta(seconds=-1), price=50)
+        self.assertRaises(ValidationError, service.full_clean)
+        service = Service(name="Zero Duration Service", duration=timedelta(seconds=0), price=50)
+        self.assertRaises(ValidationError, service.full_clean)
 
     def test_service_with_empty_name(self):
         """Service should not be created with an empty name."""
-        with self.assertRaises(ValidationError):
-            Service.objects.create(name="", duration=timedelta(hours=1), price=50)
+        service = Service.objects.create(name="", duration=timedelta(hours=1), price=50)
+        self.assertRaises(ValidationError, service.full_clean)
 
     def test_service_with_negative_price(self):
         """Service should not be created with a negative price."""
-        with self.assertRaises(ValidationError):
-            Service.objects.create(name="Negative Price Service", duration=timedelta(hours=1), price=-1)
+        service = Service(name="Negative Price Service", duration=timedelta(hours=1), price=-1)
+        self.assertRaises(ValidationError, service.full_clean)
 
     def test_service_with_negative_down_payment(self):
         """Service should not have a negative down payment."""
         with self.assertRaises(ValidationError):
-            Service.objects.create(name="Service with Negative Down Payment", duration=timedelta(hours=1), price=50,
+            service = Service(name="Service with Negative Down Payment", duration=timedelta(hours=1), price=50,
                                    down_payment=-1)
+            service.full_clean()
 
     def test_service_auto_generate_background_color(self):
         """Service should auto-generate a background color if none is provided."""
