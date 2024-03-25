@@ -26,7 +26,6 @@ system.
 ## Date Time Utilities:
 
 - **get_ar_end_time**: Calculate the end time of an appointment request based on its start time and duration.
-- **get_timezone**: Retrieve the current timezone of the application.
 - **get_timestamp**: Obtain the current timestamp as a string without the decimal part.
 - **time_difference**: Calculate the difference between two times.
 
