@@ -1,6 +1,6 @@
 Django==5.0.3
 Pillow==10.2.0
-phonenumbers==8.13.32
+phonenumbers==8.13.33
 django-phonenumber-field==7.3.0
 babel==2.14.0
 setuptools==69.2.0
