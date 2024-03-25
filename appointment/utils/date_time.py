@@ -180,11 +180,6 @@ def get_ar_end_time(start_time, duration) -> datetime.time:
     return dt_end_time.time()
 
 
-def get_timezone() -> str:
-    """Return the current timezone of the application."""
-    return APP_TIME_ZONE
-
-
 def get_timestamp() -> str:
     """Get the current timestamp as a string without the decimal part.
 

@@ -10,7 +10,7 @@ from appointment.settings import APP_TIME_ZONE
 from appointment.utils.date_time import (
     combine_date_and_time, convert_12_hour_time_to_24_hour_time, convert_24_hour_time_to_12_hour_time,
     convert_minutes_in_human_readable_format, convert_str_to_date,
-    convert_str_to_time, get_ar_end_time, get_current_year, get_timestamp, get_timezone, get_weekday_num,
+    convert_str_to_time, get_ar_end_time, get_current_year, get_timestamp, get_weekday_num,
     time_difference
 )
 
@@ -378,10 +378,6 @@ class TimestampTests(TestCase):
 
 
 class GeneralDateTimeTests(TestCase):
-    def test_get_timezone(self):
-        """Test get_timezone function"""
-        self.assertEqual(get_timezone(), APP_TIME_ZONE)
-
     def test_get_current_year(self):
         """Test get_current_year function"""
         self.assertEqual(get_current_year(), datetime.datetime.now().year)
@@ -391,11 +387,6 @@ class GeneralDateTimeTests(TestCase):
         with patch('appointment.utils.date_time.datetime.datetime') as mock_date:
             mock_date.now.return_value.year = 1999  # Setting year attribute of the mock object
             self.assertEqual(get_current_year(), 1999)
-
-    @patch('appointment.utils.date_time.APP_TIME_ZONE', new="Asia/Tokyo")
-    def test_get_timezone_with_modified_setting(self):
-        """Test get_timezone function with a modified timezone setting."""
-        self.assertEqual(get_timezone(), "Asia/Tokyo")
 
     def test_get_weekday_num(self):
         """Test get_weekday_num function with valid input"""
