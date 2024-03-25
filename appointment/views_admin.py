@@ -256,6 +256,19 @@ def fetch_service_list_for_staff(request):
 
 
 @require_user_authenticated
+@require_superuser
+def fetch_staff_list(request):
+    staff_members = StaffMember.objects.all()
+    staff_data = []
+    for staff in staff_members:
+        staff_data.append({
+            'id': staff.id,
+            'name': staff.user.get_full_name(),
+        })
+    return json_response("Successfully fetched staff members.", custom_data={'staff_members': staff_data}, safe=False)
+
+
+@require_user_authenticated
 @require_staff_or_superuser
 @require_ajax
 @require_POST
