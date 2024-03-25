@@ -64,14 +64,14 @@ class Service(models.Model):
     Version: 1.1.0
     Since: 1.0.0
     """
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, blank=False)
     description = models.TextField(blank=True, null=True)
-    duration = models.DurationField()
+    duration = models.DurationField(validators=[MinValueValidator(datetime.timedelta(seconds=1))])
     price = models.DecimalField(max_digits=6, decimal_places=2, validators=[MinValueValidator(0)])
     down_payment = models.DecimalField(max_digits=6, decimal_places=2, default=0, validators=[MinValueValidator(0)])
     image = models.ImageField(upload_to='services/', blank=True, null=True)
     currency = models.CharField(max_length=3, default='USD', validators=[MaxLengthValidator(3), MinLengthValidator(3)])
-    background_color = models.CharField(max_length=50, null=True, blank=True, default="")
+    background_color = models.CharField(max_length=50, null=True, blank=True, default=generate_rgb_color)
     reschedule_limit = models.PositiveIntegerField(
         default=0,
         help_text=_("Maximum number of times an appointment can be rescheduled.")
@@ -87,22 +87,6 @@ class Service(models.Model):
 
     def __str__(self):
         return self.name
-
-    def save(self, *args, **kwargs):
-        # duration shouldn't be negative or equal to 0
-        if self.duration <= datetime.timedelta(seconds=0):
-            raise ValidationError(_("Duration must be greater than 0"))
-        # name shouldn't be empty
-        if self.name == "":
-            raise ValidationError(_("Name cannot be empty"))
-        # price shouldn't be negative
-        if self.price < 0:
-            raise ValidationError(_("Price cannot be negative"))
-        if self.down_payment < 0:
-            raise ValidationError(_("Down payment cannot be negative"))
-        if self.background_color == "":
-            self.background_color = generate_rgb_color()
-        return super().save(*args, **kwargs)
 
     def to_dict(self):
         return {
