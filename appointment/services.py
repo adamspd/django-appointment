@@ -312,10 +312,11 @@ def save_appointment(appt, client_name, client_email, start_time, phone_number, 
     """Save an appointment's details.
     :return: The modified appointment.
     """
-    staff_member = StaffMember.objects.get(id=staff_member_id)
     service = Service.objects.get(id=service_id)
-    if not staff_member.get_service_is_offered(service_id):
-        return None
+    if staff_member_id:
+        staff_member = StaffMember.objects.get(id=staff_member_id)
+        if not staff_member.get_service_is_offered(service_id):
+            return None
     # Modify and save client details
     first_name, last_name = parse_name(client_name)
     client = appt.client
