@@ -6,7 +6,6 @@ from unittest.mock import Mock, patch
 
 from django.test import TestCase
 
-from appointment.settings import APP_TIME_ZONE
 from appointment.utils.date_time import (
     combine_date_and_time, convert_12_hour_time_to_24_hour_time, convert_24_hour_time_to_12_hour_time,
     convert_minutes_in_human_readable_format, convert_str_to_date,
