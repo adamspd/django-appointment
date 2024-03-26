@@ -61,7 +61,7 @@ class ViewsTestCase(BaseTest):
         self.data = {
             'isCreating': False, 'service_id': '1', 'appointment_id': self.appt.id, 'client_name': 'Bryan Zap',
             'client_email': 'bz@gmail.com', 'client_phone': '+33769992738', 'client_address': 'Naples, Florida',
-            'want_reminder': 'false', 'additional_info': '', 'start_time': '15:00:26',
+            'want_reminder': 'false', 'additional_info': '', 'start_time': '15:00:26', 'staff_id': self.staff_member.id,
             'date': self.tomorrow.strftime('%Y-%m-%d')
         }
         self.url_display_appt = reverse('appointment:display_appointment', args=[self.appointment.id])
@@ -405,6 +405,7 @@ class ViewsTestCase(BaseTest):
         # Making the request
         response = self.client.post(url, data=json.dumps(self.data), content_type='application/json',
                                     **{'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'})
+        print(f"response: {response.content}")
 
         # Check response status
         self.assertEqual(response.status_code, 200)
