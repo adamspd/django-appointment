@@ -349,10 +349,11 @@ class SaveAppointmentTests(BaseTest):
         phone_number = "+1234567890"
         client_address = "123 New St, TestCity"
         service_id = self.service2.id
+        staff_member_id = self.staff_member2.id
 
         # Call the function
         updated_appt = save_appointment(self.appt, client_name, client_email, start_time_str, phone_number,
-                                        client_address, service_id, self.request)
+                                        client_address, service_id, self.request, staff_member_id)
 
         # Check client details
         self.assertEqual(updated_appt.client.get_full_name(), client_name)

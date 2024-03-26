@@ -34,6 +34,7 @@ def convert_appointment_to_json(request, appointments: list) -> list:
         "client_phone": str(appt.phone),
         "client_address": appt.address,
         "service_id": appt.get_service().id,
+        "staff_id": appt.appointment_request.staff_member.id,
         "additional_info": appt.additional_info,
         "want_reminder": appt.want_reminder,
         "timezone": get_timezone(),
@@ -59,6 +60,7 @@ def get_generic_context(request, admin=True):
         'BASE_TEMPLATE': APPOINTMENT_ADMIN_BASE_TEMPLATE if admin else APPOINTMENT_BASE_TEMPLATE,
         'user': request.user,
         'timezone': get_timezone(),
+        'is_superuser': request.user.is_superuser,
     }
 
 
