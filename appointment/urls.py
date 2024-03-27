@@ -16,8 +16,8 @@ from appointment.views import (
 from appointment.views_admin import (
     add_day_off, add_or_update_service, add_or_update_staff_info, add_working_hours, create_new_staff_member,
     delete_appointment, delete_appointment_ajax, delete_day_off, delete_service, delete_working_hours,
-    display_appointment, email_change_verification_code, fetch_service_list_for_staff, get_service_list,
-    get_user_appointments, is_user_staff_admin, make_superuser_staff_member, remove_staff_member,
+    display_appointment, email_change_verification_code, fetch_service_list_for_staff, fetch_staff_list,
+    get_service_list, get_user_appointments, is_user_staff_admin, make_superuser_staff_member, remove_staff_member,
     remove_superuser_staff_member, update_appt_date_time, update_appt_min_info, update_day_off, update_personal_info,
     update_working_hours, user_profile, validate_appointment_date
 )
@@ -87,6 +87,7 @@ ajax_urlpatterns = [
          name='request_next_available_slot'),
     path('request_staff_info/', get_non_working_days_ajax, name='get_non_working_days_ajax'),
     path('fetch_service_list_for_staff/', fetch_service_list_for_staff, name='fetch_service_list_for_staff'),
+    path('fetch_staff_list/', fetch_staff_list, name='fetch_staff_list'),
     path('update_appt_min_info/', update_appt_min_info, name="update_appt_min_info"),
     path('update_appt_date_time/', update_appt_date_time, name="update_appt_date_time"),
     path('validate_appointment_date/', validate_appointment_date, name="validate_appointment_date"),

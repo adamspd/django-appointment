@@ -308,10 +308,15 @@ def get_working_hours_and_days_off_context(request, btn_txt, form_name, form, us
 
 
 def save_appointment(appt, client_name, client_email, start_time, phone_number, client_address, service_id, request,
-                     want_reminder=False, additional_info=None):
+                     staff_member_id=None, want_reminder=False, additional_info=None):
     """Save an appointment's details.
     :return: The modified appointment.
     """
+    service = Service.objects.get(id=service_id)
+    if staff_member_id:
+        staff_member = StaffMember.objects.get(id=staff_member_id)
+        if not staff_member.get_service_is_offered(service_id):
+            return None
     # Modify and save client details
     first_name, last_name = parse_name(client_name)
     client = appt.client
@@ -319,8 +324,6 @@ def save_appointment(appt, client_name, client_email, start_time, phone_number, 
     client.last_name = last_name
     client.email = client_email
     client.save()
-
-    service = Service.objects.get(id=service_id)
     # convert start time to a time object if it is a string
     if isinstance(start_time, str):
         start_time = convert_str_to_time(start_time)
@@ -337,6 +340,7 @@ def save_appointment(appt, client_name, client_email, start_time, phone_number, 
     appt_request.service = service
     appt_request.start_time = start_time
     appt_request.end_time = end_time
+    appt_request.staff_member = staff_member
     appt_request.save()
 
     # Modify and save appointment details
@@ -559,7 +563,11 @@ def handle_service_management_request(post_data, files_data=None, service_id=Non
 
 def create_new_appointment(data, request):
     service = Service.objects.get(id=data.get("service_id"))
-    staff_member = StaffMember.objects.get(user=request.user)
+    staff_id = data.get("staff_id")
+    if staff_id:
+        staff_member = StaffMember.objects.get(id=staff_id)
+    else:
+        staff_member = StaffMember.objects.get(user=request.user)
 
     # Convert date and start time strings to datetime objects
     date = convert_str_to_date(data.get("date"))
@@ -610,6 +618,7 @@ def create_new_appointment(data, request):
 def update_existing_appointment(data, request):
     try:
         appt = Appointment.objects.get(id=data.get("appointment_id"))
+        staff_id = data.get("staff_id")
         want_reminder = data.get("want_reminder") == 'true'
         appt = save_appointment(
             appt,
@@ -621,8 +630,12 @@ def update_existing_appointment(data, request):
             service_id=data.get("service_id"),
             want_reminder=want_reminder,
             additional_info=data.get("additional_info"),
+            staff_member_id=staff_id,
             request=request,
         )
+        if not appt:
+            return json_response("Service not offered by staff member.", status=400, success=False,
+                                 error_code=ErrorCode.SERVICE_NOT_FOUND)
         appointments_json = convert_appointment_to_json(request, [appt])[0]
         return json_response(appt_updated_successfully, custom_data={'appt': appointments_json})
     except Appointment.DoesNotExist:
