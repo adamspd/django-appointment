@@ -8,9 +8,8 @@ Since: 2.0.0
 
 import uuid
 
+from django.conf import settings
 from django.utils.translation import get_language, to_locale
-
-from appointment.settings import APP_TIME_ZONE
 
 
 def get_locale() -> str:
@@ -49,7 +48,7 @@ def get_timezone_txt() -> str:
 
     :return: The current timezone in a string format.
     """
-    tmz = APP_TIME_ZONE
+    tmz = settings.TIME_ZONE
     timezone_map = {
         'UTC': 'Universal Time Coordinated (UTC)',
         'US/Eastern': 'Eastern Daylight Time (US & Canada)',

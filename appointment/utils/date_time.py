@@ -11,8 +11,6 @@ import datetime
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _, ngettext
 
-from appointment.settings import APP_TIME_ZONE
-
 
 def combine_date_and_time(date, time) -> datetime.datetime:
     """Combine a date and a time into a datetime object.
@@ -178,11 +176,6 @@ def get_ar_end_time(start_time, duration) -> datetime.time:
         dt_end_time = dt_end_time - datetime.timedelta(days=1)
 
     return dt_end_time.time()
-
-
-def get_timezone() -> str:
-    """Return the current timezone of the application."""
-    return APP_TIME_ZONE
 
 
 def get_timestamp() -> str:
