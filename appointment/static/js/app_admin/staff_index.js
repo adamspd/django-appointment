@@ -40,7 +40,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
-
 function initializeCalendar() {
     const formattedAppointments = formatAppointmentsForCalendar(appointments);
     const calendarEl = document.getElementById('calendar');
@@ -244,7 +243,6 @@ function setUserStaffAdminFlag() {
         });
 }
 
-
 function handleCalendarRightClick(event, date) {
     if (!AppState.isUserStaffAdmin) {
         showErrorModal(notStaffMemberTxt)
@@ -376,6 +374,15 @@ function fetchServices(isEditMode = false) {
         .catch(error => console.error("Error fetching services: ", error));
 }
 
+function fetchStaffMembers(isEditMode = false) {
+    let url = isEditMode && AppState.eventIdSelected ? `${fetchStaffListURL}?appointmentId=${AppState.eventIdSelected}` : fetchStaffListURL;
+    return fetch(url)
+        .then(response => response.json())
+        .then(data => data.staff_members)
+        .catch(error => console.error("Error fetching staff members: ", error));
+
+}
+
 async function populateServices(selectedServiceId, isEditMode = false) {
     const services = await fetchServices(isEditMode);
     if (!services) {
@@ -387,6 +394,24 @@ async function populateServices(selectedServiceId, isEditMode = false) {
         option.value = service.id;  // Accessing the id
         option.textContent = service.name;  // Accessing the name
         if (service.id === selectedServiceId) {
+            option.defaultSelected = true;
+        }
+        selectElement.appendChild(option);
+    });
+    return selectElement;
+}
+
+async function populateStaffMembers(selectedStaffId, isEditMode = false) {
+    const staffMembers = await fetchStaffMembers(isEditMode);
+    if (!staffMembers) {
+        showErrorModal(noStaffMemberTxt)
+    }
+    const selectElement = document.createElement('select');
+    staffMembers.forEach(staff => {
+        const option = document.createElement('option');
+        option.value = staff.id;  // Accessing the id
+        option.textContent = staff.name;  // Accessing the name
+        if (staff.id === selectedStaffId) {
             option.defaultSelected = true;
         }
         selectElement.appendChild(option);
@@ -483,13 +508,13 @@ function createNewAppointment(dateInput) {
     });
 }
 
-
 async function showCreateAppointmentModal(defaultStartTime, formattedDate) {
     const servicesDropdown = await populateServices(null, false);
+    const staffDropdown = await populateStaffMembers(null, false);
     servicesDropdown.id = "serviceSelect";
     servicesDropdown.disabled = false; // Enable dropdown
 
-    document.getElementById('eventModalBody').innerHTML = prepareCreateAppointmentModalContent(servicesDropdown, defaultStartTime, formattedDate);
+    document.getElementById('eventModalBody').innerHTML = prepareCreateAppointmentModalContent(servicesDropdown, staffDropdown, defaultStartTime, formattedDate);
 
     adjustCreateAppointmentModalButtons();
     AppState.isCreating = true;
@@ -503,7 +528,6 @@ function adjustCreateAppointmentModalButtons() {
     document.getElementById("eventDeleteBtn").style.display = "none";
     document.getElementById("eventGoBtn").style.display = "none";
 }
-
 
 // ################################################################ //
 //                      Show Event Modal                            //
@@ -543,13 +567,23 @@ async function getServiceDropdown(serviceId, isEditMode) {
     return servicesDropdown;
 }
 
+// Populate Staff Dropdown
+async function getStaffDropdown(staffId, isEditMode) {
+    const staffDropdown = await populateStaffMembers(staffId, !isEditMode);
+    staffDropdown.id = "staffSelect";
+    staffDropdown.disabled = !isEditMode;
+    return staffDropdown;
+}
+
 // Show Event Modal
 async function showEventModal(eventId = null, isEditMode, isCreatingMode = false, defaultStartTime = '') {
     const appointment = await getAppointmentData(eventId, isCreatingMode, defaultStartTime);
     if (!appointment) return;
 
     const servicesDropdown = await getServiceDropdown(appointment.service_id, isEditMode);
-    document.getElementById('eventModalBody').innerHTML = generateModalContent(appointment, servicesDropdown, isEditMode);
+    const staffDropdown = await getStaffDropdown(appointment.staff_id, isEditMode);
+
+    document.getElementById('eventModalBody').innerHTML = generateModalContent(appointment, servicesDropdown, isEditMode, staffDropdown);
     adjustModalButtonsVisibility(isEditMode, isCreatingMode);
     $('#eventDetailsModal').modal('show');
 }
@@ -587,6 +621,7 @@ function toggleEditMode() {
 
 function updateModalUIForEditMode(modal, isEditingAppointment) {
     const inputs = modal.querySelectorAll("input");
+    const staffDropdown = document.getElementById("staffSelect");
     const servicesDropdown = document.getElementById("serviceSelect");
     const editButton = document.getElementById("eventEditBtn");
     const submitButton = document.getElementById("eventSubmitBtn");
@@ -599,6 +634,7 @@ function updateModalUIForEditMode(modal, isEditingAppointment) {
 
     // Toggle input and dropdown enable/disable state
     inputs.forEach(input => input.disabled = !isEditingAppointment);
+    staffDropdown.disabled = !isEditingAppointment;
     servicesDropdown.disabled = !isEditingAppointment;
 
     // Toggle visibility of UI elements
@@ -617,7 +653,6 @@ function toggleElementVisibility(element, isVisible) {
         element.style.display = isVisible ? "" : "none";
     }
 }
-
 
 // ################################################################ //
 //                         Submit Logic                             //
@@ -651,7 +686,13 @@ async function submitChanges() {
 function collectFormDataFromModal(modal) {
     const inputs = modal.querySelectorAll("input");
     const serviceId = modal.querySelector("#serviceSelect").value;
-    const data = {isCreating: AppState.isCreating, service_id: serviceId, appointment_id: AppState.eventIdSelected};
+    const staffId = modal.querySelector("#staffSelect").value;
+    const data = {
+        isCreating: AppState.isCreating,
+        service_id: serviceId,
+        staff_id: staffId,
+        appointment_id: AppState.eventIdSelected
+    };
 
     inputs.forEach(input => {
         if (input.name !== "date") {
@@ -709,22 +750,6 @@ async function sendAppointmentData(data) {
     return fetch(updateApptMinInfoURL, {
         method: 'POST', headers: headers, body: JSON.stringify(data)
     });
-}
-
-// Handle response from server
-async function handleAppointmentResponse(response) {
-    if (!response.ok) {
-        throw new Error(response.message);
-    }
-
-    const responseData = await response.json();
-    if (AppState.isCreating) {
-        addNewAppointmentToCalendar(responseData.appt[0]);
-    } else {
-        updateExistingAppointmentInCalendar(responseData.appt);
-    }
-
-    AppState.calendar.render();
 }
 
 // Add new appointment to calendar
