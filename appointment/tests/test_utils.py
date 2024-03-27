@@ -16,8 +16,7 @@ from appointment.models import Appointment, AppointmentRequest, Config, Service,
 from appointment.services import get_available_slots, get_finish_button_text
 from appointment.settings import APPOINTMENT_BUFFER_TIME, APPOINTMENT_FINISH_TIME, APPOINTMENT_LEAD_TIME, \
     APPOINTMENT_SLOT_DURATION, APPOINTMENT_WEBSITE_NAME
-from appointment.utils.date_time import combine_date_and_time, convert_str_to_date, get_current_year, get_timestamp, \
-    get_timezone
+from appointment.utils.date_time import combine_date_and_time, convert_str_to_date, get_current_year, get_timestamp
 from appointment.utils.db_helpers import get_appointment_buffer_time, get_appointment_finish_time, \
     get_appointment_lead_time, get_appointment_slot_duration, get_user_model, get_website_name
 from appointment.utils.view_helpers import generate_random_id, get_locale, is_ajax
@@ -126,10 +125,6 @@ class UtilityTestCase(TestCase):
     # Test cases for get_current_year
     def test_get_current_year(self):
         self.assertEqual(get_current_year(), datetime.datetime.now().year)
-
-    # Test cases for get_timezone
-    def test_get_timezone(self):
-        self.assertIsNotNone(get_timezone())
 
     # Test cases for convert_str_to_date
     def test_convert_str_to_date_valid(self):

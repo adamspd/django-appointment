@@ -9,6 +9,7 @@ Since: 1.0.0
 from datetime import date, datetime, timedelta
 
 import pytz
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.forms import SetPasswordForm
@@ -41,7 +42,7 @@ from appointment.utils.view_helpers import get_locale, get_timezone_txt
 from .decorators import require_ajax
 from .messages_ import passwd_error, passwd_set_successfully
 from .services import get_appointments_and_slots, get_available_slots_for_staff
-from .settings import (APPOINTMENT_PAYMENT_URL, APPOINTMENT_THANK_YOU_URL, APP_TIME_ZONE)
+from .settings import (APPOINTMENT_PAYMENT_URL, APPOINTMENT_THANK_YOU_URL)
 from .utils.date_time import convert_str_to_date, convert_str_to_time
 from .utils.error_codes import ErrorCode
 from .utils.json_context import get_generic_context_with_extra, json_response
@@ -96,7 +97,7 @@ def get_available_slots_ajax(request):
     # Check if the selected_date is today and filter out past slots
     if selected_date == date.today():
         # Get the current time in EDT timezone
-        current_time_edt = datetime.now(pytz.timezone(APP_TIME_ZONE)).time()
+        current_time_edt = datetime.now(pytz.timezone(settings.TIME_ZONE)).time()
         available_slots = [slot for slot in available_slots if convert_str_to_time(slot) > current_time_edt]
 
     custom_data['available_slots'] = available_slots
