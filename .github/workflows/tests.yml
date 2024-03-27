@@ -9,14 +9,16 @@ on:
     types: [assigned, opened, synchronize, reopened]
     branches-ignore:
       - 'main'
+  pull_request:
+    types: [opened, reopened]
 
 jobs:
-  tests:
+  testing:
     runs-on: ubuntu-20.04
     strategy:
       max-parallel: 4
       matrix:
-        python-version: [3.10.5]
+        python-version: [3.10]
         fail-fast: [false]
 
     steps:
