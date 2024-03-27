@@ -244,6 +244,9 @@ class StaffMember(models.Model):
     def get_service_offered_text(self):
         return ', '.join([service.name for service in self.services_offered.all()])
 
+    def get_service_is_offered(self, service_id):
+        return self.services_offered.filter(id=service_id).exists()
+
     def get_appointment_buffer_time(self):
         config = Config.objects.first()
         return self.appointment_buffer_time or (config.appointment_buffer_time if config else 0)
