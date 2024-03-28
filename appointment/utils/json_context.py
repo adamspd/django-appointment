@@ -6,11 +6,9 @@ Author: Adams Pierre David
 Since: 2.0.0
 """
 
-import pytz
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
-from django.conf import settings
 
 from appointment.settings import APPOINTMENT_ADMIN_BASE_TEMPLATE, APPOINTMENT_BASE_TEMPLATE
 from appointment.utils.db_helpers import username_in_user_model
@@ -20,12 +18,11 @@ from appointment.utils.error_codes import ErrorCode
 def convert_appointment_to_json(request, appointments: list) -> list:
     """Convert a queryset of Appointment objects to a JSON serializable format."""
     su = request.user.is_superuser
-    tz = pytz.timezone(settings.TIME_ZONE)
     return [{
         "id": appt.id,
         "client": appt.client.username if username_in_user_model() else "",
-        "start_time": tz.localize(appt.get_start_time()).isoformat(),
-        "end_time": tz.localize(appt.get_end_time()).isoformat(),
+        "start_time": appt.get_start_time().isoformat(),
+        "end_time": appt.get_end_time().isoformat(),
         "client_name": appt.get_client_name(),
         "url": appt.get_absolute_url(request),
         "background_color": appt.get_background_color(),
@@ -37,7 +34,6 @@ def convert_appointment_to_json(request, appointments: list) -> list:
         "staff_id": appt.appointment_request.staff_member.id,
         "additional_info": appt.additional_info,
         "want_reminder": appt.want_reminder,
-        "timezone": settings.TIME_ZONE,
     } for appt in appointments]
 
 
@@ -59,7 +55,6 @@ def get_generic_context(request, admin=True):
     return {
         'BASE_TEMPLATE': APPOINTMENT_ADMIN_BASE_TEMPLATE if admin else APPOINTMENT_BASE_TEMPLATE,
         'user': request.user,
-        'timezone': settings.TIME_ZONE,
         'is_superuser': request.user.is_superuser,
     }
 
