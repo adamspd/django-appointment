@@ -19,6 +19,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
+from django.utils.timezone import get_current_timezone_name
 from django.utils.translation import gettext as _
 
 from appointment.forms import AppointmentForm, AppointmentRequestForm
@@ -38,7 +39,7 @@ from appointment.utils.email_ops import notify_admin_about_appointment, notify_a
     send_reschedule_confirmation_email, \
     send_thank_you_email
 from appointment.utils.session import get_appointment_data_from_session, handle_existing_email
-from appointment.utils.view_helpers import get_locale, get_timezone_txt
+from appointment.utils.view_helpers import get_locale
 from .decorators import require_ajax
 from .messages_ import passwd_error, passwd_set_successfully
 from .services import get_appointments_and_slots, get_available_slots_for_staff
@@ -219,7 +220,7 @@ def appointment_request(request, service_id=None, staff_member_id=None):
         'available_slots': available_slots,
         'date_chosen': date_chosen,
         'locale': get_locale(),
-        'timezoneTxt': get_timezone_txt(),
+        'timezoneTxt': get_current_timezone_name(),
         'label': label
     }
     context = get_generic_context_with_extra(request, extra_context, admin=False)
@@ -527,7 +528,7 @@ def prepare_reschedule_appointment(request, id_request):
         'available_slots': available_slots,
         'date_chosen': date_chosen,
         'locale': get_locale(),
-        'timezoneTxt': get_timezone_txt(),
+        'timezoneTxt': get_current_timezone_name(),
         'label': label,
         'rescheduled_date': ar.date.strftime("%Y-%m-%d"),
         'page_header': page_title,
