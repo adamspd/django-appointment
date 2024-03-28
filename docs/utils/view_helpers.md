@@ -33,10 +33,3 @@ This module provides utility functions to support the Django views in the appoin
 
 - **generate_random_id()**:
     - Produces a random UUID in the form of a hexadecimal string.
-
-### Timezone Operations:
-
-- **get_timezone_txt()**:
-    - Retrieve the current timezone as a string, suitable for display purposes in the HTML templates when users choose
-      the appointment time.
-    - Note: The function implementation may be enhanced in the future.
