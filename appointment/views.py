@@ -237,22 +237,17 @@ def appointment_request_submit(request):
         if form.is_valid():
             # Use form.cleaned_data to get the cleaned and validated data
             staff_member = form.cleaned_data['staff_member']
-
-            staff_exists = StaffMember.objects.filter(id=staff_member.id).exists()
-            if not staff_exists:
-                messages.error(request, _("Selected staff member does not exist."))
-            else:
-                logger.info(
-                    f"date_f {form.cleaned_data['date']} start_time {form.cleaned_data['start_time']} end_time "
-                    f"{form.cleaned_data['end_time']} service {form.cleaned_data['service']} staff {staff_member}")
-                ar = form.save()
-                request.session[f'appointment_completed_{ar.id_request}'] = False
-                # Redirect the user to the account creation page
-                return redirect('appointment:appointment_client_information', appointment_request_id=ar.id,
-                                id_request=ar.id_request)
+            logger.info(
+                f"date_f {form.cleaned_data['date']} start_time {form.cleaned_data['start_time']} end_time "
+                f"{form.cleaned_data['end_time']} service {form.cleaned_data['service']} staff {staff_member}")
+            ar = form.save()
+            request.session[f'appointment_completed_{ar.id_request}'] = False
+            # Redirect the user to the account creation page
+            return redirect('appointment:appointment_client_information', appointment_request_id=ar.id,
+                            id_request=ar.id_request)
         else:
             # Handle the case if the form is not valid
-            messages.error(request, _('There was an error in your submission. Please check the form and try again.'))
+            messages.error(request, str(form.errors))
     else:
         form = AppointmentRequestForm()
 
