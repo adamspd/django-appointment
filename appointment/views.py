@@ -97,8 +97,7 @@ def get_available_slots_ajax(request):
 
     # Check if the selected_date is today and filter out past slots
     if selected_date == date.today():
-        # Get the current time in EDT timezone
-        current_time_edt = datetime.now(pytz.timezone('Europe/Paris')).time()
+        current_time_edt = datetime.now(pytz.timezone(settings.TIME_ZONE)).time()
         available_slots = [slot for slot in available_slots if convert_str_to_time(slot) > current_time_edt]
 
     custom_data['available_slots'] = available_slots
