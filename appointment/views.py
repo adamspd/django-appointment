@@ -97,10 +97,10 @@ def get_available_slots_ajax(request):
 
     # Check if the selected_date is today and filter out past slots
     if selected_date == date.today():
-        current_time_edt = datetime.now(pytz.timezone(settings.TIME_ZONE)).time()
-        available_slots = [slot for slot in available_slots if convert_str_to_time(slot) > current_time_edt]
+        current_time = datetime.now(pytz.timezone(settings.TIME_ZONE)).time()
+        available_slots = [slot for slot in available_slots if slot.time() > current_time]
 
-    custom_data['available_slots'] = available_slots
+    custom_data['available_slots'] = [slot.strftime('%I:%M %p') for slot in available_slots]
     if len(available_slots) == 0:
         custom_data['error'] = True
         message = _('No availability')
@@ -524,7 +524,7 @@ def prepare_reschedule_appointment(request, id_request):
         'all_staff_members': all_staff_members,
         'page_title': page_title,
         'page_description': page_description,
-        'available_slots': available_slots,
+        'available_slots': [slot.strftime('%I:%M %p') for slot in available_slots],
         'date_chosen': date_chosen,
         'locale': get_locale(),
         'timezoneTxt': get_current_timezone_name(),

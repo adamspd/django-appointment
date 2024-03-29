@@ -471,8 +471,9 @@ class GetAvailableSlotsTests(BaseTest):
         """Test if available slots are returned correctly."""
         # On a Wednesday, the staff member should have slots from 9 AM to 5 PM
         slots = get_available_slots_for_staff(self.next_wednesday, self.staff_member1)
-        expected_slots = [f"{hour:02d}:00 AM" for hour in range(9, 12)] + ["12:00 PM"] + \
-                         [f"{hour:02d}:00 PM" for hour in range(1, 5)]
+        expected_slots = [
+            datetime.datetime(self.next_wednesday.year, self.next_wednesday.month, self.next_wednesday.day, hour) for
+            hour in range(9, 17)]
         self.assertEqual(slots, expected_slots)
 
     def test_booked_slots(self):
@@ -490,7 +491,9 @@ class GetAvailableSlotsTests(BaseTest):
 
         # Now, the staff member should not have that slot available
         slots = get_available_slots_for_staff(self.next_wednesday, self.staff_member1)
-        expected_slots = ['09:00 AM', '11:00 AM', '12:00 PM', '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM']
+        expected_slots = [
+            datetime.datetime(self.next_wednesday.year, self.next_wednesday.month, self.next_wednesday.day, hour, 0) for
+            hour in range(9, 17) if hour != 10]
         self.assertEqual(slots, expected_slots)
 
     def test_no_working_hours(self):
