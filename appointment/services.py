@@ -434,9 +434,7 @@ def get_available_slots_for_staff(date, staff_member):
     slots = exclude_pending_reschedules(slots, staff_member, date)
     appointments = get_appointments_for_date_and_time(date, working_hours_dict['start_time'],
                                                       working_hours_dict['end_time'], staff_member)
-    slots = exclude_booked_slots(appointments, slots, slot_duration)
-
-    return [slot.strftime('%I:%M %p') for slot in slots]
+    return exclude_booked_slots(appointments, slots, slot_duration)
 
 
 def get_finish_button_text(service) -> str:

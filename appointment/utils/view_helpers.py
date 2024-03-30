@@ -39,26 +39,3 @@ def generate_random_id() -> str:
     :return: The randomly generated UUID as a hex string
     """
     return uuid.uuid4().hex
-
-
-def get_timezone_txt() -> str:
-    # TODO: To be better implemented in the future
-    """Get the current timezone as a string. To be used in the HTML template when the user is choosing the appointment's
-    time.
-
-    :return: The current timezone in a string format.
-    """
-    tmz = settings.TIME_ZONE
-    timezone_map = {
-        'UTC': 'Universal Time Coordinated (UTC)',
-        'US/Eastern': 'Eastern Daylight Time (US & Canada)',
-        'US/Central': 'Central Time (US & Canada)',
-        'US/Mountain': 'Mountain Time (US & Canada)',
-        'US/Pacific': 'Pacific Time (US & Canada)',
-        'US/Alaska': 'Alaska Time (US & Canada)',
-        'US/Hawaii': 'Hawaii Time (US & Canada)',
-        'Europe/Paris': 'Paris Time (Europe)',
-        'Europe/London': 'London Time (Europe)',
-        'EDT': 'Eastern Daylight Time (US & Canada)',
-    }
-    return timezone_map.get(tmz, 'Universal Time Coordinated (UTC)')
