@@ -43,21 +43,23 @@ class SlotTestCase(BaseTest):
 
     def test_get_available_slots_ajax(self):
         """get_available_slots_ajax view should return a JSON response with available slots for the selected date."""
-        response = self.client.get(self.url, {'selected_date': date.today().isoformat()},
+        response = self.client.get(self.url, {'selected_date': date.today().isoformat(), 'staff_member': self.staff_member1.id},
                                    HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-        self.assertEqual(response.status_code, 403)
         response_data = response.json()
         self.assertIn('date_chosen', response_data)
         self.assertIn('available_slots', response_data)
         self.assertFalse(response_data.get('error'))
 
-    def test_get_available_slots_ajax_past_date(self):
+    def test_get_available_slots_ajax_invalid_form(self):
         """get_available_slots_ajax view should return an error if the selected date is in the past."""
         past_date = (date.today() - timedelta(days=1)).isoformat()
         response = self.client.get(self.url, {'selected_date': past_date}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-        self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()['error'], True)
         self.assertEqual(response.json()['message'], 'Date is in the past')
+        # invalid staff id
+        response = self.client.get(self.url, {'selected_date': date.today(), 'staff_member': 999}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.json()['error'], True)
+        self.assertEqual(response.json()['message'], 'Staff member does not exist')
 
 
 class AppointmentRequestTestCase(BaseTest):
