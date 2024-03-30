@@ -6,10 +6,8 @@ Author: Adams Pierre David
 Since: 1.0.0
 """
 
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 
-import pytz
-from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.forms import SetPasswordForm
@@ -17,6 +15,7 @@ from django.db.models import Q
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
 from django.utils.timezone import get_current_timezone_name
@@ -44,7 +43,7 @@ from .decorators import require_ajax
 from .messages_ import passwd_error, passwd_set_successfully
 from .services import get_appointments_and_slots, get_available_slots_for_staff
 from .settings import (APPOINTMENT_PAYMENT_URL, APPOINTMENT_THANK_YOU_URL)
-from .utils.date_time import convert_str_to_date, convert_str_to_time
+from .utils.date_time import convert_str_to_date
 from .utils.error_codes import ErrorCode
 from .utils.json_context import get_generic_context_with_extra, json_response
 
@@ -97,7 +96,7 @@ def get_available_slots_ajax(request):
 
     # Check if the selected_date is today and filter out past slots
     if selected_date == date.today():
-        current_time = datetime.now(pytz.timezone(settings.TIME_ZONE)).time()
+        current_time = timezone.now().time()
         available_slots = [slot for slot in available_slots if slot.time() > current_time]
 
     custom_data['available_slots'] = [slot.strftime('%I:%M %p') for slot in available_slots]
