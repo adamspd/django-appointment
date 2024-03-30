@@ -16,6 +16,12 @@ from .models import (
     WorkingHours
 )
 from .utils.db_helpers import get_user_model
+from .utils.validators import not_in_the_past
+
+
+class SlotForm(forms.Form):
+    selected_date = forms.DateField(validators=[not_in_the_past])
+    staff_member = forms.ModelChoiceField(StaffMember.objects.all(), error_messages={'invalid_choice': 'Staff member does not exist'})
 
 
 class AppointmentRequestForm(forms.ModelForm):
