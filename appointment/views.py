@@ -261,14 +261,12 @@ def redirect_to_payment_or_thank_you_page(appointment):
     :param appointment: The Appointment instance.
     :return: The redirect response.
     """
-    if (APPOINTMENT_PAYMENT_URL is not None and APPOINTMENT_PAYMENT_URL != '') and appointment.service_is_paid():
+    if APPOINTMENT_PAYMENT_URL and appointment.service_is_paid():
         payment_url = create_payment_info_and_get_url(appointment)
         return HttpResponseRedirect(payment_url)
     else:
         # Determine the correct thank-you URL based on whether APPOINTMENT_THANK_YOU_URL is provided and not empty
-        thank_you_url_key = 'appointment:default_thank_you'
-        if APPOINTMENT_THANK_YOU_URL:
-            thank_you_url_key = APPOINTMENT_THANK_YOU_URL
+        thank_you_url_key = APPOINTMENT_THANK_YOU_URL if APPOINTMENT_THANK_YOU_URL else 'appointment:default_thank_you'
 
         thank_you_url = reverse(thank_you_url_key, kwargs={'appointment_id': appointment.id})
         return HttpResponseRedirect(thank_you_url)
