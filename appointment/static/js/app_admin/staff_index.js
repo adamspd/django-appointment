@@ -40,6 +40,46 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
+const AppStateProxy = new Proxy(AppState, {
+    set(target, property, value) {
+        console.log(`Setting ${property} to ${value}`)
+        // Check if the property being changed is 'isCreating'
+        if (value === true) {
+            attachEventListeners(); // Attach event listeners if isCreating becomes true
+            // (didn't check if property is isCreating, since AppStateProxy is only set with it)
+        }
+        target[property] = value; // Set the property value
+        return true; // Indicate successful setting
+    }
+});
+
+function attachEventListeners() {
+    // Checks if the DOM is already loaded
+    if (document.readyState === "complete" || document.readyState === "interactive") {
+        // DOM is already ready, attach event listeners directly
+        attachEventListenersToDropdown();
+    } else {
+        // If the DOM is not yet ready, then wait for the DOMContentLoaded event
+        document.addEventListener('DOMContentLoaded', function () {
+            attachEventListenersToDropdown();
+        });
+    }
+}
+
+function attachEventListenersToDropdown() {
+    const staffDropdown = document.getElementById('staffSelect');
+    if (staffDropdown && !staffDropdown.getAttribute('listener-attached')) {
+        staffDropdown.setAttribute('listener-attached', 'true');
+        staffDropdown.addEventListener('change', async function () {
+            const selectedStaffId = this.value;
+            const servicesDropdown = document.getElementById('serviceSelect');
+            const services = await fetchServicesForStaffMember(selectedStaffId);
+            updateServicesDropdown(servicesDropdown, services);
+        });
+    }
+}
+
+
 function initializeCalendar() {
     const formattedAppointments = formatAppointmentsForCalendar(appointments);
     const calendarEl = document.getElementById('calendar');
@@ -285,7 +325,7 @@ function closeModal() {
     cancelButton.style.display = "none";
 
     // Reset the editing flag
-    AppState.isEditingAppointment = false;
+    AppStateProxy.isEditingAppointment = false;
 
     // Close the modal
     $('#eventDetailsModal').modal('hide');
@@ -419,6 +459,32 @@ async function populateStaffMembers(selectedStaffId, isEditMode = false) {
     return selectElement;
 }
 
+// Function to fetch services for a specific staff member
+async function fetchServicesForStaffMember(staffId) {
+    const url = `${fetchServiceListForStaffURL}?staff_id=${staffId}`;
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Network response was not ok');
+        const data = await response.json();
+        return data.services_offered || [];
+    } catch (error) {
+        console.error("Error fetching services: ", error);
+        return []; // Return an empty array in case of error
+    }
+}
+
+// Function to update services dropdown options
+function updateServicesDropdown(dropdown, services) {
+    // Clear existing options
+    dropdown.innerHTML = '';
+
+    // Populate with new options
+    services.forEach(service => {
+        const option = new Option(service.name, service.id); // Assuming service object has id and name properties
+        dropdown.add(option);
+    });
+}
+
 function getCSRFToken() {
     const metaTag = document.querySelector('meta[name="csrf-token"]');
     if (metaTag) {
@@ -510,14 +576,17 @@ function createNewAppointment(dateInput) {
 
 async function showCreateAppointmentModal(defaultStartTime, formattedDate) {
     const servicesDropdown = await populateServices(null, false);
-    const staffDropdown = await populateStaffMembers(null, false);
+    let staffDropdown = null;
+    if (isUserSuperUser) {
+        staffDropdown = await populateStaffMembers(null, false);
+    }
     servicesDropdown.id = "serviceSelect";
     servicesDropdown.disabled = false; // Enable dropdown
 
     document.getElementById('eventModalBody').innerHTML = prepareCreateAppointmentModalContent(servicesDropdown, staffDropdown, defaultStartTime, formattedDate);
 
     adjustCreateAppointmentModalButtons();
-    AppState.isCreating = true;
+    AppStateProxy.isCreating = true;
     $('#eventDetailsModal').modal('show');
 }
 
@@ -581,7 +650,10 @@ async function showEventModal(eventId = null, isEditMode, isCreatingMode = false
     if (!appointment) return;
 
     const servicesDropdown = await getServiceDropdown(appointment.service_id, isEditMode);
-    const staffDropdown = await getStaffDropdown(appointment.staff_id, isEditMode);
+    let staffDropdown = null;
+    if (isUserSuperUser) {
+        staffDropdown = await getStaffDropdown(appointment.staff_id, isEditMode);
+    }
 
     document.getElementById('eventModalBody').innerHTML = generateModalContent(appointment, servicesDropdown, isEditMode, staffDropdown);
     adjustModalButtonsVisibility(isEditMode, isCreatingMode);
@@ -608,11 +680,11 @@ function adjustModalButtonsVisibility(isEditMode, isCreatingMode) {
 function toggleEditMode() {
     const modal = document.getElementById("eventDetailsModal");
     const appointment = appointments.find(app => Number(app.id) === Number(AppState.eventIdSelected));
-    AppState.isCreating = false; // Turn off creating mode
+    AppStateProxy.isCreating = false; // Turn off creating mode
 
     // Proceed only if an appointment is found
     if (appointment) {
-        AppState.isEditingAppointment = !AppState.isEditingAppointment;  // Toggle the editing state
+        AppStateProxy.isEditingAppointment = !AppState.isEditingAppointment;  // Toggle the editing state
         updateModalUIForEditMode(modal, AppState.isEditingAppointment);
     } else {
         console.error("Appointment not found!");
