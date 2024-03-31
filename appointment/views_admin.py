@@ -56,7 +56,9 @@ def get_user_appointments(request, response_type='html'):
     }
     context = get_generic_context_with_extra(request=request, extra=extra_context)
     # if appointment is empty and user doesn't have a staff-member instance, put a message
-    if not appointments and not StaffMember.objects.filter(user=request.user).exists() and request.user.is_staff:
+    # TODO: Refactor this logic, it's not clean
+    if not appointments and not StaffMember.objects.filter(
+            user=request.user).exists() and not request.user.is_superuser:
         messages.error(request, _("User doesn't have a staff member instance. Please contact the administrator."))
     return render(request, 'administration/staff_index.html', context)
 
@@ -226,10 +228,12 @@ def add_or_update_staff_info(request, user_id=None):
     return render(request, 'administration/manage_staff_member.html', context)
 
 
+# TODO: Refactor this function, handle the different cases better.
 @require_user_authenticated
 @require_staff_or_superuser
 def fetch_service_list_for_staff(request):
     appointment_id = request.GET.get('appointmentId')
+    staff_id = request.GET.get('staff_id')
     if appointment_id:
         # Fetch services for a specific appointment (edit mode)
         if request.user.is_superuser:
@@ -241,14 +245,23 @@ def fetch_service_list_for_staff(request):
             if not Appointment.objects.filter(id=appointment_id,
                                               appointment_request__staff_member=staff_member).exists():
                 return json_response(_("You do not have permission to access this appointment."), status_code=403)
+        services = list(staff_member.get_services_offered().values('id', 'name'))
+    elif staff_id:
+        # Fetch services for the specified staff member (new mode based on staff member selection)
+        staff_member = get_object_or_404(StaffMember, id=staff_id)
+        services = list(staff_member.get_services_offered().values('id', 'name'))
     else:
         # Fetch all services for the staff member (create mode)
         try:
             staff_member = StaffMember.objects.get(user=request.user)
+            services = list(staff_member.get_services_offered().values('id', 'name'))
         except StaffMember.DoesNotExist:
-            return json_response(_("You're not a staff member. Can't perform this action !"), status=400, success=False)
+            if not request.user.is_superuser:
+                return json_response(_("You're not a staff member. Can't perform this action !"), status=400,
+                                     success=False)
+            else:
+                services = list(Service.objects.all().values('id', 'name'))
 
-    services = list(staff_member.get_services_offered().values('id', 'name'))
     if len(services) == 0:
         return json_response(_("No services offered by this staff member."), status=404, success=False,
                              error_code=ErrorCode.SERVICE_NOT_FOUND)
@@ -536,4 +549,7 @@ def is_user_staff_admin(request):
         StaffMember.objects.get(user=user)
         return json_response(_("User is a staff member."), custom_data={'is_staff_admin': True})
     except StaffMember.DoesNotExist:
-        return json_response(_("User is not a staff member."), custom_data={'is_staff_admin': False})
+        # if superuser, all rights are granted even if not a staff member
+        if not user.is_superuser:
+            return json_response(_("User is not a staff member."), custom_data={'is_staff_admin': False})
+        return json_response(_("User is a superuser."), custom_data={'is_staff_admin': True})
