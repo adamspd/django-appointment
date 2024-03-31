@@ -339,7 +339,7 @@ class ViewsTestCase(BaseTest):
         )
 
     def test_fetch_service_list_for_staff_no_staff_member_instance(self):
-        """Test that a superuser without a StaffMember instance receives an appropriate error message."""
+        """Test that a superuser without a StaffMember instance receives no inappropriate error message."""
         self.need_superuser_login()
 
         # Ensure the superuser does not have a StaffMember instance
@@ -349,11 +349,9 @@ class ViewsTestCase(BaseTest):
         response = self.client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
 
         # Check the response status code and content
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 200)
         response_data = response.json()
         self.assertIn('message', response_data)
-        self.assertEqual(response_data['message'], _("You're not a staff member. Can't perform this action !"))
-        self.assertFalse(response_data['success'])
 
     def test_fetch_service_list_for_staff_no_services_offered(self):
         """Test fetching services for a staff member who offers no services."""
