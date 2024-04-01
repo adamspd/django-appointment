@@ -117,6 +117,46 @@ class StaffAppointmentInformationForm(forms.ModelForm):
         }
 
 
+class StaffMemberForm(forms.ModelForm):
+    class Meta:
+        model = StaffMember
+        fields = ['user', 'services_offered', 'slot_duration', 'lead_time', 'finish_time',
+                  'appointment_buffer_time', 'work_on_saturday', 'work_on_sunday']
+        widgets = {
+            'user': forms.Select(attrs={'class': 'form-control'}),
+            'service_offered': forms.Select(attrs={'class': 'form-control'}),
+            'slot_duration': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': _('Example value: 30, 60, 90, 120... (in minutes)')
+            }),
+            'lead_time': forms.TimeInput(attrs={
+                'class': 'form-control',
+                'placeholder': _('Example value: 08:00:00, 09:00:00... (24-hour format)')
+            }),
+            'finish_time': forms.TimeInput(attrs={
+                'class': 'form-control',
+                'placeholder': _('Example value: 17:00:00, 18:00:00... (24-hour format)')
+            }),
+            'appointment_buffer_time': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': _('Example value: 15, 30, 45, 60... (in minutes)')
+            }),
+            'work_on_saturday': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'work_on_sunday': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super(StaffMemberForm, self).__init__(*args, **kwargs)
+        # Exclude users who are already staff members
+        existing_staff_user_ids = StaffMember.objects.values_list('user', flat=True)
+        # Filter queryset for user field to include only superusers or users not already staff members
+        self.fields['user'].queryset = get_user_model().objects.filter(
+            is_superuser=True
+        ).exclude(id__in=existing_staff_user_ids) | get_user_model().objects.exclude(
+            id__in=existing_staff_user_ids
+        )
+
+
 class StaffDaysOffForm(forms.ModelForm):
     class Meta:
         model = DayOff
