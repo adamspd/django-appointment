@@ -61,19 +61,27 @@ class AppointmentRequestMixin:
             staff_member=staff_member
         )
 
+    @classmethod
+    def clean_appt_request_for_user(cls, user):
+        AppointmentRequest.objects.filter(staff_member__user=user).delete()
+
 
 class AppointmentMixin:
     def __init__(self):
         pass
 
     @classmethod
-    def create_appointment_(cls, user, appointment_request, phone="1234567890", address="Some City, Some State"):
+    def     create_appointment_(cls, user, appointment_request, phone="1234567890", address="Some City, Some State"):
         return Appointment.objects.create(
             client=user,
             appointment_request=appointment_request,
             phone=phone,
             address=address
         )
+
+    @classmethod
+    def clean_appointment_for_user(cls, user):
+        Appointment.objects.filter(client=user).delete()
 
 
 class AppointmentRescheduleHistoryMixin:
