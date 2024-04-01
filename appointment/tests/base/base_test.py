@@ -55,3 +55,27 @@ class BaseTest(TestCase, UserMixin, StaffMemberMixin, ServiceMixin, AppointmentR
             staff_member=appointment_request.staff_member,
             reason_for_rescheduling=reason_for_rescheduling,
         )
+
+    def need_normal_login(self):
+        self.client.force_login(self.create_user_())
+
+    def need_staff_login(self, user=None):
+        if user is not None:
+            user.is_staff = True
+            user.save()
+            self.client.force_login(user)
+        self.user1.is_staff = True
+        self.user1.save()
+        self.client.force_login(self.user1)
+
+    def need_superuser_login(self):
+        self.user1.is_superuser = True
+        self.user1.save()
+        self.client.force_login(self.user1)
+
+    def clean_staff_member_objects(self, user=None):
+        """Delete all AppointmentRequests and Appointments linked to the StaffMember instance of self.user1."""
+        if user is None:
+            user = self.user1
+        self.clean_appointment_for_user(user)
+        self.clean_appt_request_for_user(user)
