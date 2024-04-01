@@ -14,12 +14,12 @@ from appointment.views import (
     get_non_working_days_ajax, prepare_reschedule_appointment, reschedule_appointment_submit, set_passwd
 )
 from appointment.views_admin import (
-    add_day_off, add_or_update_service, add_or_update_staff_info, add_working_hours, create_new_staff_member,
-    delete_appointment, delete_appointment_ajax, delete_day_off, delete_service, delete_working_hours,
-    display_appointment, email_change_verification_code, fetch_service_list_for_staff, fetch_staff_list,
-    get_service_list, get_user_appointments, is_user_staff_admin, make_superuser_staff_member, remove_staff_member,
-    remove_superuser_staff_member, update_appt_date_time, update_appt_min_info, update_day_off, update_personal_info,
-    update_working_hours, user_profile, validate_appointment_date
+    add_day_off, add_or_update_service, add_or_update_staff_info, add_staff_member_info, add_working_hours,
+    create_new_staff_member, delete_appointment, delete_appointment_ajax, delete_day_off, delete_service,
+    delete_working_hours, display_appointment, email_change_verification_code, fetch_service_list_for_staff,
+    fetch_staff_list, get_service_list, get_user_appointments, is_user_staff_admin, make_superuser_staff_member,
+    remove_staff_member, remove_superuser_staff_member, update_appt_date_time, update_appt_min_info, update_day_off,
+    update_personal_info, update_working_hours, user_profile, validate_appointment_date
 )
 
 app_name = 'appointment'
@@ -30,7 +30,8 @@ admin_urlpatterns = [
     path('appointments/', get_user_appointments, name='get_user_appointments'),
 
     # create a new staff member and make/remove superuser staff member
-    path('staff-member-personal-info/', create_new_staff_member, name='add_staff_member_personal_info'),
+    path('add-staff-member-info/', add_staff_member_info, name='add_staff_member_info'),
+    path('create-new-staff-member/', create_new_staff_member, name='add_staff_member_personal_info'),
     path('update-staff-member/<int:user_id>/', add_or_update_staff_info, name='update_staff_other_info'),
     path('add-staff-member/', add_or_update_staff_info, name='add_staff_other_info'),
     path('make-superuser-staff-member/', make_superuser_staff_member, name='make_superuser_staff_member'),
