@@ -20,6 +20,7 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from django.utils.translation import gettext as _
 
+from appointment.forms import StaffMemberForm
 from appointment.messages_ import passwd_error
 from appointment.models import (
     Appointment, AppointmentRequest, AppointmentRescheduleHistory, Config, DayOff, EmailVerificationCode,
@@ -681,6 +682,27 @@ class ViewsTestCase(BaseTest):
         url = reverse('appointment:delete_day_off', args=[non_existent_day_off_id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, 404)
+
+
+class AddStaffMemberInfoTestCase(ViewsTestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.staff_member = self.staff_member1
+        self.url = reverse('appointment:add_staff_member_info')
+
+    def test_add_staff_member_info_access_by_superuser(self):
+        """Test that the add staff member page is accessible by a superuser."""
+        self.need_superuser_login()
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.context['form'], StaffMemberForm)
+
+    def test_add_staff_member_info_access_by_non_superuser(self):
+        """Test that non-superusers cannot access the add staff member page."""
+        self.need_staff_login()
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 403)
 
 
 class SetPasswordViewTests(BaseTest):

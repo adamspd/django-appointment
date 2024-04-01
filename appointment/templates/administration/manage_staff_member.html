@@ -10,34 +10,51 @@
     <section class="content content-wrapper">
         <div class="staff-form-wrapper">
             <div class="staff-form-content">
-                <h2>{% trans 'Staff Appointment Information' %}</h2>
+                <h3>{% trans 'Staff Appointment Information' %}</h3>
                 <form method="post">
                     {% csrf_token %}
+                    {% if form.user %}
+                        <div class="form-group">
+                            {{ form.user.label_tag }}
+                            {{ form.user.errors }}
+                            {{ form.user }}
+                        </div>
+                        <div class="user-not-found">
+                            <small>
+                                {% translate 'User not found' %} ? <a href="{% url 'appointment:add_staff_member_personal_info' %}">{% translate 'Create staff member manually' %}</a>
+                            </small>
+                        </div>
+                    {% endif %}
 
                     <div class="form-group">
                         {{ form.services_offered.label_tag }}
                         {{ form.services_offered.errors }}
                         {{ form.services_offered }}
+                        <br><small>{% trans 'Hold down “Control”, or “Command” on a Mac, to select more than one.' %}</small>
                     </div>
 
                     <div class="form-group">
-                        {{ form.slot_duration.label_tag }}
+                        {{ form.slot_duration.label_tag }} 
                         {{ form.slot_duration }}
+                        <small>{{ form.slot_duration.help_text }}</small>
                     </div>
 
                     <div class="form-group">
                         {{ form.lead_time.label_tag }}
                         {{ form.lead_time }}
+                        <small>{{ form.lead_time.help_text }}</small>
                     </div>
 
                     <div class="form-group">
                         {{ form.finish_time.label_tag }}
                         {{ form.finish_time }}
+                        <small>{{ form.finish_time.help_text }}</small>
                     </div>
 
                     <div class="form-group">
                         {{ form.appointment_buffer_time.label_tag }}
                         {{ form.appointment_buffer_time }}
+                        <small>{{ form.appointment_buffer_time.help_text }}</small>
                     </div>
 
                     <div class="form-check">
