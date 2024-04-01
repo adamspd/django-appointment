@@ -18,7 +18,7 @@ from django.views.decorators.http import require_POST
 
 from appointment.decorators import (
     require_ajax, require_staff_or_superuser, require_superuser, require_user_authenticated)
-from appointment.forms import PersonalInformationForm, ServiceForm, StaffAppointmentInformationForm
+from appointment.forms import PersonalInformationForm, ServiceForm, StaffAppointmentInformationForm, StaffMemberForm
 from appointment.messages_ import appt_updated_successfully
 from appointment.models import Appointment, DayOff, StaffMember, WorkingHours
 from appointment.services import (
@@ -63,8 +63,6 @@ def get_user_appointments(request, response_type='html'):
     return render(request, 'administration/staff_index.html', context)
 
 
-@require_user_authenticated
-@require_staff_or_superuser
 @require_user_authenticated
 @require_staff_or_superuser
 def display_appointment(request, appointment_id):
@@ -399,6 +397,21 @@ def email_change_verification_code(request):
 
 
 ###############################################################
+
+
+@require_user_authenticated
+@require_superuser
+def add_staff_member_info(request):
+    if request.method == 'POST':
+        form = StaffMemberForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('appointment:user_profile')
+    else:
+        form = StaffMemberForm()
+
+    context = get_generic_context_with_extra(request=request, extra={'form': form})
+    return render(request, 'administration/manage_staff_member.html', context)
 
 
 @require_user_authenticated
