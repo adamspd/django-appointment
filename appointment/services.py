@@ -561,6 +561,8 @@ def handle_service_management_request(post_data, files_data=None, service_id=Non
 
 def create_new_appointment(data, request):
     service = Service.objects.get(id=data.get("service_id"))
+    print(f"service id {data.get('service_id')}")
+    print(f"Service: {service}")
     staff_id = data.get("staff_id")
     if staff_id:
         staff_member = StaffMember.objects.get(id=staff_id)
