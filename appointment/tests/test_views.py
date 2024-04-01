@@ -690,6 +690,17 @@ class AddStaffMemberInfoTestCase(ViewsTestCase):
         super().setUp()
         self.staff_member = self.staff_member1
         self.url = reverse('appointment:add_staff_member_info')
+        self.user_test = self.create_user_(
+            first_name="Great Tester", email="great.tester@django-appointment.com", username="great_tester"
+        )
+        self.data = {
+            "user": self.user_test.id,
+            "services_offered": [self.service1.id, self.service2.id],
+            "working_hours": [
+                {"day_of_week": 0, "start_time": "08:00", "end_time": "12:00"},
+                {"day_of_week": 2, "start_time": "08:00", "end_time": "12:00"}
+            ]
+        }
 
     def test_add_staff_member_info_access_by_superuser(self):
         """Test that the add staff member page is accessible by a superuser."""
@@ -703,6 +714,23 @@ class AddStaffMemberInfoTestCase(ViewsTestCase):
         self.need_staff_login()
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 403)
+
+    def test_add_staff_member_info_successful_submission(self):
+        """Test successful submission of the "add staff member" form."""
+        self.need_superuser_login()
+        response = self.client.post(self.url, data=self.data)
+        self.assertEqual(response.status_code, 302)  # Expect a redirect
+        self.assertTrue(StaffMember.objects.filter(user=self.user_test).exists())
+
+    def test_add_staff_member_info_invalid_form_submission(self):
+        """Test submission of an invalid form."""
+        self.need_superuser_login()
+        data = self.data.copy()
+        data.pop('user')
+        response = self.client.post(self.url, data=data)
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.context['form'], StaffMemberForm)
+        self.assertTrue(response.context['form'].errors)
 
 
 class SetPasswordViewTests(BaseTest):
