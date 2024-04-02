@@ -199,7 +199,7 @@ def get_weekday_num(weekday: str) -> int:
     """Get the number of the weekday.
 
     :param weekday: The weekday (e.g. "Monday", "Tuesday", etc.)
-    :return: The number of the weekday (0 for Sunday, 1 for Monday, etc.)
+    :return: The number of the weekday (0 for Monday, 1 for Tuesday etc.)
     """
     weekdays = {
         'monday': 0,
