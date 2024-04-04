@@ -21,7 +21,7 @@ from django.utils.http import urlsafe_base64_decode
 from django.utils.timezone import get_current_timezone_name
 from django.utils.translation import gettext as _
 
-from appointment.forms import AppointmentForm, AppointmentRequestForm, SlotForm
+from appointment.forms import AppointmentForm, AppointmentRequestForm, SlotForm, ClientDataForm
 from appointment.logger_config import logger
 from appointment.models import (
     Appointment, AppointmentRequest, AppointmentRescheduleHistory, Config, DayOff, EmailVerificationCode,
@@ -290,18 +290,6 @@ def create_appointment(request, appointment_request_obj, client_data, appointmen
     return redirect_to_payment_or_thank_you_page(appointment)
 
 
-def get_client_data_from_post(request):
-    """This function retrieves client data from the POST request.
-
-    :param request: The request instance.
-    :return: The client data.
-    """
-    return {
-        'name': request.POST.get('name'),
-        'email': request.POST.get('email'),
-    }
-
-
 def appointment_client_information(request, appointment_request_id, id_request):
     """This view function handles client information submission for an appointment.
 
@@ -317,10 +305,11 @@ def appointment_client_information(request, appointment_request_id, id_request):
 
     if request.method == 'POST':
         appointment_form = AppointmentForm(request.POST)
+        client_data_form = ClientDataForm(request.POST)
 
-        if appointment_form.is_valid():
+        if appointment_form.is_valid() and client_data_form.is_valid():
             appointment_data = appointment_form.cleaned_data
-            client_data = get_client_data_from_post(request)
+            client_data = client_data_form.cleaned_data
             payment_type = request.POST.get('payment_type')
             ar.payment_type = payment_type
             ar.save()
@@ -340,11 +329,13 @@ def appointment_client_information(request, appointment_request_id, id_request):
             return response
     else:
         appointment_form = AppointmentForm()
+        client_data_form = ClientDataForm()
 
     extra_context = {
         'ar': ar,
         'APPOINTMENT_PAYMENT_URL': APPOINTMENT_PAYMENT_URL,
         'form': appointment_form,
+        'client_data_form': client_data_form,
         'service_name': ar.service.name,
     }
     context = get_generic_context_with_extra(request, extra_context, admin=False)
