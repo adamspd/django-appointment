@@ -302,20 +302,6 @@ def get_client_data_from_post(request):
     }
 
 
-def get_appointment_data_from_post_request(request):
-    """This function retrieves appointment data from the POST request.
-
-    :param request: The request instance.
-    :return: The appointment data.
-    """
-    return {
-        'phone': request.POST.get('phone'),
-        'want_reminder': request.POST.get('want_reminder') == 'on',
-        'address': request.POST.get('address'),
-        'additional_info': request.POST.get('additional_info'),
-    }
-
-
 def appointment_client_information(request, appointment_request_id, id_request):
     """This view function handles client information submission for an appointment.
 
