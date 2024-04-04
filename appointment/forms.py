@@ -70,6 +70,11 @@ class AppointmentForm(forms.ModelForm):
             })
 
 
+class ClientDataForm(forms.Form):
+    name = forms.CharField(max_length=50, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    email = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'form-control'}))
+
+
 class PersonalInformationForm(forms.Form):
     # first_name, last_name, email
     first_name = forms.CharField(max_length=50, widget=forms.TextInput(attrs={'class': 'form-control'}))
