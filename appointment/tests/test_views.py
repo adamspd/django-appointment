@@ -29,10 +29,7 @@ from appointment.models import (
 from appointment.tests.base.base_test import BaseTest
 from appointment.utils.db_helpers import Service, WorkingHours, create_user_with_username
 from appointment.utils.error_codes import ErrorCode
-from appointment.views import (
-    create_appointment, get_client_data_from_post,
-    redirect_to_payment_or_thank_you_page, verify_user_and_login
-)
+from appointment.views import create_appointment, redirect_to_payment_or_thank_you_page, verify_user_and_login
 
 
 class SlotTestCase(BaseTest):
@@ -1043,63 +1040,6 @@ class ConfirmRescheduleViewTests(BaseTest):
         self.client.get(self.url)
         mock_notify_admin.assert_called_once()
         self.assertTrue(mock_notify_admin.called)
-
-
-class GetClientDataFromPostTests(BaseTest):
-    def setUp(self):
-        self.factory = RequestFactory()
-
-    def test_get_client_data_with_full_data(self):
-        """Test retrieving client data from a POST request with all fields provided."""
-        post_data = {
-            'name': 'John Doe',
-            'email': 'john.doe@example.com',
-        }
-        request = self.factory.post('/fake-url/', post_data)
-
-        client_data = get_client_data_from_post(request)
-
-        self.assertEqual(client_data['name'], post_data['name'])
-        self.assertEqual(client_data['email'], post_data['email'])
-
-    def test_get_client_data_with_missing_name(self):
-        """Test retrieving client data from a POST request with the name missing."""
-        post_data = {
-            # 'name' is missing
-            'email': 'john.doe@example.com',
-        }
-        request = self.factory.post('/fake-url/', post_data)
-
-        client_data = get_client_data_from_post(request)
-
-        self.assertIsNone(client_data['name'], "name should be None if not provided")
-        self.assertEqual(client_data['email'], post_data['email'])
-
-    def test_get_client_data_with_missing_email(self):
-        """Test retrieving client data from a POST request with the email missing."""
-        post_data = {
-            'name': 'John Doe',
-            # 'email' is missing
-        }
-        request = self.factory.post('/fake-url/', post_data)
-
-        client_data = get_client_data_from_post(request)
-
-        self.assertEqual(client_data['name'], post_data['name'])
-        self.assertIsNone(client_data['email'], "email should be None if not provided")
-
-    def test_get_client_data_with_empty_fields(self):
-        """Test retrieving client data from a POST request with empty fields."""
-        post_data = {
-            'name': '',
-            'email': '',
-        }
-        request = self.factory.post('/fake-url/', post_data)
-
-        client_data = get_client_data_from_post(request)
-
-        self.assertEqual(client_data['name'], '', "name should be empty string if provided as such")
-        self.assertEqual(client_data['email'], '', "email should be empty string if provided as such")
 
 
 class RedirectToPaymentOrThankYouPageTests(BaseTest):
