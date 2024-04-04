@@ -30,7 +30,7 @@ from appointment.tests.base.base_test import BaseTest
 from appointment.utils.db_helpers import Service, WorkingHours, create_user_with_username
 from appointment.utils.error_codes import ErrorCode
 from appointment.views import (
-    create_appointment, get_appointment_data_from_post_request, get_client_data_from_post,
+    create_appointment, get_client_data_from_post,
     redirect_to_payment_or_thank_you_page, verify_user_and_login
 )
 
@@ -1043,57 +1043,6 @@ class ConfirmRescheduleViewTests(BaseTest):
         self.client.get(self.url)
         mock_notify_admin.assert_called_once()
         self.assertTrue(mock_notify_admin.called)
-
-
-class GetAppointmentDataFromPostRequestTests(BaseTest):
-    def setUp(self):
-        self.factory = RequestFactory()
-        self.post_data = {
-            'phone': '1234567890',
-            'want_reminder': 'on',
-            'address': '123 Test St, Test City',
-            'additional_info': 'Please ring the bell.'
-        }
-
-    def test_get_appointment_data_from_post_request_with_data(self):
-        """Test retrieving appointment data from a POST request with all data provided."""
-        request = self.factory.post('/fake-url/', self.post_data)
-
-        appointment_data = get_appointment_data_from_post_request(request)
-
-        self.assertEqual(appointment_data['phone'], self.post_data['phone'])
-        self.assertTrue(appointment_data['want_reminder'])
-        self.assertEqual(appointment_data['address'], self.post_data['address'])
-        self.assertEqual(appointment_data['additional_info'], self.post_data['additional_info'])
-
-    def test_get_appointment_data_from_post_request_partial_data(self):
-        """Test retrieving appointment data from a POST request with partial data provided."""
-        partial_post_data = {
-            'phone': '1234567890',
-            # 'want_reminder' omitted to simulate unchecked checkbox
-            'address': '123 Test St, Test City',
-            # 'additional_info' omitted to simulate empty field
-        }
-        request = self.factory.post('/fake-url/', partial_post_data)
-
-        appointment_data = get_appointment_data_from_post_request(request)
-
-        self.assertEqual(appointment_data['phone'], partial_post_data['phone'])
-        self.assertFalse(appointment_data['want_reminder'], "want_reminder should be False if not 'on'")
-        self.assertEqual(appointment_data['address'], partial_post_data['address'])
-        self.assertEqual(appointment_data['additional_info'], None, "additional_info should be None if not provided")
-
-    def test_get_appointment_data_from_post_request_missing_data(self):
-        """Test retrieving appointment data from a POST request with missing data."""
-        missing_data_post = {}
-        request = self.factory.post('/fake-url/', missing_data_post)
-
-        appointment_data = get_appointment_data_from_post_request(request)
-
-        self.assertEqual(appointment_data['phone'], None, "phone should be None if not provided")
-        self.assertFalse(appointment_data['want_reminder'], "want_reminder should be False if not provided")
-        self.assertEqual(appointment_data['address'], None, "address should be None if not provided")
-        self.assertEqual(appointment_data['additional_info'], None, "additional_info should be None if not provided")
 
 
 class GetClientDataFromPostTests(BaseTest):
