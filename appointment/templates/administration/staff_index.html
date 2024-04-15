@@ -316,7 +316,7 @@
         const updateApptDateURL = "{% url 'appointment:update_appt_date_time' %}";
         const validateApptDateURL = "{% url 'appointment:validate_appointment_date' %}";
         const isUserStaffAdminURL = "{% url 'appointment:is_user_staff_admin' %}";
-        const isUserSuperUser = "{{ is_superuser }}";
+        const isUserSuperUser = "{{ is_superuser }}" === "True";
     </script>
     <script>
         {# Text for translation #}
@@ -341,15 +341,12 @@
     <script src="{% static 'js/js-utils.js' %}"></script>
 
     <script>
-        console.log("isUserSuperUser", isUserSuperUser)
-
         function createCommonInputFields(appointment, servicesDropdown, isEditMode, defaultStartTime, staffDropdown) {
             const startTimeValue = isEditMode ? moment(appointment.start_time).format('HH:mm:ss') : defaultStartTime;
             const disabledAttribute = isEditMode ? '' : 'disabled';
             
-            const isSuperuser = isUserSuperUser === "True";
             let superuserInputField = '';
-            if (isSuperuser) {
+            if (isUserSuperUser) {
                 superuserInputField = `
                     <div class="flex-container-appt">
                     <label>{% trans 'Staff Member' %}:</label>

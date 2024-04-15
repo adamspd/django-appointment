@@ -20,6 +20,7 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from django.utils.translation import gettext as _
 
+from appointment.forms import StaffMemberForm
 from appointment.messages_ import passwd_error
 from appointment.models import (
     Appointment, AppointmentRequest, AppointmentRescheduleHistory, Config, DayOff, EmailVerificationCode,
@@ -34,75 +35,15 @@ from appointment.views import (
 )
 
 
-class ViewsTestCase(BaseTest):
+class SlotTestCase(BaseTest):
     def setUp(self):
         super().setUp()
         self.client = Client()
-        self.factory = RequestFactory()
-        self.staff_member = self.staff_member1
-        WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=0,
-                                    start_time=datetime.time(8, 0), end_time=datetime.time(12, 0))
-        WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=2,
-                                    start_time=datetime.time(8, 0), end_time=datetime.time(12, 0))
-        self.ar = self.create_appt_request_for_sm1()
-        self.request = self.factory.get('/')
-        self.user1.is_staff = True
-        self.request.user = self.user1
-        middleware = SessionMiddleware(lambda req: None)
-        middleware.process_request(self.request)
-        self.request.session.save()
-
-        middleware = MessageMiddleware(lambda req: None)
-        middleware.process_request(self.request)
-        self.request.session.save()
-        self.appointment = self.create_appointment_for_user1()
-        self.tomorrow = date.today() + timedelta(days=1)
-        self.appt = self.create_appointment_for_user1()
-        self.data = {
-            'isCreating': False, 'service_id': '1', 'appointment_id': self.appt.id, 'client_name': 'Bryan Zap',
-            'client_email': 'bz@gmail.com', 'client_phone': '+33769992738', 'client_address': 'Naples, Florida',
-            'want_reminder': 'false', 'additional_info': '', 'start_time': '15:00:26', 'staff_id': self.staff_member.id,
-            'date': self.tomorrow.strftime('%Y-%m-%d')
-        }
-        self.url_display_appt = reverse('appointment:display_appointment', args=[self.appointment.id])
-        self.url_add_day_off = reverse('appointment:add_day_off', args=[self.staff_member.user_id])
-        self.other_staff_member = self.staff_member2
-        self.day_off = DayOff.objects.create(staff_member=self.staff_member,
-                                             start_date=date.today() + timedelta(days=1),
-                                             end_date=date.today() + timedelta(days=2), description="Day off")
-        self.random_user = self.create_user_()
-
-    def need_normal_login(self):
-        self.client.force_login(self.random_user)
-
-    def need_staff_login(self, user=None):
-        if user is not None:
-            user.is_staff = True
-            user.save()
-            self.client.force_login(user)
-        self.user1.is_staff = True
-        self.user1.save()
-        self.client.force_login(self.user1)
-
-    def need_superuser_login(self):
-        self.user1.is_superuser = True
-        self.user1.save()
-        self.client.force_login(self.user1)
-
-    def clean_staff_member_objects(self):
-        """Delete all AppointmentRequests and Appointments linked to the StaffMember instance of self.user1."""
-        AppointmentRequest.objects.filter(staff_member__user=self.user1).delete()
-        Appointment.objects.filter(appointment_request__staff_member__user=self.user1).delete()
-
-    def remove_staff_member(self):
-        """Remove the StaffMember instance of self.user1."""
-        self.clean_staff_member_objects()
-        StaffMember.objects.filter(user=self.user1).delete()
+        self.url = reverse('appointment:available_slots_ajax')
 
     def test_get_available_slots_ajax(self):
         """get_available_slots_ajax view should return a JSON response with available slots for the selected date."""
-        url = reverse('appointment:available_slots_ajax')
-        response = self.client.get(url, {'selected_date': date.today().isoformat()},
+        response = self.client.get(self.url, {'selected_date': date.today().isoformat()},
                                    HTTP_X_REQUESTED_WITH='XMLHttpRequest')
         self.assertEqual(response.status_code, 403)
         response_data = response.json()
@@ -112,22 +53,17 @@ class ViewsTestCase(BaseTest):
 
     def test_get_available_slots_ajax_past_date(self):
         """get_available_slots_ajax view should return an error if the selected date is in the past."""
-        url = reverse('appointment:available_slots_ajax')
         past_date = (date.today() - timedelta(days=1)).isoformat()
-        response = self.client.get(url, {'selected_date': past_date}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        response = self.client.get(self.url, {'selected_date': past_date}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()['error'], True)
         self.assertEqual(response.json()['message'], 'Date is in the past')
 
-    def test_get_next_available_date_ajax(self):
-        """get_next_available_date_ajax view should return a JSON response with the next available date."""
-        data = {'staff_id': self.staff_member.id}
-        url = reverse('appointment:request_next_available_slot', args=[self.service1.id])
-        response = self.client.get(url, data=data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-        self.assertEqual(response.status_code, 200)
-        response_data = json.loads(response.content)
-        self.assertIsNotNone(response_data)
-        self.assertIsNotNone(response_data['next_available_date'])
+
+class AppointmentRequestTestCase(BaseTest):
+    def setUp(self):
+        super().setUp()
+        self.url = reverse('appointment:appointment_request_submit')
 
     def test_appointment_request(self):
         """Test if the appointment request form can be rendered."""
@@ -140,27 +76,45 @@ class ViewsTestCase(BaseTest):
 
     def test_appointment_request_submit_valid(self):
         """Test if a valid appointment request can be submitted."""
-        url = reverse('appointment:appointment_request_submit')
         post_data = {
             'date': date.today().isoformat(),
             'start_time': time(9, 0),
             'end_time': time(10, 0),
             'service': self.service1.id,
-            'staff_member': self.staff_member.id,
+            'staff_member': self.staff_member1.id,
         }
-        response = self.client.post(url, post_data)
+        response = self.client.post(self.url, post_data)
         self.assertEqual(response.status_code, 302)  # Redirect status
         # Check if an AppointmentRequest object was created
         self.assertTrue(AppointmentRequest.objects.filter(service=self.service1).exists())
 
     def test_appointment_request_submit_invalid(self):
         """Test if an invalid appointment request can be submitted."""
-        url = reverse('appointment:appointment_request_submit')
         post_data = {}  # Missing required data
-        response = self.client.post(url, post_data)
+        response = self.client.post(self.url, post_data)
         self.assertEqual(response.status_code, 200)  # Rendering the form with errors
         self.assertIn('form', response.context)
         self.assertTrue(response.context['form'].errors)  # Ensure there are form errors
+
+
+class VerificationCodeTestCase(BaseTest):
+    def setUp(self):
+        super().setUp()
+        self.factory = RequestFactory()
+        self.request = self.factory.get('/')
+
+        # Simulate session middleware
+        middleware = SessionMiddleware(lambda req: None)
+        middleware.process_request(self.request)
+        self.request.session.save()
+
+        # Attach message storage
+        middleware = MessageMiddleware(lambda req: None)
+        middleware.process_request(self.request)
+        self.request.session.save()
+
+        self.ar = self.create_appt_request_for_sm1()
+        self.url = reverse('appointment:enter_verification_code', args=[self.ar.id, self.ar.id_request])
 
     def test_verify_user_and_login_valid(self):
         """Test if a user can be verified and logged in."""
@@ -177,28 +131,30 @@ class ViewsTestCase(BaseTest):
     def test_enter_verification_code_valid(self):
         """Test if a valid verification code can be entered."""
         code = EmailVerificationCode.generate_code(user=self.user1)
-        url = reverse('appointment:enter_verification_code', args=[self.ar.id, self.ar.id_request])
         post_data = {'code': code}  # Assuming a valid code for the test setup
-        response = self.client.post(url, post_data)
+        response = self.client.post(self.url, post_data)
         self.assertEqual(response.status_code, 200)
 
     def test_enter_verification_code_invalid(self):
         """Test if an invalid verification code can be entered."""
-        url = reverse('appointment:enter_verification_code', args=[self.ar.id, self.ar.id_request])
         post_data = {'code': '000000'}  # Invalid code
-        response = self.client.post(url, post_data)
+        response = self.client.post(self.url, post_data)
         self.assertEqual(response.status_code, 200)  # Stay on the same page
         # Check for an error message
         messages_list = list(messages.get_messages(response.wsgi_request))
         self.assertIn(_("Invalid verification code."), [str(msg) for msg in messages_list])
 
-    def test_default_thank_you(self):
-        """Test if the default thank you page can be rendered."""
-        appointment = Appointment.objects.create(client=self.user1, appointment_request=self.ar)
-        url = reverse('appointment:default_thank_you', args=[appointment.id])
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-        self.assertIn(appointment.get_service_name(), str(response.content))
+
+class StaffMemberTestCase(BaseTest):
+    def setUp(self):
+        super().setUp()
+        self.staff_member = self.staff_member1
+        self.appointment = self.create_appointment_for_user1()
+
+    def remove_staff_member(self):
+        """Remove the StaffMember instance of self.user1."""
+        self.clean_staff_member_objects()
+        StaffMember.objects.filter(user=self.user1).delete()
 
     def test_staff_user_without_staff_member_instance(self):
         """Test that a staff user without a staff member instance receives an appropriate error message."""
@@ -218,6 +174,102 @@ class ViewsTestCase(BaseTest):
             message.message == "User doesn't have a staff member instance. Please contact the administrator." for
             message in message_list),
             "Expected error message not found in messages.")
+
+    def test_remove_staff_member(self):
+        self.need_superuser_login()
+        self.clean_staff_member_objects()
+
+        url = reverse('appointment:remove_staff_member', args=[self.staff_member.user_id])
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 302)  # Redirect status code
+        self.assertRedirects(response, reverse('appointment:user_profile'))
+
+        # Check for success messages
+        messages_list = list(get_messages(response.wsgi_request))
+        self.assertTrue(any(_("Staff member deleted successfully!") in str(message) for message in messages_list))
+
+        # Check if staff member is deleted
+        staff_member_exists = StaffMember.objects.filter(pk=self.staff_member.id).exists()
+        self.assertFalse(staff_member_exists, "Appointment should be deleted but still exists.")
+
+    def test_remove_staff_member_with_superuser(self):
+        self.need_superuser_login()
+        self.clean_staff_member_objects()
+        # Test removal of staff member by a superuser
+        response = self.client.get(reverse('appointment:remove_superuser_staff_member'))
+
+        # Check if the StaffMember instance was deleted
+        self.assertFalse(StaffMember.objects.filter(user=self.user1).exists())
+
+        # Check if it redirects to the user profile
+        self.assertRedirects(response, reverse('appointment:user_profile'))
+
+    def test_remove_staff_member_without_superuser(self):
+        # Log out superuser and log in as a regular user
+        self.need_staff_login()
+        response = self.client.get(reverse('appointment:remove_superuser_staff_member'))
+
+        # Check for a forbidden status code, as only superusers should be able to remove staff members
+        self.assertEqual(response.status_code, 403)
+
+    def test_make_staff_member_with_superuser(self):
+        self.need_superuser_login()
+        self.remove_staff_member()
+        # Test creating a staff member by a superuser
+        response = self.client.get(reverse('appointment:make_superuser_staff_member'))
+
+        # Check if the StaffMember instance was created
+        self.assertTrue(StaffMember.objects.filter(user=self.user1).exists())
+
+        # Check if it redirects to the user profile
+        self.assertRedirects(response, reverse('appointment:user_profile'))
+
+    def test_make_staff_member_without_superuser(self):
+        self.need_staff_login()
+        response = self.client.get(reverse('appointment:make_superuser_staff_member'))
+
+        # Check for a forbidden status code, as only superusers should be able to create staff members
+        self.assertEqual(response.status_code, 403)
+
+    def test_is_user_staff_admin_with_staff_member(self):
+        """Test that a user with a StaffMember instance is identified as a staff member."""
+        self.need_staff_login()
+
+        # Ensure the user has a StaffMember instance
+        if not StaffMember.objects.filter(user=self.user1).exists():
+            StaffMember.objects.create(user=self.user1)
+
+        url = reverse('appointment:is_user_staff_admin')
+        response = self.client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+
+        # Check the response status code and content
+        self.assertEqual(response.status_code, 200)
+        response_data = response.json()
+        self.assertIn('message', response_data)
+        self.assertEqual(response_data['message'], _("User is a staff member."))
+
+    def test_is_user_staff_admin_without_staff_member(self):
+        """Test that a user without a StaffMember instance is not identified as a staff member."""
+        self.need_staff_login()
+
+        # Ensure the user does not have a StaffMember instance
+        StaffMember.objects.filter(user=self.user1).delete()
+
+        url = reverse('appointment:is_user_staff_admin')
+        response = self.client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+
+        # Check the response status code and content
+        self.assertEqual(response.status_code, 200)
+        response_data = response.json()
+        self.assertIn('message', response_data)
+        self.assertEqual(response_data['message'], _("User is not a staff member."))
+
+
+class AppointmentTestCase(BaseTest):
+    def setUp(self):
+        super().setUp()
+        self.appointment = self.create_appointment_for_user1()
 
     def test_delete_appointment(self):
         self.need_staff_login()
@@ -287,90 +339,20 @@ class ViewsTestCase(BaseTest):
         # Verify that the appointment still exists in the database
         self.assertTrue(Appointment.objects.filter(id=different_appointment.id).exists())
 
-    def test_remove_staff_member(self):
-        self.need_superuser_login()
-        self.clean_staff_member_objects()
 
-        url = reverse('appointment:remove_staff_member', args=[self.staff_member.user_id])
-        response = self.client.get(url)
-
-        self.assertEqual(response.status_code, 302)  # Redirect status code
-        self.assertRedirects(response, reverse('appointment:user_profile'))
-
-        # Check for success messages
-        messages_list = list(get_messages(response.wsgi_request))
-        self.assertTrue(any(_("Staff member deleted successfully!") in str(message) for message in messages_list))
-
-        # Check if staff member is deleted
-        staff_member_exists = StaffMember.objects.filter(pk=self.staff_member.id).exists()
-        self.assertFalse(staff_member_exists, "Appointment should be deleted but still exists.")
-
-    def test_fetch_service_list_for_staff(self):
-        self.need_staff_login()
-
-        # Assuming self.service1 and self.service2 are services linked to self.staff_member1
-        self.staff_member1.services_offered.add(self.service1, self.service2)
-        staff_member_services = [self.service1, self.service2]
-
-        # Simulate a request without appointmentId
-        url = reverse('appointment:fetch_service_list_for_staff')
-        response = self.client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-        self.assertEqual(response.status_code, 200)
-        response_data = response.json()
-        self.assertEqual(response_data["message"], "Successfully fetched services.")
-        self.assertCountEqual(
-            response_data["services_offered"],
-            [{"id": service.id, "name": service.name} for service in staff_member_services]
-        )
-
-        # Create a test appointment and link it to self.staff_member1
-        test_appointment = self.create_appointment_for_user1()
-
-        # Simulate a request with appointmentId
-        url_with_appointment = f"{url}?appointmentId={test_appointment.id}"
-        response_with_appointment = self.client.get(url_with_appointment, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-        self.assertEqual(response_with_appointment.status_code, 200)
-        response_data_with_appointment = response_with_appointment.json()
-        self.assertEqual(response_data_with_appointment["message"], "Successfully fetched services.")
-        # Assuming the staff member linked to the appointment offers the same services
-        self.assertCountEqual(
-            response_data_with_appointment["services_offered"],
-            [{"id": service.id, "name": service.name} for service in staff_member_services]
-        )
-
-    def test_fetch_service_list_for_staff_no_staff_member_instance(self):
-        """Test that a superuser without a StaffMember instance receives an appropriate error message."""
-        self.need_superuser_login()
-
-        # Ensure the superuser does not have a StaffMember instance
-        StaffMember.objects.filter(user=self.user1).delete()
-
-        url = reverse('appointment:fetch_service_list_for_staff')
-        response = self.client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-
-        # Check the response status code and content
-        self.assertEqual(response.status_code, 400)
-        response_data = response.json()
-        self.assertIn('message', response_data)
-        self.assertEqual(response_data['message'], _("You're not a staff member. Can't perform this action !"))
-        self.assertFalse(response_data['success'])
-
-    def test_fetch_service_list_for_staff_no_services_offered(self):
-        """Test fetching services for a staff member who offers no services."""
-        self.need_staff_login()
-
-        # Assuming self.staff_member1 offers no services
-        self.staff_member1.services_offered.clear()
-
-        url = reverse('appointment:fetch_service_list_for_staff')
-        response = self.client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-
-        # Check response status code and content
-        self.assertEqual(response.status_code, 404)
-        response_data = response.json()
-        self.assertIn('message', response_data)
-        self.assertEqual(response_data['message'], _("No services offered by this staff member."))
-        self.assertFalse(response_data['success'])
+class UpdateAppointmentTestCase(BaseTest):
+    def setUp(self):
+        super().setUp()
+        self.appointment = self.create_appointment_for_user1()
+        self.tomorrow = date.today() + timedelta(days=1)
+        self.data = {
+            'isCreating': False, 'service_id': self.service1.pk, 'appointment_id': self.appointment.id,
+            'client_name': 'Bryan Zap',
+            'client_email': 'bz@gmail.com', 'client_phone': '+33769992738', 'client_address': 'Naples, Florida',
+            'want_reminder': 'false', 'additional_info': '', 'start_time': '15:00:26',
+            'staff_id': self.staff_member1.id,
+            'date': self.tomorrow.strftime('%Y-%m-%d')
+        }
 
     def test_update_appt_min_info_create(self):
         self.need_staff_login()
@@ -401,6 +383,7 @@ class ViewsTestCase(BaseTest):
 
         # Create an appointment to update
         url = reverse('appointment:update_appt_min_info')
+        self.staff_member1.services_offered.add(self.service1)
 
         # Making the request
         response = self.client.post(url, data=json.dumps(self.data), content_type='application/json',
@@ -417,7 +400,7 @@ class ViewsTestCase(BaseTest):
         self.assertIn('appt', response_data)
 
         # Verify appointment updated in the database
-        updated_appt = Appointment.objects.get(id=self.appt.id)
+        updated_appt = Appointment.objects.get(id=self.appointment.id)
         self.assertEqual(updated_appt.client.email, self.data['client_email'])
 
     def test_update_nonexistent_appointment(self):
@@ -459,7 +442,7 @@ class ViewsTestCase(BaseTest):
 
         # Preparing invalid data to trigger an exception, for example here, no email address
         data = {
-            'isCreating': False, 'service_id': '1', 'appointment_id': self.appt.id,
+            'isCreating': False, 'service_id': '1', 'appointment_id': self.appointment.id,
         }
         url = reverse('appointment:update_appt_min_info')
 
@@ -471,6 +454,76 @@ class ViewsTestCase(BaseTest):
         self.assertEqual(response.status_code, 400)
         response_data = response.json()
         self.assertIn('message', response_data)
+
+
+class ServiceViewTestCase(BaseTest):
+    def setUp(self):
+        super().setUp()
+
+    def test_fetch_service_list_for_staff(self):
+        self.need_staff_login()
+
+        # Assuming self.service1 and self.service2 are services linked to self.staff_member1
+        self.staff_member1.services_offered.add(self.service1, self.service2)
+        staff_member_services = [self.service1, self.service2]
+
+        # Simulate a request without appointmentId
+        url = reverse('appointment:fetch_service_list_for_staff')
+        response = self.client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.status_code, 200)
+        response_data = response.json()
+        self.assertEqual(response_data["message"], "Successfully fetched services.")
+        self.assertCountEqual(
+            response_data["services_offered"],
+            [{"id": service.id, "name": service.name} for service in staff_member_services]
+        )
+
+        # Create a test appointment and link it to self.staff_member1
+        test_appointment = self.create_appointment_for_user1()
+
+        # Simulate a request with appointmentId
+        url_with_appointment = f"{url}?appointmentId={test_appointment.id}"
+        response_with_appointment = self.client.get(url_with_appointment, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response_with_appointment.status_code, 200)
+        response_data_with_appointment = response_with_appointment.json()
+        self.assertEqual(response_data_with_appointment["message"], "Successfully fetched services.")
+        # Assuming the staff member linked to the appointment offers the same services
+        self.assertCountEqual(
+            response_data_with_appointment["services_offered"],
+            [{"id": service.id, "name": service.name} for service in staff_member_services]
+        )
+
+    def test_fetch_service_list_for_staff_no_staff_member_instance(self):
+        """Test that a superuser without a StaffMember instance receives no inappropriate error message."""
+        self.need_superuser_login()
+
+        # Ensure the superuser does not have a StaffMember instance
+        StaffMember.objects.filter(user=self.user1).delete()
+
+        url = reverse('appointment:fetch_service_list_for_staff')
+        response = self.client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+
+        # Check the response status code and content
+        self.assertEqual(response.status_code, 200)
+        response_data = response.json()
+        self.assertIn('message', response_data)
+
+    def test_fetch_service_list_for_staff_no_services_offered(self):
+        """Test fetching services for a staff member who offers no services."""
+        self.need_staff_login()
+
+        # Assuming self.staff_member1 offers no services
+        self.staff_member1.services_offered.clear()
+
+        url = reverse('appointment:fetch_service_list_for_staff')
+        response = self.client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+
+        # Check response status code and content
+        self.assertEqual(response.status_code, 404)
+        response_data = response.json()
+        self.assertIn('message', response_data)
+        self.assertEqual(response_data['message'], _("No services offered by this staff member."))
+        self.assertFalse(response_data['success'])
 
     def test_delete_service_with_superuser(self):
         self.need_superuser_login()
@@ -504,77 +557,12 @@ class ViewsTestCase(BaseTest):
         # Check for a 404-status code
         self.assertEqual(response.status_code, 404)
 
-    def test_remove_staff_member_with_superuser(self):
-        self.need_superuser_login()
-        self.clean_staff_member_objects()
-        # Test removal of staff member by a superuser
-        response = self.client.get(reverse('appointment:remove_superuser_staff_member'))
 
-        # Check if the StaffMember instance was deleted
-        self.assertFalse(StaffMember.objects.filter(user=self.user1).exists())
-
-        # Check if it redirects to the user profile
-        self.assertRedirects(response, reverse('appointment:user_profile'))
-
-    def test_remove_staff_member_without_superuser(self):
-        # Log out superuser and log in as a regular user
-        self.need_staff_login()
-        response = self.client.get(reverse('appointment:remove_superuser_staff_member'))
-
-        # Check for a forbidden status code, as only superusers should be able to remove staff members
-        self.assertEqual(response.status_code, 403)
-
-    def test_make_staff_member_with_superuser(self):
-        self.need_superuser_login()
-        self.remove_staff_member()
-        # Test creating a staff member by a superuser
-        response = self.client.get(reverse('appointment:make_superuser_staff_member'))
-
-        # Check if the StaffMember instance was created
-        self.assertTrue(StaffMember.objects.filter(user=self.user1).exists())
-
-        # Check if it redirects to the user profile
-        self.assertRedirects(response, reverse('appointment:user_profile'))
-
-    def test_make_staff_member_without_superuser(self):
-        self.need_staff_login()
-        response = self.client.get(reverse('appointment:make_superuser_staff_member'))
-
-        # Check for a forbidden status code, as only superusers should be able to create staff members
-        self.assertEqual(response.status_code, 403)
-
-    def test_is_user_staff_admin_with_staff_member(self):
-        """Test that a user with a StaffMember instance is identified as a staff admin."""
-        self.need_staff_login()
-
-        # Ensure the user has a StaffMember instance
-        if not StaffMember.objects.filter(user=self.user1).exists():
-            StaffMember.objects.create(user=self.user1)
-
-        url = reverse('appointment:is_user_staff_admin')
-        response = self.client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-
-        # Check the response status code and content
-        self.assertEqual(response.status_code, 200)
-        response_data = response.json()
-        self.assertIn('message', response_data)
-        self.assertEqual(response_data['message'], _("User is a staff member."))
-
-    def test_is_user_staff_admin_without_staff_member(self):
-        """Test that a user without a StaffMember instance is not identified as a staff admin."""
-        self.need_staff_login()
-
-        # Ensure the user does not have a StaffMember instance
-        StaffMember.objects.filter(user=self.user1).delete()
-
-        url = reverse('appointment:is_user_staff_admin')
-        response = self.client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-
-        # Check the response status code and content
-        self.assertEqual(response.status_code, 200)
-        response_data = response.json()
-        self.assertIn('message', response_data)
-        self.assertEqual(response_data['message'], _("User is not a staff member."))
+class AppointmentDisplayViewTestCase(BaseTest):
+    def setUp(self):
+        super().setUp()
+        self.appointment = self.create_appointment_for_user1()
+        self.url_display_appt = reverse('appointment:display_appointment', args=[self.appointment.id])
 
     def test_display_appointment_authenticated_staff_user(self):
         # Log in as staff user
@@ -607,6 +595,16 @@ class ViewsTestCase(BaseTest):
         non_existent_url = reverse('appointment:display_appointment', args=[99999])  # Non-existent appointment ID
         response = self.client.get(non_existent_url)
         self.assertEqual(response.status_code, 404)  # Expect 404 error
+
+
+class DayOffViewsTestCase(BaseTest):
+    def setUp(self):
+        super().setUp()
+        self.url_add_day_off = reverse('appointment:add_day_off', args=[self.staff_member1.user_id])
+        self.other_staff_member = self.staff_member2
+        self.day_off = DayOff.objects.create(staff_member=self.staff_member1,
+                                             start_date=date.today() + timedelta(days=1),
+                                             end_date=date.today() + timedelta(days=2), description="Day off")
 
     def test_add_day_off_authenticated_staff_user(self):
         # Log in as staff user
@@ -683,6 +681,89 @@ class ViewsTestCase(BaseTest):
         url = reverse('appointment:delete_day_off', args=[non_existent_day_off_id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, 404)
+
+
+class ViewsTestCase(BaseTest):
+    def setUp(self):
+        super().setUp()
+        self.client = Client()
+        self.factory = RequestFactory()
+        self.request = self.factory.get('/')
+        self.staff_member = self.staff_member1
+        WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=0,
+                                    start_time=datetime.time(8, 0), end_time=datetime.time(12, 0))
+        WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=2,
+                                    start_time=datetime.time(8, 0), end_time=datetime.time(12, 0))
+        self.ar = self.create_appt_request_for_sm1()
+        self.user1.is_staff = True
+        self.request.user = self.user1
+
+    def test_get_next_available_date_ajax(self):
+        """get_next_available_date_ajax view should return a JSON response with the next available date."""
+        data = {'staff_id': self.staff_member.id}
+        url = reverse('appointment:request_next_available_slot', args=[self.service1.id])
+        response = self.client.get(url, data=data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.status_code, 200)
+        response_data = json.loads(response.content)
+        self.assertIsNotNone(response_data)
+        self.assertIsNotNone(response_data['next_available_date'])
+
+    def test_default_thank_you(self):
+        """Test if the default thank you page can be rendered."""
+        appointment = Appointment.objects.create(client=self.user1, appointment_request=self.ar)
+        url = reverse('appointment:default_thank_you', args=[appointment.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(appointment.get_service_name(), str(response.content))
+
+
+class AddStaffMemberInfoTestCase(ViewsTestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.staff_member = self.staff_member1
+        self.url = reverse('appointment:add_staff_member_info')
+        self.user_test = self.create_user_(
+            first_name="Great Tester", email="great.tester@django-appointment.com", username="great_tester"
+        )
+        self.data = {
+            "user": self.user_test.id,
+            "services_offered": [self.service1.id, self.service2.id],
+            "working_hours": [
+                {"day_of_week": 0, "start_time": "08:00", "end_time": "12:00"},
+                {"day_of_week": 2, "start_time": "08:00", "end_time": "12:00"}
+            ]
+        }
+
+    def test_add_staff_member_info_access_by_superuser(self):
+        """Test that the add staff member page is accessible by a superuser."""
+        self.need_superuser_login()
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.context['form'], StaffMemberForm)
+
+    def test_add_staff_member_info_access_by_non_superuser(self):
+        """Test that non-superusers cannot access the add staff member page."""
+        self.need_staff_login()
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_add_staff_member_info_successful_submission(self):
+        """Test successful submission of the "add staff member" form."""
+        self.need_superuser_login()
+        response = self.client.post(self.url, data=self.data)
+        self.assertEqual(response.status_code, 302)  # Expect a redirect
+        self.assertTrue(StaffMember.objects.filter(user=self.user_test).exists())
+
+    def test_add_staff_member_info_invalid_form_submission(self):
+        """Test submission of an invalid form."""
+        self.need_superuser_login()
+        data = self.data.copy()
+        data.pop('user')
+        response = self.client.post(self.url, data=data)
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.context['form'], StaffMemberForm)
+        self.assertTrue(response.context['form'].errors)
 
 
 class SetPasswordViewTests(BaseTest):

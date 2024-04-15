@@ -37,7 +37,6 @@ This project depends on several third-party libraries:
 - phonenumbers==8.13.25
 - django-phonenumber-field==7.2.0
 - babel==2.13.1
-- pytz~=2023.3.post1
 
 We strive to keep these dependencies up to date and free from vulnerabilities. If you find a vulnerability in one of
 these dependencies, please follow the steps above to report it.

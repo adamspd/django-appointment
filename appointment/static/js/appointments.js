@@ -10,6 +10,7 @@ let isRequestInProgress = false;
 const calendar = new FullCalendar.Calendar(calendarEl, {
     initialView: 'dayGridMonth',
     initialDate: selectedDate,
+    timeZone: timezone,
     headerToolbar: {
         left: 'title',
         right: 'prev,today,next',

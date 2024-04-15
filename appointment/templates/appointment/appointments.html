@@ -109,7 +109,7 @@
             integrity="sha512-JCQkxdym6GmQ+AFVioDUq8dWaWN6tbKRhRyHvYZPupQ6DxpXzkW106FXS1ORgo/m3gxtt5lHRMqSdm2OfPajtg=="
             crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script>
-        const timezone = "{{ timezone }}";
+        const timezone = "{{ timezoneTxt }}";
         const locale = "{{ locale }}";
         const availableSlotsAjaxURL = "{% url 'appointment:available_slots_ajax' %}";
         const requestNextAvailableSlotURLTemplate = "{% url 'appointment:request_next_available_slot' service_id=0 %}";
