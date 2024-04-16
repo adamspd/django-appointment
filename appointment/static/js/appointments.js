@@ -158,7 +158,7 @@ function fetchNonWorkingDays(staffId, callback) {
         return;  // Exit the function early
     }
     let ajaxData = {
-        'staff_id': staffId,
+        'staff_member': staffId,
     };
 
     $.ajax({
@@ -231,7 +231,7 @@ function getAvailableSlots(selectedDate, staffId = null) {
 
     let ajaxData = {
         'selected_date': selectedDate,
-        'staff_id': staffId,
+        'staff_member': staffId,
     };
     fetchNonWorkingDays(staffId, function (nonWorkingDays) {
         // Check if nonWorkingDays is an array
@@ -325,7 +325,7 @@ function requestNextAvailableSlot(serviceId) {
         return;
     }
     let ajaxData = {
-        'staff_id': staffId,
+        'staff_member': staffId,
     };
     $.ajax({
         url: requestNextAvailableSlotURL,

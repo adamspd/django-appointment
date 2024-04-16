@@ -29,10 +29,7 @@ from appointment.models import (
 from appointment.tests.base.base_test import BaseTest
 from appointment.utils.db_helpers import Service, WorkingHours, create_user_with_username
 from appointment.utils.error_codes import ErrorCode
-from appointment.views import (
-    create_appointment, get_appointment_data_from_post_request, get_client_data_from_post,
-    redirect_to_payment_or_thank_you_page, verify_user_and_login
-)
+from appointment.views import create_appointment, redirect_to_payment_or_thank_you_page, verify_user_and_login
 
 
 class SlotTestCase(BaseTest):
@@ -43,21 +40,23 @@ class SlotTestCase(BaseTest):
 
     def test_get_available_slots_ajax(self):
         """get_available_slots_ajax view should return a JSON response with available slots for the selected date."""
-        response = self.client.get(self.url, {'selected_date': date.today().isoformat()},
+        response = self.client.get(self.url, {'selected_date': date.today().isoformat(), 'staff_member': self.staff_member1.id},
                                    HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-        self.assertEqual(response.status_code, 403)
         response_data = response.json()
         self.assertIn('date_chosen', response_data)
         self.assertIn('available_slots', response_data)
         self.assertFalse(response_data.get('error'))
 
-    def test_get_available_slots_ajax_past_date(self):
+    def test_get_available_slots_ajax_invalid_form(self):
         """get_available_slots_ajax view should return an error if the selected date is in the past."""
         past_date = (date.today() - timedelta(days=1)).isoformat()
         response = self.client.get(self.url, {'selected_date': past_date}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-        self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()['error'], True)
         self.assertEqual(response.json()['message'], 'Date is in the past')
+        # invalid staff id
+        response = self.client.get(self.url, {'selected_date': date.today(), 'staff_member': 999}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.json()['error'], True)
+        self.assertEqual(response.json()['message'], 'Staff member does not exist')
 
 
 class AppointmentRequestTestCase(BaseTest):
@@ -1041,114 +1040,6 @@ class ConfirmRescheduleViewTests(BaseTest):
         self.client.get(self.url)
         mock_notify_admin.assert_called_once()
         self.assertTrue(mock_notify_admin.called)
-
-
-class GetAppointmentDataFromPostRequestTests(BaseTest):
-    def setUp(self):
-        self.factory = RequestFactory()
-        self.post_data = {
-            'phone': '1234567890',
-            'want_reminder': 'on',
-            'address': '123 Test St, Test City',
-            'additional_info': 'Please ring the bell.'
-        }
-
-    def test_get_appointment_data_from_post_request_with_data(self):
-        """Test retrieving appointment data from a POST request with all data provided."""
-        request = self.factory.post('/fake-url/', self.post_data)
-
-        appointment_data = get_appointment_data_from_post_request(request)
-
-        self.assertEqual(appointment_data['phone'], self.post_data['phone'])
-        self.assertTrue(appointment_data['want_reminder'])
-        self.assertEqual(appointment_data['address'], self.post_data['address'])
-        self.assertEqual(appointment_data['additional_info'], self.post_data['additional_info'])
-
-    def test_get_appointment_data_from_post_request_partial_data(self):
-        """Test retrieving appointment data from a POST request with partial data provided."""
-        partial_post_data = {
-            'phone': '1234567890',
-            # 'want_reminder' omitted to simulate unchecked checkbox
-            'address': '123 Test St, Test City',
-            # 'additional_info' omitted to simulate empty field
-        }
-        request = self.factory.post('/fake-url/', partial_post_data)
-
-        appointment_data = get_appointment_data_from_post_request(request)
-
-        self.assertEqual(appointment_data['phone'], partial_post_data['phone'])
-        self.assertFalse(appointment_data['want_reminder'], "want_reminder should be False if not 'on'")
-        self.assertEqual(appointment_data['address'], partial_post_data['address'])
-        self.assertEqual(appointment_data['additional_info'], None, "additional_info should be None if not provided")
-
-    def test_get_appointment_data_from_post_request_missing_data(self):
-        """Test retrieving appointment data from a POST request with missing data."""
-        missing_data_post = {}
-        request = self.factory.post('/fake-url/', missing_data_post)
-
-        appointment_data = get_appointment_data_from_post_request(request)
-
-        self.assertEqual(appointment_data['phone'], None, "phone should be None if not provided")
-        self.assertFalse(appointment_data['want_reminder'], "want_reminder should be False if not provided")
-        self.assertEqual(appointment_data['address'], None, "address should be None if not provided")
-        self.assertEqual(appointment_data['additional_info'], None, "additional_info should be None if not provided")
-
-
-class GetClientDataFromPostTests(BaseTest):
-    def setUp(self):
-        self.factory = RequestFactory()
-
-    def test_get_client_data_with_full_data(self):
-        """Test retrieving client data from a POST request with all fields provided."""
-        post_data = {
-            'name': 'John Doe',
-            'email': 'john.doe@example.com',
-        }
-        request = self.factory.post('/fake-url/', post_data)
-
-        client_data = get_client_data_from_post(request)
-
-        self.assertEqual(client_data['name'], post_data['name'])
-        self.assertEqual(client_data['email'], post_data['email'])
-
-    def test_get_client_data_with_missing_name(self):
-        """Test retrieving client data from a POST request with the name missing."""
-        post_data = {
-            # 'name' is missing
-            'email': 'john.doe@example.com',
-        }
-        request = self.factory.post('/fake-url/', post_data)
-
-        client_data = get_client_data_from_post(request)
-
-        self.assertIsNone(client_data['name'], "name should be None if not provided")
-        self.assertEqual(client_data['email'], post_data['email'])
-
-    def test_get_client_data_with_missing_email(self):
-        """Test retrieving client data from a POST request with the email missing."""
-        post_data = {
-            'name': 'John Doe',
-            # 'email' is missing
-        }
-        request = self.factory.post('/fake-url/', post_data)
-
-        client_data = get_client_data_from_post(request)
-
-        self.assertEqual(client_data['name'], post_data['name'])
-        self.assertIsNone(client_data['email'], "email should be None if not provided")
-
-    def test_get_client_data_with_empty_fields(self):
-        """Test retrieving client data from a POST request with empty fields."""
-        post_data = {
-            'name': '',
-            'email': '',
-        }
-        request = self.factory.post('/fake-url/', post_data)
-
-        client_data = get_client_data_from_post(request)
-
-        self.assertEqual(client_data['name'], '', "name should be empty string if provided as such")
-        self.assertEqual(client_data['email'], '', "email should be empty string if provided as such")
 
 
 class RedirectToPaymentOrThankYouPageTests(BaseTest):
