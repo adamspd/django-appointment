@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from django.test import TransactionTestCase
+from django.test import TestCase
 
 from appointment.models import Appointment, AppointmentRequest, Service, StaffMember
 from appointment.tests.mixins.base_mixin import (
@@ -10,7 +10,7 @@ from appointment.tests.mixins.base_mixin import (
 from appointment.utils.db_helpers import get_user_model
 
 
-class BaseTest(TransactionTestCase, UserMixin, StaffMemberMixin, ServiceMixin, AppointmentRequestMixin,
+class BaseTest(TestCase, UserMixin, StaffMemberMixin, ServiceMixin, AppointmentRequestMixin,
                AppointmentMixin, AppointmentRescheduleHistoryMixin):
     service1 = None
     service2 = None
@@ -32,8 +32,10 @@ class BaseTest(TransactionTestCase, UserMixin, StaffMemberMixin, ServiceMixin, A
     @classmethod
     def setUpTestData(cls):
         cls.users = {key: cls.create_user_(**details) for key, details in cls.USER_SPECS.items()}
-        cls.service1 = cls.create_service_()
-        cls.service2 = cls.create_service_(name="Dial Home Device Repair", duration=timedelta(hours=2), price=200)
+        cls.service1 = cls.create_service_(
+            name="Stargate Activation", duration=timedelta(hours=1), price=100000, description="Activate the Stargate")
+        cls.service2 = cls.create_service_(
+            name="Dial Home Device Repair", duration=timedelta(hours=2), price=200000, description="Repair the DHD")
         # Mapping services to staff members
         cls.staff_member1 = cls.create_staff_member_(user=cls.users['staff1'], service=cls.service1)
         cls.staff_member2 = cls.create_staff_member_(user=cls.users['staff2'], service=cls.service2)
