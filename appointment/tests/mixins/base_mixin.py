@@ -11,10 +11,9 @@ class UserMixin:
         pass
 
     @classmethod
-    def create_user_(cls, first_name="Tester", email="testemail@gmail.com", username="test_user",
-                     password="Kfdqi3!?n"):
-        user_model = get_user_model()
-        return user_model.objects.create_user(
+    def create_user_(cls, first_name="Janet", email="janet.fraiser@django-appointment.com", username="janet.fraiser",
+                     password="G0a'uld$Emp1re"):
+        return get_user_model().objects.create_user(
             first_name=first_name,
             email=email,
             username=username,
@@ -27,7 +26,7 @@ class ServiceMixin:
         pass
 
     @classmethod
-    def create_service_(cls, name="Test Service", duration=timedelta(hours=1), price=100):
+    def create_service_(cls, name="Quantum Mirror Assessment", duration=timedelta(hours=1), price=100):
         return Service.objects.create(
             name=name,
             duration=duration,
@@ -62,7 +61,7 @@ class AppointmentRequestMixin:
         )
 
     @classmethod
-    def clean_appt_request_for_user(cls, user):
+    def clean_appt_request_for_user_(cls, user):
         AppointmentRequest.objects.filter(staff_member__user=user).delete()
 
 
@@ -71,7 +70,8 @@ class AppointmentMixin:
         pass
 
     @classmethod
-    def     create_appointment_(cls, user, appointment_request, phone="1234567890", address="Some City, Some State"):
+    def create_appointment_(cls, user, appointment_request, phone="1234567890",
+                            address="Stargate Command, Cheyenne Mountain Complex, Colorado Springs, CO"):
         return Appointment.objects.create(
             client=user,
             appointment_request=appointment_request,
@@ -80,7 +80,7 @@ class AppointmentMixin:
         )
 
     @classmethod
-    def clean_appointment_for_user(cls, user):
+    def clean_appointment_for_user_(cls, user):
         Appointment.objects.filter(client=user).delete()
 
 
@@ -90,7 +90,7 @@ class AppointmentRescheduleHistoryMixin:
 
     @classmethod
     def create_reschedule_history_(cls, appointment_request, date_, start_time, end_time, staff_member,
-                                   reason_for_rescheduling=""):
+                                   reason_for_rescheduling="Zat'nik'tel Discharge"):
         return AppointmentRescheduleHistory.objects.create(
             appointment_request=appointment_request,
             date=date_,
