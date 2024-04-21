@@ -34,7 +34,7 @@ jobs:
         pip install coverage
     - name: Run Tests
       run: |
-        coverage run --source=appointment manage.py test appointment.tests --verbosity=1
+        coverage run --source=appointment manage.py test appointment.tests --verbosity=1 --parallel 5
         coverage report
         coverage xml
     - name: Upload to Codecov

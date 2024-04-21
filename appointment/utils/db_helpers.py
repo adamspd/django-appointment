@@ -486,12 +486,18 @@ def get_appointments_for_date_and_time(date, start_time, end_time, staff_member)
 
 
 def get_config():
-    """Returns the configuration object from the database or the cache."""
-    config = cache.get('config')
-    if not config:
+    """
+    Returns the configuration object from the database or the cache.
+    Ensures there's always an attempt to fetch a fresh config if not initially found in the cache.
+    """
+    cache_key = 'global_config'
+    config = cache.get(cache_key)
+    if config is None:
         config = Config.objects.first()
-        # Cache the configuration for 1 hour (3600 seconds)
-        cache.set('config', config, 3600)
+        if config:
+            cache.set(cache_key, config, timeout=3600)  # Cache for 1 hour
+        else:
+            logger.warning("No Config object found in the database.")
     return config
 
 
@@ -590,6 +596,7 @@ def get_times_from_config(date):
     """
     config = get_config()
     if config:
+        logger.info(f"\n\n\nUsing configuration : {config}\n\n\n")
         start_time = datetime.datetime.combine(date, datetime.time(hour=config.lead_time.hour,
                                                                    minute=config.lead_time.minute))
         end_time = datetime.datetime.combine(date, datetime.time(hour=config.finish_time.hour,

@@ -664,6 +664,9 @@ class Config(models.Model):
         if self.lead_time is not None and self.finish_time is not None:
             if self.lead_time >= self.finish_time:
                 raise ValidationError(_("Lead time must be before finish time"))
+        # Don't accept negative value for appointment_buffer_time
+        if self.appointment_buffer_time is not None and self.appointment_buffer_time < 0:
+            raise ValueError(_("Appointment buffer time cannot be negative"))
 
     def save(self, *args, **kwargs):
         self.clean()
@@ -671,7 +674,11 @@ class Config(models.Model):
         super(Config, self).save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
-        pass
+        print(f"Settings.DEBUG: {settings.DEBUG}")
+        if settings.DEBUG:  # Only condition I find suitable for allowing deletion
+            super(Config, self).delete(*args, **kwargs)
+        else:
+            pass
 
     @classmethod
     def get_instance(cls):
