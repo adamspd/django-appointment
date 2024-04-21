@@ -26,11 +26,13 @@ class ServiceMixin:
         pass
 
     @classmethod
-    def create_service_(cls, name="Quantum Mirror Assessment", duration=timedelta(hours=1), price=100):
+    def create_service_(cls, name="Quantum Mirror Assessment", duration=timedelta(hours=1), price=50000,
+                        description="Assess the Quantum Mirror"):
         return Service.objects.create(
             name=name,
             duration=duration,
-            price=price
+            price=price,
+            description=description
         )
 
 
