@@ -300,10 +300,9 @@ information.
 
 ## Notes 📝⚠️
 
-I'm working on a testing website for the application
-that is not fully functional yet, no hard feelings. But you can check it out
-at [https://django-appt.adamspierredavid.com/](https://django-appt.adamspierredavid.com/). Ideas are welcome here since
-I'm blocked on a few points.
+I'm working on a testing website for the application that is not fully functional yet, no hard feelings. Before using it, 
+it's important to me that you read the terms of use, only then you can use it if you agree to them. The demo website is located
+at [https://django-appt.adamspierredavid.com/terms-and-conditions/](https://django-appt.adamspierredavid.com/). Ideas are welcome.
 
 ## About the Author
 
