@@ -54,13 +54,17 @@ class BaseTest(TestCase, UserMixin, StaffMemberMixin, ServiceMixin, AppointmentR
         Service.objects.all().delete()
         get_user_model().objects.all().delete()
 
-    def create_appt_request_for_sm1(self, **kwargs):
+    def create_appt_request_for_sm1(self, service=None, staff_member=None, **kwargs):
         """Create an appointment request for staff_member1."""
-        return self.create_appointment_request_(service=self.service1, staff_member=self.staff_member1, **kwargs)
+        service = service or self.service1
+        staff_member = staff_member or self.staff_member1
+        return self.create_appointment_request_(service=service, staff_member=staff_member, **kwargs)
 
-    def create_appt_request_for_sm2(self, **kwargs):
+    def create_appt_request_for_sm2(self, service=None, staff_member=None, **kwargs):
         """Create an appointment request for staff_member2."""
-        return self.create_appointment_request_(service=self.service2, staff_member=self.staff_member2, **kwargs)
+        service = service or self.service2
+        staff_member = staff_member or self.staff_member2
+        return self.create_appointment_request_(service=service, staff_member=staff_member, **kwargs)
 
     def create_appt_for_sm1(self, appointment_request=None):
         if not appointment_request:

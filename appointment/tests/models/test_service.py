@@ -25,7 +25,7 @@ class ServiceCreationAndBasicAttributesTests(BaseTest):
     def test_basic_attributes_verification(self):
         self.assertEqual(self.service.name, "Stargate Activation")
         self.assertEqual(self.service.description, "Activate the Stargate")
-        self.assertEqual(self.service.duration, self.service1.duration)
+        self.assertEqual(self.service.duration, timedelta(hours=1))
 
     def test_timestamps_on_creation(self):
         """Newly created services should have created_at and updated_at values."""
