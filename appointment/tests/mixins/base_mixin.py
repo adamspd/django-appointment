@@ -72,7 +72,7 @@ class AppointmentMixin:
         pass
 
     @classmethod
-    def create_appointment_(cls, user, appointment_request, phone="1234567890",
+    def create_appointment_(cls, user, appointment_request, phone="+12392340543",
                             address="Stargate Command, Cheyenne Mountain Complex, Colorado Springs, CO"):
         return Appointment.objects.create(
             client=user,
