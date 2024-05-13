@@ -302,7 +302,7 @@ information.
 
 I'm working on a testing website for the application that is not fully functional yet, no hard feelings. Before using it, 
 it's important to me that you read the terms of use, only then you can use it if you agree to them. The demo website is located
-at [https://django-appt.adamspierredavid.com/terms-and-conditions/](https://django-appt.adamspierredavid.com/). Ideas are welcome.
+at [https://django-appt.adamspierredavid.com/](https://django-appt.adamspierredavid.com/terms-and-conditions/). Ideas are welcome.
 
 ## About the Author
 
