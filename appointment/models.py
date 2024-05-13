@@ -10,6 +10,7 @@ import datetime
 import random
 import string
 import uuid
+from decimal import Decimal, InvalidOperation
 
 from babel.numbers import get_currency_symbol
 from django.conf import settings
@@ -435,7 +436,7 @@ class Appointment(models.Model):
     want_reminder = models.BooleanField(default=False)
     additional_info = models.TextField(blank=True, null=True)
     paid = models.BooleanField(default=False)
-    amount_to_pay = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True)
+    amount_to_pay = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     id_request = models.CharField(max_length=100, blank=True, null=True)
 
     # meta datas
@@ -453,15 +454,29 @@ class Appointment(models.Model):
 
         if self.id_request is None:
             self.id_request = f"{get_timestamp()}{self.appointment_request.id}{generate_random_id()}"
-        if self.amount_to_pay is None or self.amount_to_pay == 0:
-            payment_type = self.appointment_request.payment_type
-            if payment_type == 'full':
-                self.amount_to_pay = self.appointment_request.get_service_price()
-            elif payment_type == 'down':
-                self.amount_to_pay = self.appointment_request.get_service_down_payment()
-            else:
-                self.amount_to_pay = 0
+
+        try:
+            # Ensure `amount_to_pay` is a Decimal and handle both int and float inputs
+            if self.amount_to_pay is None:
+                self.amount_to_pay = self._calculate_amount_to_pay()
+
+            self.amount_to_pay = self._to_decimal(self.amount_to_pay)
+        except InvalidOperation:
+            raise ValidationError("Invalid amount format for payment.")
+
         return super().save(*args, **kwargs)
+
+    def _calculate_amount_to_pay(self):
+        payment_type = self.appointment_request.payment_type
+        if payment_type == 'full':
+            return self.appointment_request.get_service_price()
+        elif payment_type == 'down':
+            return self.appointment_request.get_service_down_payment()
+        else:
+            return Decimal('0.00')
+
+    def _to_decimal(self, value):
+        return Decimal(f"{value}").quantize(Decimal('0.01'))
 
     def get_client_name(self):
         if hasattr(self.client, 'get_full_name') and callable(getattr(self.client, 'get_full_name')):
@@ -664,6 +679,10 @@ class Config(models.Model):
         if self.lead_time is not None and self.finish_time is not None:
             if self.lead_time >= self.finish_time:
                 raise ValidationError(_("Lead time must be before finish time"))
+        if self.appointment_buffer_time is not None and self.appointment_buffer_time < 0:
+            raise ValidationError(_("Appointment buffer time cannot be negative"))
+        if self.slot_duration is not None and self.slot_duration <= 0:
+            raise ValidationError(_("Slot duration must be greater than 0"))
 
     def save(self, *args, **kwargs):
         self.clean()

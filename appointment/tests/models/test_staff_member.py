@@ -29,6 +29,9 @@ class StaffMemberCreationTests(BaseTest):
         self.assertIsNone(self.staff_member.finish_time)
         self.assertIsNone(self.staff_member.slot_duration)
         self.assertIsNone(self.staff_member.appointment_buffer_time)
+        self.assertIsNotNone(self.staff_member.created_at)
+        expected_str = self.staff_member.get_staff_member_name()
+        self.assertEqual(str(self.staff_member), expected_str)
 
     def test_creation_without_service(self):
         """A staff member can be created without a service."""
@@ -77,6 +80,7 @@ class StaffMemberServiceTests(BaseTest):
         """Test get_services_offered & get_service_offered_text function."""
         self.assertIn(self.service, self.staff_member.get_services_offered())
         self.assertEqual(self.staff_member.get_service_offered_text(), self.service.name)
+        self.assertTrue(self.staff_member.get_service_is_offered(self.service.pk))
 
     def test_staff_member_with_non_existent_service(self):
         """A staff member cannot offer a non-existent service."""
@@ -201,18 +205,9 @@ class StaffMemberGetterTestCase(BaseTest):
     def get_fresh_staff_member(self):
         return deepcopy(self.staff_member)
 
-    def test_staff_member_string_output(self):
-        """Test the string representation of a StaffMember."""
-        expected_str = self.staff_member.get_staff_member_name()
-        self.assertEqual(str(self.staff_member), expected_str)
-
     def test_get_staff_member_first_name(self):
         """Test that the staff member's first name is returned."""
         self.assertEqual(self.staff_member.get_staff_member_first_name(), self.staff.first_name)
-
-    def test_date_joined_auto_creation(self):
-        """Test if the date_joined field is automatically set upon creation."""
-        self.assertIsNotNone(self.staff_member.created_at)
 
     def test_config_values_takes_over_when_sm_values_null(self):
         """When some values are null in the StaffMember, the Config values should be used."""
