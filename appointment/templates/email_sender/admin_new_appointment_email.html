@@ -60,7 +60,7 @@
         <p><strong>{% translate 'Appointment Date' %}:</strong> {{ appointment.appointment_request.date }}</p>
         <p><strong>{% translate 'Time' %}:</strong> {{ appointment.appointment_request.start_time }}
             - {{ appointment.appointment_request.end_time }}</p>
-        <p><strong>{% translate 'Contact Details' %}:</strong> {{ appointment.phone }} | {{ client_email }}</p>
+        <p><strong>{% translate 'Contact Details' %}:</strong> {{ appointment.phone }} | {{ appointment.client.email }}</p>
         <p><strong>{% translate 'Additional Info' %}:</strong> {{ appointment.additional_info|default:"N/A" }}</p>
     </div>
 

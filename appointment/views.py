@@ -157,6 +157,7 @@ def get_next_available_date_ajax(request, service_id):
 
 def get_non_working_days_ajax(request):
     staff_id = request.GET.get('staff_id')
+    print(f"staff_id: {staff_id}")
     error = False
     message = _('Successfully retrieved non-working days')
 
