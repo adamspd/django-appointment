@@ -4,44 +4,95 @@
 import datetime
 import json
 from _decimal import Decimal
+from datetime import date, time, timedelta
 from unittest.mock import patch
 
 from django.core.cache import cache
-from django.test import Client
+from django.test import Client, override_settings
 from django.test.client import RequestFactory
-from django.utils.translation import gettext as _
+from django.utils import timezone
+from django.utils.translation import gettext as _, gettext_lazy as _
 
 from appointment.forms import StaffDaysOffForm
-from appointment.services import create_staff_member_service, email_change_verification_service, \
-    fetch_user_appointments, get_available_slots_for_staff, handle_day_off_form, handle_entity_management_request, \
-    handle_service_management_request, handle_working_hours_form, prepare_appointment_display_data, \
+from appointment.services import (
+    create_staff_member_service, email_change_verification_service, fetch_user_appointments, get_available_slots,
+    get_available_slots_for_staff, get_finish_button_text, handle_day_off_form, handle_entity_management_request,
+    handle_service_management_request, handle_working_hours_form, prepare_appointment_display_data,
     prepare_user_profile_data, save_appointment, save_appt_date_time, update_personal_info_service
+)
 from appointment.tests.base.base_test import BaseTest
+from appointment.tests.mixins.base_mixin import (
+    ConfigMixin)
 from appointment.utils.date_time import convert_str_to_time, get_ar_end_time
 from appointment.utils.db_helpers import Config, DayOff, EmailVerificationCode, StaffMember, WorkingHours
+from appointment.views import get_appointments_and_slots
+
+
+class GetAvailableSlotsTests(BaseTest):
+    """Test cases for get_available_slots"""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+
+    def setUp(self):
+        self.tomorrow = timezone.now().date() + datetime.timedelta(days=1)
+        ar = self.create_appt_request_for_sm1(date_=self.tomorrow, start_time=time(11, 0), end_time=time(12, 0))
+        self.appointment = self.create_appt_for_sm1(appointment_request=ar)
+
+    @override_settings(DEBUG=True)
+    def tearDown(self):
+        Config.objects.all().delete()
+        super().tearDown()
+        cache.clear()
+
+    def test_get_available_slots(self):
+        slots = get_available_slots(self.tomorrow, [self.appointment])
+        self.assertIsInstance(slots, list)
+        self.assertNotIn('11:00 AM', slots)
+
+    def test_get_available_slots_with_config(self):
+        Config.objects.create(
+                lead_time=datetime.time(11, 0),
+                finish_time=datetime.time(15, 0),
+                slot_duration=30,
+                appointment_buffer_time=2.0
+        )
+        slots = get_available_slots(self.tomorrow, [self.appointment])
+        self.assertIsInstance(slots, list)
+        self.assertNotIn('11:00 AM', slots)
 
 
 class FetchUserAppointmentsTests(BaseTest):
     """Test suite for the `fetch_user_appointments` service function."""
 
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+
     def setUp(self):
         super().setUp()
-
         # Create some appointments for testing purposes
-        self.appointment_for_user1 = self.create_appointment_for_user1()
-        self.appointment_for_user2 = self.create_appointment_for_user2()
-        self.staff_user = self.create_user_(username='staff_user', password='test')
-        self.staff_user.is_staff = True
-        self.staff_user.save()
+        self.appointment_for_user1 = self.create_appt_for_sm1()
+        self.appointment_for_user2 = self.create_appt_for_sm2()
 
     def test_fetch_appointments_for_superuser(self):
         """Test that a superuser can fetch all appointments."""
         # Make user1 a superuser
-        self.user1.is_superuser = True
-        self.user1.save()
+        jack = self.users['superuser']
+        jack.is_superuser = True
+        jack.save()
 
         # Fetch appointments for superuser
-        appointments = fetch_user_appointments(self.user1)
+        appointments = fetch_user_appointments(jack)
 
         # Assert that the superuser sees all appointments
         self.assertIn(self.appointment_for_user1, appointments,
@@ -52,7 +103,11 @@ class FetchUserAppointmentsTests(BaseTest):
     def test_fetch_appointments_for_staff_member(self):
         """Test that a staff member can only fetch their own appointments."""
         # Fetch appointments for staff member (user1 in this case)
-        appointments = fetch_user_appointments(self.user1)
+        daniel = self.users['staff1']
+        daniel.is_staff = True
+        daniel.save()
+
+        appointments = fetch_user_appointments(daniel)
 
         # Assert that the staff member sees only their own appointments
         self.assertIn(self.appointment_for_user1, appointments,
@@ -63,13 +118,18 @@ class FetchUserAppointmentsTests(BaseTest):
     def test_fetch_appointments_for_regular_user(self):
         """Test that a regular user (not a user with staff member instance or staff) cannot fetch appointments."""
         # Fetching appointments for a regular user (client1 in this case) should raise ValueError
+        georges = self.users['client1']
         with self.assertRaises(ValueError,
                                msg="Regular users without staff or superuser status should raise a ValueError."):
-            fetch_user_appointments(self.client1)
+            fetch_user_appointments(georges)
 
     def test_fetch_appointments_for_staff_user_without_staff_member_instance(self):
         """Test that a staff user without a staff member instance gets an empty list of appointments."""
-        appointments = fetch_user_appointments(self.staff_user)
+        janet = self.create_user_()
+        janet.is_staff = True
+        janet.save()
+
+        appointments = fetch_user_appointments(janet)
         # Check that the returned value is an empty list
         self.assertEqual(appointments, [], "Expected an empty list for a staff user without a staff member instance.")
 
@@ -77,16 +137,27 @@ class FetchUserAppointmentsTests(BaseTest):
 class PrepareAppointmentDisplayDataTests(BaseTest):
     """Test suite for the `prepare_appointment_display_data` service function."""
 
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+
     def setUp(self):
         super().setUp()
 
         # Create an appointment for testing purposes
-        self.appointment = self.create_appointment_for_user1()
+        self.appointment = self.create_appt_for_sm1()
+        self.daniel = self.users['staff1']
+        self.samantha = self.users['staff2']
+        self.georges = self.users['client1']
 
     def test_non_existent_appointment(self):
         """Test that the function handles a non-existent appointment correctly."""
         # Fetch data for a non-existent appointment
-        x, y, error_message, status_code = prepare_appointment_display_data(self.user2, 9999)
+        x, y, error_message, status_code = prepare_appointment_display_data(self.samantha, 9999)
 
         self.assertEqual(status_code, 404, "Expected status code to be 404 for a non-existent appointment.")
         self.assertEqual(error_message, _("Appointment does not exist."))
@@ -94,7 +165,7 @@ class PrepareAppointmentDisplayDataTests(BaseTest):
     def test_unauthorized_user(self):
         """A user who doesn't own the appointment cannot view it."""
         # Fetch data for an appointment that user2 doesn't own
-        x, y, error_message, status_code = prepare_appointment_display_data(self.client1, self.appointment.id)
+        x, y, error_message, status_code = prepare_appointment_display_data(self.georges, self.appointment.id)
 
         self.assertEqual(status_code, 403, "Expected status code to be 403 for an unauthorized user.")
         self.assertEqual(error_message, _("You are not authorized to view this appointment."))
@@ -102,74 +173,90 @@ class PrepareAppointmentDisplayDataTests(BaseTest):
     def test_authorized_user(self):
         """An authorized user can view the appointment."""
         # Fetch data for the appointment owned by user1
-        appointment, page_title, error_message, status_code = prepare_appointment_display_data(self.user1,
+        appointment, page_title, error_message, status_code = prepare_appointment_display_data(self.daniel,
                                                                                                self.appointment.id)
 
         self.assertEqual(status_code, 200, "Expected status code to be 200 for an authorized user.")
         self.assertIsNone(error_message)
         self.assertEqual(appointment, self.appointment)
-        self.assertTrue(self.client1.first_name in page_title)
+        self.assertTrue(self.georges.first_name in page_title)
 
     def test_superuser(self):
         """A superuser can view any appointment and sees the staff member name in the title."""
-        self.user1.is_superuser = True
-        self.user1.save()
+
+        jack = self.users['superuser']
+        jack.is_superuser = True
+        jack.save()
 
         # Fetch data for the appointment as a superuser
-        appointment, page_title, error_message, status_code = prepare_appointment_display_data(self.user1,
+        appointment, page_title, error_message, status_code = prepare_appointment_display_data(jack,
                                                                                                self.appointment.id)
 
         self.assertEqual(status_code, 200, "Expected status code to be 200 for a superuser.")
         self.assertIsNone(error_message)
         self.assertEqual(appointment, self.appointment)
-        self.assertTrue(self.client1.first_name in page_title)
-        self.assertTrue(self.user1.first_name in page_title)
+        self.assertTrue(self.georges.first_name in page_title)
+        self.assertTrue(self.daniel.first_name in page_title)
 
 
 class PrepareUserProfileDataTests(BaseTest):
 
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+
     def setUp(self):
         super().setUp()
+        self.jack = self.users['superuser']
+        self.jack.is_superuser = True
+        self.jack.save()
 
     def test_superuser_without_staff_user_id(self):
         """A superuser without a staff_user_id should see the staff list page."""
-        self.user1.is_superuser = True
-        self.user1.save()
-        data = prepare_user_profile_data(self.user1, None)
+        data = prepare_user_profile_data(self.jack, None)
         self.assertFalse(data['error'])
         self.assertEqual(data['template'], 'administration/staff_list.html')
         self.assertIn('btn_staff_me', data['extra_context'])
 
     def test_regular_user_with_mismatched_staff_user_id(self):
         """A regular user cannot view another user's profile."""
-        data = prepare_user_profile_data(self.user1, self.user2.pk)
+        data = prepare_user_profile_data(self.jack, self.users['client2'].pk)
         self.assertTrue(data['error'])
         self.assertEqual(data['status_code'], 403)
 
     def test_superuser_with_non_existent_staff_user_id(self):
         """A superuser with a non-existent staff_user_id cannot view the staff's profile."""
-        self.user1.is_superuser = True
-        self.user1.save()
-        data = prepare_user_profile_data(self.user1, 9999)
+        data = prepare_user_profile_data(self.jack, 9999)
         self.assertTrue(data['error'])
         self.assertEqual(data['status_code'], 403)
 
     def test_regular_user_with_matching_staff_user_id(self):
         """A regular user can view their own profile."""
-        data = prepare_user_profile_data(self.user1, self.user1.pk)
+        data = prepare_user_profile_data(self.users['staff1'], self.staff_member1.pk)
         self.assertFalse(data['error'])
         self.assertEqual(data['template'], 'administration/user_profile.html')
         self.assertIn('user', data['extra_context'])
-        self.assertEqual(data['extra_context']['user'], self.user1)
+        self.assertEqual(data['extra_context']['user'], self.users['staff1'])
 
     def test_regular_user_with_non_existent_staff_user_id(self):
         """A regular user with a non-existent staff_user_id cannot view their profile."""
-        data = prepare_user_profile_data(self.user1, 9999)
+        data = prepare_user_profile_data(self.jack, 9999)
         self.assertTrue(data['error'])
         self.assertEqual(data['status_code'], 403)
 
 
 class HandleEntityManagementRequestTests(BaseTest):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
 
     def setUp(self):
         super().setUp()
@@ -178,7 +265,11 @@ class HandleEntityManagementRequestTests(BaseTest):
 
         # Setup request object
         self.request = self.factory.post('/')
-        self.request.user = self.user1
+        self.request.user = self.staff_member1.user
+
+    def tearDown(self):
+        WorkingHours.objects.all().delete()
+        super().tearDown()
 
     def test_staff_member_none(self):
         """A day off cannot be created for a staff member that doesn't exist."""
@@ -244,9 +335,20 @@ class HandleEntityManagementRequestTests(BaseTest):
 
 
 class HandleWorkingHoursFormTest(BaseTest):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
 
     def setUp(self):
         super().setUp()
+
+    def tearDown(self):
+        WorkingHours.objects.all().delete()
+        super().tearDown()
 
     def test_add_working_hours(self):
         """Test if working hours can be added."""
@@ -261,13 +363,14 @@ class HandleWorkingHoursFormTest(BaseTest):
         self.assertEqual(response.status_code, 200)
 
     def test_invalid_data(self):
-        """If the form is invalid, the function should return a JsonResponse with appropriate error message."""
+        """If the form is invalid, the function should return a JsonResponse with the appropriate error message."""
         response = handle_working_hours_form(None, 1, '09:00 AM', '05:00 PM', True)  # Missing staff_member
         self.assertEqual(response.status_code, 400)
         self.assertFalse(json.loads(response.getvalue())['success'])
 
     def test_invalid_time(self):
-        """If the start time is after the end time, the function should return a JsonResponse with appropriate error"""
+        """If the start time is after the end time, the function should return a JsonResponse with the
+        appropriate error"""
         response = handle_working_hours_form(self.staff_member1, 1, '05:00 PM', '09:00 AM', True)
         self.assertEqual(response.status_code, 400)
         content = json.loads(response.getvalue())
@@ -285,7 +388,7 @@ class HandleWorkingHoursFormTest(BaseTest):
         self.assertFalse(content['success'])
 
     def test_invalid_working_hours_id(self):
-        """If the working hours ID is invalid, the function should return a JsonResponse with appropriate error"""
+        """If the working hours ID is invalid, the function should return a JsonResponse with the appropriate error"""
         response = handle_working_hours_form(self.staff_member1, 1, '10:00 AM', '06:00 PM', False, wh_id=9999)
         self.assertEqual(response.status_code, 400)
         content = json.loads(response.getvalue())
@@ -293,7 +396,8 @@ class HandleWorkingHoursFormTest(BaseTest):
         self.assertEqual(content['errorCode'], 10)
 
     def test_no_working_hours_id(self):
-        """If the working hours ID is not provided, the function should return a JsonResponse with appropriate error"""
+        """If the working hours ID is not provided, the function should return a JsonResponse with the
+        appropriate error"""
         response = handle_working_hours_form(self.staff_member1, 1, '10:00 AM', '06:00 PM', False)
         self.assertEqual(response.status_code, 400)
         content = json.loads(response.getvalue())
@@ -333,21 +437,29 @@ class HandleDayOffFormTest(BaseTest):
 
 class SaveAppointmentTests(BaseTest):
 
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+
     def setUp(self):
         super().setUp()
 
         # Assuming self.create_default_appointment creates an appointment with default values
-        self.appt = self.create_appointment_for_user1()
+        self.appt = self.create_appt_for_sm1()
         self.factory = RequestFactory()
         self.request = self.factory.get('/')
 
     def test_save_appointment(self):
         """Test if an appointment can be saved with valid data."""
-        client_name = "New Client Name"
-        client_email = "newclient@example.com"
+        client_name = "Teal'c of Chulak"
+        client_email = "tealc@chulak.com"
         start_time_str = "10:00 AM"
         phone_number = "+1234567890"
-        client_address = "123 New St, TestCity"
+        client_address = "123 Stargate Command, Cheyenne Mountain"
         service_id = self.service2.id
         staff_member_id = self.staff_member2.id
 
@@ -375,8 +487,8 @@ class SaveApptDateTimeTests(BaseTest):
     def setUp(self):
         super().setUp()
 
-        # Assuming create_appointment_for_user1 creates an appointment for user1 with default values
-        self.appt = self.create_appointment_for_user1()
+        # Assuming create_appt_for_sm1 creates an appointment for user1 with default values
+        self.appt = self.create_appt_for_sm1()
         self.factory = RequestFactory()
         self.request = self.factory.get('/')
 
@@ -413,7 +525,6 @@ def get_next_weekday(d, weekday):
     So in the setup, I will use my format to create day-offs, working hours, etc. But when calling this function, I will
     use the python format.
     """
-    days_of_week = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
     days_ahead = weekday - d.weekday()
     if days_ahead <= 0:  # Target day already happened this week
         days_ahead += 7
@@ -421,7 +532,15 @@ def get_next_weekday(d, weekday):
     return next_day
 
 
-class GetAvailableSlotsTests(BaseTest):
+class GetAvailableSlotsForStaffTests(BaseTest):
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
 
     def setUp(self):
         super().setUp()
@@ -443,6 +562,14 @@ class GetAvailableSlotsTests(BaseTest):
         DayOff.objects.create(staff_member=self.staff_member1, start_date=self.next_monday, end_date=self.next_monday)
         Config.objects.create(slot_duration=60, lead_time=datetime.time(9, 0), finish_time=datetime.time(17, 0),
                               appointment_buffer_time=0)
+
+    @override_settings(DEBUG=True)
+    def tearDown(self):
+        WorkingHours.objects.all().delete()
+        DayOff.objects.all().delete()
+        Config.objects.all().delete()
+        cache.clear()
+        super().tearDown()
 
     def test_day_off(self):
         """Test if a day off is handled correctly when getting available slots."""
@@ -487,7 +614,7 @@ class GetAvailableSlotsTests(BaseTest):
                                                         date_=self.next_wednesday, start_time=start_time,
                                                         end_time=end_time)
         # Create an appointment using that request
-        self.create_appointment_(user=self.client1, appointment_request=appt_request)
+        self.create_appointment_(user=self.users['client1'], appointment_request=appt_request)
 
         # Now, the staff member should not have that slot available
         slots = get_available_slots_for_staff(self.next_wednesday, self.staff_member1)
@@ -496,6 +623,7 @@ class GetAvailableSlotsTests(BaseTest):
             hour in range(9, 17) if hour != 10]
         self.assertEqual(slots, expected_slots)
 
+    @override_settings(DEBUG=True)
     def test_no_working_hours(self):
         """If a staff member doesn't have working hours on a given day, no slots should be available."""
         # Let's ask for slots on a Thursday, which the staff member doesn't work
@@ -508,18 +636,27 @@ class GetAvailableSlotsTests(BaseTest):
 
 class UpdatePersonalInfoServiceTest(BaseTest):
 
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+
     def setUp(self):
         super().setUp()
+        self.daniel = self.users['staff1']
         self.post_data_valid = {
             'first_name': 'UpdatedName',
             'last_name': 'UpdatedLastName',
-            'email': self.user1.email
+            'email': self.daniel.email
         }
 
     def test_update_name(self):
         """Test if the user's name can be updated."""
         user, is_valid, error_message = update_personal_info_service(self.staff_member1.user.id, self.post_data_valid,
-                                                                     self.user1)
+                                                                     self.daniel)
         self.assertTrue(is_valid)
         self.assertIsNone(error_message)
         self.assertEqual(user.first_name, 'UpdatedName')
@@ -528,7 +665,7 @@ class UpdatePersonalInfoServiceTest(BaseTest):
     def test_update_invalid_user_id(self):
         """Updating a user that doesn't exist should return an error message."""
         user, is_valid, error_message = update_personal_info_service(9999, self.post_data_valid,
-                                                                     self.user1)  # Assuming 9999 is an invalid user ID
+                                                                     self.daniel)  # Assuming 9999 is an invalid user ID
 
         self.assertFalse(is_valid)
         self.assertEqual(error_message, _("User not found."))
@@ -536,7 +673,7 @@ class UpdatePersonalInfoServiceTest(BaseTest):
 
     def test_invalid_form(self):
         """Updating a user with invalid form data should return an error message."""
-        user, is_valid, error_message = update_personal_info_service(self.staff_member1.user.id, {}, self.user1)
+        user, is_valid, error_message = update_personal_info_service(self.staff_member1.user.id, {}, self.daniel)
         self.assertFalse(is_valid)
         self.assertEqual(error_message, _("Empty fields are not allowed."))
 
@@ -545,7 +682,7 @@ class UpdatePersonalInfoServiceTest(BaseTest):
         # remove email in post_data
         del self.post_data_valid['email']
         user, is_valid, error_message = update_personal_info_service(self.staff_member1.user.id, self.post_data_valid,
-                                                                     self.user1)
+                                                                     self.daniel)
         self.assertFalse(is_valid)
         self.assertEqual(error_message, "email: This field is required.")
 
@@ -554,27 +691,28 @@ class EmailChangeVerificationServiceTest(BaseTest):
 
     def setUp(self):
         super().setUp()
-        self.valid_code = EmailVerificationCode.generate_code(self.client1)
+        self.georges = self.users['client1']
+        self.valid_code = EmailVerificationCode.generate_code(self.georges)
         self.invalid_code = "INVALID_CODE456"
 
-        self.old_email = self.client1.email
-        self.new_email = "newemail@gmail.com"
+        self.old_email = self.georges.email
+        self.new_email = "georges.hammond@django-appointment.com"
 
     def test_valid_code_and_email(self):
         """Test if a valid code and email can be verified."""
         is_verified = email_change_verification_service(self.valid_code, self.new_email, self.old_email)
 
         self.assertTrue(is_verified)
-        self.client1.refresh_from_db()  # Refresh the user object to get the updated email
-        self.assertEqual(self.client1.email, self.new_email)
+        self.georges.refresh_from_db()  # Refresh the user object to get the updated email
+        self.assertEqual(self.georges.email, self.new_email)
 
     def test_invalid_code(self):
         """If the code is invalid, the email should not be updated."""
         is_verified = email_change_verification_service(self.invalid_code, self.new_email, self.old_email)
 
         self.assertFalse(is_verified)
-        self.client1.refresh_from_db()
-        self.assertEqual(self.client1.email, self.old_email)  # Email should not change
+        self.georges.refresh_from_db()
+        self.assertEqual(self.georges.email, self.old_email)  # Email should not change
 
     def test_valid_code_no_user(self):
         """If the code is valid but the user doesn't exist, the email should not be updated."""
@@ -585,12 +723,21 @@ class EmailChangeVerificationServiceTest(BaseTest):
     def test_code_doesnt_match_users_code(self):
         """If the code is valid but doesn't match the user's code, the email should not be updated."""
         # Using valid code but for another user
-        is_verified = email_change_verification_service(self.valid_code, self.new_email, "anotheremail@gmail.com")
+        is_verified = email_change_verification_service(self.valid_code, self.new_email,
+                                                        "g.hammond@django-appointment.com")
 
         self.assertFalse(is_verified)
 
 
 class CreateStaffMemberServiceTest(BaseTest):
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
 
     def setUp(self):
         super().setUp()
@@ -602,25 +749,26 @@ class CreateStaffMemberServiceTest(BaseTest):
     def test_valid_data(self):
         """Test if a staff member can be created with valid data."""
         post_data = {
-            'first_name': 'John',
-            'last_name': 'Doe',
-            'email': 'john.doe@gmail.com'
+            'first_name': 'Catherine',
+            'last_name': 'Langford',
+            'email': 'catherine.langford@django-appointment.com'
         }
+
         user, success, error_message = create_staff_member_service(post_data, self.request)
 
         self.assertTrue(success)
         self.assertIsNotNone(user)
-        self.assertEqual(user.first_name, 'John')
-        self.assertEqual(user.last_name, 'Doe')
-        self.assertEqual(user.email, 'john.doe@gmail.com')
+        self.assertEqual(user.first_name, 'Catherine')
+        self.assertEqual(user.last_name, 'Langford')
+        self.assertEqual(user.email, 'catherine.langford@django-appointment.com')
         self.assertTrue(StaffMember.objects.filter(user=user).exists())
 
     def test_invalid_data(self):
         """Empty fields should not be allowed when creating a staff member."""
         post_data = {
             'first_name': '',  # Missing first name
-            'last_name': 'Doe',
-            'email': 'john.doe@gmail.com'
+            'last_name': 'Langford',
+            'email': 'catherine.langford@django-appointment.com'
         }
         user, success, error_message = create_staff_member_service(post_data, self.request)
 
@@ -630,11 +778,11 @@ class CreateStaffMemberServiceTest(BaseTest):
 
     def test_email_already_exists(self):
         """If the email already exists, the staff member should not be created."""
-        self.create_user_(email="existing@gmail.com")
+        self.create_user_()
         post_data = {
-            'first_name': 'John',
-            'last_name': 'Doe',
-            'email': 'existing@gmail.com'  # Using an email that already exists
+            'first_name': 'Janet',
+            'last_name': 'Fraiser',
+            'email': 'janet.fraiser@django-appointment.com'  # Using an email that already exists
         }
         user, success, error_message = create_staff_member_service(post_data, self.request)
 
@@ -646,9 +794,9 @@ class CreateStaffMemberServiceTest(BaseTest):
     def test_send_reset_link_to_new_staff_member(self, mock_send_reset_link):
         """Test if a reset password link is sent to a new staff member."""
         post_data = {
-            'first_name': 'Jane',
-            'last_name': 'Smith',
-            'email': 'jane.smith@gmail.com'
+            'first_name': 'Janet',
+            'last_name': 'Fraiser',
+            'email': 'janet.fraiser@django-appointment.com'
         }
         user, success, _ = create_staff_member_service(post_data, self.request)
         self.assertTrue(success)
@@ -666,38 +814,38 @@ class HandleServiceManagementRequestTest(BaseTest):
     def test_create_new_service(self):
         """Test if a new service can be created with valid data."""
         post_data = {
-            'name': 'Test Service',
+            'name': "Goa'uld extraction",
             'duration': '1:00:00',
-            'price': '100',
+            'price': '10000',
             'currency': 'USD',
-            'down_payment': '50',
+            'down_payment': '5000',
         }
         service, success, message = handle_service_management_request(post_data)
         self.assertTrue(success)
         self.assertIsNotNone(service)
-        self.assertEqual(service.name, 'Test Service')
+        self.assertEqual(service.name, "Goa'uld extraction")
         self.assertEqual(service.duration, datetime.timedelta(hours=1))
-        self.assertEqual(service.price, Decimal('100'))
-        self.assertEqual(service.down_payment, Decimal('50'))
+        self.assertEqual(service.price, Decimal('10000'))
+        self.assertEqual(service.down_payment, Decimal('5000'))
         self.assertEqual(service.currency, 'USD')
 
     def test_update_existing_service(self):
         """Test if an existing service can be updated with valid data."""
         existing_service = self.create_service_()
         post_data = {
-            'name': 'Updated Service Name',
+            'name': 'Quantum Mirror Repair',
             'duration': '2:00:00',
-            'price': '150',
-            'down_payment': '75',
+            'price': '15000',
+            'down_payment': '7500',
             'currency': 'EUR'
         }
         service, success, message = handle_service_management_request(post_data, service_id=existing_service.id)
 
         self.assertTrue(success)
         self.assertIsNotNone(service)
-        self.assertEqual(service.name, 'Updated Service Name')
+        self.assertEqual(service.name, 'Quantum Mirror Repair')
         self.assertEqual(service.duration, datetime.timedelta(hours=2))
-        self.assertEqual(service.price, Decimal('150'))
+        self.assertEqual(service.price, Decimal('15000'))
         self.assertEqual(service.currency, 'EUR')
 
     def test_invalid_data(self):
@@ -718,13 +866,83 @@ class HandleServiceManagementRequestTest(BaseTest):
     def test_service_not_found(self):
         """If the service ID is invalid, the service should not be updated."""
         post_data = {
-            'name': 'Another Test Service',
+            'name': 'DHD maintenance',
             'duration': '1:00:00',
-            'price': '100',
+            'price': '10000',
             'currency': 'USD'
         }
         service, success, message = handle_service_management_request(post_data, service_id=9999)  # Invalid service_id
 
         self.assertFalse(success)
         self.assertIsNone(service)
-        self.assertIn(_("Service matching query does not exist"), message)
+        self.assertIn(str(_("Service matching query does not exist")), str(message))
+
+
+class GetFinishButtonTextTests(BaseTest):
+    """Test cases for get_finish_button_text"""
+
+    def test_get_finish_button_text_free_service(self):
+        button_text = get_finish_button_text(self.service1)
+        self.assertEqual(button_text, _("Finish"))
+
+    def test_get_finish_button_text_paid_service(self):
+        with patch('appointment.services.APPOINTMENT_PAYMENT_URL', 'https://payment.com'):
+            button_text = get_finish_button_text(self.service1)
+            self.assertEqual(button_text, _("Pay Now"))
+
+
+class SlotAvailabilityTest(BaseTest, ConfigMixin):
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+
+    def setUp(self):
+        self.service = self.create_service_(duration=timedelta(hours=2))
+        self.config = self.create_config_(lead_time=time(11, 0), finish_time=time(15, 0), slot_duration=120)
+        self.test_date = date.today() + timedelta(days=1)  # Use tomorrow's date for the tests
+
+    @override_settings(DEBUG=True)
+    def tearDown(self):
+        self.service.delete()
+        cache.clear()
+
+    def test_slot_availability_without_appointments(self):
+        """Test if the available slots are correct when there are no appointments."""
+        _, available_slots = get_appointments_and_slots(self.test_date, self.service)
+        expected_slots = ['11:00 AM', '01:00 PM']
+        self.assertEqual(available_slots, expected_slots)
+
+    def test_slot_availability_with_first_slot_booked(self):
+        """Available slots (total 2) should be one when the first slot is booked."""
+        self.ar = self.create_appt_request_for_sm1(service=self.service, date_=self.test_date, start_time=time(11, 0),
+                                                   end_time=time(13, 0))
+        self.create_appt_for_sm1(appointment_request=self.ar)
+        _, available_slots = get_appointments_and_slots(self.test_date, self.service)
+        expected_slots = ['01:00 PM']
+        self.assertEqual(available_slots, expected_slots)
+
+    def test_slot_availability_with_second_slot_booked(self):
+        """Available slots (total 2) should be one when the second slot is booked."""
+        self.ar = self.create_appt_request_for_sm1(service=self.service, date_=self.test_date, start_time=time(13, 0),
+                                                   end_time=time(15, 0))
+        self.create_appt_for_sm1(appointment_request=self.ar)
+        _, available_slots = get_appointments_and_slots(self.test_date, self.service)
+        expected_slots = ['11:00 AM']
+        self.assertEqual(available_slots, expected_slots)
+
+    def test_slot_availability_with_both_slots_booked(self):
+        """Available slots (total 2) should be zero when both slots are booked."""
+        self.ar1 = self.create_appt_request_for_sm1(service=self.service, date_=self.test_date, start_time=time(11, 0),
+                                                    end_time=time(13, 0))
+        self.ar2 = self.create_appt_request_for_sm1(service=self.service, date_=self.test_date, start_time=time(13, 0),
+                                                    end_time=time(15, 0))
+        self.create_appt_for_sm1(appointment_request=self.ar1)
+        self.create_appt_for_sm1(appointment_request=self.ar2)
+        _, available_slots = get_appointments_and_slots(self.test_date, self.service)
+        expected_slots = []
+        self.assertEqual(available_slots, expected_slots)
