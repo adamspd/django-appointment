@@ -2,12 +2,6 @@
 branch = True
 source =
     appointment
-omit =
-    */__init__.py
-    */tests/*
-    */tests/test_*.py
-    */test_*.py
-    manage.py
 
 [report]
 exclude_lines =
