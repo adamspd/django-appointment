@@ -7,58 +7,106 @@ from appointment.models import AppointmentRescheduleHistory
 from appointment.tests.base.base_test import BaseTest
 
 
-class AppointmentRescheduleHistoryTestCase(BaseTest):
-    def setUp(self):
-        super().setUp()
-        self.appointment_request = self.create_appt_request_for_sm1()
+class AppointmentRescheduleHistoryCreationTests(BaseTest):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
 
-    def test_successful_creation(self):
+    def setUp(self):
+        self.appointment_request = self.create_appt_request_for_sm1()
+        self.future_date = timezone.now().date() + timedelta(days=3)
+        return super().setUp()
+
+    def test_reschedule_history_creation_with_valid_data(self):
         reschedule_history = AppointmentRescheduleHistory.objects.create(
             appointment_request=self.appointment_request,
-            date=timezone.now().date() + timedelta(days=1),  # Future date
+            date=self.future_date,
             start_time=timezone.now().time(),
             end_time=(timezone.now() + timedelta(hours=1)).time(),
             staff_member=self.staff_member1,
             reason_for_rescheduling="Client request",
             reschedule_status='pending'
         )
-        self.assertIsNotNone(reschedule_history.id_request)  # Auto-generated id_request
+        self.assertIsNotNone(reschedule_history)
+        self.assertEqual(reschedule_history.reschedule_status, 'pending')
         self.assertTrue(reschedule_history.still_valid())
 
-    def test_date_in_past_validation(self):
+    def test_auto_generation_of_id_request_on_creation(self):
+        reschedule_history = AppointmentRescheduleHistory.objects.create(
+            appointment_request=self.appointment_request,
+            date=self.future_date,
+            start_time=timezone.now().time(),
+            end_time=(timezone.now() + timedelta(hours=1)).time(),
+            staff_member=self.staff_member1
+        )
+        self.assertIsNotNone(reschedule_history.id_request)
+
+
+class AppointmentRescheduleHistoryValidationTests(BaseTest):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.past_date = timezone.now().date() - timedelta(days=3)
+        cls.future_date = timezone.now().date() + timedelta(days=3)
+
+    def setUp(self):
+        self.appointment_request = self.create_appt_request_for_sm1()
+
+    def test_creation_with_past_date_raises_validation_error(self):
         with self.assertRaises(ValidationError):
             AppointmentRescheduleHistory.objects.create(
                 appointment_request=self.appointment_request,
-                date=timezone.now().date() - timedelta(days=1),  # Past date
+                date=self.past_date,
                 start_time=timezone.now().time(),
                 end_time=(timezone.now() + timedelta(hours=1)).time(),
                 staff_member=self.staff_member1
             )
 
-    def test_invalid_date_validation(self):
+    def test_invalid_date_format_raises_type_error(self):
         with self.assertRaises(TypeError):
             AppointmentRescheduleHistory.objects.create(
                 appointment_request=self.appointment_request,
-                date="invalid-date",  # Invalid date format
+                date="invalid-date",
                 start_time=timezone.now().time(),
                 end_time=(timezone.now() + timedelta(hours=1)).time(),
                 staff_member=self.staff_member1
             )
 
-    def test_still_valid(self):
+
+class AppointmentRescheduleHistoryTimingTests(BaseTest):
+    @classmethod
+    def setUpTestData(cls):
+        return super().setUpTestData()
+
+    def setUp(self):
+        self.appointment_request = self.create_appt_request_for_sm1()
+        self.future_date = timezone.now().date() + timedelta(days=3)
+        return super().setUp()
+
+    def test_still_valid_within_time_frame(self):
         reschedule_history = AppointmentRescheduleHistory.objects.create(
             appointment_request=self.appointment_request,
-            date=timezone.now().date() + timedelta(days=1),
+            date=self.future_date,
             start_time=timezone.now().time(),
             end_time=(timezone.now() + timedelta(hours=1)).time(),
             staff_member=self.staff_member1,
             reason_for_rescheduling="Client request",
             reschedule_status='pending'
         )
-        # Directly test the still_valid method
         self.assertTrue(reschedule_history.still_valid())
 
-        # Simulate passages of time beyond the validity window
+    def test_still_valid_outside_time_frame(self):
+        reschedule_history = AppointmentRescheduleHistory.objects.create(
+            appointment_request=self.appointment_request,
+            date=self.future_date,
+            start_time=timezone.now().time(),
+            end_time=(timezone.now() + timedelta(hours=1)).time(),
+            staff_member=self.staff_member1,
+            reason_for_rescheduling="Client request",
+            reschedule_status='pending'
+        )
+        self.assertTrue(reschedule_history.still_valid())
+        # Simulate passage of time beyond the validity window
         reschedule_history.created_at -= timedelta(minutes=6)
         reschedule_history.save()
         self.assertFalse(reschedule_history.still_valid())
