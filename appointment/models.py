@@ -611,7 +611,7 @@ class Appointment(models.Model):
     def to_dict(self):
         return {
             "id": self.id,
-            "client_name": self.client.get_full_name(),
+            "client_name": self.get_client_name(),
             "client_email": self.client.email,
             "start_time": self.appointment_request.start_time.strftime('%Y-%m-%d %H:%M'),
             "end_time": self.appointment_request.end_time.strftime('%Y-%m-%d %H:%M'),
