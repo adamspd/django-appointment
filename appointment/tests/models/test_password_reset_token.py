@@ -7,25 +7,44 @@ from appointment.models import PasswordResetToken
 from appointment.tests.base.base_test import BaseTest
 
 
-class PasswordResetTokenTests(BaseTest):
+class PasswordResetTokenCreationTests(BaseTest):
+
     def setUp(self):
         super().setUp()
-        self.user = self.create_user_(username='test_user', email='test@example.com', password='test_pass123')
+        self.user = self.create_user_(username='janet.fraiser', email='janet.fraiser@django-appointment.com',
+                                      password='LovedCassandra', first_name='Janet')
         self.expired_time = timezone.now() - datetime.timedelta(minutes=5)
+        self.token = PasswordResetToken.create_token(user=self.user)
 
-    def test_create_token(self):
-        """Test token creation for a user."""
-        token = PasswordResetToken.create_token(user=self.user)
-        self.assertIsNotNone(token)
-        self.assertFalse(token.is_expired)
-        self.assertFalse(token.is_verified)
+    def tearDown(self):
+        super().tearDown()
+        self.user.delete()
+        self.token.delete()
+
+    def test_default_attributes_on_creation(self):
+        self.assertIsNotNone(self.token)
+        self.assertFalse(self.token.is_expired)
+        self.assertFalse(self.token.is_verified)
 
     def test_str_representation(self):
         """Test the string representation of the token."""
-        token = PasswordResetToken.create_token(self.user)
         expected_str = (f"Password reset token for {self.user} "
-                        f"[{token.token} status: {token.status} expires at {token.expires_at}]")
-        self.assertEqual(str(token), expected_str)
+                        f"[{self.token.token} status: {self.token.status} expires at {self.token.expires_at}]")
+        self.assertEqual(str(self.token), expected_str)
+
+
+class PasswordResetTokenPropertiesTest(BaseTest):
+    def setUp(self):
+        super().setUp()
+        self.user = self.create_user_(username='janet.fraiser', email='janet.fraiser@django-appointment.com',
+                                      password='LovedCassandra', first_name='Janet')
+        self.expired_time = timezone.now() - datetime.timedelta(minutes=5)
+        self.token = PasswordResetToken.create_token(user=self.user)
+
+    def tearDown(self):
+        super().tearDown()
+        self.user.delete()
+        self.token.delete()
 
     def test_is_verified_property(self):
         """Test the is_verified property to check if the token status is correctly identified as verified."""
@@ -62,6 +81,14 @@ class PasswordResetTokenTests(BaseTest):
         token = PasswordResetToken.create_token(user=self.user, expiration_minutes=-1)  # Token already expired
         self.assertTrue(token.is_expired)
 
+
+class PasswordResetTokenVerificationTests(BaseTest):
+    def setUp(self):
+        super().setUp()
+        self.user = self.create_user_(username='janet.fraiser', email='janet.fraiser@django-appointment.com',
+                                      password='LovedCassandra', first_name='Janet')
+        self.expired_time = timezone.now() - datetime.timedelta(minutes=5)
+
     def test_verify_token_success(self):
         """Test successful token verification."""
         token = PasswordResetToken.create_token(user=self.user)
@@ -72,7 +99,8 @@ class PasswordResetTokenTests(BaseTest):
         """Test token verification fails if the token has expired."""
         token = PasswordResetToken.create_token(user=self.user, expiration_minutes=-1)  # Token already expired
         verified_token = PasswordResetToken.verify_token(user=self.user, token=token.token)
-        self.assertIsNone(verified_token)
+
+        self.assertIsNone(verified_token, "Expired token should not verify")
 
     def test_verify_token_failure_wrong_user(self):
         """Test token verification fails if the token does not belong to the given user."""
@@ -88,14 +116,6 @@ class PasswordResetTokenTests(BaseTest):
         token.mark_as_verified()
         verified_token = PasswordResetToken.verify_token(user=self.user, token=token.token)
         self.assertIsNone(verified_token)
-
-    def test_mark_as_verified(self):
-        """Test marking a token as verified."""
-        token = PasswordResetToken.create_token(user=self.user)
-        self.assertFalse(token.is_verified)
-        token.mark_as_verified()
-        token.refresh_from_db()  # Refresh the token object from the database
-        self.assertTrue(token.is_verified)
 
     def test_verify_token_invalid_token(self):
         """Test token verification fails if the token does not exist."""
@@ -122,38 +142,6 @@ class PasswordResetTokenTests(BaseTest):
 
         self.assertIsNone(old_verified, "Old token should not be valid after creating a new one")
         self.assertIsNotNone(new_verified, "New token should be valid")
-
-    def test_expired_token_does_not_verify(self):
-        """Test that an expired token does not verify even if correct."""
-        token = PasswordResetToken.create_token(user=self.user, expiration_minutes=-5)  # Already expired
-        # Fast-forward time to after expiration
-        token.expires_at = timezone.now() - datetime.timedelta(minutes=5)
-        token.save()
-
-        verified_token = PasswordResetToken.verify_token(user=self.user, token=token.token)
-        self.assertIsNone(verified_token, "Expired token should not verify")
-
-    def test_mark_as_verified_is_idempotent(self):
-        """Test that marking a token as verified multiple times has no adverse effect."""
-        token = PasswordResetToken.create_token(user=self.user)
-        token.mark_as_verified()
-        first_verification_time = token.updated_at
-
-        time.sleep(1)  # Ensure time has passed
-        token.mark_as_verified()
-        token.refresh_from_db()
-
-        self.assertTrue(token.is_verified)
-        self.assertEqual(first_verification_time, token.updated_at,
-                         "Token verification time should not update on subsequent calls")
-
-    def test_deleting_user_cascades_to_tokens(self):
-        """Test that deleting a user deletes associated password reset tokens."""
-        token = PasswordResetToken.create_token(user=self.user)
-        self.user.delete()
-
-        with self.assertRaises(PasswordResetToken.DoesNotExist):
-            PasswordResetToken.objects.get(pk=token.pk)
 
     def test_token_verification_resets_after_expiration(self):
         """Test that an expired token cannot be verified after its expiration, even if marked as verified."""
@@ -185,3 +173,49 @@ class PasswordResetTokenTests(BaseTest):
         self.user.delete()
         verified_token = PasswordResetToken.verify_token(None, token.token)
         self.assertIsNone(verified_token, "Token should not verify after user deletion")
+
+
+class PasswordResetTokenTests(BaseTest):
+    def setUp(self):
+        super().setUp()
+        self.user = self.create_user_(username='janet.fraiser', email='janet.fraiser@django-appointment.com',
+                                      password='LovedCassandra', first_name='Janet')
+        self.expired_time = timezone.now() - datetime.timedelta(minutes=5)
+
+    def tearDown(self):
+        super().tearDown()
+        PasswordResetToken.objects.all().delete()
+        self.user.delete()
+
+    def test_mark_as_verified(self):
+        """Test marking a token as verified."""
+        token = PasswordResetToken.create_token(user=self.user)
+        self.assertFalse(token.is_verified)
+        token.mark_as_verified()
+        token.refresh_from_db()  # Refresh the token object from the database
+        self.assertTrue(token.is_verified)
+
+    def test_mark_as_verified_is_idempotent(self):
+        """Test that marking a token as verified multiple times has no adverse effect."""
+        token = PasswordResetToken.create_token(user=self.user)
+        token.mark_as_verified()
+        first_verification_time = token.updated_at
+
+        time.sleep(1)  # Ensure time has passed
+        token.mark_as_verified()
+        token.refresh_from_db()
+
+        self.assertTrue(token.is_verified)
+        self.assertEqual(first_verification_time, token.updated_at,
+                         "Token verification time should not update on subsequent calls")
+
+    def test_deleting_user_cascades_to_tokens(self):
+        """Test that deleting a user deletes associated password reset tokens."""
+
+        apophis = self.create_user_(username='apophis.false_god', email='apophis.false_god@django-appointment.com',
+                                    password='LovedSayingSholva', first_name='Apophis')
+        token = PasswordResetToken.create_token(user=apophis)
+        apophis.delete()
+
+        with self.assertRaises(PasswordResetToken.DoesNotExist):
+            PasswordResetToken.objects.get(pk=token.pk)
