@@ -561,9 +561,7 @@ def handle_service_management_request(post_data, files_data=None, service_id=Non
 
 def create_new_appointment(data, request):
     service = Service.objects.get(id=data.get("service_id"))
-    print(f"service id {data.get('service_id')}")
-    print(f"Service: {service}")
-    staff_id = data.get("staff_id")
+    staff_id = data.get("staff_member")
     if staff_id:
         staff_member = StaffMember.objects.get(id=staff_id)
     else:
@@ -618,7 +616,7 @@ def create_new_appointment(data, request):
 def update_existing_appointment(data, request):
     try:
         appt = Appointment.objects.get(id=data.get("appointment_id"))
-        staff_id = data.get("staff_id")
+        staff_id = data.get("staff_member")
         want_reminder = data.get("want_reminder") == 'true'
         appt = save_appointment(
             appt,
