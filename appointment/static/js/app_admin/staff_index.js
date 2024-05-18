@@ -579,6 +579,9 @@ async function showCreateAppointmentModal(defaultStartTime, formattedDate) {
     let staffDropdown = null;
     if (isUserSuperUser) {
         staffDropdown = await populateStaffMembers(null, false);
+        staffDropdown.id = "staffSelect";
+        staffDropdown.disabled = false; // Enable dropdown
+        attachEventListenersToDropdown(); // Attach event listener
     }
     servicesDropdown.id = "serviceSelect";
     servicesDropdown.disabled = false; // Enable dropdown
@@ -653,6 +656,7 @@ async function showEventModal(eventId = null, isEditMode, isCreatingMode = false
     let staffDropdown = null;
     if (isUserSuperUser) {
         staffDropdown = await getStaffDropdown(appointment.staff_id, isEditMode);
+        attachEventListenersToDropdown(); // Attach event listener
     }
 
     document.getElementById('eventModalBody').innerHTML = generateModalContent(appointment, servicesDropdown, isEditMode, staffDropdown);
@@ -758,13 +762,25 @@ async function submitChanges() {
 function collectFormDataFromModal(modal) {
     const inputs = modal.querySelectorAll("input");
     const serviceId = modal.querySelector("#serviceSelect").value;
-    const staffId = modal.querySelector("#staffSelect").value;
+    let staffId = null;
+
+    if (isUserSuperUser) {
+        // If the user is a superuser, get the staff ID from the dropdown
+        const staffDropdown = modal.querySelector("#staffSelect");
+        if (staffDropdown) {
+            staffId = staffDropdown.value;
+        }
+    }
+
     const data = {
         isCreating: AppState.isCreating,
         service_id: serviceId,
-        staff_id: staffId,
         appointment_id: AppState.eventIdSelected
     };
+
+    if (staffId) {
+        data.staff_id = staffId;
+    }
 
     inputs.forEach(input => {
         if (input.name !== "date") {
