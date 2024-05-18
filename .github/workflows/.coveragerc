@@ -1,6 +1,7 @@
 [run]
 branch = True
-source = appointment
+source =
+    appointment
 
 [report]
 exclude_lines =
@@ -12,4 +13,5 @@ exclude_lines =
 
 omit =
     */tests/*
+    */test_*.py
     manage.py
