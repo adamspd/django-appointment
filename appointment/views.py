@@ -59,6 +59,7 @@ def get_available_slots_ajax(request):
     """
 
     slot_form = SlotForm(request.GET)
+    error_code = 0
     if not slot_form.is_valid():
         custom_data = {'error': True, 'available_slots': [], 'date_chosen': ''}
         if 'selected_date' in slot_form.errors:
@@ -114,7 +115,7 @@ def get_next_available_date_ajax(request, service_id):
     :param service_id: The ID of the service.
     :return: A JSON response containing the next available date.
     """
-    staff_id = request.GET.get('staff_id')
+    staff_id = request.GET.get('staff_member')
 
     # If staff_id is not provided, you should handle it accordingly.
     if staff_id and staff_id != 'none':
@@ -156,8 +157,7 @@ def get_next_available_date_ajax(request, service_id):
 
 
 def get_non_working_days_ajax(request):
-    staff_id = request.GET.get('staff_id')
-    print(f"staff_id: {staff_id}")
+    staff_id = request.GET.get('staff_member')
     error = False
     message = _('Successfully retrieved non-working days')
 
