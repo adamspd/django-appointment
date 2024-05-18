@@ -11,12 +11,20 @@ from appointment.tests.base.base_test import BaseTest
 
 class SendEmailReminderTest(BaseTest):
 
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+
     @patch('appointment.tasks.send_email')
     @patch('appointment.tasks.notify_admin')
     def test_send_email_reminder(self, mock_notify_admin, mock_send_email):
         # Use BaseTest setup to create an appointment
         appointment_request = self.create_appt_request_for_sm1()
-        appointment = self.create_appointment_for_user1(appointment_request=appointment_request)
+        appointment = self.create_appt_for_sm1(appointment_request=appointment_request)
 
         # Extract necessary data for the test
         to_email = appointment.client.email

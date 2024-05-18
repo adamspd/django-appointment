@@ -15,12 +15,12 @@ from appointment.utils.date_time import (
 
 
 class Convert12HourTo24HourTimeTests(TestCase):
-    def test_valid_basic_conversion(self):
+    def test_basic_conversion(self):
         """Test basic 12-hour to 24-hour conversions."""
         self.assertEqual(convert_12_hour_time_to_24_hour_time("01:10 AM"), "01:10:00")
         self.assertEqual(convert_12_hour_time_to_24_hour_time("01:20 PM"), "13:20:00")
 
-    def test_convert_midnight_and_noon(self):
+    def test_midnight_and_noon(self):
         """Test conversion of midnight and noon times."""
         self.assertEqual(convert_12_hour_time_to_24_hour_time("12:00 AM"), "00:00:00")
         self.assertEqual(convert_12_hour_time_to_24_hour_time("12:00 PM"), "12:00:00")
@@ -42,22 +42,16 @@ class Convert12HourTo24HourTimeTests(TestCase):
         self.assertEqual(convert_12_hour_time_to_24_hour_time(" 12:00 am "), "00:00:00")
         self.assertEqual(convert_12_hour_time_to_24_hour_time("01:00 pM "), "13:00:00")
 
-    def test_out_of_bounds_values(self):
-        """Test conversion with out-of-bounds values."""
+    def test_invalid_values(self):
+        """Test invalid values."""
         with self.assertRaises(ValueError):
             convert_12_hour_time_to_24_hour_time("13:00 PM")
         with self.assertRaises(ValueError):
             convert_12_hour_time_to_24_hour_time("12:60 AM")
-
-    def test_invalid_datatypes(self):
-        """Test conversion with invalid data types."""
         with self.assertRaises(ValueError):
             convert_12_hour_time_to_24_hour_time(["12:00 AM"])
         with self.assertRaises(ValueError):
             convert_12_hour_time_to_24_hour_time({"time": "12:00 AM"})
-
-    def test_invalid_inputs(self):
-        """Test conversion with various invalid inputs."""
         with self.assertRaises(ValueError):
             convert_12_hour_time_to_24_hour_time("25:00 AM")
         with self.assertRaises(ValueError):
@@ -70,18 +64,18 @@ class Convert12HourTo24HourTimeTests(TestCase):
 
 class Convert24HourTimeTo12HourTimeTests(TestCase):
 
-    def test_valid_24_hour_time_strings(self):
+    def test_valid_24_hour_strings(self):
         self.assertEqual(convert_24_hour_time_to_12_hour_time("13:00"), "01:00 PM")
         self.assertEqual(convert_24_hour_time_to_12_hour_time("00:00"), "12:00 AM")
         self.assertEqual(convert_24_hour_time_to_12_hour_time("23:59"), "11:59 PM")
         self.assertEqual(convert_24_hour_time_to_12_hour_time("12:00"), "12:00 PM")
         self.assertEqual(convert_24_hour_time_to_12_hour_time("01:00"), "01:00 AM")
 
-    def test_valid_24_hour_time_with_seconds(self):
+    def test_valid_24_hour_with_seconds(self):
         self.assertEqual(convert_24_hour_time_to_12_hour_time("13:00:01"), "01:00:01 PM")
         self.assertEqual(convert_24_hour_time_to_12_hour_time("00:00:59"), "12:00:59 AM")
 
-    def test_datetime_time_object_input(self):
+    def test_time_object_input(self):
         time_input = datetime.time(13, 15)
         self.assertEqual(convert_24_hour_time_to_12_hour_time(time_input), "01:15 PM")
         time_input = datetime.time(0, 0)
@@ -96,8 +90,6 @@ class Convert24HourTimeTo12HourTimeTests(TestCase):
             convert_24_hour_time_to_12_hour_time("13:60")
         with self.assertRaises(ValueError):
             convert_24_hour_time_to_12_hour_time("invalid")
-
-    def test_incorrect_format(self):
         with self.assertRaises(ValueError):
             convert_24_hour_time_to_12_hour_time("1 PM")
         with self.assertRaises(ValueError):
@@ -113,7 +105,7 @@ class Convert24HourTimeTo12HourTimeTests(TestCase):
 
 
 class ConvertMinutesInHumanReadableFormatTests(TestCase):
-    def test_valid_basic_conversions(self):
+    def test_basic_conversions(self):
         """Test basic conversions"""
         self.assertEqual(convert_minutes_in_human_readable_format(30), "30 minutes")
         self.assertEqual(convert_minutes_in_human_readable_format(90), "1 hour and 30 minutes")
@@ -161,13 +153,13 @@ class ConvertMinutesInHumanReadableFormatTests(TestCase):
 
 class ConvertStrToDateTests(TestCase):
 
-    def test_valid_date_strings_with_hyphen_separator(self):
+    def test_valid_date_with_hyphen_separator(self):
         """Test valid date with hyphen separator works correctly"""
         self.assertEqual(convert_str_to_date("2023-12-31"), datetime.date(2023, 12, 31))
         self.assertEqual(convert_str_to_date("2020-02-29"), datetime.date(2020, 2, 29))  # Leap year
         self.assertEqual(convert_str_to_date("2021-02-28"), datetime.date(2021, 2, 28))
 
-    def test_valid_date_strings_with_slash_separator(self):
+    def test_valid_date_with_slash_separator(self):
         """Test valid date with slash separator works correctly"""
         self.assertEqual(convert_str_to_date("2021/01/01"), datetime.date(2021, 1, 1))
         self.assertEqual(convert_str_to_date("2023/12/31"), datetime.date(2023, 12, 31))
@@ -198,14 +190,14 @@ class ConvertStrToDateTests(TestCase):
 
 
 class ConvertStrToTimeTests(TestCase):
-    def test_convert_12h_format_str_to_time(self):
+    def test_12h_format_str_to_time(self):
         """Test valid time strings"""
         # These tests check if a 12-hour time format string converts correctly.
         self.assertEqual(convert_str_to_time("10:00 AM"), datetime.time(10, 0))
         self.assertEqual(convert_str_to_time("12:00 PM"), datetime.time(12, 0))
         self.assertEqual(convert_str_to_time("01:30 PM"), datetime.time(13, 30))
 
-    def test_convert_24h_format_str_to_time(self):
+    def test_24h_format_str_to_time(self):
         """Test if a 24-hour time format string converts correctly."""
         # These tests check if a 24-hour time format string converts correctly.
         self.assertEqual(convert_str_to_time("10:00:00"), datetime.time(10, 0))
@@ -218,7 +210,7 @@ class ConvertStrToTimeTests(TestCase):
         self.assertEqual(convert_str_to_time("01:00 pM "), datetime.time(13, 0))
         self.assertEqual(convert_str_to_time(" 13:00:00 "), datetime.time(13, 0))
 
-    def test_convert_str_to_time_invalid(self):
+    def test_invalid_time_strings(self):
         """Test invalid time strings"""
         with self.assertRaises(ValueError):
             convert_str_to_time("")
@@ -276,14 +268,14 @@ class GetAppointmentRequestEndTimeTests(TestCase):
 
 class TimeDifferenceTests(TestCase):
 
-    def test_valid_difference_with_time_objects(self):
+    def test_difference_with_time_objects(self):
         """Test difference between two time objects"""
         time1 = datetime.time(10, 0)
         time2 = datetime.time(11, 0)
         difference = time_difference(time1, time2)
         self.assertEqual(difference, datetime.timedelta(hours=1))
 
-    def test_valid_difference_with_datetime_objects(self):
+    def test_difference_with_datetime_objects(self):
         """Test difference between two datetime objects"""
         datetime1 = datetime.datetime(2023, 1, 1, 10, 0)
         datetime2 = datetime.datetime(2023, 1, 1, 11, 0)
@@ -324,7 +316,7 @@ class TimeDifferenceTests(TestCase):
 
 
 class CombineDateAndTimeTests(TestCase):
-    def test_combine_valid_date_and_time(self):
+    def test_valid_date_and_time(self):
         """Test combining a valid date and time."""
         date = datetime.date(2023, 1, 1)
         time = datetime.time(12, 30)
