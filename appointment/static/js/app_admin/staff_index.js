@@ -461,7 +461,7 @@ async function populateStaffMembers(selectedStaffId, isEditMode = false) {
 
 // Function to fetch services for a specific staff member
 async function fetchServicesForStaffMember(staffId) {
-    const url = `${fetchServiceListForStaffURL}?staff_id=${staffId}`;
+    const url = `${fetchServiceListForStaffURL}?staff_member=${staffId}`;
     try {
         const response = await fetch(url);
         if (!response.ok) throw new Error('Network response was not ok');
@@ -779,7 +779,7 @@ function collectFormDataFromModal(modal) {
     };
 
     if (staffId) {
-        data.staff_id = staffId;
+        data.staff_member = staffId;
     }
 
     inputs.forEach(input => {

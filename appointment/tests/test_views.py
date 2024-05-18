@@ -397,7 +397,7 @@ class UpdateAppointmentTestCase(BaseTest):
             'client_email': 'vala.mal-doran@django-appointment.com', 'client_phone': '+12392350345',
             'client_address': '456 Outer Rim, Free Jaffa Nation',
             'want_reminder': 'false', 'additional_info': '', 'start_time': '15:00:26',
-            'staff_id': self.staff_member1.id,
+            'staff_member': self.staff_member1.id,
             'date': self.tomorrow.strftime('%Y-%m-%d')
         }
 
@@ -773,7 +773,7 @@ class ViewsTestCase(BaseTest):
 
     def test_get_next_available_date_ajax(self):
         """get_next_available_date_ajax view should return a JSON response with the next available date."""
-        data = {'staff_id': self.staff_member.id}
+        data = {'staff_member': self.staff_member.id}
         url = reverse('appointment:request_next_available_slot', args=[self.service1.id])
         response = self.client.get(url, data=data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
         self.assertEqual(response.status_code, 200)
@@ -942,7 +942,7 @@ class GetNonWorkingDaysAjaxTests(BaseTest):
 
     def test_no_staff_member_selected(self):
         """Test the response when no staff member is selected."""
-        response = self.client.get(self.url, {'staff_id': 'none'}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        response = self.client.get(self.url, {'staff_member': 'none'}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
         self.assertEqual(response.status_code, 200)
         response_data = response.json()
         self.assertFalse(response_data['success'])
@@ -952,7 +952,7 @@ class GetNonWorkingDaysAjaxTests(BaseTest):
 
     def test_valid_staff_member_selected(self):
         """Test the response for a valid staff member selection."""
-        response = self.client.get(self.url, {'staff_id': self.staff_member1.id},
+        response = self.client.get(self.url, {'staff_member': self.staff_member1.id},
                                    HTTP_X_REQUESTED_WITH='XMLHttpRequest')
         self.assertEqual(response.status_code, 200)
         response_data = response.json()
@@ -963,7 +963,7 @@ class GetNonWorkingDaysAjaxTests(BaseTest):
 
     def test_ajax_required(self):
         """Ensure the view only responds to AJAX requests."""
-        non_ajax_response = self.client.get(self.url, {'staff_id': self.staff_member1.id})
+        non_ajax_response = self.client.get(self.url, {'staff_member': self.staff_member1.id})
         self.assertEqual(non_ajax_response.status_code, 200)
 
 
