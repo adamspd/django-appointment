@@ -30,6 +30,7 @@ class ConfigCreationTestCase(TestCase):
         self.assertEqual(self.config.finish_time, time(17, 0))
         self.assertEqual(self.config.appointment_buffer_time, 2.0)
         self.assertEqual(self.config.website_name, "Stargate Command")
+        self.assertIsNotNone(Config.get_instance())
 
     def test_multiple_config_creation(self):
         """Test that only one configuration can be created."""
