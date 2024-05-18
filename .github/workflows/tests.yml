@@ -34,7 +34,7 @@ jobs:
         pip install coverage
     - name: Run Tests
       run: |
-        coverage run  --omit="*/test*" --rcfile=.coveragerc manage.py test appointment.tests --parallel=10 --shuffle --verbosity=1
+        coverage run --rcfile=.coveragerc manage.py test appointment.tests --parallel=10 --shuffle --verbosity=1
         coverage report
         coverage xml
     - name: Upload to Codecov
