@@ -11,7 +11,7 @@ from typing import Optional
 from urllib.parse import urlparse
 
 from django.apps import apps
-from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.exceptions import FieldDoesNotExist
 from django.urls import reverse
@@ -103,8 +103,8 @@ def create_and_save_appointment(ar, client_data: dict, appointment_data: dict, r
     """
     user = get_user_by_email(client_data['email'])
     appointment = Appointment.objects.create(
-        client=user, appointment_request=ar,
-        **appointment_data
+            client=user, appointment_request=ar,
+            **appointment_data
     )
     appointment.save()
     logger.info(f"New appointment created: {appointment.to_dict()}")
@@ -179,7 +179,7 @@ def update_appointment_reminder(appointment, new_date, new_start_time, request, 
             schedule_email_reminder(appointment, request, new_datetime)
         else:
             logger.info(
-                f"Reminder for appointment {appointment.id} is not scheduled per user's preference or past datetime.")
+                    f"Reminder for appointment {appointment.id} is not scheduled per user's preference or past datetime.")
 
     # Update the appointment's reminder preference
     appointment.want_reminder = want_reminder
@@ -309,8 +309,8 @@ def create_payment_info_and_get_url(appointment):
             urlparse(APPOINTMENT_PAYMENT_URL).netloc):
         # It's a Django reverse URL; generate the URL
         payment_url = reverse(
-            APPOINTMENT_PAYMENT_URL,
-            kwargs={'object_id': payment_info.id, 'id_request': payment_info.get_id_request()}
+                APPOINTMENT_PAYMENT_URL,
+                kwargs={'object_id': payment_info.id, 'id_request': payment_info.get_id_request()}
         )
     else:
         # It's an external link; return as is or append necessary data
@@ -350,10 +350,10 @@ def exclude_pending_reschedules(slots, staff_member, date):
     # Calculate the time window for "last 5 minutes"
     ten_minutes_ago = timezone.now() - datetime.timedelta(minutes=5)
     pending_reschedules = AppointmentRescheduleHistory.objects.filter(
-        appointment_request__staff_member=staff_member,
-        date=date,
-        reschedule_status='pending',
-        created_at__gte=ten_minutes_ago
+            appointment_request__staff_member=staff_member,
+            date=date,
+            reschedule_status='pending',
+            created_at__gte=ten_minutes_ago
     )
 
     # Filter out slots that overlap with any pending rescheduling
@@ -478,10 +478,10 @@ def get_appointments_for_date_and_time(date, start_time, end_time, staff_member)
     :return: QuerySet, all appointments that overlap with the specified date and time range
     """
     return Appointment.objects.filter(
-        appointment_request__date=date,
-        appointment_request__start_time__lte=end_time,
-        appointment_request__end_time__gte=start_time,
-        appointment_request__staff_member=staff_member
+            appointment_request__date=date,
+            appointment_request__start_time__lte=end_time,
+            appointment_request__end_time__gte=start_time,
+            appointment_request__staff_member=staff_member
     )
 
 
@@ -604,14 +604,6 @@ def get_times_from_config(date):
         slot_duration = datetime.timedelta(minutes=APPOINTMENT_SLOT_DURATION)
         buff_time = datetime.timedelta(minutes=APPOINTMENT_BUFFER_TIME)
     return start_time, end_time, slot_duration, buff_time
-
-
-def get_user_model():
-    """Get the client models from the settings file.
-
-    :return: The user model
-    """
-    return apps.get_model(settings.AUTH_USER_MODEL)
 
 
 def get_user_by_email(email: str):

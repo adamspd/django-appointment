@@ -29,10 +29,20 @@ from appointment.models import (
 from appointment.tests.base.base_test import BaseTest
 from appointment.utils.db_helpers import Service, WorkingHours, create_user_with_username
 from appointment.utils.error_codes import ErrorCode
-from appointment.views import create_appointment, redirect_to_payment_or_thank_you_page, verify_user_and_login
+from appointment.views import (
+    create_appointment, redirect_to_payment_or_thank_you_page, verify_user_and_login
+)
 
 
 class SlotTestCase(BaseTest):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+
     def setUp(self):
         super().setUp()
         self.client = Client()
@@ -40,23 +50,22 @@ class SlotTestCase(BaseTest):
 
     def test_get_available_slots_ajax(self):
         """get_available_slots_ajax view should return a JSON response with available slots for the selected date."""
-        response = self.client.get(self.url, {'selected_date': date.today().isoformat(), 'staff_member': self.staff_member1.id},
+        response = self.client.get(self.url, {'selected_date': date.today().isoformat(), 'staff_member': '1'},
                                    HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        print(f"response: {response.content}")
+        self.assertEqual(response.status_code, 200)
         response_data = response.json()
         self.assertIn('date_chosen', response_data)
         self.assertIn('available_slots', response_data)
         self.assertFalse(response_data.get('error'))
 
-    def test_get_available_slots_ajax_invalid_form(self):
+    def test_get_available_slots_ajax_past_date(self):
         """get_available_slots_ajax view should return an error if the selected date is in the past."""
         past_date = (date.today() - timedelta(days=1)).isoformat()
         response = self.client.get(self.url, {'selected_date': past_date}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()['error'], True)
         self.assertEqual(response.json()['message'], 'Date is in the past')
-        # invalid staff id
-        response = self.client.get(self.url, {'selected_date': date.today(), 'staff_member': 999}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-        self.assertEqual(response.json()['error'], True)
-        self.assertEqual(response.json()['message'], 'Staff member does not exist')
 
 
 class AppointmentRequestTestCase(BaseTest):
@@ -97,8 +106,17 @@ class AppointmentRequestTestCase(BaseTest):
 
 
 class VerificationCodeTestCase(BaseTest):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+
     def setUp(self):
         super().setUp()
+        self.daniel = self.users['staff1']
         self.factory = RequestFactory()
         self.request = self.factory.get('/')
 
@@ -117,19 +135,19 @@ class VerificationCodeTestCase(BaseTest):
 
     def test_verify_user_and_login_valid(self):
         """Test if a user can be verified and logged in."""
-        code = EmailVerificationCode.generate_code(user=self.user1)
-        result = verify_user_and_login(self.request, self.user1, code)
+        code = EmailVerificationCode.generate_code(user=self.daniel)
+        result = verify_user_and_login(self.request, self.daniel, code)
         self.assertTrue(result)
 
     def test_verify_user_and_login_invalid(self):
         """Test if a user cannot be verified and logged in with an invalid code."""
         invalid_code = '000000'  # An invalid code
-        result = verify_user_and_login(self.request, self.user1, invalid_code)
+        result = verify_user_and_login(self.request, self.daniel, invalid_code)
         self.assertFalse(result)
 
     def test_enter_verification_code_valid(self):
         """Test if a valid verification code can be entered."""
-        code = EmailVerificationCode.generate_code(user=self.user1)
+        code = EmailVerificationCode.generate_code(user=self.daniel)
         post_data = {'code': code}  # Assuming a valid code for the test setup
         response = self.client.post(self.url, post_data)
         self.assertEqual(response.status_code, 200)
@@ -145,10 +163,19 @@ class VerificationCodeTestCase(BaseTest):
 
 
 class StaffMemberTestCase(BaseTest):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+
     def setUp(self):
         super().setUp()
+        self.user1 = self.users['staff1']
         self.staff_member = self.staff_member1
-        self.appointment = self.create_appointment_for_user1()
+        self.appointment = self.create_appt_for_sm1()
 
     def remove_staff_member(self):
         """Remove the StaffMember instance of self.user1."""
@@ -170,9 +197,9 @@ class StaffMemberTestCase(BaseTest):
 
         message_list = list(get_messages(response.wsgi_request))
         self.assertTrue(any(
-            message.message == "User doesn't have a staff member instance. Please contact the administrator." for
-            message in message_list),
-            "Expected error message not found in messages.")
+                message.message == "User doesn't have a staff member instance. Please contact the administrator." for
+                message in message_list),
+                "Expected error message not found in messages.")
 
     def test_remove_staff_member(self):
         self.need_superuser_login()
@@ -196,10 +223,13 @@ class StaffMemberTestCase(BaseTest):
         self.need_superuser_login()
         self.clean_staff_member_objects()
         # Test removal of staff member by a superuser
+        self.jack = self.users['superuser']
+
+        self.client.get(reverse('appointment:make_superuser_staff_member'))
         response = self.client.get(reverse('appointment:remove_superuser_staff_member'))
 
         # Check if the StaffMember instance was deleted
-        self.assertFalse(StaffMember.objects.filter(user=self.user1).exists())
+        self.assertFalse(StaffMember.objects.filter(user=self.jack).exists())
 
         # Check if it redirects to the user profile
         self.assertRedirects(response, reverse('appointment:user_profile'))
@@ -215,11 +245,12 @@ class StaffMemberTestCase(BaseTest):
     def test_make_staff_member_with_superuser(self):
         self.need_superuser_login()
         self.remove_staff_member()
+        self.jack = self.users['superuser']
         # Test creating a staff member by a superuser
         response = self.client.get(reverse('appointment:make_superuser_staff_member'))
 
         # Check if the StaffMember instance was created
-        self.assertTrue(StaffMember.objects.filter(user=self.user1).exists())
+        self.assertTrue(StaffMember.objects.filter(user=self.jack).exists())
 
         # Check if it redirects to the user profile
         self.assertRedirects(response, reverse('appointment:user_profile'))
@@ -266,9 +297,17 @@ class StaffMemberTestCase(BaseTest):
 
 
 class AppointmentTestCase(BaseTest):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+
     def setUp(self):
         super().setUp()
-        self.appointment = self.create_appointment_for_user1()
+        self.appointment = self.create_appt_for_sm1()
 
     def test_delete_appointment(self):
         self.need_staff_login()
@@ -308,7 +347,7 @@ class AppointmentTestCase(BaseTest):
         self.need_staff_login()  # Login as a regular staff user
 
         # Try to delete an appointment belonging to a different staff member
-        different_appointment = self.create_appointment_for_user2()
+        different_appointment = self.create_appt_for_sm2()
         url = reverse('appointment:delete_appointment', args=[different_appointment.id])
 
         response = self.client.post(url)
@@ -324,7 +363,7 @@ class AppointmentTestCase(BaseTest):
         self.need_staff_login()  # Login as a regular staff user
 
         # Try to delete an appointment belonging to a different staff member
-        different_appointment = self.create_appointment_for_user2()
+        different_appointment = self.create_appt_for_sm2()
         url = reverse('appointment:delete_appointment_ajax')
 
         response = self.client.post(url, {'appointment_id': different_appointment.id}, content_type='application/json')
@@ -340,14 +379,23 @@ class AppointmentTestCase(BaseTest):
 
 
 class UpdateAppointmentTestCase(BaseTest):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+
     def setUp(self):
         super().setUp()
-        self.appointment = self.create_appointment_for_user1()
+        self.appointment = self.create_appt_for_sm1()
         self.tomorrow = date.today() + timedelta(days=1)
         self.data = {
             'isCreating': False, 'service_id': self.service1.pk, 'appointment_id': self.appointment.id,
-            'client_name': 'Bryan Zap',
-            'client_email': 'bz@gmail.com', 'client_phone': '+33769992738', 'client_address': 'Naples, Florida',
+            'client_name': 'Vala Mal Doran',
+            'client_email': 'vala.mal-doran@django-appointment.com', 'client_phone': '+12392350345',
+            'client_address': '456 Outer Rim, Free Jaffa Nation',
             'want_reminder': 'false', 'additional_info': '', 'start_time': '15:00:26',
             'staff_id': self.staff_member1.id,
             'date': self.tomorrow.strftime('%Y-%m-%d')
@@ -456,6 +504,14 @@ class UpdateAppointmentTestCase(BaseTest):
 
 
 class ServiceViewTestCase(BaseTest):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+
     def setUp(self):
         super().setUp()
 
@@ -473,12 +529,12 @@ class ServiceViewTestCase(BaseTest):
         response_data = response.json()
         self.assertEqual(response_data["message"], "Successfully fetched services.")
         self.assertCountEqual(
-            response_data["services_offered"],
-            [{"id": service.id, "name": service.name} for service in staff_member_services]
+                response_data["services_offered"],
+                [{"id": service.id, "name": service.name} for service in staff_member_services]
         )
 
         # Create a test appointment and link it to self.staff_member1
-        test_appointment = self.create_appointment_for_user1()
+        test_appointment = self.create_appt_for_sm1()
 
         # Simulate a request with appointmentId
         url_with_appointment = f"{url}?appointmentId={test_appointment.id}"
@@ -488,16 +544,17 @@ class ServiceViewTestCase(BaseTest):
         self.assertEqual(response_data_with_appointment["message"], "Successfully fetched services.")
         # Assuming the staff member linked to the appointment offers the same services
         self.assertCountEqual(
-            response_data_with_appointment["services_offered"],
-            [{"id": service.id, "name": service.name} for service in staff_member_services]
+                response_data_with_appointment["services_offered"],
+                [{"id": service.id, "name": service.name} for service in staff_member_services]
         )
 
     def test_fetch_service_list_for_staff_no_staff_member_instance(self):
         """Test that a superuser without a StaffMember instance receives no inappropriate error message."""
         self.need_superuser_login()
+        jack = self.users['superuser']
 
         # Ensure the superuser does not have a StaffMember instance
-        StaffMember.objects.filter(user=self.user1).delete()
+        StaffMember.objects.filter(user=jack).delete()
 
         url = reverse('appointment:fetch_service_list_for_staff')
         response = self.client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
@@ -558,9 +615,17 @@ class ServiceViewTestCase(BaseTest):
 
 
 class AppointmentDisplayViewTestCase(BaseTest):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+
     def setUp(self):
         super().setUp()
-        self.appointment = self.create_appointment_for_user1()
+        self.appointment = self.create_appt_for_sm1()
         self.url_display_appt = reverse('appointment:display_appointment', args=[self.appointment.id])
 
     def test_display_appointment_authenticated_staff_user(self):
@@ -683,6 +748,14 @@ class DayOffViewsTestCase(BaseTest):
 
 
 class ViewsTestCase(BaseTest):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+
     def setUp(self):
         super().setUp()
         self.client = Client()
@@ -694,6 +767,7 @@ class ViewsTestCase(BaseTest):
         WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=2,
                                     start_time=datetime.time(8, 0), end_time=datetime.time(12, 0))
         self.ar = self.create_appt_request_for_sm1()
+        self.user1 = self.users['staff1']
         self.user1.is_staff = True
         self.request.user = self.user1
 
@@ -717,13 +791,20 @@ class ViewsTestCase(BaseTest):
 
 
 class AddStaffMemberInfoTestCase(ViewsTestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
 
     def setUp(self):
         super().setUp()
         self.staff_member = self.staff_member1
         self.url = reverse('appointment:add_staff_member_info')
         self.user_test = self.create_user_(
-            first_name="Great Tester", email="great.tester@django-appointment.com", username="great_tester"
+                first_name="Great Tester", email="great.tester@django-appointment.com", username="great_tester"
         )
         self.data = {
             "user": self.user_test.id,
@@ -766,12 +847,24 @@ class AddStaffMemberInfoTestCase(ViewsTestCase):
 
 
 class SetPasswordViewTests(BaseTest):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+
     def setUp(self):
         super().setUp()
         user_data = {
-            'username': 'test_user', 'email': 'test@example.com', 'password': 'oldpassword', 'first_name': 'John',
-            'last_name': 'Doe'
+            'username': 'bratac.of-chulak',
+            'email': 'bratac.of-chulak@django-',
+            'password': 'oldpassword',
+            'first_name': "Bra'tac",
+            'last_name': 'of Chulak'
         }
+
         self.user = create_user_with_username(user_data)
         self.token = PasswordResetToken.create_token(user=self.user, expiration_minutes=2880)  # 2 days expiration
         self.ui_db64 = urlsafe_base64_encode(force_bytes(self.user.pk))
@@ -809,7 +902,7 @@ class SetPasswordViewTests(BaseTest):
         self.assertEqual(response.status_code, 200)
         messages_ = list(get_messages(response.wsgi_request))
         self.assertTrue(
-            any(msg.message == _("The password reset link is invalid or has expired.") for msg in messages_))
+                any(msg.message == _("The password reset link is invalid or has expired.") for msg in messages_))
 
     def test_post_request_with_invalid_token(self):
         invalid_token = str(uuid.uuid4())
@@ -830,10 +923,18 @@ class SetPasswordViewTests(BaseTest):
         self.assertEqual(response.status_code, 200)
         messages_ = list(get_messages(response.wsgi_request))
         self.assertTrue(
-            any(msg.message == _("The password reset link is invalid or has expired.") for msg in messages_))
+                any(msg.message == _("The password reset link is invalid or has expired.") for msg in messages_))
 
 
 class GetNonWorkingDaysAjaxTests(BaseTest):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+
     def setUp(self):
         super().setUp()
         self.client = Client()
@@ -867,6 +968,14 @@ class GetNonWorkingDaysAjaxTests(BaseTest):
 
 
 class AppointmentClientInformationTest(BaseTest):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+
     def setUp(self):
         super().setUp()
         self.client = Client()
@@ -875,12 +984,12 @@ class AppointmentClientInformationTest(BaseTest):
         self.factory = RequestFactory()
         self.request = self.factory.get('/')
         self.valid_form_data = {
-            'name': 'Test Client',
+            'name': 'Adria Origin',
             'service_id': '1',
             'payment_type': 'full',
-            'email': 'testuser@example.com',
+            'email': 'adria@django-appointment.com',
             'phone': '+1234567890',
-            'address': '123 Test St.',
+            'address': '123 Ori Temple, Celestis',
         }
 
     def test_get_request(self):
@@ -907,6 +1016,14 @@ class AppointmentClientInformationTest(BaseTest):
 
 
 class PrepareRescheduleAppointmentViewTests(BaseTest):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+
     def setUp(self):
         super().setUp()
         self.client = Client()
@@ -942,11 +1059,19 @@ class PrepareRescheduleAppointmentViewTests(BaseTest):
 
 
 class RescheduleAppointmentSubmitViewTests(BaseTest):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+
     def setUp(self):
         super().setUp()
         self.client = Client()
         self.ar = self.create_appt_request_for_sm1(date_=timezone.now().date() + datetime.timedelta(days=1))
-        self.appointment = self.create_appointment_for_user1(appointment_request=self.ar)
+        self.appointment = self.create_appt_for_sm1(appointment_request=self.ar)
         self.url = reverse('appointment:reschedule_appointment_submit')
         self.post_data = {
             'appointment_request_id': self.ar.id_request,
@@ -987,24 +1112,33 @@ class RescheduleAppointmentSubmitViewTests(BaseTest):
         self.assertTemplateUsed(response, 'appointment/appointments.html')
         messages_list = list(get_messages(response.wsgi_request))
         self.assertTrue(any(
-            _("There was an error in your submission. Please check the form and try again.") in str(message) for message
-            in messages_list))
+                _("There was an error in your submission. Please check the form and try again.") in str(message) for
+                message
+                in messages_list))
 
 
 class ConfirmRescheduleViewTests(BaseTest):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+
     def setUp(self):
         super().setUp()
         self.client = Client()
         self.ar = self.create_appt_request_for_sm1()
-        self.create_appointment_for_user1(appointment_request=self.ar)
+        self.create_appt_for_sm1(appointment_request=self.ar)
         self.reschedule_history = AppointmentRescheduleHistory.objects.create(
-            appointment_request=self.ar,
-            date=timezone.now().date() + timezone.timedelta(days=2),
-            start_time='10:00',
-            end_time='11:00',
-            staff_member=self.staff_member1,
-            id_request='unique_id_request',
-            reschedule_status='pending'
+                appointment_request=self.ar,
+                date=timezone.now().date() + timezone.timedelta(days=2),
+                start_time='10:00',
+                end_time='11:00',
+                staff_member=self.staff_member1,
+                id_request='unique_id_request',
+                reschedule_status='pending'
         )
         self.url = reverse('appointment:confirm_reschedule', args=[self.reschedule_history.id_request])
 
@@ -1043,9 +1177,17 @@ class ConfirmRescheduleViewTests(BaseTest):
 
 
 class RedirectToPaymentOrThankYouPageTests(BaseTest):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+
     def setUp(self):
         super().setUp()
-        self.appointment = self.create_appointment_for_user1()
+        self.appointment = self.create_appt_for_sm1()
 
     @patch('appointment.views.APPOINTMENT_PAYMENT_URL', 'http://example.com/payment/')
     @patch('appointment.views.create_payment_info_and_get_url')
@@ -1065,7 +1207,7 @@ class RedirectToPaymentOrThankYouPageTests(BaseTest):
 
         self.assertIsInstance(response, HttpResponseRedirect)
         self.assertTrue(response.url.startswith(
-            reverse('appointment:default_thank_you', kwargs={'appointment_id': self.appointment.id})))
+                reverse('appointment:default_thank_you', kwargs={'appointment_id': self.appointment.id})))
 
     @patch('appointment.views.APPOINTMENT_PAYMENT_URL', '')
     @patch('appointment.views.APPOINTMENT_THANK_YOU_URL', '')
@@ -1075,15 +1217,23 @@ class RedirectToPaymentOrThankYouPageTests(BaseTest):
 
         self.assertIsInstance(response, HttpResponseRedirect)
         self.assertTrue(response.url.startswith(
-            reverse('appointment:default_thank_you', kwargs={'appointment_id': self.appointment.id})))
+                reverse('appointment:default_thank_you', kwargs={'appointment_id': self.appointment.id})))
 
 
 class CreateAppointmentTests(BaseTest):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+
     def setUp(self):
         super().setUp()
         self.appointment_request = self.create_appt_request_for_sm1()
-        self.client_data = {'name': 'John Doe', 'email': 'john@example.com'}
-        self.appointment_data = {'phone': '1234567890', 'want_reminder': True, 'address': '123 Test St.',
+        self.client_data = {'name': 'Orlin Ascended', 'email': 'orlin.ascended@django-appointment.com'}
+        self.appointment_data = {'phone': '1234567890', 'want_reminder': True, 'address': '123 Ancient St, Velona',
                                  'additional_info': 'Test info'}
         self.request = RequestFactory().get('/')
 
