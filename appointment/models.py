@@ -10,6 +10,7 @@ import datetime
 import random
 import string
 import uuid
+from decimal import Decimal, InvalidOperation
 
 from babel.numbers import get_currency_symbol
 from django.conf import settings
@@ -67,7 +68,7 @@ class Service(models.Model):
     name = models.CharField(max_length=100, blank=False)
     description = models.TextField(blank=True, null=True)
     duration = models.DurationField(validators=[MinValueValidator(datetime.timedelta(seconds=1))])
-    price = models.DecimalField(max_digits=6, decimal_places=2, validators=[MinValueValidator(0)])
+    price = models.DecimalField(max_digits=8, decimal_places=2, validators=[MinValueValidator(0)])
     down_payment = models.DecimalField(max_digits=6, decimal_places=2, default=0, validators=[MinValueValidator(0)])
     image = models.ImageField(upload_to='services/', blank=True, null=True)
     currency = models.CharField(max_length=3, default='USD', validators=[MaxLengthValidator(3), MinLengthValidator(3)])
@@ -435,7 +436,7 @@ class Appointment(models.Model):
     want_reminder = models.BooleanField(default=False)
     additional_info = models.TextField(blank=True, null=True)
     paid = models.BooleanField(default=False)
-    amount_to_pay = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True)
+    amount_to_pay = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     id_request = models.CharField(max_length=100, blank=True, null=True)
 
     # meta datas
@@ -596,7 +597,7 @@ class Appointment(models.Model):
     def to_dict(self):
         return {
             "id": self.id,
-            "client_name": self.client.get_full_name(),
+            "client_name": self.get_client_name(),
             "client_email": self.client.email,
             "start_time": self.appointment_request.start_time.strftime('%Y-%m-%d %H:%M'),
             "end_time": self.appointment_request.end_time.strftime('%Y-%m-%d %H:%M'),
@@ -664,6 +665,10 @@ class Config(models.Model):
         if self.lead_time is not None and self.finish_time is not None:
             if self.lead_time >= self.finish_time:
                 raise ValidationError(_("Lead time must be before finish time"))
+        if self.appointment_buffer_time is not None and self.appointment_buffer_time < 0:
+            raise ValidationError(_("Appointment buffer time cannot be negative"))
+        if self.slot_duration is not None and self.slot_duration <= 0:
+            raise ValidationError(_("Slot duration must be greater than 0"))
 
     def save(self, *args, **kwargs):
         self.clean()
