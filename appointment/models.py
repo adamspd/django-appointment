@@ -214,7 +214,9 @@ class StaffMember(models.Model):
         if hasattr(self.user, 'get_full_name') and callable(getattr(self.user, 'get_full_name')):
             name = self.user.get_full_name()
         else:
-            name = self.user.first_name
+            name = f"{self.user.first_name} {self.user.last_name}".strip()
+        if not name:
+            name = self.user.username
         return name
 
     def get_staff_member_first_name(self):

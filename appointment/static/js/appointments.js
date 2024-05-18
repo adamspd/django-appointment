@@ -158,7 +158,7 @@ function fetchNonWorkingDays(staffId, callback) {
         return;  // Exit the function early
     }
     let ajaxData = {
-        'staff_member': staffId,
+        'staff_id': staffId,
     };
 
     $.ajax({

@@ -1,0 +1,15 @@
+[run]
+branch = True
+source = appointment
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __str__
+    if self.debug
+    raise NotImplementedError
+    if __name__ == .__main__.:
+
+omit =
+    */tests/*
+    manage.py
