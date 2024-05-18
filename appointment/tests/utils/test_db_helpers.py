@@ -982,6 +982,11 @@ class CreateNewUserTest(TestCase):
         self.assertEqual(first_name, 'Garshaw')
         self.assertEqual(last_name, 'of Belote')
 
+        name = "Teal'c"
+        first_name, last_name = parse_name(name)
+        self.assertEqual(first_name, "Teal'c")
+        self.assertEqual(last_name, '')
+
     def test_create_new_user_check_password(self):
         """Test creating a new user with a password."""
         client_data = {'name': 'Harry Maybourne', 'email': 'harry.maybourne@django-appointment.com'}
