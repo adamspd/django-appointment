@@ -38,8 +38,8 @@ jobs:
         coverage debug config
     - name: Run Tests
       run: |
-        coverage run --rcfile=.coveragerc manage.py test appointment.tests --parallel=10 --shuffle --verbosity=1
-        coverage report
+        coverage run manage.py test appointment.tests --parallel=10 --shuffle --verbosity=1
+        coverage report --omit=*/tests/*,*/test_*.py,manage.py
         coverage xml
     - name: Upload to Codecov
       uses: codecov/codecov-action@v4
