@@ -43,8 +43,8 @@
                         <tbody>
                         {% for staff_member in staff_members %}
                             <tr>
-                                <td>{{ staff_member.user.first_name }} {{ staff_member.user.last_name }}</td>
-                                <td>{{ staff_member.user.email }}</td>
+                                <td>{{ staff_member.get_staff_member_name }}</td>
+                                <td>{{ staff_member.user.email|default:"N/A" }}</td>
                                 <td>
                                     <a href="{% url 'appointment:user_profile' staff_member.user.id %}"
                                        class="modify-btn button-color-blue">{% trans 'View Profile' %}</a>

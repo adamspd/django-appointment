@@ -148,7 +148,7 @@ EMAIL_USE_LOCALTIME = True
 SERVER_EMAIL = EMAIL_HOST_USER
 
 ADMINS = [
-    ('Adams', "django-appt@adamspierredavid.com"),
+    (os.getenv('ADMIN_NAME'), os.getenv('ADMIN_EMAIL')),
 ]
 
 Q_CLUSTER = {

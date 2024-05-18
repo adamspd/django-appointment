@@ -274,7 +274,7 @@ def fetch_staff_list(request):
     for staff in staff_members:
         staff_data.append({
             'id': staff.id,
-            'name': staff.user.get_full_name(),
+            'name': staff.get_staff_member_name(),
         })
     return json_response("Successfully fetched staff members.", custom_data={'staff_members': staff_data}, safe=False)
 
