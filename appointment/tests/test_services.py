@@ -41,24 +41,30 @@ class GetAvailableSlotsTests(BaseTest):
 
     def setUp(self):
         self.tomorrow = timezone.now().date() + datetime.timedelta(days=1)
-        ar = self.create_appt_request_for_sm1(date_=self.tomorrow)
+        ar = self.create_appt_request_for_sm1(date_=self.tomorrow, start_time=time(11, 0), end_time=time(12, 0))
         self.appointment = self.create_appt_for_sm1(appointment_request=ar)
+
+    @override_settings(DEBUG=True)
+    def tearDown(self):
+        Config.objects.all().delete()
+        super().tearDown()
+        cache.clear()
 
     def test_get_available_slots(self):
         slots = get_available_slots(self.tomorrow, [self.appointment])
         self.assertIsInstance(slots, list)
-        self.assertNotIn('09:00 AM', slots)
+        self.assertNotIn('11:00 AM', slots)
 
     def test_get_available_slots_with_config(self):
         Config.objects.create(
-                lead_time=datetime.time(8, 0),
-                finish_time=datetime.time(17, 0),
+                lead_time=datetime.time(11, 0),
+                finish_time=datetime.time(15, 0),
                 slot_duration=30,
                 appointment_buffer_time=2.0
         )
         slots = get_available_slots(self.tomorrow, [self.appointment])
         self.assertIsInstance(slots, list)
-        self.assertNotIn('09:00 AM', slots)
+        self.assertNotIn('11:00 AM', slots)
 
 
 class FetchUserAppointmentsTests(BaseTest):
@@ -244,6 +250,13 @@ class PrepareUserProfileDataTests(BaseTest):
 
 
 class HandleEntityManagementRequestTests(BaseTest):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
 
     def setUp(self):
         super().setUp()
@@ -253,6 +266,10 @@ class HandleEntityManagementRequestTests(BaseTest):
         # Setup request object
         self.request = self.factory.post('/')
         self.request.user = self.staff_member1.user
+
+    def tearDown(self):
+        WorkingHours.objects.all().delete()
+        super().tearDown()
 
     def test_staff_member_none(self):
         """A day off cannot be created for a staff member that doesn't exist."""
@@ -318,9 +335,20 @@ class HandleEntityManagementRequestTests(BaseTest):
 
 
 class HandleWorkingHoursFormTest(BaseTest):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
 
     def setUp(self):
         super().setUp()
+
+    def tearDown(self):
+        WorkingHours.objects.all().delete()
+        super().tearDown()
 
     def test_add_working_hours(self):
         """Test if working hours can be added."""
@@ -535,6 +563,14 @@ class GetAvailableSlotsForStaffTests(BaseTest):
         Config.objects.create(slot_duration=60, lead_time=datetime.time(9, 0), finish_time=datetime.time(17, 0),
                               appointment_buffer_time=0)
 
+    @override_settings(DEBUG=True)
+    def tearDown(self):
+        WorkingHours.objects.all().delete()
+        DayOff.objects.all().delete()
+        Config.objects.all().delete()
+        cache.clear()
+        super().tearDown()
+
     def test_day_off(self):
         """Test if a day off is handled correctly when getting available slots."""
         # Ask for slots for it, and it should return an empty list since next Monday is a day off
@@ -587,6 +623,7 @@ class GetAvailableSlotsForStaffTests(BaseTest):
             hour in range(9, 17) if hour != 10]
         self.assertEqual(slots, expected_slots)
 
+    @override_settings(DEBUG=True)
     def test_no_working_hours(self):
         """If a staff member doesn't have working hours on a given day, no slots should be available."""
         # Let's ask for slots on a Thursday, which the staff member doesn't work
@@ -856,6 +893,14 @@ class GetFinishButtonTextTests(BaseTest):
 
 class SlotAvailabilityTest(BaseTest, ConfigMixin):
 
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+
     def setUp(self):
         self.service = self.create_service_(duration=timedelta(hours=2))
         self.config = self.create_config_(lead_time=time(11, 0), finish_time=time(15, 0), slot_duration=120)
@@ -864,7 +909,6 @@ class SlotAvailabilityTest(BaseTest, ConfigMixin):
     @override_settings(DEBUG=True)
     def tearDown(self):
         self.service.delete()
-        self.config.delete()
         cache.clear()
 
     def test_slot_availability_without_appointments(self):
