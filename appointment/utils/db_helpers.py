@@ -234,7 +234,10 @@ def generate_unique_username_from_email(email: str) -> str:
 
 
 def parse_name(name: str):
-    return name.split(' ', 1)
+    parts = name.split(' ', 1)
+    if len(parts) == 1:
+        parts.append('')  # Add an empty string for the last name if not provided
+    return parts[0], parts[1]
 
 
 def create_user_with_email(client_data: dict):
