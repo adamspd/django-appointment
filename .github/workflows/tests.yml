@@ -32,6 +32,10 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install coverage
+    - name: Debug Coverage Configuration
+      run: |
+        coverage debug sys
+        coverage debug config
     - name: Run Tests
       run: |
         coverage run --rcfile=.coveragerc manage.py test appointment.tests --parallel=10 --shuffle --verbosity=1
