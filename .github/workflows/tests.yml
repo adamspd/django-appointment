@@ -36,15 +36,10 @@ jobs:
       run: |
         coverage debug sys
         coverage debug config
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
     - name: Run Tests
       run: |
-        coverage run --source=appointment manage.py test appointment.tests --parallel=10 --shuffle --verbosity=1
-        coverage report --omit=*/tests/*,*/test_*.py,manage.py
-        coverage xml
-    - name: Upload to Codecov
-      uses: codecov/codecov-action@v4
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        file: ./coverage.xml  # specify the location of the coverage report
-        flags: unittests  # optional
-        name: codecov-umbrella  # optional
+        python manage.py test appointment.tests --parallel=10 --shuffle --verbosity=1
