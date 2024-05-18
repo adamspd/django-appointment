@@ -454,29 +454,15 @@ class Appointment(models.Model):
 
         if self.id_request is None:
             self.id_request = f"{get_timestamp()}{self.appointment_request.id}{generate_random_id()}"
-
-        try:
-            # Ensure `amount_to_pay` is a Decimal and handle both int and float inputs
-            if self.amount_to_pay is None:
-                self.amount_to_pay = self._calculate_amount_to_pay()
-
-            self.amount_to_pay = self._to_decimal(self.amount_to_pay)
-        except InvalidOperation:
-            raise ValidationError("Invalid amount format for payment.")
-
+        if self.amount_to_pay is None or self.amount_to_pay == 0:
+            payment_type = self.appointment_request.payment_type
+            if payment_type == 'full':
+                self.amount_to_pay = self.appointment_request.get_service_price()
+            elif payment_type == 'down':
+                self.amount_to_pay = self.appointment_request.get_service_down_payment()
+            else:
+                self.amount_to_pay = 0
         return super().save(*args, **kwargs)
-
-    def _calculate_amount_to_pay(self):
-        payment_type = self.appointment_request.payment_type
-        if payment_type == 'full':
-            return self.appointment_request.get_service_price()
-        elif payment_type == 'down':
-            return self.appointment_request.get_service_down_payment()
-        else:
-            return Decimal('0.00')
-
-    def _to_decimal(self, value):
-        return Decimal(f"{value}").quantize(Decimal('0.01'))
 
     def get_client_name(self):
         if hasattr(self.client, 'get_full_name') and callable(getattr(self.client, 'get_full_name')):
