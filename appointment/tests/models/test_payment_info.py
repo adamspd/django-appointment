@@ -24,11 +24,11 @@ class PaymentInfoBasicTestCase(BaseTest):
         return super().tearDown()
 
     def test_str_representation(self):
-        """Test if a payment info's string representation is correct."""
+        """Test if payment info's string representation is correct."""
         self.assertEqual(str(self.payment_info), f"{self.service1.name} - {self.service1.price}")
 
-    def test_payment_info_creation(self):
-        """Test if a payment info can be created."""
+    def test_default_attributes_on_creation(self):
+        """Test if payment info can be created."""
         payment_info = PaymentInfo.objects.get(appointment=self.appointment)
         self.assertIsNotNone(payment_info)
         self.assertEqual(payment_info.appointment, self.appointment)
@@ -67,7 +67,7 @@ class PaymentInfoStatusTestCase(BaseTest):
         return super().tearDown()
 
     def test_set_paid_status(self):
-        """Test if a payment info's paid status can be set correctly."""
+        """Test if payment info's paid status can be set correctly."""
         self.payment_info.set_paid_status(True)
         self.assertTrue(self.appointment.is_paid())
         self.payment_info.set_paid_status(False)

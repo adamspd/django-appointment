@@ -24,7 +24,7 @@ class AppointmentRequestCreationAndBasicAttributesTests(BaseTest):
         self.ar.delete()
         super().tearDown()
 
-    def test_appointment_request_is_properly_created(self):
+    def test_default_attributes_on_creation(self):
         self.assertIsNotNone(self.ar)
         self.assertEqual(self.ar.service, self.service1)
         self.assertEqual(self.ar.staff_member, self.staff_member1)
