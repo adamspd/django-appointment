@@ -35,9 +35,9 @@
                 <h2>{% trans 'Personal Information' %}</h2>
                 <!-- Display fields from PersonalInformationForm -->
                 <div class="section-content">
-                    <p><strong>{% trans 'First name' %}:</strong> {{ user.first_name }}</p>
-                    <p><strong>{% trans 'Last name' %}:</strong> {{ user.last_name }}</p>
-                    <p><strong>{% trans 'Email' %}:</strong> {{ user.email }}</p>
+                    <p><strong>{% trans 'First name' %}:</strong> {{ user.first_name|default:user.username }}</p>
+                    <p><strong>{% trans 'Last name' %}:</strong> {{ user.last_name|default:"N/A" }}</p>
+                    <p><strong>{% trans 'Email' %}:</strong> {{ user.email|default:"N/A" }}</p>
                 </div>
                 <a href="{% url 'appointment:update_user_info' user.id %}"
                    class="section-content-button modify-btn button-color-blue">
@@ -242,7 +242,7 @@
                         {% for service in services_offered %}
                             <tr>
                                 <td>{{ service.name }}</td>
-                                <td>{{ service.description }}</td>
+                                <td>{{ service.description|default:"N/A" }}</td>
                                 <td>{{ service.get_duration }}</td>
                                 <td>{{ service.get_price_text }}</td>
                                 <td>{{ service.get_down_payment_text }}</td>
