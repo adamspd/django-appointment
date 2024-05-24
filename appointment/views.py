@@ -21,7 +21,7 @@ from django.utils.http import urlsafe_base64_decode
 from django.utils.timezone import get_current_timezone_name
 from django.utils.translation import gettext as _
 
-from appointment.forms import AppointmentForm, AppointmentRequestForm
+from appointment.forms import AppointmentForm, AppointmentRequestForm, SlotForm, ClientDataForm
 from appointment.logger_config import logger
 from appointment.models import (
     Appointment, AppointmentRequest, AppointmentRescheduleHistory, Config, DayOff, EmailVerificationCode,
@@ -57,28 +57,24 @@ def get_available_slots_ajax(request):
     :param request: The request instance.
     :return: A JSON response containing available slots, selected date, an error flag, and an optional error message.
     """
-    selected_date = convert_str_to_date(request.GET.get('selected_date'))
-    staff_id = request.GET.get('staff_id')
 
-    if selected_date < date.today():
+    slot_form = SlotForm(request.GET)
+    error_code = 0
+    if not slot_form.is_valid():
         custom_data = {'error': True, 'available_slots': [], 'date_chosen': ''}
-        message = _('Date is in the past')
+        if 'selected_date' in slot_form.errors:
+            error_code = ErrorCode.PAST_DATE
+        elif 'staff_member' in slot_form.errors:
+            error_code = ErrorCode.STAFF_ID_REQUIRED
+        message = list(slot_form.errors.as_data().items())[0][1][0].messages[0]  # dirty way to keep existing behavior
         return json_response(message=message, custom_data=custom_data, success=False,
-                             error_code=ErrorCode.PAST_DATE)
+                             error_code=error_code)
 
+    selected_date = slot_form.cleaned_data['selected_date']
+    sm = slot_form.cleaned_data['staff_member']
     date_chosen = selected_date.strftime("%a, %B %d, %Y")
     custom_data = {'date_chosen': date_chosen}
 
-    # If no staff_id provided, return an empty list of slots
-    if not staff_id or staff_id == 'none':
-        custom_data['available_slots'] = []
-        custom_data['error'] = False
-        message = _('No staff member selected')
-        return json_response(message=message, custom_data=custom_data, success=False,
-                             error_code=ErrorCode.STAFF_ID_REQUIRED, status=403)
-
-    sm = get_object_or_404(StaffMember, pk=staff_id)
-    custom_data['staff_member'] = sm.get_staff_member_name()
     days_off_exist = check_day_off_for_staff(staff_member=sm, date=selected_date)
     if days_off_exist:
         message = _("Day off. Please select another date!")
@@ -87,6 +83,8 @@ def get_available_slots_ajax(request):
     # if selected_date is not a working day for the staff, return an empty list of slots and 'message' is Day Off
     weekday_num = get_weekday_num_from_date(selected_date)
     is_working_day_ = is_working_day(staff_member=sm, day=weekday_num)
+
+    custom_data['staff_member'] = sm.get_staff_member_name()
     if not is_working_day_:
         message = _("Not a working day for {staff_member}. Please select another date!").format(
             staff_member=sm.get_staff_member_first_name())
@@ -108,6 +106,7 @@ def get_available_slots_ajax(request):
     return json_response(message='Successfully retrieved available slots', custom_data=custom_data, success=True)
 
 
+# TODO: service id and staff id are not checked
 @require_ajax
 def get_next_available_date_ajax(request, service_id):
     """This view function handles AJAX requests to get the next available date for a service.
@@ -116,7 +115,7 @@ def get_next_available_date_ajax(request, service_id):
     :param service_id: The ID of the service.
     :return: A JSON response containing the next available date.
     """
-    staff_id = request.GET.get('staff_id')
+    staff_id = request.GET.get('staff_member')
 
     # If staff_id is not provided, you should handle it accordingly.
     if staff_id and staff_id != 'none':
@@ -158,7 +157,7 @@ def get_next_available_date_ajax(request, service_id):
 
 
 def get_non_working_days_ajax(request):
-    staff_id = request.GET.get('staff_id')
+    staff_id = request.GET.get('staff_member')
     error = False
     message = _('Successfully retrieved non-working days')
 
@@ -292,32 +291,6 @@ def create_appointment(request, appointment_request_obj, client_data, appointmen
     return redirect_to_payment_or_thank_you_page(appointment)
 
 
-def get_client_data_from_post(request):
-    """This function retrieves client data from the POST request.
-
-    :param request: The request instance.
-    :return: The client data.
-    """
-    return {
-        'name': request.POST.get('name'),
-        'email': request.POST.get('email'),
-    }
-
-
-def get_appointment_data_from_post_request(request):
-    """This function retrieves appointment data from the POST request.
-
-    :param request: The request instance.
-    :return: The appointment data.
-    """
-    return {
-        'phone': request.POST.get('phone'),
-        'want_reminder': request.POST.get('want_reminder') == 'on',
-        'address': request.POST.get('address'),
-        'additional_info': request.POST.get('additional_info'),
-    }
-
-
 def appointment_client_information(request, appointment_request_id, id_request):
     """This view function handles client information submission for an appointment.
 
@@ -333,10 +306,11 @@ def appointment_client_information(request, appointment_request_id, id_request):
 
     if request.method == 'POST':
         appointment_form = AppointmentForm(request.POST)
+        client_data_form = ClientDataForm(request.POST)
 
-        if appointment_form.is_valid():
+        if appointment_form.is_valid() and client_data_form.is_valid():
             appointment_data = appointment_form.cleaned_data
-            client_data = get_client_data_from_post(request)
+            client_data = client_data_form.cleaned_data
             payment_type = request.POST.get('payment_type')
             ar.payment_type = payment_type
             ar.save()
@@ -356,11 +330,13 @@ def appointment_client_information(request, appointment_request_id, id_request):
             return response
     else:
         appointment_form = AppointmentForm()
+        client_data_form = ClientDataForm()
 
     extra_context = {
         'ar': ar,
         'APPOINTMENT_PAYMENT_URL': APPOINTMENT_PAYMENT_URL,
         'form': appointment_form,
+        'client_data_form': client_data_form,
         'service_name': ar.service.name,
     }
     context = get_generic_context_with_extra(request, extra_context, admin=False)

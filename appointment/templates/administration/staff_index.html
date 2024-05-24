@@ -344,7 +344,7 @@
         function createCommonInputFields(appointment, servicesDropdown, isEditMode, defaultStartTime, staffDropdown) {
             const startTimeValue = isEditMode ? moment(appointment.start_time).format('HH:mm:ss') : defaultStartTime;
             const disabledAttribute = isEditMode ? '' : 'disabled';
-            
+
             let superuserInputField = '';
             if (isUserSuperUser) {
                 superuserInputField = `

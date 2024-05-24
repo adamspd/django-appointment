@@ -44,14 +44,11 @@
                                 </div>
                             </div>
                             <div class="name-email">
-                                <label for="name" class="name">{% trans "Full Name" %} *<br>
-                                    <input type="text" placeholder="John DOE" id="name" class="client-name"
-                                           maxlength="100" minlength="3" required name="name">
+                                <label for="{{ form.name.id_for_label }}" class="name">{% trans "Full Name" %} *<br>
+                                    {{ client_data_form.name }}
                                 </label>
-                                <label for="email" class="email">{% trans "Email" %} *<br>
-                                    <input type="email" placeholder="john.doe@email.com" id="email"
-                                           class="client-email" name="email"
-                                           maxlength="100" required>
+                                <label for="{{ form.email.id_for_label }}" class="email">{% trans "Email" %} *<br>
+                                    {{ client_data_form.email }}
                                 </label>
                             </div>
                             <div class="receive-email">

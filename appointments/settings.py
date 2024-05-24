@@ -61,8 +61,7 @@ ROOT_URLCONF = "appointments.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / 'appointment/templates']
-        ,
+        "DIRS": [BASE_DIR / 'appointment/templates'],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -146,9 +145,10 @@ EMAIL_USE_TLS = True
 EMAIL_SUBJECT_PREFIX = ""
 EMAIL_USE_LOCALTIME = True
 SERVER_EMAIL = EMAIL_HOST_USER
+USE_DJANGO_Q_FOR_EMAILS = True
 
 ADMINS = [
-    ('Adams', "adamspd.developer@gmail.com"),
+    (os.getenv('ADMIN_NAME'), os.getenv('ADMIN_EMAIL')),
 ]
 
 Q_CLUSTER = {

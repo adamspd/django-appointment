@@ -6,7 +6,6 @@
 [![Current Release Version](https://img.shields.io/github/release/adamspd/django-appointment.svg?style=flat-square&logo=github)](https://github.com/adamspd/django-appointment/releases)
 [![pypi Version](https://img.shields.io/pypi/v/django-appointment.svg?style=flat-square&logo=pypi&logoColor=white)](https://pypi.org/project/django-appointment/)
 [![PyPi downloads](https://static.pepy.tech/personalized-badge/django-appointment?period=total&units=international_system&left_color=grey&right_color=orange&left_text=pip%20downloads)](https://pypi.org/project/django-appointment/)
-[![codecov](https://codecov.io/gh/adamspd/django-appointment/branch/main/graph/badge.svg?token=ZQZQZQZQZQ)](https://codecov.io/gh/adamspd/django-appointment)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/m/adamspd/django-appointment)](https://github.com/adamspd/django-appointment/commits/main)
 [![GitHub last commit](https://img.shields.io/github/last-commit/adamspd/django-appointment)](https://github.com/adamspd/django-appointment/commit/main)
@@ -133,10 +132,10 @@ see their [release notes](https://github.com/adamspd/django-appointment/tree/mai
    ```
 
    To be able to send email reminders after adding `django_q` to your `INSTALLED_APPS`, you must add this variable
-   `Q_CLUSTER` in your Django's `settings.py`. If done, and users check the box to receive reminders, you and them
+   `Q_CLUSTER` in your Django's `settings.py`. If done, and users check the box to receive reminders, you and they
    will receive an email reminder 24 hours before the appointment.
 
-   Here's a configuration example, that you can use without modification (if you don't want to do much research):
+   Here's a configuration example that you can use without modification (if you don't want to do much research):
 
    ```python
    Q_CLUSTER = {
@@ -148,6 +147,7 @@ see their [release notes](https://github.com/adamspd/django-appointment/tree/mai
       'bulk': 10,
       'orm': 'default',
    }
+   USE_DJANGO_Q_FOR_EMAILS = True  # 🆕 Use Django Q for sending ALL email.
    ```
 
 5. Next would be to create the migrations and run them by doing `python manage.py makemigrations appointment` and right
@@ -162,6 +162,44 @@ see their [release notes](https://github.com/adamspd/django-appointment/tree/mai
    your service.
 9. Visit http://127.0.0.1:8000/appointment/request/<service_id>/ to view the available time slots and schedule an
    appointment.
+
+## Template Configuration 📝
+
+If you're using a base.html template, you must include the following block in your template:
+
+```
+{% block customCSS %}
+{% endblock %}
+
+{% block title %}
+{% endblock %}
+
+{% block description %}
+{% endblock %}
+
+{% block body %}
+{% endblock %}
+
+{% block customJS %}
+{% endblock %}
+```
+
+At least the block for css, body and js are required; otherwise the application will not work properly. 
+Jquery is also required to be included in the template.
+
+The title and description are optional but recommended for SEO purposes.
+
+See an example of a base.html template [here](https://github.com/adamspd/django-appointment/blob/main/appointment/templates/base_templates/base.html).
+
+
+## Customization 🔧
+
+1. In your Django project's `settings.py`, you can override the default values for the appointment scheduler.
+   More information regarding available configurations can be found in
+   the [documentation](https://github.com/adamspd/django-appointment/tree/main/docs/README.md#configuration).
+2. Modify these values as needed for your application, and the app will adapt to the new settings.
+3. For further customization, you can extend the provided models, views, and templates or create your own.
+
 
 ## Docker Support 🐳
 
@@ -195,8 +233,10 @@ Here's how you can set it up:
    You should include your email host user and password for Django's email functionality (if you want it to work):
 
    ```plaintext
-   EMAIL_HOST_USER=your_email@gmail.com
+   EMAIL_HOST_USER=your_email@example.com
    EMAIL_HOST_PASSWORD=your_password
+   ADMIN_NAME='Example Name'
+   ADMIN_EMAIL=django-appt@example.com
    ```
 
    > **Note:** The `.env` file is used to store sensitive information and should not be committed to version control.
@@ -257,14 +297,7 @@ Here's how you can set it up:
    > **Note:** I used the default database settings for the Docker container.
    > If you want to use a different database, you can modify the Dockerfile and docker-compose.yml files to use your
    > preferred database.
-
-## Customization 🔧
-
-1. In your Django project's `settings.py`, you can override the default values for the appointment scheduler. More
-   information regarding available configurations can be found in
-   the [documentation](https://github.com/adamspd/django-appointment/tree/main/docs/README.md#configuration).
-2. Modify these values as needed for your application, and the app will adapt to the new settings.
-3. For further customization, you can extend the provided models, views, and templates or create your own.
+   
 
 ## Compatibility Matrix 📊
 
@@ -300,10 +333,9 @@ information.
 
 ## Notes 📝⚠️
 
-I'm working on a testing website for the application
-that is not fully functional yet, no hard feelings. But you can check it out
-at [https://django-appt.adamspierredavid.com/](https://django-appt.adamspierredavid.com/). Ideas are welcome here since
-I'm blocked on a few points.
+I'm working on a testing website for the application that is not fully functional yet, no hard feelings. Before using it, 
+it's important to me that you read the terms of use, only then you can use it if you agree to them. The demo website is located
+at [https://django-appt.adamspierredavid.com/](https://django-appt.adamspierredavid.com/terms-and-conditions/). Ideas are welcome.
 
 ## About the Author
 

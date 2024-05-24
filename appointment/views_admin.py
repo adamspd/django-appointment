@@ -231,7 +231,7 @@ def add_or_update_staff_info(request, user_id=None):
 @require_staff_or_superuser
 def fetch_service_list_for_staff(request):
     appointment_id = request.GET.get('appointmentId')
-    staff_id = request.GET.get('staff_id')
+    staff_id = request.GET.get('staff_member')
     if appointment_id:
         # Fetch services for a specific appointment (edit mode)
         if request.user.is_superuser:
@@ -274,7 +274,7 @@ def fetch_staff_list(request):
     for staff in staff_members:
         staff_data.append({
             'id': staff.id,
-            'name': staff.user.get_full_name(),
+            'name': staff.get_staff_member_name(),
         })
     return json_response("Successfully fetched staff members.", custom_data={'staff_members': staff_data}, safe=False)
 
