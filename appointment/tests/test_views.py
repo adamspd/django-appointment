@@ -1239,6 +1239,7 @@ class CreateAppointmentTests(BaseTest):
 
     @patch('appointment.views.create_and_save_appointment')
     @patch('appointment.views.redirect_to_payment_or_thank_you_page')
+    @patch('django.conf.settings.USE_DJANGO_Q_FOR_EMAILS', new=False)
     def test_create_appointment_success(self, mock_redirect, mock_create_and_save):
         """Test successful creation of an appointment and redirection."""
         # Mock the appointment creation to return an Appointment instance
