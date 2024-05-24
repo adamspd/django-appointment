@@ -28,12 +28,38 @@ def send_email_reminder(to_email, first_name, reschedule_link, appointment_id):
         'recipient_type': recipient_type,
     }
     send_email(
-        recipient_list=[to_email], subject=_("Reminder: Upcoming Appointment"),
-        template_url='email_sender/reminder_email.html', context=email_context
+            recipient_list=[to_email], subject=_("Reminder: Upcoming Appointment"),
+            template_url='email_sender/reminder_email.html', context=email_context
     )
     # Notify the admin
     email_context['recipient_type'] = 'admin'
     notify_admin(
-        subject=_("Admin Reminder: Upcoming Appointment"),
-        template_url='email_sender/reminder_email.html', context=email_context
+            subject=_("Admin Reminder: Upcoming Appointment"),
+            template_url='email_sender/reminder_email.html', context=email_context
     )
+
+
+def send_email_task(recipient_list, subject, message, html_message, from_email):
+    """
+   Task function to send an email asynchronously using Django's send_mail function.
+   This function tries to send an email and logs an error if it fails.
+   """
+    try:
+        from django.core.mail import send_mail
+        send_mail(
+                subject=subject, message=message, html_message=html_message, from_email=from_email,
+                recipient_list=recipient_list, fail_silently=False,
+        )
+    except Exception as e:
+        print(f"Error sending email from task: {e}")
+
+
+def notify_admin_task(subject, message, html_message):
+    """
+    Task function to send an admin email asynchronously.
+    """
+    try:
+        from django.core.mail import mail_admins
+        mail_admins(subject=subject, message=message, html_message=html_message, fail_silently=False)
+    except Exception as e:
+        print(f"Error sending admin email from task: {e}")

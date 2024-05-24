@@ -108,7 +108,8 @@ def create_and_save_appointment(ar, client_data: dict, appointment_data: dict, r
     )
     appointment.save()
     logger.info(f"New appointment created: {appointment.to_dict()}")
-    schedule_email_reminder(appointment, request)
+    if appointment.want_reminder:
+        schedule_email_reminder(appointment, request)
     return appointment
 
 
@@ -179,7 +180,8 @@ def update_appointment_reminder(appointment, new_date, new_start_time, request, 
             schedule_email_reminder(appointment, request, new_datetime)
         else:
             logger.info(
-                    f"Reminder for appointment {appointment.id} is not scheduled per user's preference or past datetime.")
+                    f"Reminder for appointment {appointment.id} is not scheduled per "
+                    f"user's preference or past datetime.")
 
     # Update the appointment's reminder preference
     appointment.want_reminder = want_reminder
