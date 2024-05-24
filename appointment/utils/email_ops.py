@@ -102,6 +102,7 @@ def send_reset_link_to_staff_member(user, request, email: str, account_details=N
     ui_db64 = urlsafe_base64_encode(force_bytes(user.pk))
     relative_set_passwd_link = reverse('appointment:set_passwd', args=[ui_db64, token.token])
     set_passwd_link = get_absolute_url_(relative_set_passwd_link, request=request)
+    website_name = get_website_name()
 
     message = _("""
         Hello {first_name},
@@ -122,7 +123,7 @@ def send_reset_link_to_staff_member(user, request, email: str, account_details=N
         """).format(
         first_name=user.first_name,
         current_year=datetime.datetime.now().year,
-        company=get_website_name(),
+        company=website_name,
         activation_link=set_passwd_link,
         account_details=account_details if account_details else _("No additional details provided."),
         username=user.username
@@ -131,7 +132,7 @@ def send_reset_link_to_staff_member(user, request, email: str, account_details=N
     # Assuming send_email is a method you have that sends an email
     send_email(
         recipient_list=[email],
-        subject=_("Set Your Password for {company}").format(company=get_website_name()),
+        subject=_("Set Your Password for {company}").format(company=website_name),
         message=message,
     )
 
