@@ -90,20 +90,21 @@ configurations:
 
 ### Essential Configurations:
 
-These configurations are crucial for the application to operate correctly;
-the values provided here represent the default settings.
-Change them to suit your needs.
+These configurations are needed for the application to operate correctly; most of them can also be set in the Config 
+model in the admin panel. However, you can also set them here.
+The values provided here represent the default settings. Change them to suit your needs.
 
 ```python
 APPOINTMENT_BASE_TEMPLATE = 'base_templates/base.html'
-APPOINTMENT_ADMIN_BASE_TEMPLATE = 'base_templates/base.html'  # 🆕 (optional) Specify a different base template for the admin panel
-APPOINTMENT_WEBSITE_NAME = 'Website'
+APPOINTMENT_ADMIN_BASE_TEMPLATE = 'base_templates/base.html'  # (optional) Specify a different base template for the admin panel
+APPOINTMENT_WEBSITE_NAME = 'Website'  # Can be set in the Config model.
 APPOINTMENT_PAYMENT_URL = None
 APPOINTMENT_THANK_YOU_URL = None
-APPOINTMENT_BUFFER_TIME = 0  # 🆕 Minutes between now and the first available slot for the current day (doesn't affect future dates)
-APPOINTMENT_SLOT_DURATION = 30  # Duration of each appointment slot in minutes 
-APPOINTMENT_LEAD_TIME = (9, 0)  # Start time of the appointment slots (in 24-hour format)
-APPOINTMENT_FINISH_TIME = (16, 30)  # End time of the appointment slots (in 24-hour format)
+APPOINTMENT_BUFFER_TIME = 0  # Can be set in the Config Model. Minutes between now and the first available slot for the current day (doesn't affect future dates)
+APPOINTMENT_SLOT_DURATION = 30  # Can be set in the Config Model. Duration of each appointment slot in minutes 
+APPOINTMENT_LEAD_TIME = (9, 0)  # Can be set in the Config Model. Start time of the appointment slots (in 24-hour format)
+APPOINTMENT_FINISH_TIME = (16, 30)  # Can be set in the Config Model. End time of the appointment slots (in 24-hour format)
+USE_DJANGO_Q_FOR_EMAILS = False  # 🆕 Use Django Q for sending ALL emails.
 ```
 
 For email reminders with Django Q, you can configure the following settings after adding `django_q` to
@@ -123,6 +124,15 @@ Q_CLUSTER = {
 
 If those settings are not provided, the application won't send email reminders. You also have to
 run `python manage.py qcluster` to start the Django Q cluster.
+
+#### New Configurations:
+
+A new configuration has been added to the application to allow you to use Django Q for sending all emails. 
+If you're already using Django Q to send email reminders, it is nice to set this configuration.
+
+```python
+USE_DJANGO_Q_FOR_EMAILS = False  # 🆕 Use Django Q for sending email reminders
+```
 
 ### Django Default Settings Utilization:
 
