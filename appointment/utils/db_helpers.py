@@ -108,7 +108,6 @@ def create_and_save_appointment(ar, client_data: dict, appointment_data: dict, r
     )
     appointment.save()
     logger.info(f"New appointment created: {appointment.to_dict()}")
-    print(f"Want reminder: {appointment.want_reminder}")
     if appointment.want_reminder:
         schedule_email_reminder(appointment, request)
     return appointment
