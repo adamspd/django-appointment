@@ -17,10 +17,10 @@
             <p class="thank-you-message">{% trans "We've successfully scheduled your appointment! Please check your email for all the details" %}.</p>
             <p class="appointment-details-title">{% trans "Appointment details" %}:</p>
             <ul class="appointment-details">
-                <li>{% trans 'Service' %}: {{ appointment.get_service_name }}</li>
+                <li>{% trans 'Servicios' %}: {{ appointment.get_service_name }}</li>
                 <li>{% trans 'Appointment Date' %}: {{ appointment.get_appointment_date }}</li>
                 <li>{% trans 'Appointment Time' %}: {{ appointment.get_start_time }}</li>
-                <li>{% trans 'Duration' %}: {{ appointment.get_service_duration }}</li>
+                <li>{% trans 'Duración' %}: {{ appointment.get_service_duration }}</li>
             </ul>
             {% if messages %}
                 {% for message in messages %}

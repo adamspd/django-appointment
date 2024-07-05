@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <title>{% block title %}{% trans "Appointment application" %}{% endblock %}</title>
-    <meta name="description" content="{% block description %}Chosing a date page to take an appointment.{% endblock %}">
+    <meta name="description" content="{% block description %}Choosing a date page to take an appointment.{% endblock %}">
     <meta name="keywords" content="{% block keyword %}appointment, adams pierre david{% endblock %}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="author" content="{% block author %}Adams Pierre David{% endblock %}">
@@ -16,15 +16,39 @@
           integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
 
     <!-- Custom CSS-->
-
     {% block customCSS %}{% endblock %}
     <!-- Google font -->
     <link href="https://fonts.googleapis.com/css?family=Poppins:300,300i,400,400i,500,500i,600,600i,700,700i&display=swap"
           rel="stylesheet">
     {% block scriptHead %}{% endblock %}
-
 </head>
 <body>
+
+<!-- Navigation Bar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">{% trans "Llirka Staff" %}</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="{% url 'appointment:get_user_appointments' %}">{% trans "Inicio" %}</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'appointment:get_service_list' %}">{% trans "Servicios" %}</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'appointment:user_profile' %}">{% trans "Monitores" %}</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'appointment:get_user_appointments' %}">{% trans "Contact" %}</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
 
 {% block body %}
 {% endblock %}
@@ -44,5 +68,4 @@
 
 <!--end footer-->
 </body>
-
 </html>

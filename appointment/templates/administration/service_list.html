@@ -7,27 +7,39 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
           integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
           crossorigin="anonymous" referrerpolicy="no-referrer"/>
+    <style>
+        .buttons-container {
+            display: flex;
+            gap: 10px;
+        }
+        .reservar-btn {
+            width: 150%; /* 50% wider than a regular button */
+            text-align: center;
+            display: inline-block;
+        }
+    </style>
 {% endblock %}
 {% block title %}
-    {% trans 'Service List' %}
+    {% trans 'Servicios List' %}
 {% endblock %}
 {% block description %}
-    {% trans 'Service List' %}.
+    {% trans 'Servicios List' %}.
 {% endblock %}
 {% block body %}
     <section class="content content-wrapper">
         <div class="service-container">
             <section class="profile-section">
-                <div class="section-header">
-                    <h2 class="section-header-itm">{% trans 'Service List' %}</h2>
+                <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
+                    <h2 class="section-header-itm">{% trans 'Servicios List' %}</h2>
+                    <a href="{% url 'appointment:add_service' %}" class="btn btn-primary">Nuevo Servicio</a>
                 </div>
                 <div class="responsive-table-container">
                     <table>
                         <thead>
                         <tr>
-                            <th>{% trans 'Name' %}</th>
-                            <th>{% trans 'Duration' %}</th>
-                            <th>{% trans 'Price' %}</th>
+                            <th>{% trans 'Nombre' %}</th>
+                            <th>{% trans 'Duración' %}</th>
+                            <th>{% trans 'Precio' %}</th>
                             <th>{% trans 'Action' %}</th>
                         </tr>
                         </thead>
@@ -54,13 +66,15 @@
                                                class="modify-btn button-color-red">
                                                 <i class="fas fa-trash"></i>
                                             </a>
+                                            <!-- Reservar Button -->
+                                            <a href="{% url 'appointment:appointment_request' service_id=service.id%}" class="btn btn-primary reservar-btn">Reservar</a>
                                         {% endif %}
                                     </div>
                                 </td>
                             </tr>
                         {% empty %}
                             <tr>
-                                <td colspan="3">{% trans 'No service found' %}.</td>
+                                <td colspan="4">{% trans 'No service found' %}.</td>
                             </tr>
                         {% endfor %}
                         </tbody>

@@ -55,8 +55,8 @@
     <p>{% translate 'You have received a new appointment request. Here are the details:' %}</p>
 
     <div class="appointment-details">
-        <p><strong>{% translate 'Client Name' %}:</strong> {{ client_name }}</p>
-        <p><strong>{% translate 'Service Requested' %}:</strong> {{ appointment.get_service_name }}</p>
+        <p><strong>{% translate 'Client Nombre' %}:</strong> {{ client_name }}</p>
+        <p><strong>{% translate 'Servicios Requested' %}:</strong> {{ appointment.get_service_name }}</p>
         <p><strong>{% translate 'Appointment Date' %}:</strong> {{ appointment.appointment_request.date }}</p>
         <p><strong>{% translate 'Time' %}:</strong> {{ appointment.appointment_request.start_time }}
             - {{ appointment.appointment_request.end_time }}</p>

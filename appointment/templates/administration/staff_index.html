@@ -310,7 +310,7 @@
         const serviceId = "{{ service.id }}";
         const serviceDuration = parseInt("{{ service.duration.total_seconds }}") / 60;
         let appointments = {{ appointments|safe }};
-        const fetchServiceListForStaffURL = "{% url 'appointment:fetch_service_list_for_staff' %}";
+        const fetchServiciosListForStaffURL = "{% url 'appointment:fetch_service_list_for_staff' %}";
         const fetchStaffListURL = "{% url 'appointment:fetch_staff_list' %}";
         const updateApptMinInfoURL = "{% url 'appointment:update_appt_min_info' %}";
         const updateApptDateURL = "{% url 'appointment:update_appt_date_time' %}";
@@ -331,7 +331,7 @@
         const updateApptErrorTitleTxt = "{% trans 'Error: Unable to delete appointment.' %}";
         const apptNotFoundTxt = "{% trans 'Appointment not found.' %}";
         const notStaffMemberTxt = "{% trans "You're not a staff member. Can't perform this action !" %}";
-        const noServiceOfferedTxt = "{% trans "You don't offer any service. Add new service from your profile." %}";
+        const noServiciosOfferedTxt = "{% trans "You don't offer any service. Add new service from your profile." %}";
         const noStaffMemberTxt = "{% trans "No staff members found." %}";
     </script>
 
@@ -358,11 +358,11 @@
             return `
                 ${superuserInputField}
                 <div class="flex-container-appt">
-                <label>{% trans 'Service Name' %}:</label>
+                <label>{% trans 'Servicios Nombre' %}:</label>
                 ${servicesDropdown.outerHTML}
                 </div>
-                <label for="clientName">{% trans 'Client Name' %}:</label>
-                <input type="text" name="clientName" value="${appointment.client_name || ''}" ${disabledAttribute} id="clientName" placeholder="John Doe">
+                <label for="clientNombre">{% trans 'Client Nombre' %}:</label>
+                <input type="text" name="clientNombre" value="${appointment.client_name || ''}" ${disabledAttribute} id="clientNombre" placeholder="John Doe">
                 <label for="clientEmail">{% trans 'Client Email' %}:</label>
                 <input type="email" name="clientEmail" value="${appointment.client_email || ''}" ${disabledAttribute} id="clientEmail" placeholder="john.doe@example.com">
                 <span id="emailError" style="display:none;"></span>
