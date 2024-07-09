@@ -126,7 +126,7 @@ ajax_urlpatterns = [
 
 urlpatterns = [
     # homepage
-#     path("/", ),
+    path("", get_user_appointments, name="get_user_appointments"),
     path("request/<int:service_id>/", appointment_request, name="appointment_request"),
     path("request-submit/", appointment_request_submit, name="appointment_request_submit"),
     path(
