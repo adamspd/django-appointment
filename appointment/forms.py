@@ -8,7 +8,7 @@ Since: 1.0.0
 
 from django import forms
 from django.utils.translation import gettext as _
-from phonenumber_field.formfields import PhoneNumberField
+from phonenumber_field.formfields import PhoneNumberField, SplitPhoneNumberField
 from phonenumber_field.widgets import PhoneNumberPrefixWidget
 
 from .models import (
@@ -40,7 +40,7 @@ class ReschedulingForm(forms.ModelForm):
 
 
 class AppointmentForm(forms.ModelForm):
-    phone = PhoneNumberField(widget=PhoneNumberPrefixWidget(initial='US'))
+    phone = SplitPhoneNumberField()
 
     class Meta:
         model = Appointment
