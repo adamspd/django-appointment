@@ -2,7 +2,7 @@
 
 ![Tests](https://github.com/adamspd/django-appointment/actions/workflows/tests.yml/badge.svg)
 ![Published on PyPi](https://github.com/adamspd/django-appointment/actions/workflows/publish.yml/badge.svg)
-[![Doc](https://github.com/adamspd/django-appointment-doc/actions/workflows/build-docs.yml/badge.svg)](https://django-appt-doc.adamspierredavid.com/overview.html)
+[![Doc](https://github.com/adamspd/django-appointment-doc/actions/workflows/build-docs.yml/badge.svg)](https://django-appt-doc.adamspierredavid.com)
 [![Current Release Version](https://img.shields.io/github/release/adamspd/django-appointment.svg?style=flat-square&logo=github)](https://github.com/adamspd/django-appointment/releases)
 [![pypi Version](https://img.shields.io/pypi/v/django-appointment.svg?style=flat-square&logo=pypi&logoColor=white)](https://pypi.org/project/django-appointment/)
 [![PyPi downloads](https://static.pepy.tech/personalized-badge/django-appointment?period=total&units=international_system&left_color=grey&right_color=orange&left_text=pip%20downloads)](https://pypi.org/project/django-appointment/)
@@ -17,7 +17,7 @@
 [![Python compatible version](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/adamspd/django-appointment/main/python_compatible.json)](https://github.com/adamspd/django-appointment/blob/main/compatibility_matrix.md)
 
 🆕 **New**: The documentation website is now
-available [here](https://django-appt-doc.adamspierredavid.com/overview.html). It includes reasons for using the
+available [here](https://django-appt-doc.adamspierredavid.com). It includes reasons for using the
 application, its features, and detailed configuration instructions.
 
 ⚠️ **IMPORTANT**: If upgrading from a version before 2.x.x, please note significant database changes were introduced in
