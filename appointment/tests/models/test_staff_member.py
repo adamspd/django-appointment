@@ -126,7 +126,7 @@ class StaffMemberServiceTests(BaseTest):
     def test_staff_member_with_non_existent_service(self):
         """A staff member cannot offer a non-existent service."""
         new_staff = self.create_user_(first_name="Vala", last_name="Mal Doran",
-                                      email="vala.mal-doran@django-appointment.com",  username="vala.mal-doran")
+                                      email="vala.mal-doran@django-appointment.com", username="vala.mal-doran")
         new_staff_member = StaffMember.objects.create(user=new_staff)
 
         # Trying to add a non-existent service to the staff member's services_offered
