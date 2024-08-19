@@ -1,0 +1,36 @@
+name: Website Status Check
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'  # Runs every 30 minutes
+  workflow_dispatch:  # Allows manual triggering
+
+jobs:
+  check_website:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check website status
+      uses: upptime/uptime-monitor@v1
+      with:
+        urls: https://django-appt-doc.adamspierredavid.com
+        assignees: adamspd  # Replace with your GitHub username
+
+    - name: Generate badge
+      run: |
+        if [ ${{ job.status }} == 'success' ]; then
+          echo "STATUS=up" >> $GITHUB_ENV
+          echo "COLOR=brightgreen" >> $GITHUB_ENV
+        else
+          echo "STATUS=down" >> $GITHUB_ENV
+          echo "COLOR=red" >> $GITHUB_ENV
+        fi
+
+    - name: Create status badge
+      uses: schneegans/dynamic-badges-action@v1.6.0
+      with:
+        auth: ${{ secrets.GIST_SECRET }}
+        gistID: d52b1c6c561ebbf94ddc2a8b52561908  # You'll need to create a gist and put its ID here
+        filename: django-appointment-doc-status.json
+        label: django-appointment docs
+        message: ${{ env.STATUS }}
+        color: ${{ env.COLOR }}
