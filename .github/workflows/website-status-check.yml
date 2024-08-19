@@ -30,7 +30,8 @@ jobs:
       with:
         auth: ${{ secrets.GIST_SECRET }}
         gistID: d52b1c6c561ebbf94ddc2a8b52561908  # You'll need to create a gist and put its ID here
-        filename: django-appointment-doc-status.json
         label: django-appointment docs
         message: ${{ env.STATUS }}
         color: ${{ env.COLOR }}
+        isError: ${{ job.status == 'failure' }}
+        namedLogo: django
