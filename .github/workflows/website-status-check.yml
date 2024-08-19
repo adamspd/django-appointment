@@ -10,14 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Check website status
-      uses: upptime/uptime-monitor@v1
-      with:
-        urls: https://django-appt-doc.adamspierredavid.com
-        assignees: adamspd  # Replace with your GitHub username
-
-    - name: Generate badge
       run: |
-        if [ ${{ job.status }} == 'success' ]; then
+        if curl -sSf https://django-appt-doc.adamspierredavid.com > /dev/null; then
           echo "STATUS=up" >> $GITHUB_ENV
           echo "COLOR=brightgreen" >> $GITHUB_ENV
         else
@@ -29,9 +23,10 @@ jobs:
       uses: schneegans/dynamic-badges-action@v1.6.0
       with:
         auth: ${{ secrets.GIST_SECRET }}
-        gistID: d52b1c6c561ebbf94ddc2a8b52561908  # You'll need to create a gist and put its ID here
-        label: django-appointment docs
+        gistID: ${{ secrets.GIST_ID }}
+        filename: django-appointment-doc-status.json
+        label: docs
         message: ${{ env.STATUS }}
         color: ${{ env.COLOR }}
-        isError: ${{ job.status == 'failure' }}
+        isError: ${{ env.STATUS == 'down' }}
         namedLogo: django
