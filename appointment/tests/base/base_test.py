@@ -19,14 +19,16 @@ class BaseTest(TestCase, UserMixin, StaffMemberMixin, ServiceMixin, AppointmentR
     users = None
 
     USER_SPECS = {
-        'staff1': {"first_name": "Daniel", "email": "daniel.jackson@django-appointment.com",
+        'staff1': {"first_name": "Daniel", "last_name": "Jackson", "email": "daniel.jackson@django-appointment.com",
                    "username": "daniel.jackson"},
-        'staff2': {"first_name": "Samantha", "email": "samantha.carter@django-appointment.com",
+        'staff2': {"first_name": "Samantha", "last_name": "Carter", "email": "samantha.carter@django-appointment.com",
                    "username": "samantha.carter"},
-        'client1': {"first_name": "Georges", "email": "georges.s.hammond@django-appointment.com",
-                    "username": "georges.hammond"},
-        'client2': {"first_name": "Tealc", "email": "tealc.kree@django-appointment.com", "username": "tealc.kree"},
-        'superuser': {"first_name": "Jack", "email": "jack-oneill@django-appointment.com", "username": "jack.o.neill"},
+        'client1': {"first_name": "Georges", "last_name": "Hammond",
+                    "email": "georges.s.hammond@django-appointment.com", "username": "georges.hammond"},
+        'client2': {"first_name": "Tealc", "last_name": "Kree", "email": "tealc.kree@django-appointment.com",
+                    "username": "tealc.kree"},
+        'superuser': {"first_name": "Jack", "last_name": "O'Neill", "email": "jack-oneill@django-appointment.com",
+                      "username": "jack.o.neill"},
     }
 
     @classmethod
