@@ -8,8 +8,7 @@ Since: 1.0.0
 
 from django import forms
 from django.utils.translation import gettext as _
-from phonenumber_field.formfields import PhoneNumberField, SplitPhoneNumberField
-from phonenumber_field.widgets import PhoneNumberPrefixWidget
+from phonenumber_field.formfields import SplitPhoneNumberField
 
 from .models import (
     Appointment, AppointmentRequest, AppointmentRescheduleHistory, DayOff, Service, StaffMember,
@@ -21,7 +20,8 @@ from .utils.validators import not_in_the_past
 
 class SlotForm(forms.Form):
     selected_date = forms.DateField(validators=[not_in_the_past])
-    staff_member = forms.ModelChoiceField(StaffMember.objects.all(), error_messages={'invalid_choice': 'Staff member does not exist'})
+    staff_member = forms.ModelChoiceField(StaffMember.objects.all(),
+                                          error_messages={'invalid_choice': 'Staff member does not exist'})
 
 
 class AppointmentRequestForm(forms.ModelForm):
@@ -49,25 +49,26 @@ class AppointmentForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['phone'].widget.attrs.update(
-            {
-                'placeholder': '1234567890'
-            })
+                {
+                    'placeholder': '1234567890'
+                })
         self.fields['additional_info'].widget.attrs.update(
-            {
-                'rows': 2,
-                'class': 'form-control',
-            })
+                {
+                    'rows': 2,
+                    'class': 'form-control',
+                })
         self.fields['address'].widget.attrs.update(
-            {
-                'rows': 2,
-                'class': 'form-control',
-                'placeholder': '1234 Main St, City, State, Zip Code'
-            })
+                {
+                    'rows': 2,
+                    'class': 'form-control',
+                    'placeholder': '1234 Main St, City, State, Zip Code',
+                    'required': 'true'
+                })
         self.fields['additional_info'].widget.attrs.update(
-            {
-                'class': 'form-control',
-                'placeholder': 'I would like to be contacted by phone.'
-            })
+                {
+                    'class': 'form-control',
+                    'placeholder': 'I would like to be contacted by phone.'
+                })
 
 
 class ClientDataForm(forms.Form):
@@ -162,9 +163,9 @@ class StaffMemberForm(forms.ModelForm):
         existing_staff_user_ids = StaffMember.objects.values_list('user', flat=True)
         # Filter queryset for user field to include only superusers or users not already staff members
         self.fields['user'].queryset = get_user_model().objects.filter(
-            is_superuser=True
+                is_superuser=True
         ).exclude(id__in=existing_staff_user_ids) | get_user_model().objects.exclude(
-            id__in=existing_staff_user_ids
+                id__in=existing_staff_user_ids
         )
 
 
