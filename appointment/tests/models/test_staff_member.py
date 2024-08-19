@@ -35,8 +35,8 @@ class StaffMemberCreationTests(BaseTest):
 
     def test_creation_without_service(self):
         """A staff member can be created without a service."""
-        new_staff = self.create_user_(
-            first_name="Jonas", email="jonas.quinn@django-appointment.com", username="jonas.quinn")
+        new_staff = self.create_user_(first_name="Jonas", last_name="Quinn", email="jonas.quinn@django-appointment.com",
+                                      username="jonas.quinn")
         new_staff_member = StaffMember.objects.create(user=new_staff)
         self.assertIsNotNone(new_staff_member)
         self.assertEqual(new_staff_member.services_offered.count(), 0)
@@ -45,6 +45,47 @@ class StaffMemberCreationTests(BaseTest):
         """A staff member cannot be created without a user."""
         with self.assertRaises(IntegrityError):
             StaffMember.objects.create()
+
+    def test_get_staff_member_name_with_email(self):
+        # Simulate create a staff member with only an email and username
+        # (in my case, username is mandatory, but should work with email as well)
+        email_only_user = self.create_user_(
+                first_name="",
+                last_name="",
+                email="mckay.rodney@django-appointment.com",
+                username="mckay.rodney@django-appointment.com"
+        )
+        email_only_staff = StaffMember.objects.create(user=email_only_user)
+
+        # Test that the email is returned when no other name information is available
+        self.assertEqual(email_only_staff.get_staff_member_name(), "mckay.rodney@django-appointment.com")
+
+    def test_get_staff_member_name_priority(self):
+        # Create a staff member with all name fields filled
+        full_user = self.create_user_(
+                first_name="Rodney",
+                last_name="McKay",
+                email="mckay.rodney@django-appointment.com",
+                username="rodney.mckay"
+        )
+        full_staff = StaffMember.objects.create(user=full_user)
+
+        # Test that the full name is returned when available
+        self.assertEqual(full_staff.get_staff_member_name(), "Rodney McKay")
+
+        # Modify the user to test different scenarios
+        full_user.first_name = ""
+        full_user.last_name = ""
+        full_user.save()
+
+        # Test that the username is returned when full name is not available
+        self.assertEqual(full_staff.get_staff_member_name(), "rodney.mckay")
+
+        full_user.username = ""
+        full_user.save()
+
+        # Test that the email is returned when username and full name are not available
+        self.assertEqual(full_staff.get_staff_member_name(), "mckay.rodney@django-appointment.com")
 
 
 class StaffMemberServiceTests(BaseTest):
@@ -84,14 +125,14 @@ class StaffMemberServiceTests(BaseTest):
 
     def test_staff_member_with_non_existent_service(self):
         """A staff member cannot offer a non-existent service."""
-        new_staff = self.create_user_(
-            first_name="Vala", email="vala.mal-doran@django-appointment.com", username="vala.mal-doran")
+        new_staff = self.create_user_(first_name="Vala", last_name="Mal Doran",
+                                      email="vala.mal-doran@django-appointment.com", username="vala.mal-doran")
         new_staff_member = StaffMember.objects.create(user=new_staff)
 
         # Trying to add a non-existent service to the staff member's services_offered
         with self.assertRaises(ValueError):
             new_staff_member.services_offered.add(
-                Service(id=9999, name="Prometheus Acquisition", duration=timedelta(hours=2), price=200))
+                    Service(id=9999, name="Prometheus Acquisition", duration=timedelta(hours=2), price=200))
 
 
 class StaffMemberWorkingTimeTests(BaseTest):
@@ -212,10 +253,10 @@ class StaffMemberGetterTestCase(BaseTest):
     def test_config_values_takes_over_when_sm_values_null(self):
         """When some values are null in the StaffMember, the Config values should be used."""
         config = Config.objects.create(
-            lead_time=datetime.time(9, 34),
-            finish_time=datetime.time(17, 11),
-            slot_duration=37,
-            appointment_buffer_time=16
+                lead_time=datetime.time(9, 34),
+                finish_time=datetime.time(17, 11),
+                slot_duration=37,
+                appointment_buffer_time=16
         )
         # Checking that the StaffMember's values are None
         self.assertIsNone(self.staff_member.slot_duration)
