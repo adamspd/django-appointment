@@ -75,7 +75,7 @@ class AppointmentCreationTestCase(BaseTest):
     def test_conversion_to_dict(self):
         response = {
             'id': 1,
-            'client_name': self.client_.first_name,
+            'client_name': self.client_.first_name + ' ' + self.client_.last_name,
             'client_email': self.client_.email,
             'start_time': '1900-01-01 09:00',
             'end_time': '1900-01-01 10:00',
