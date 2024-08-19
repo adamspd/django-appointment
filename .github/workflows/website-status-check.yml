@@ -19,14 +19,35 @@ jobs:
           echo "COLOR=red" >> $GITHUB_ENV
         fi
 
-    - name: Create status badge
-      uses: schneegans/dynamic-badges-action@v1.6.0
-      with:
-        auth: ${{ secrets.GIST_SECRET }}
-        gistID: ${{ secrets.GIST_ID }}
-        filename: django-appointment-doc-status.json
-        label: docs
-        message: ${{ env.STATUS }}
-        color: ${{ env.COLOR }}
-        isError: ${{ env.STATUS == 'down' }}
-        namedLogo: django
+    - name: Update Gist
+      env:
+        GIST_ID: ${{ secrets.GIST_ID }}
+        GH_TOKEN: ${{ secrets.GIST_SECRET }}
+      run: |
+        GIST_CONTENT=$(cat << EOF
+        {
+          "schemaVersion": 1,
+          "label": "django-appointment docs",
+          "message": "${{ env.STATUS }}",
+          "color": "${{ env.COLOR }}",
+          "isError": ${{ env.STATUS == 'down' }},
+          "namedLogo": "django"
+        }
+        EOF
+        )
+        
+        RESPONSE=$(curl -s -X PATCH \
+          -H "Authorization: token $GH_TOKEN" \
+          -H "Content-Type: application/json" \
+          -d "{\"files\": {\"django-appointment-doc-status.json\": {\"content\": $(echo $GIST_CONTENT | jq -R -s '.')}}}" \
+          "https://api.github.com/gists/$GIST_ID")
+        
+        echo "Gist update response:"
+        echo "$RESPONSE" | jq '.'
+        
+        if echo "$RESPONSE" | jq -e '.files."django-appointment-doc-status.json"' > /dev/null; then
+          echo "Gist updated successfully"
+        else
+          echo "Failed to update gist"
+          exit 1
+        fi
