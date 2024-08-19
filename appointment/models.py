@@ -211,13 +211,14 @@ class StaffMember(models.Model):
         return self.work_on_saturday and self.work_on_sunday
 
     def get_staff_member_name(self):
-        if hasattr(self.user, 'get_full_name') and callable(getattr(self.user, 'get_full_name')):
-            name = self.user.get_full_name()
-        else:
-            name = f"{self.user.first_name} {self.user.last_name}".strip()
-        if not name:
-            name = self.user.username
-        return name
+        name_options = [
+            getattr(self.user, 'get_full_name', lambda: '')(),
+            f"{self.user.first_name} {self.user.last_name}",
+            self.user.username,
+            self.user.email,
+            f"Staff Member {self.id}"
+        ]
+        return next((name.strip() for name in name_options if name.strip()), "Unknown")
 
     def get_staff_member_first_name(self):
         return self.user.first_name
