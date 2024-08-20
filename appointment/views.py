@@ -235,22 +235,17 @@ def appointment_request_submit(request):
         if form.is_valid():
             # Use form.cleaned_data to get the cleaned and validated data
             staff_member = form.cleaned_data['staff_member']
-
-            staff_exists = StaffMember.objects.filter(id=staff_member.id).exists()
-            if not staff_exists:
-                messages.error(request, _("Selected staff member does not exist."))
-            else:
-                logger.info(
-                    f"date_f {form.cleaned_data['date']} start_time {form.cleaned_data['start_time']} end_time "
-                    f"{form.cleaned_data['end_time']} service {form.cleaned_data['service']} staff {staff_member}")
-                ar = form.save()
-                request.session[f'appointment_completed_{ar.id_request}'] = False
-                # Redirect the user to the account creation page
-                return redirect('appointment:appointment_client_information', appointment_request_id=ar.id,
-                                id_request=ar.id_request)
+            logger.info(
+                f"date_f {form.cleaned_data['date']} start_time {form.cleaned_data['start_time']} end_time "
+                f"{form.cleaned_data['end_time']} service {form.cleaned_data['service']} staff {staff_member}")
+            ar = form.save()
+            request.session[f'appointment_completed_{ar.id_request}'] = False
+            # Redirect the user to the account creation page
+            return redirect('appointment:appointment_client_information', appointment_request_id=ar.id,
+                            id_request=ar.id_request)
         else:
             # Handle the case if the form is not valid
-            messages.error(request, _('There was an error in your submission. Please check the form and try again.'))
+            messages.error(request, str(form.errors))
     else:
         form = AppointmentRequestForm()
 
@@ -264,14 +259,12 @@ def redirect_to_payment_or_thank_you_page(appointment):
     :param appointment: The Appointment instance.
     :return: The redirect response.
     """
-    if (APPOINTMENT_PAYMENT_URL is not None and APPOINTMENT_PAYMENT_URL != '') and appointment.service_is_paid():
+    if APPOINTMENT_PAYMENT_URL and appointment.service_is_paid():
         payment_url = create_payment_info_and_get_url(appointment)
         return HttpResponseRedirect(payment_url)
     else:
         # Determine the correct thank-you URL based on whether APPOINTMENT_THANK_YOU_URL is provided and not empty
-        thank_you_url_key = 'appointment:default_thank_you'
-        if APPOINTMENT_THANK_YOU_URL:
-            thank_you_url_key = APPOINTMENT_THANK_YOU_URL
+        thank_you_url_key = APPOINTMENT_THANK_YOU_URL if APPOINTMENT_THANK_YOU_URL else 'appointment:default_thank_you'
 
         thank_you_url = reverse(thank_you_url_key, kwargs={'appointment_id': appointment.id})
         return HttpResponseRedirect(thank_you_url)
