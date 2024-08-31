@@ -16,7 +16,7 @@ try:
 except ImportError:
     async_task = None
     DJANGO_Q_AVAILABLE = False
-    logger.warning("django-q is not installed. Email will be send synchronously.")
+    logger.warning("django-q is not installed. Email will be sent synchronously.")
 
 
 def has_required_email_settings():
