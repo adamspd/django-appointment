@@ -6,5 +6,5 @@ __package_name__ = "django-appointment"
 __url__ = "https://github.com/adamspd/django-appointment"
 __package_website__ = "https://django-appt.adamspierredavid.com/"
 __package_doc_url__ = "https://django-appt-doc.adamspierredavid.com/"
-__version__ = "3.7.2"
+__version__ = "3.7.3"
 __test_version__ = False
