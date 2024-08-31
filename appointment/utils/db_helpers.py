@@ -11,6 +11,7 @@ from typing import Optional
 from urllib.parse import urlparse
 
 from django.apps import apps
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.exceptions import FieldDoesNotExist
@@ -26,7 +27,10 @@ from appointment.utils.date_time import combine_date_and_time, get_weekday_num
 
 logger = get_logger(__name__)
 
-# Check if django-q is installed
+# Check if django-q is installed in settings
+DJANGO_Q_AVAILABLE = 'django_q' in settings.INSTALLED_APPS
+
+# Check if django-q is installed as a dependency
 try:
     from django_q.models import Schedule
     from django_q.tasks import schedule
