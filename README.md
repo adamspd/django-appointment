@@ -68,11 +68,6 @@ see their [release notes](https://github.com/adamspd/django-appointment/tree/mai
    ```bash
    pip install django-appointment
    ```
-   Optionally installing django_q2 if you need email reminders:
-   
-   ```bash
-   pip install django_q2
-   ```
 
 2. Add "appointment" (& "django_q" if you want to enable email reminders) to your `INSTALLED_APPS` setting like so:
 
@@ -189,13 +184,13 @@ If you're using a base.html template, you must include the following block in yo
 {% endblock %}
 ```
 
-At least the block for css, body and js are required; otherwise the application will not work properly.
+At least the block for css, body and js are required; otherwise the application will not work properly. 
 Jquery is also required to be included in the template.
 
 The title and description are optional but recommended for SEO purposes.
 
-See an example of a base.html
-template [here](https://github.com/adamspd/django-appointment/blob/main/appointment/templates/base_templates/base.html).
+See an example of a base.html template [here](https://github.com/adamspd/django-appointment/blob/main/appointment/templates/base_templates/base.html).
+
 
 ## Customization 🔧
 
@@ -204,6 +199,7 @@ template [here](https://github.com/adamspd/django-appointment/blob/main/appointm
    the [documentation](https://github.com/adamspd/django-appointment/tree/main/docs/README.md#configuration).
 2. Modify these values as needed for your application, and the app will adapt to the new settings.
 3. For further customization, you can extend the provided models, views, and templates or create your own.
+
 
 ## Docker Support 🐳
 
@@ -301,6 +297,7 @@ Here's how you can set it up:
    > **Note:** I used the default database settings for the Docker container.
    > If you want to use a different database, you can modify the Dockerfile and docker-compose.yml files to use your
    > preferred database.
+   
 
 ## Compatibility Matrix 📊
 
@@ -336,12 +333,9 @@ information.
 
 ## Notes 📝⚠️
 
-I'm working on a testing website for the application that is not fully functional yet, no hard feelings. Before using
-it,
-it's important to me that you read the terms of use, only then you can use it if you agree to them. The demo website is
-located
-at [https://django-appt.adamspierredavid.com/](https://django-appt.adamspierredavid.com/terms-and-conditions/). Ideas
-are welcome.
+I'm working on a testing website for the application that is not fully functional yet, no hard feelings. Before using it, 
+it's important to me that you read the terms of use, only then you can use it if you agree to them. The demo website is located
+at [https://django-appt.adamspierredavid.com/](https://django-appt.adamspierredavid.com/terms-and-conditions/). Ideas are welcome.
 
 ## About the Author
 

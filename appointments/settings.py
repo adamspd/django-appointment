@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     'appointment.apps.AppointmentConfig',
+    'django_q',
 ]
 
 MIDDLEWARE = [
@@ -149,3 +150,13 @@ USE_DJANGO_Q_FOR_EMAILS = True
 ADMINS = [
     (os.getenv('ADMIN_NAME'), os.getenv('ADMIN_EMAIL')),
 ]
+
+Q_CLUSTER = {
+    'name': 'DjangORM',
+    'workers': 4,
+    'timeout': 90,
+    'retry': 120,
+    'queue_limit': 50,
+    'bulk': 10,
+    'orm': 'default',
+}

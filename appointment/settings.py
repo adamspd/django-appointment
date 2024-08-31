@@ -37,15 +37,29 @@ def check_q_cluster():
     logger.info("Checking missing configuration for django q cluster")
     # Check if Django Q is installed
     if 'django_q' not in settings.INSTALLED_APPS:
-        missing_conf.append("Django Q is not in settings.INSTALLED_APPS. Please add it to the list. "
-                            "See https://django-appt-doc.adamspierredavid.com/getting-started/#installation "
-                            "for more information")
+        missing_conf.append("Django Q is not in settings.INSTALLED_APPS. Please add it to the list.\n"
+                            "Example: \n\n"
+                            "INSTALLED_APPS = [\n"
+                            "    ...\n"
+                            "    'appointment',\n"
+                            "    'django_q',\n"
+                            "]\n")
 
     # Check if Q_CLUSTER configuration is defined
     if not hasattr(settings, 'Q_CLUSTER'):
-        missing_conf.append("Q_CLUSTER is not defined in settings. Please define it. "
-                            "See https://django-appt-doc.adamspierredavid.com/project-structure/#configuration "
-                            "for more information.")
+        missing_conf.append("Q_CLUSTER is not defined in settings. Please define it.\n"
+                            "Example: \n\n"
+                            "Q_CLUSTER = {\n"
+                            "    'name': 'DjangORM',\n"
+                            "    'workers': 4,\n"
+                            "    'timeout': 90,\n"
+                            "    'retry': 120,\n"
+                            "    'queue_limit': 50,\n"
+                            "    'bulk': 10,\n"
+                            "    'orm': 'default',\n"
+                            "}\n"
+                            "Then run 'python manage.py qcluster' to start the worker.\n"
+                            "See https://django-q.readthedocs.io/en/latest/configure.html for more information.")
 
     # Log warnings if any configurations are missing
     if missing_conf:
