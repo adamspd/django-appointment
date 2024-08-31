@@ -36,10 +36,17 @@ jobs:
       run: |
         coverage debug sys
         coverage debug config
-    - name: Setup Database
+    - name: Setup Database and Migrations
       run: |
         python manage.py makemigrations
         python manage.py migrate
     - name: Run Tests
+      run: |
+        python manage.py test appointment.tests --parallel=10 --shuffle --verbosity=2
+    - name: Install tblib for better error reporting
+      if: failure()
+      run: pip install tblib
+    - name: Rerun failed tests with tblib
+      if: failure()
       run: |
         python manage.py test appointment.tests --parallel=10 --shuffle --verbosity=2
