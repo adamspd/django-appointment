@@ -241,7 +241,7 @@ class TestCreateAndSaveAppointment(BaseTest, TestCase):
         self.assertIsNotNone(appointment)
         self.assertEqual(appointment.client.email, client_data['email'])
         mock_logger_warning.assert_called_with(
-            f"Email reminder requested for appointment {appointment.id}, but django-q is not available.")
+                f"Email reminder requested for appointment {appointment.id}, but django-q is not available.")
 
 
 def get_mock_reverse(url_name, **kwargs):
