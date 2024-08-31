@@ -7,3 +7,4 @@ setuptools==73.0.1
 requests~=2.32.3
 django-q2==1.6.2
 python-dotenv==1.0.1
+colorama~=0.4.6

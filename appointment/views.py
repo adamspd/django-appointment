@@ -22,7 +22,7 @@ from django.utils.timezone import get_current_timezone_name
 from django.utils.translation import gettext as _
 
 from appointment.forms import AppointmentForm, AppointmentRequestForm, SlotForm, ClientDataForm
-from appointment.logger_config import logger
+from appointment.logger_config import get_logger
 from appointment.models import (
     Appointment, AppointmentRequest, AppointmentRescheduleHistory, Config, DayOff, EmailVerificationCode,
     PasswordResetToken, Service,
@@ -48,6 +48,8 @@ from .utils.error_codes import ErrorCode
 from .utils.json_context import get_generic_context_with_extra, json_response
 
 CLIENT_MODEL = get_user_model()
+
+logger = get_logger(__name__)
 
 
 @require_ajax
@@ -87,7 +89,7 @@ def get_available_slots_ajax(request):
     custom_data['staff_member'] = sm.get_staff_member_name()
     if not is_working_day_:
         message = _("Not a working day for {staff_member}. Please select another date!").format(
-            staff_member=sm.get_staff_member_first_name())
+                staff_member=sm.get_staff_member_first_name())
         custom_data['available_slots'] = []
         return json_response(message=message, custom_data=custom_data, success=False, error_code=ErrorCode.INVALID_DATE)
     available_slots = get_available_slots_for_staff(selected_date, sm)
@@ -124,8 +126,8 @@ def get_next_available_date_ajax(request, service_id):
 
         # Fetch the days off for the staff
         days_off = DayOff.objects.filter(staff_member=staff_member).filter(
-            Q(start_date__lte=date.today(), end_date__gte=date.today()) |
-            Q(start_date__gte=date.today())
+                Q(start_date__lte=date.today(), end_date__gte=date.today()) |
+                Q(start_date__gte=date.today())
         )
 
         current_date = date.today()
@@ -241,8 +243,8 @@ def appointment_request_submit(request):
                 messages.error(request, _("Selected staff member does not exist."))
             else:
                 logger.info(
-                    f"date_f {form.cleaned_data['date']} start_time {form.cleaned_data['start_time']} end_time "
-                    f"{form.cleaned_data['end_time']} service {form.cleaned_data['service']} staff {staff_member}")
+                        f"date_f {form.cleaned_data['date']} start_time {form.cleaned_data['start_time']} end_time "
+                        f"{form.cleaned_data['end_time']} service {form.cleaned_data['service']} staff {staff_member}")
                 ar = form.save()
                 request.session[f'appointment_completed_{ar.id_request}'] = False
                 # Redirect the user to the account creation page
@@ -265,10 +267,12 @@ def redirect_to_payment_or_thank_you_page(appointment):
     :return: The redirect response.
     """
     if (APPOINTMENT_PAYMENT_URL is not None and APPOINTMENT_PAYMENT_URL != '') and appointment.service_is_paid():
+        logger.info("Creating payment info and get payment url")
         payment_url = create_payment_info_and_get_url(appointment)
         return HttpResponseRedirect(payment_url)
     else:
         # Determine the correct thank-you URL based on whether APPOINTMENT_THANK_YOU_URL is provided and not empty
+        logger.info("Redirecting to the thank-you page")
         thank_you_url_key = 'appointment:default_thank_you'
         if APPOINTMENT_THANK_YOU_URL:
             thank_you_url_key = APPOINTMENT_THANK_YOU_URL
@@ -320,7 +324,7 @@ def appointment_client_information(request, appointment_request_id, id_request):
             if is_email_in_db:
                 return handle_existing_email(request, client_data, appointment_data, appointment_request_id, id_request)
 
-            logger.info(f"Creating a new user with the given information {client_data}")
+            logger.info(f"Creating a new user: {client_data}")
             user = create_new_user(client_data)
             messages.success(request, _("An account was created for you."))
 
@@ -527,12 +531,12 @@ def reschedule_appointment_submit(request):
         reason_for_rescheduling = request.POST.get('reason_for_rescheduling')
         if form.is_valid():
             arh = AppointmentRescheduleHistory.objects.create(
-                appointment_request=ar,
-                date=date_,
-                start_time=start_time,
-                end_time=end_time,
-                staff_member=staff_member,
-                reason_for_rescheduling=reason_for_rescheduling
+                    appointment_request=ar,
+                    date=date_,
+                    start_time=start_time,
+                    end_time=end_time,
+                    staff_member=staff_member,
+                    reason_for_rescheduling=reason_for_rescheduling
             )
             messages.success(request, _("Appointment rescheduled successfully"))
             context = get_generic_context_with_extra(request, {}, admin=False)
@@ -554,7 +558,7 @@ def confirm_reschedule(request, id_request):
 
     if reschedule_history.reschedule_status != 'pending' or not reschedule_history.still_valid():
         error_message = _("O-o-oh! This link is no longer valid.") if not reschedule_history.still_valid() else _(
-            "O-o-oh! Can't find the pending reschedule request.")
+                "O-o-oh! Can't find the pending reschedule request.")
         context = get_generic_context_with_extra(request, {"error_message": error_message}, admin=False)
         return render(request, 'error_pages/404_not_found.html', status=404, context=context)
 
