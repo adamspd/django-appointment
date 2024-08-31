@@ -68,6 +68,11 @@ see their [release notes](https://github.com/adamspd/django-appointment/tree/mai
    ```bash
    pip install django-appointment
    ```
+   Optionally installing django_q2 if you need email reminders:
+
+   ```bash
+   pip install django_q2
+   ```
 
 2. Add "appointment" (& "django_q" if you want to enable email reminders) to your `INSTALLED_APPS` setting like so:
 
