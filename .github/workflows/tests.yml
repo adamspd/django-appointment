@@ -36,10 +36,10 @@ jobs:
       run: |
         coverage debug sys
         coverage debug config
-    - name: Install Dependencies
+    - name: Setup Database
       run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        python manage.py makemigrations
+        python manage.py migrate
     - name: Run Tests
       run: |
-        python manage.py test appointment.tests --parallel=10 --shuffle --verbosity=1
+        python manage.py test appointment.tests --parallel=10 --shuffle --verbosity=2
