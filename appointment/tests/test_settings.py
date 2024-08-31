@@ -22,13 +22,9 @@ class CheckQClusterTest(TestCase):
         self.assertFalse(result)
         # Verify logger was called with the expected warning about 'django_q' not being installed
         mock_logger.warning.assert_called_with(
-            "Django Q is not in settings.INSTALLED_APPS. Please add it to the list.\n"
-            "Example: \n\n"
-            "INSTALLED_APPS = [\n"
-            "    ...\n"
-            "    'appointment',\n"
-            "    'django_q',\n"
-            "]\n")
+                "Django Q is not in settings.INSTALLED_APPS. Please add it to the list. "
+                "See https://django-appt-doc.adamspierredavid.com/getting-started/#installation "
+                "for more information")
 
     @patch('appointment.settings.settings')
     @patch('appointment.settings.logger')
