@@ -11,13 +11,12 @@ from typing import Optional
 from urllib.parse import urlparse
 
 from django.apps import apps
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.exceptions import FieldDoesNotExist
 from django.urls import reverse
 from django.utils import timezone
-from django_q.models import Schedule
-from django_q.tasks import schedule
 
 from appointment.logger_config import get_logger
 from appointment.settings import (
@@ -25,6 +24,23 @@ from appointment.settings import (
     APPOINTMENT_SLOT_DURATION, APPOINTMENT_WEBSITE_NAME
 )
 from appointment.utils.date_time import combine_date_and_time, get_weekday_num
+
+logger = get_logger(__name__)
+
+# Check if django-q is installed in settings
+DJANGO_Q_AVAILABLE = 'django_q' in settings.INSTALLED_APPS
+
+# Check if django-q is installed as a dependency
+try:
+    from django_q.models import Schedule
+    from django_q.tasks import schedule
+
+    DJANGO_Q_AVAILABLE = True
+except ImportError:
+    DJANGO_Q_AVAILABLE = False
+    Schedule = None
+    schedule = None
+    logger.warning("django-q is not installed. Email reminders will not be scheduled.")
 
 Appointment = apps.get_model('appointment', 'Appointment')
 AppointmentRequest = apps.get_model('appointment', 'AppointmentRequest')
@@ -36,8 +52,6 @@ Config = apps.get_model('appointment', 'Config')
 Service = apps.get_model('appointment', 'Service')
 EmailVerificationCode = apps.get_model('appointment', 'EmailVerificationCode')
 AppointmentRescheduleHistory = apps.get_model('appointment', 'AppointmentRescheduleHistory')
-
-logger = get_logger(__name__)
 
 
 def calculate_slots(start_time, end_time, buffer_time, slot_duration):
@@ -112,16 +126,17 @@ def create_and_save_appointment(ar, client_data: dict, appointment_data: dict, r
     logger.info(f"New appointment created: {appointment.to_dict()}")
     if appointment.want_reminder:
         logger.info(f"User wants a reminder for appointment {appointment.id}, scheduling it...")
-        schedule_email_reminder(appointment, request)
+        if DJANGO_Q_AVAILABLE:
+            schedule_email_reminder(appointment, request)
+        else:
+            logger.warning(f"Email reminder requested for appointment {appointment.id}, but django-q is not available.")
     return appointment
 
 
 def schedule_email_reminder(appointment, request, appointment_datetime=None):
     """Schedule an email reminder for the given appointment."""
-    # Check if the Django-Q cluster is running
-    from appointment.settings import check_q_cluster
-    if not check_q_cluster():
-        logger.warning("Django-Q cluster is not running. Email reminder will not be scheduled.")
+    if not DJANGO_Q_AVAILABLE:
+        logger.warning("Django-Q is not available. Email reminder will not be scheduled.")
         return
 
     # Calculate reminder datetime if not provided
@@ -155,6 +170,9 @@ def update_appointment_reminder(appointment, new_date, new_start_time, request, 
     Updates or cancels the appointment reminder based on changes to the start time or date,
     and the user's preference for receiving a reminder.
     """
+    if not DJANGO_Q_AVAILABLE:
+        logger.warning("Django-Q is not available. Appointment reminder cannot be updated.")
+        return
     # Convert new date and time strings to datetime objects for comparison
     new_datetime = combine_date_and_time(new_date, new_start_time)
 
@@ -179,7 +197,7 @@ def update_appointment_reminder(appointment, new_date, new_start_time, request, 
         cancel_existing_reminder(appointment.id_request)
 
         # If a reminder is still desired and the appointment is in the future, schedule a new one
-        if want_reminder and new_datetime > timezone.now() and DJANGO_Q_AVAILABLE:
+        if want_reminder and new_datetime > timezone.now():
             schedule_email_reminder(appointment, request, new_datetime)
         else:
             logger.info(
@@ -195,6 +213,9 @@ def cancel_existing_reminder(appointment_id_request):
     """
     Cancels any existing reminder for the appointment.
     """
+    if not DJANGO_Q_AVAILABLE:
+        logger.warning("Django-Q is not available. Appointment reminder cannot be updated.")
+        return
     task_name = f"reminder_{appointment_id_request}"
     Schedule.objects.filter(name=task_name).delete()
 
