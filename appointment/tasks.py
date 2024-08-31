@@ -34,7 +34,7 @@ def send_email_reminder(to_email, first_name, reschedule_link, appointment_id):
             template_url='email_sender/reminder_email.html', context=email_context
     )
     # Notify the admin
-    logger.info(f"Sending admin reminder for appointment {appointment_id}")
+    logger.info(f"Sending admin reminder also")
     email_context['recipient_type'] = 'admin'
     notify_admin(
             subject=_("Admin Reminder: Upcoming Appointment"),
