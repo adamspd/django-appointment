@@ -8,13 +8,12 @@ Since: 2.0.0
 
 import uuid
 
-from django.conf import settings
 from django.utils.translation import get_language, to_locale
 
 
 def get_locale() -> str:
     """Get the current locale based on the user's language settings, without the country code.
-    Used in the javascript files.
+    Used in the JavaScript files.
     Can't use the lang_country format because it is not supported.
 
     :return: The current locale as a string (language code only)

@@ -9,7 +9,9 @@ Since: 1.0.0
 from django.conf import settings
 from django.conf.global_settings import DEFAULT_FROM_EMAIL
 
-from appointment.logger_config import logger
+from appointment.logger_config import get_logger
+
+logger = get_logger(__name__)
 
 APPOINTMENT_BASE_TEMPLATE = getattr(settings, 'APPOINTMENT_BASE_TEMPLATE', 'base_templates/base.html')
 APPOINTMENT_ADMIN_BASE_TEMPLATE = getattr(settings, 'APPOINTMENT_ADMIN_BASE_TEMPLATE', 'base_templates/base.html')
@@ -32,7 +34,7 @@ def check_q_cluster():
     Returns True if configurations are correct, otherwise False.
     """
     missing_conf = []
-
+    logger.info("Checking missing configuration for django q cluster")
     # Check if Django Q is installed
     if 'django_q' not in settings.INSTALLED_APPS:
         missing_conf.append("Django Q is not in settings.INSTALLED_APPS. Please add it to the list.\n"
@@ -64,6 +66,6 @@ def check_q_cluster():
         for warning in missing_conf:
             logger.warning(warning)
         return False
-    print(f"Missing conf: {missing_conf}")
     # Both 'django_q' is installed and 'Q_CLUSTER' is configured
+    logger.info("Django Q cluster is properly configured")
     return True

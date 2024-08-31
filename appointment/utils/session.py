@@ -11,9 +11,11 @@ from django.shortcuts import redirect
 from django.utils.translation import gettext as _
 from phonenumber_field.phonenumber import PhoneNumber
 
-from appointment.logger_config import logger
+from appointment.logger_config import get_logger
 from appointment.utils.db_helpers import get_user_by_email
 from appointment.utils.email_ops import send_verification_email
+
+logger = get_logger(__name__)
 
 
 def handle_existing_email(request, client_data, appointment_data, appointment_request_id, id_request):

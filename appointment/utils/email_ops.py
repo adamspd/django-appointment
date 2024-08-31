@@ -16,10 +16,13 @@ from django.utils.translation import gettext as _
 
 from appointment import messages_ as email_messages
 from appointment.email_sender import notify_admin, send_email
+from appointment.logger_config import get_logger
 from appointment.models import AppointmentRequest, EmailVerificationCode, PasswordResetToken
 from appointment.settings import APPOINTMENT_PAYMENT_URL
 from appointment.utils.date_time import convert_24_hour_time_to_12_hour_time
 from appointment.utils.db_helpers import get_absolute_url_, get_website_name
+
+logger = get_logger(__name__)
 
 
 def get_thank_you_message(ar: AppointmentRequest) -> str:
@@ -83,8 +86,8 @@ def send_thank_you_email(ar: AppointmentRequest, user, request, email: str, appo
         'reschedule_link': reschedule_link,
     }
     send_email(
-        recipient_list=[email], subject=_("Thank you for booking us."),
-        template_url='email_sender/thank_you_email.html', context=email_context
+            recipient_list=[email], subject=_("Thank you for booking us."),
+            template_url='email_sender/thank_you_email.html', context=email_context
     )
 
 
@@ -121,24 +124,25 @@ def send_reset_link_to_staff_member(user, request, email: str, account_details=N
         Regards,
         {company}
         """).format(
-        first_name=user.first_name,
-        current_year=datetime.datetime.now().year,
-        company=website_name,
-        activation_link=set_passwd_link,
-        account_details=account_details if account_details else _("No additional details provided."),
-        username=user.username
+            first_name=user.first_name,
+            current_year=datetime.datetime.now().year,
+            company=website_name,
+            activation_link=set_passwd_link,
+            account_details=account_details if account_details else _("No additional details provided."),
+            username=user.username
     )
 
     # Assuming send_email is a method you have that sends an email
     send_email(
-        recipient_list=[email],
-        subject=_("Set Your Password for {company}").format(company=website_name),
-        message=message,
+            recipient_list=[email],
+            subject=_("Set Your Password for {company}").format(company=website_name),
+            message=message,
     )
 
 
 def notify_admin_about_appointment(appointment, client_name: str):
     """Notify the admin and the staff member about a new appointment request."""
+    logger.info(f"Sending admin notification for new appointment {appointment.id}")
     email_context = {
         'client_name': client_name,
         'appointment': appointment
@@ -146,9 +150,10 @@ def notify_admin_about_appointment(appointment, client_name: str):
 
     subject = _("New Appointment Request for ") + client_name
     staff_member = appointment.get_staff_member()
-    # Assuming notify_admin and send_email are previously defined functions
     notify_admin(subject=subject, template_url='email_sender/admin_new_appointment_email.html', context=email_context)
     if staff_member.user.email not in settings.ADMINS:
+        logger.info(
+            f"Let's notify the staff member as well for new appointment {appointment.id} since they are not an admin.")
         send_email(recipient_list=[staff_member.user.email], subject=subject,
                    template_url='email_sender/admin_new_appointment_email.html', context=email_context)
 
@@ -190,8 +195,8 @@ def send_reschedule_confirmation_email(request, reschedule_history, appointment_
 
     subject = _("Confirm Your Appointment Rescheduling")
     send_email(
-        recipient_list=[email], subject=subject,
-        template_url='email_sender/reschedule_email.html', context=email_context
+            recipient_list=[email], subject=subject,
+            template_url='email_sender/reschedule_email.html', context=email_context
     )
 
 
