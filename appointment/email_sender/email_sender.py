@@ -3,20 +3,12 @@
 
 from django.core.mail import mail_admins, send_mail
 from django.template import loader
+from django_q.tasks import async_task
 
 from appointment.logger_config import get_logger
 from appointment.settings import APP_DEFAULT_FROM_EMAIL, check_q_cluster
 
 logger = get_logger(__name__)
-
-try:
-    from django_q.tasks import async_task
-
-    DJANGO_Q_AVAILABLE = True
-except ImportError:
-    async_task = None
-    DJANGO_Q_AVAILABLE = False
-    logger.warning("django-q is not installed. Email will be send synchronously.")
 
 
 def has_required_email_settings():
@@ -53,7 +45,7 @@ def send_email(recipient_list, subject: str, template_url: str = None, context: 
     from_email = from_email or APP_DEFAULT_FROM_EMAIL
     html_message = render_email_template(template_url, context)
 
-    if get_use_django_q_for_emails() and check_q_cluster() and DJANGO_Q_AVAILABLE:
+    if get_use_django_q_for_emails() and check_q_cluster():
         # Asynchronously send the email using Django-Q
         async_task(
                 "appointment.tasks.send_email_task", recipient_list=recipient_list, subject=subject,
@@ -77,7 +69,7 @@ def notify_admin(subject: str, template_url: str = None, context: dict = None, m
 
     html_message = render_email_template(template_url, context)
 
-    if get_use_django_q_for_emails() and check_q_cluster() and DJANGO_Q_AVAILABLE:
+    if get_use_django_q_for_emails() and check_q_cluster():
         # Enqueue the task to send admin email asynchronously
         async_task('appointment.tasks.notify_admin_task', subject=subject, message=message, html_message=html_message)
     else:

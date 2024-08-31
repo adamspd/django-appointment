@@ -2,7 +2,6 @@
 # Path: appointment/tests/utils/test_db_helpers.py
 
 import datetime
-from unittest import skip
 from unittest.mock import MagicMock, PropertyMock, patch
 
 from django.apps import apps
@@ -13,8 +12,8 @@ from django.test import TestCase, override_settings
 from django.test.client import RequestFactory
 from django.urls import reverse
 from django.utils import timezone
+from django_q.models import Schedule
 
-from appointment.logger_config import get_logger
 from appointment.models import Config, DayOff, PaymentInfo
 from appointment.tests.base.base_test import BaseTest
 from appointment.tests.mixins.base_mixin import ConfigMixin
@@ -31,25 +30,6 @@ from appointment.utils.db_helpers import (
     get_working_hours_by_id, get_working_hours_for_staff_and_day, is_working_day, parse_name, schedule_email_reminder,
     staff_change_allowed_on_reschedule, update_appointment_reminder, username_in_user_model, working_hours_exist
 )
-
-logger = get_logger(__name__)
-
-# Check if django-q is installed
-try:
-    from django_q.models import Schedule
-    from django_q.tasks import schedule
-
-    DJANGO_Q_AVAILABLE = True
-except ImportError:
-    DJANGO_Q_AVAILABLE = False
-    Schedule = None
-    schedule = None
-
-
-@skip("Django-Q is not available")
-class DjangoQUnavailableTest(TestCase):
-    def test_placeholder(self):
-        self.skipTest("Django-Q is not available")
 
 
 class TestCalculateSlots(TestCase):
@@ -185,12 +165,18 @@ class TestCheckDayOffForStaff(BaseTest):
         self.assertFalse(check_day_off_for_staff(self.staff_member2, "2023-10-06"))
 
 
-class TestCreateAndSaveAppointment(BaseTest, TestCase):
+class TestCreateAndSaveAppointment(BaseTest):
+
     def setUp(self):
-        super().setUp()
+        super().setUp()  # Call the parent class setup
+        # Specific setups for this test class
+        self.ar = self.create_appt_request_for_sm1()
         self.factory = RequestFactory()
         self.request = self.factory.get('/')
-        self.ar = self.create_appt_request_for_sm1()
+
+    def tearDown(self):
+        Appointment.objects.all().delete()
+        AppointmentRequest.objects.all().delete()
 
     def test_create_and_save_appointment(self):
         client_data = {
@@ -204,8 +190,7 @@ class TestCreateAndSaveAppointment(BaseTest, TestCase):
             'additional_info': 'Please bring a Zat gun.'
         }
 
-        with patch('appointment.utils.db_helpers.schedule_email_reminder') as mock_schedule_reminder:
-            appointment = create_and_save_appointment(self.ar, client_data, appointment_data, self.request)
+        appointment = create_and_save_appointment(self.ar, client_data, appointment_data, self.request)
 
         self.assertIsNotNone(appointment)
         self.assertEqual(appointment.client.email, client_data['email'])
@@ -213,32 +198,6 @@ class TestCreateAndSaveAppointment(BaseTest, TestCase):
         self.assertEqual(appointment.want_reminder, appointment_data['want_reminder'])
         self.assertEqual(appointment.address, appointment_data['address'])
         self.assertEqual(appointment.additional_info, appointment_data['additional_info'])
-
-        if DJANGO_Q_AVAILABLE:
-            mock_schedule_reminder.assert_called_once()
-        else:
-            mock_schedule_reminder.assert_not_called()
-
-    @patch('appointment.utils.db_helpers.DJANGO_Q_AVAILABLE', False)
-    def test_create_and_save_appointment_without_django_q(self):
-        client_data = {
-            'email': 'samantha.carter@django-appointment.com',
-            'name': 'samantha.carter',
-        }
-        appointment_data = {
-            'phone': '987654321',
-            'want_reminder': True,
-            'address': '456, SGC, Colorado Springs, USA',
-            'additional_info': 'Bring naquadah generator.'
-        }
-
-        with patch('appointment.utils.db_helpers.logger.warning') as mock_logger_warning:
-            appointment = create_and_save_appointment(self.ar, client_data, appointment_data, self.request)
-
-        self.assertIsNotNone(appointment)
-        self.assertEqual(appointment.client.email, client_data['email'])
-        mock_logger_warning.assert_called_with(
-            f"Email reminder requested for appointment {appointment.id}, but django-q is not available.")
 
 
 def get_mock_reverse(url_name, **kwargs):
@@ -249,13 +208,6 @@ def get_mock_reverse(url_name, **kwargs):
 
 
 class ScheduleEmailReminderTest(BaseTest):
-    @classmethod
-    def setUpClass(cls):
-        if not DJANGO_Q_AVAILABLE:
-            import unittest
-            raise unittest.SkipTest("Django-Q is not available")
-        super().setUpClass()
-
     def setUp(self):
         super().setUp()
         self.factory = RequestFactory()
@@ -265,7 +217,6 @@ class ScheduleEmailReminderTest(BaseTest):
     def tearDown(self):
         Appointment.objects.all().delete()
         AppointmentRequest.objects.all().delete()
-        super().tearDown()
 
     def test_schedule_email_reminder_cluster_running(self):
         with patch('appointment.settings.check_q_cluster', return_value=True), \
@@ -282,14 +233,7 @@ class ScheduleEmailReminderTest(BaseTest):
                     "Django-Q cluster is not running. Email reminder will not be scheduled.")
 
 
-class UpdateAppointmentReminderTest(BaseTest, TestCase):
-    @classmethod
-    def setUpClass(cls):
-        if not DJANGO_Q_AVAILABLE:
-            import unittest
-            raise unittest.SkipTest("Django-Q is not available")
-        super().setUpClass()
-
+class UpdateAppointmentReminderTest(BaseTest):
     def setUp(self):
         super().setUp()
         self.factory = RequestFactory()
@@ -299,7 +243,6 @@ class UpdateAppointmentReminderTest(BaseTest, TestCase):
     def tearDown(self):
         Appointment.objects.all().delete()
         AppointmentRequest.objects.all().delete()
-        super().tearDown()
 
     def test_update_appointment_reminder_date_time_changed(self):
         appointment = self.create_appt_for_sm1()
@@ -324,7 +267,7 @@ class UpdateAppointmentReminderTest(BaseTest, TestCase):
             mock_cancel_existing_reminder.assert_not_called()
             mock_schedule_email_reminder.assert_not_called()
 
-    @patch('appointment.utils.db_helpers.logger')
+    @patch('appointment.utils.db_helpers.logger')  # Adjust the import path as necessary
     def test_reminder_not_scheduled_due_to_user_preference(self, mock_logger):
         # Scenario where user does not want a reminder
         want_reminder = False
@@ -338,7 +281,7 @@ class UpdateAppointmentReminderTest(BaseTest, TestCase):
                 f"Reminder for appointment {self.appointment.id} is not scheduled per user's preference or past datetime."
         )
 
-    @patch('appointment.utils.db_helpers.logger')
+    @patch('appointment.utils.db_helpers.logger')  # Adjust the import path as necessary
     def test_reminder_not_scheduled_due_to_past_datetime(self, mock_logger):
         # Scenario where the new datetime is in the past
         want_reminder = True
@@ -428,8 +371,6 @@ class StaffChangeAllowedOnRescheduleTests(TestCase):
 
 class CancelExistingReminderTest(BaseTest):
     def test_cancel_existing_reminder(self):
-        if not DJANGO_Q_AVAILABLE:
-            return
         appointment = self.create_appt_for_sm1()
         Schedule.objects.create(func='appointment.tasks.send_email_reminder', name=f"reminder_{appointment.id_request}")
 
