@@ -179,7 +179,7 @@ def update_appointment_reminder(appointment, new_date, new_start_time, request, 
         cancel_existing_reminder(appointment.id_request)
 
         # If a reminder is still desired and the appointment is in the future, schedule a new one
-        if want_reminder and new_datetime > timezone.now():
+        if want_reminder and new_datetime > timezone.now() and DJANGO_Q_AVAILABLE:
             schedule_email_reminder(appointment, request, new_datetime)
         else:
             logger.info(
