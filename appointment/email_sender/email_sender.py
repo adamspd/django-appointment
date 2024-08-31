@@ -5,7 +5,10 @@ from django.core.mail import mail_admins, send_mail
 from django.template import loader
 from django_q.tasks import async_task
 
+from appointment.logger_config import get_logger
 from appointment.settings import APP_DEFAULT_FROM_EMAIL, check_q_cluster
+
+logger = get_logger(__name__)
 
 
 def has_required_email_settings():
@@ -22,8 +25,8 @@ def has_required_email_settings():
 
     if missing_settings:
         missing_settings_str = ", ".join(missing_settings)
-        print(f"Warning: The following settings are missing in settings.py: {missing_settings_str}. "
-              "Email functionality will be disabled.")
+        logger.warning(f"Warning: The following settings are missing in settings.py: {missing_settings_str}. "
+                       "Email functionality will be disabled.")
         return False
     return True
 
@@ -57,7 +60,7 @@ def send_email(recipient_list, subject: str, template_url: str = None, context: 
                     recipient_list=recipient_list, fail_silently=False,
             )
         except Exception as e:
-            print(f"Error sending email: {e}")
+            logger.error(f"Error sending email: {e}")
 
 
 def notify_admin(subject: str, template_url: str = None, context: dict = None, message: str = None):
@@ -77,7 +80,7 @@ def notify_admin(subject: str, template_url: str = None, context: dict = None, m
                     html_message=html_message if template_url else None
             )
         except Exception as e:
-            print(f"Error sending email to admin: {e}")
+            logger.error(f"Error sending email to admin: {e}")
 
 
 def get_use_django_q_for_emails():
@@ -86,5 +89,5 @@ def get_use_django_q_for_emails():
         from django.conf import settings
         return getattr(settings, 'USE_DJANGO_Q_FOR_EMAILS', False)
     except AttributeError:
-        print("Error accessing USE_DJANGO_Q_FOR_EMAILS. Defaulting to False.")
+        logger.error("Error accessing USE_DJANGO_Q_FOR_EMAILS. Defaulting to False.")
         return False

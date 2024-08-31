@@ -19,7 +19,7 @@ from django.utils import timezone
 from django_q.models import Schedule
 from django_q.tasks import schedule
 
-from appointment.logger_config import logger
+from appointment.logger_config import get_logger
 from appointment.settings import (
     APPOINTMENT_BUFFER_TIME, APPOINTMENT_FINISH_TIME, APPOINTMENT_LEAD_TIME, APPOINTMENT_PAYMENT_URL,
     APPOINTMENT_SLOT_DURATION, APPOINTMENT_WEBSITE_NAME
@@ -36,6 +36,8 @@ Config = apps.get_model('appointment', 'Config')
 Service = apps.get_model('appointment', 'Service')
 EmailVerificationCode = apps.get_model('appointment', 'EmailVerificationCode')
 AppointmentRescheduleHistory = apps.get_model('appointment', 'AppointmentRescheduleHistory')
+
+logger = get_logger(__name__)
 
 
 def calculate_slots(start_time, end_time, buffer_time, slot_duration):
@@ -109,6 +111,7 @@ def create_and_save_appointment(ar, client_data: dict, appointment_data: dict, r
     appointment.save()
     logger.info(f"New appointment created: {appointment.to_dict()}")
     if appointment.want_reminder:
+        logger.info(f"User wants a reminder for appointment {appointment.id}, scheduling it...")
         schedule_email_reminder(appointment, request)
     return appointment
 
