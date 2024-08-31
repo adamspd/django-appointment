@@ -1,39 +1,39 @@
 {% extends BASE_TEMPLATE %}
 {% load i18n %}
 {% load static %}
+
 {% block customCSS %}
-    <link rel="stylesheet" type="text/css" href="{% static 'css/verification_code.css' %}"/>
+    <link rel="stylesheet" href="{% static 'css/verification_code.css' %}">
 {% endblock %}
-{% block title %}
-    {% trans 'Enter Verification Code' %}
-{% endblock %}
-{% block description %}
-    {% trans 'Enter Verification Code' %}
-{% endblock %}
+
+{% block title %}{% trans 'Enter Verification Code' %}{% endblock %}
+{% block description %}{% trans 'Enter Verification Code' %}{% endblock %}
+
 {% block body %}
-    <div class="container">
-        <div class="main-container">
-            <div class="body-container">
-                <h1>{% trans 'Enter Verification Code' %}</h1>
-                <p>{% trans "We've sent a verification code to your email. Please enter it below" %}:</p>
-                <form method="post"
-                      action="{% url 'appointment:enter_verification_code' appointment_request_id id_request %}">
-                    {% csrf_token %}
-                    <label>{% trans 'Code' %}:
-                        <input type="text" name="code" placeholder="X1Y2Z3" required>
-                    </label>
-                    <button class="btn btn-primary" type="submit">{% trans 'Submit' %}</button>
-                </form>
-            </div>
+    <div class="vcode-container">
+        <div class="vcode-card">
+            <h1 class="vcode-title">{% trans 'Enter Verification Code' %}</h1>
+            <p class="vcode-instruction">{% trans "We've sent a verification code to your email. Please enter it below" %}:</p>
+
+            <form method="post" class="vcode-form">
+                {% csrf_token %}
+                <div class="vcode-input-group">
+                    <label for="verification-code" class="vcode-label">{% trans 'Code' %}:</label>
+                    <input type="text" id="verification-code" name="code" class="vcode-input" required>
+                </div>
+                <button type="submit" class="vcode-button">{% trans 'Submit' %}</button>
+            </form>
+
             {% if messages %}
                 {% for message in messages %}
-                    <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
-                         role="alert">{{ message }}</div>
+                    <div class="vcode-alert vcode-alert-{% if message.tags %}{{ message.tags }}{% endif %}">
+                        {{ message }}
+                    </div>
                 {% endfor %}
             {% endif %}
         </div>
     </div>
 {% endblock %}
+
 {% block customJS %}
-    <script src="{% static 'js/js-utils.js' %}"></script>
 {% endblock %}
