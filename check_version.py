@@ -4,6 +4,9 @@ import sys
 import requests
 
 from appointment import __package_name__, __test_version__, __version__
+from appointment.logger_config import get_logger
+
+logger = get_logger(__name__)
 
 
 def check_package_version(package_name, current_version, github_ref_=None):
@@ -33,7 +36,7 @@ def check_package_version(package_name, current_version, github_ref_=None):
     if response.status_code == 200:
         released_versions = response.json()["releases"].keys()
         if current_version in released_versions:
-            print(f"Version {current_version} already exists on {'TestPyPI' if is_test_version else 'PyPI'}!")
+            logger.info(f"Version {current_version} already exists on {'TestPyPI' if is_test_version else 'PyPI'}!")
             version_exists = True
         else:
             publish_to_pypi = not is_test_version
