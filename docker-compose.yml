@@ -2,7 +2,10 @@ version: '3.8'
 
 services:
   web:
-    build: .
+    build:
+      context: .
+      args:
+        - USE_DJANGO_Q=${USE_DJANGO_Q:-False}
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/app
@@ -12,7 +15,10 @@ services:
       - .env
 
   qcluster:
-    build: .
+    build:
+      context: .
+      args:
+        - USE_DJANGO_Q=${USE_DJANGO_Q:-False}
     command: python manage.py qcluster
     volumes:
       - .:/app
