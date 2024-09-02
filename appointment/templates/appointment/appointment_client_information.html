@@ -51,12 +51,14 @@
                                     {{ client_data_form.email }}
                                 </label>
                             </div>
-                            <div class="receive-email">
-                                <label for="{{ form.want_reminder.id_for_label }}">
-                                    {{ form.want_reminder }}
-                                    {% trans "I want to receive an EMAIL reminder 24 hours before this session starts" %}
-                                </label>
-                            </div>
+                            {% if has_required_email_reminder_config %}
+                                <div class="receive-email">
+                                    <label for="{{ form.want_reminder.id_for_label }}">
+                                        {{ form.want_reminder }}
+                                        {% trans "I want to receive an EMAIL reminder 24 hours before this session starts" %}
+                                    </label>
+                                </div>
+                            {% endif %}
                             <div class="phone-number">
                                 <label for="{{ form.phone.id_for_label }}">
                                     {% trans "Phone" %} *<br>
