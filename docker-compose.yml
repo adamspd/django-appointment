@@ -24,3 +24,9 @@ services:
       - .:/app
     env_file:
       - .env
+    depends_on:
+      - web
+    environment:
+      - USE_DJANGO_Q=${USE_DJANGO_Q:-False}
+    deploy:
+      replicas: ${USE_DJANGO_Q:-0}
