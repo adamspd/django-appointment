@@ -47,8 +47,10 @@ and [here](https://github.com/adamspd/django-appointment/tree/main/docs/release_
 3. Seamless integration with the Django admin interface for appointment management.
 4. Custom admin interface for managing appointment/staff member editing, creation, availability, and conflicts.
 5. User-friendly interface for viewing available time slots and scheduling appointments.
-6. Ability to send email notifications to clients upon scheduling an appointment and email reminders for
-   appointments, leveraging Django Q for task scheduling and efficiency.
+6. Email notifications for appointment scheduling and reminders:
+   - Instant email notifications to clients upon scheduling an appointment.
+   - Automated email reminders sent 24 hours before the appointment (requires Django Q).
+7. Integration with Django Q for efficient task scheduling and email sending.
 
 ## Key features introduced in previous versions.
 
@@ -68,19 +70,13 @@ see their [release notes](https://github.com/adamspd/django-appointment/tree/mai
    ```bash
    pip install django-appointment
    ```
-   Optionally installing django_q2 if you need email reminders:
 
-   ```bash
-   pip install django_q2
-   ```
-
-2. Add "appointment" (& "django_q" if you want to enable email reminders) to your `INSTALLED_APPS` setting like so:
+2. Add "appointment" to your `INSTALLED_APPS` setting like so:
 
    ```python
    INSTALLED_APPS = [
        # other apps
        'appointment',
-       'django_q',
    ]
    ```
 
@@ -136,43 +132,87 @@ see their [release notes](https://github.com/adamspd/django-appointment/tree/mai
    <p>® 2023 {{ APPOINTMENT_WEBSITE_NAME }}. All Rights Reserved.</p>
    ```
 
-   To be able to send email reminders after adding `django_q` to your `INSTALLED_APPS`, you must add this variable
-   `Q_CLUSTER` in your Django's `settings.py`. If done, and users check the box to receive reminders, you and they
-   will receive an email reminder 24 hours before the appointment.
-
-   Here's a configuration example that you can use without modification (if you don't want to do much research):
-
-   ```python
-   Q_CLUSTER = {
-      'name': 'DjangORM',
-      'workers': 4,
-      'timeout': 90,
-      'retry': 120,
-      'queue_limit': 50,
-      'bulk': 10,
-      'orm': 'default',
-   }
-   USE_DJANGO_Q_FOR_EMAILS = True  # 🆕 Use Django Q for sending ALL email.
-   ```
-
 5. Next would be to create the migrations and run them by doing `python manage.py makemigrations appointment` and right
    after, run `python manage.py migrate` to create the appointment models.
 
-6. Start the Django Q cluster with `python manage.py qcluster`.
-
-7. Launch the development server and navigate to http://127.0.0.1:8000/admin/ to create appointments, manage
+6. Launch the development server and navigate to http://127.0.0.1:8000/admin/ to create appointments, manage
    configurations, and handle appointment conflicts (the Admin app must be enabled).
-8. You must create at least one service before using the application on the admin page. If your service is free, input 0
+7. You must create at least one service before using the application on the admin page. If your service is free, input 0
    as the price. If your service is paid, input the price in the price field. You may also provide a description for
    your service.
-9. Visit http://127.0.0.1:8000/appointment/request/<service_id>/ to view the available time slots and schedule an
+8. Visit http://127.0.0.1:8000/appointment/request/<service_id>/ to view the available time slots and schedule an
    appointment.
+
+## Email and Django Q Configuration 📧
+
+### Email Configuration 📧
+
+Proper email configuration is crucial for the sending email and for the appointment reminder functionality.
+Add the following to your `settings.py`:
+
+```python
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'your_smtp_host'
+EMAIL_PORT = 587 # or 465 for EMAIL_USE_SSL
+EMAIL_USE_TLS = True # or EMAIL_USE_SSL = True
+EMAIL_HOST_USER = 'your_email@example.com'
+EMAIL_HOST_PASSWORD = 'your_email_password'
+
+# Optional: Set your website name for email footer
+APPOINTMENT_WEBSITE_NAME = 'Your Website Name'
+```
+
+> **Note:** Make sure to use environment variables or a secure method to store sensitive information like email passwords in production.
+
+
+### Django Q Configuration 📧
+
+Django-Appointment uses Django Q for sending email reminders.
+This feature is optional but recommended for better performance and user experience.
+
+#### Setting up Django Q
+
+1. Install Django Q:
+   ```bash
+   pip install django_q2
+   ```
+
+2. Add 'django_q' to INSTALLED_APPS in your settings.py:
+   ```python
+   INSTALLED_APPS = [
+       # ...
+       'django_q',
+   ]
+   ```
+
+3. Configure Django Q in your settings.py:
+   ```python
+   Q_CLUSTER = {
+       'name': 'django-appointment',
+       'workers': 4,
+       'timeout': 90,
+       'retry': 120,
+       'queue_limit': 50,
+       'bulk': 10,
+       'orm': 'default',
+   }
+   USE_DJANGO_Q_FOR_EMAILS = True  # Use Django Q for sending ALL emails
+   ```
+
+4. Start the Django Q cluster:
+   ```bash
+   python manage.py qcluster
+   ```
+
+> **Note:** If you choose not to use Django Q, email reminders will not be sent, but the rest of the application will
+> function normally.
+
 
 ## Template Configuration 📝
 
-If you're using a base.html template, you must include the following block in your template:
+If you're using a base.html template, you must include the following blocks in your template:
 
-```
+```html
 {% block customCSS %}
 {% endblock %}
 
@@ -189,10 +229,13 @@ If you're using a base.html template, you must include the following block in yo
 {% endblock %}
 ```
 
-At least the block for css, body and js are required; otherwise the application will not work properly. 
-Jquery is also required to be included in the template.
+These blocks are essential for the proper functioning of the application:
+- `customCSS` and `customJS` allow the application to inject the necessary styles and scripts.
+- `body` is where the main content of each page will be rendered.
+- `title` and `description` are used for SEO and are recommended but not strictly required.
 
-The title and description are optional but recommended for SEO purposes.
+At minimum, the blocks for CSS, body, and JS are required for the application to work properly. 
+jQuery is also required to be included in the template.
 
 See an example of a base.html template [here](https://github.com/adamspd/django-appointment/blob/main/appointment/templates/base_templates/base.html).
 
@@ -205,7 +248,6 @@ See an example of a base.html template [here](https://github.com/adamspd/django-
 2. Modify these values as needed for your application, and the app will adapt to the new settings.
 3. For further customization, you can extend the provided models, views, and templates or create your own.
 
-
 ## Docker Support 🐳
 
 Django-Appointment now supports Docker, making it easier to set up, develop, and test.
@@ -214,6 +256,9 @@ Django-Appointment now supports Docker, making it easier to set up, develop, and
 
 Using Django-Appointment with Docker is primarily intended for **development purposes** or **local testing**.
 This means you'll need to ___clone the project from the GitHub repository___ to get started.
+
+> **Note:** These Docker instructions are for development and testing. For production deployment, please refer to
+> Django's official deployment documentation and best practices.
 
 Here's how you can set it up:
 
@@ -238,10 +283,24 @@ Here's how you can set it up:
    You should include your email host user and password for Django's email functionality (if you want it to work):
 
    ```plaintext
-   EMAIL_HOST_USER=your_email@example.com
-   EMAIL_HOST_PASSWORD=your_password
-   ADMIN_NAME='Example Name'
-   ADMIN_EMAIL=django-appt@example.com
+   # Main admin user, can have several others, but you need to change the settings.py configuration then
+   ADMIN_NAME="Super Admin"
+   ADMIN_EMAIL=super.admin@example.com
+   
+   # If you don't change these 3 below, docker-compose (or localhost) will fail sending emails
+   EMAIL_HOST_USER=no-reply@example.com
+   EMAIL_HOST_PASSWORD=youcantguessme
+   EMAIL_HOST=smtp.example.com
+   
+   # default one (can leave it as is)
+   EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+   
+   # if using TLS on your mail server this is ok, else, use 465 for SSL
+   EMAIL_PORT=587
+   EMAIL_USE_TLS=True
+   
+   # On localhost, you must install django-q2, with docker-compose, it's already installed
+   USE_DJANGO_Q=True
    ```
 
    > **Note:** The `.env` file is used to store sensitive information and should not be committed to version control.
@@ -302,7 +361,6 @@ Here's how you can set it up:
    > **Note:** I used the default database settings for the Docker container.
    > If you want to use a different database, you can modify the Dockerfile and docker-compose.yml files to use your
    > preferred database.
-   
 
 ## Compatibility Matrix 📊
 
@@ -338,9 +396,12 @@ information.
 
 ## Notes 📝⚠️
 
-I'm working on a testing website for the application that is not fully functional yet, no hard feelings. Before using it, 
-it's important to me that you read the terms of use, only then you can use it if you agree to them. The demo website is located
-at [https://django-appt.adamspierredavid.com/](https://django-appt.adamspierredavid.com/terms-and-conditions/). Ideas are welcome.
+I'm working on a testing website for the application that is not fully functional yet, no hard feelings. Before using
+it,
+it's important to me that you read the terms of use, only then you can use it if you agree to them. The demo website is
+located
+at [https://django-appt.adamspierredavid.com/](https://django-appt.adamspierredavid.com/terms-and-conditions/). Ideas
+are welcome.
 
 ## About the Author
 
