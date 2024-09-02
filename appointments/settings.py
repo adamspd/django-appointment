@@ -41,8 +41,12 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    'appointment.apps.AppointmentConfig',
+    "appointment.apps.AppointmentConfig",
 ]
+
+# if you want to use Django Q for sending emails asynchronously, you must install django-q2 in your env
+if os.environ.get('USE_DJANGO_Q', 'False').lower() == 'true':
+    INSTALLED_APPS.append('django_q')
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -130,22 +134,61 @@ APPOINTMENT_BUFFER_TIME = 0
 LOCALE_PATHS = [os.path.join(BASE_DIR, "locale")]
 LANGUAGES = (
     ('en', _('English')),
-    ('es', _('Spanish')),
     ('fr', _('French')),
+    # ('es', _('Spanish')), # uncomment to add Spanish
 )
 
-# Email settings
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', default="")
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', default="")
-EMAIL_USE_TLS = True
-EMAIL_SUBJECT_PREFIX = ""
-EMAIL_USE_LOCALTIME = True
-SERVER_EMAIL = EMAIL_HOST_USER
-USE_DJANGO_Q_FOR_EMAILS = True
+# Email Configuration
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.example.com')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 
-ADMINS = [
-    (os.getenv('ADMIN_NAME'), os.getenv('ADMIN_EMAIL')),
-]
+# Check
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True').lower() == 'true'
+EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'False').lower() == 'true'
+
+# If SSL is True, TLS will be set to False
+# Can't have both SSL and TLS set to True :(
+if EMAIL_USE_SSL:
+    EMAIL_USE_TLS = False
+    # Default SSL port if not specified is 465
+    EMAIL_PORT = int(os.getenv('EMAIL_PORT', 465))
+
+EMAIL_SUBJECT_PREFIX = os.getenv('EMAIL_SUBJECT_PREFIX', '')
+EMAIL_USE_LOCALTIME = os.getenv('EMAIL_USE_LOCALTIME', 'True').lower() == 'true'
+SERVER_EMAIL = os.getenv('SERVER_EMAIL', EMAIL_HOST_USER)
+USE_DJANGO_Q_FOR_EMAILS = os.getenv('USE_DJANGO_Q_FOR_EMAILS', 'True').lower() == 'true'
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
+
+# Little warning if EMAIL_HOST_USER or EMAIL_HOST_PASSWORD is not set
+# This won't appear in the console when using the package, only when running the Django project or docker-compose
+if not EMAIL_HOST_USER or not EMAIL_HOST_PASSWORD:
+    print("Warning: EMAIL_HOST_USER or EMAIL_HOST_PASSWORD is not set. Email functionality may be limited.")
+
+# Warn if both TLS and SSL are set to True (only appears when running the Django project or docker-compose)
+# To be honest, this would be unique if you do this in your .env, I mean, come on :(
+if EMAIL_USE_TLS and EMAIL_USE_SSL:
+    print("Warning: Both EMAIL_USE_TLS and EMAIL_USE_SSL are set to True. Only SSL will be used.")
+
+# ADMINS configuration
+ADMIN_NAME = os.getenv('ADMIN_NAME', 'Admin')
+ADMIN_EMAIL = os.getenv('ADMIN_EMAIL', '')
+ADMINS = [(ADMIN_NAME, ADMIN_EMAIL)] if ADMIN_EMAIL else []
+
+# Same as above, only appears when running the Django project or docker-compose
+if not ADMIN_EMAIL:
+    print("Warning: ADMIN_EMAIL is not set. Error emails will not be sent to administrators.")
+
+# if using Django Q, example of extra configuration (you can change this to your liking)
+if 'django_q' in INSTALLED_APPS:
+    Q_CLUSTER = {
+        'name': 'django-appointment',
+        'workers': 4,
+        'timeout': 90,
+        'retry': 120,
+        'queue_limit': 50,
+        'bulk': 10,
+        'orm': 'default',
+    }

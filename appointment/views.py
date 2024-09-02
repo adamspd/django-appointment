@@ -8,6 +8,7 @@ Since: 1.0.0
 
 from datetime import date, timedelta
 
+from appointment.settings import check_q_cluster
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.forms import SetPasswordForm
@@ -40,6 +41,7 @@ from appointment.utils.email_ops import notify_admin_about_appointment, notify_a
 from appointment.utils.session import get_appointment_data_from_session, handle_existing_email
 from appointment.utils.view_helpers import get_locale
 from .decorators import require_ajax
+from .email_sender.email_sender import has_required_email_settings
 from .messages_ import passwd_error, passwd_set_successfully
 from .services import get_appointments_and_slots, get_available_slots_for_staff
 from .settings import (APPOINTMENT_PAYMENT_URL, APPOINTMENT_THANK_YOU_URL)
@@ -304,6 +306,8 @@ def appointment_client_information(request, appointment_request_id, id_request):
     :return: The rendered HTML page.
     """
     ar = get_object_or_404(AppointmentRequest, pk=appointment_request_id)
+    has_required_email_reminder_config = has_required_email_settings() and check_q_cluster(hide_warning=True)
+
     if request.session.get(f'appointment_submitted_{id_request}', False):
         context = get_generic_context_with_extra(request, {'service_id': ar.service_id}, admin=False)
         return render(request, 'error_pages/304_already_submitted.html', context=context)
@@ -342,6 +346,7 @@ def appointment_client_information(request, appointment_request_id, id_request):
         'form': appointment_form,
         'client_data_form': client_data_form,
         'service_name': ar.service.name,
+        'has_required_email_reminder_config': has_required_email_reminder_config,
     }
     context = get_generic_context_with_extra(request, extra_context, admin=False)
     return render(request, 'appointment/appointment_client_information.html', context=context)

@@ -1,5 +1,6 @@
 # email_sender.py
 # Path: appointment/email_sender/email_sender.py
+import os
 
 from django.core.mail import mail_admins, send_mail
 from django.template import loader
@@ -23,9 +24,7 @@ def has_required_email_settings():
     """Check if all required email settings are configured and warn if any are missing."""
     from django.conf import settings as s
     required_settings = [
-        'EMAIL_BACKEND', 'EMAIL_HOST', 'EMAIL_PORT',
-        'EMAIL_HOST_USER', 'EMAIL_HOST_PASSWORD', 'EMAIL_USE_TLS',
-        'EMAIL_USE_LOCALTIME', 'ADMINS',
+        'EMAIL_HOST', 'EMAIL_PORT', 'EMAIL_HOST_USER', 'EMAIL_HOST_PASSWORD', 'EMAIL_USE_TLS'
     ]
     missing_settings = [
         setting_name for setting_name in required_settings if not hasattr(s, setting_name)
@@ -35,6 +34,14 @@ def has_required_email_settings():
         missing_settings_str = ", ".join(missing_settings)
         logger.warning(f"Warning: The following settings are missing in settings.py: {missing_settings_str}. "
                        "Email functionality will be disabled.")
+        return False
+
+    # Check if EMAIL_HOST is not the default value
+    if os.environ.get('EMAIL_HOST') == 'smtp.example.com':
+        logger.warning(
+                "EMAIL_HOST is set to the default value 'smtp.example.com'. "
+                "Please update it with your actual SMTP server in the .env file."
+        )
         return False
     return True
 
