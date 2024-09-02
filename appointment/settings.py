@@ -25,7 +25,7 @@ APPOINTMENT_FINISH_TIME = getattr(settings, 'APPOINTMENT_FINISH_TIME', (18, 30))
 APP_DEFAULT_FROM_EMAIL = getattr(settings, 'DEFAULT_FROM_EMAIL', DEFAULT_FROM_EMAIL)
 
 
-def check_q_cluster():
+def check_q_cluster(hide_warning: bool = False):
     """
     Checks if Django Q is properly installed and configured in the Django settings.
     If 'django_q' is not in INSTALLED_APPS, it warns about both 'django_q' not being installed
@@ -34,7 +34,8 @@ def check_q_cluster():
     Returns True if configurations are correct, otherwise False.
     """
     missing_conf = []
-    logger.info("Checking missing configuration for django q cluster")
+    if not hide_warning:
+        logger.info("Checking missing configuration for django q cluster")
     # Check if Django Q is installed
     if 'django_q' not in settings.INSTALLED_APPS:
         missing_conf.append("Django Q is not in settings.INSTALLED_APPS. Please add it to the list. "
@@ -48,10 +49,11 @@ def check_q_cluster():
                             "for more information.")
 
     # Log warnings if any configurations are missing
-    if missing_conf:
+    if missing_conf and not hide_warning:
         for warning in missing_conf:
             logger.warning(warning)
         return False
     # Both 'django_q' is installed and 'Q_CLUSTER' is configured
-    logger.info("Django Q cluster is properly configured")
+    if not hide_warning:
+        logger.info("Django Q cluster is properly configured")
     return True
