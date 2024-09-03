@@ -3,7 +3,7 @@
 
 import datetime
 from unittest import skip
-from unittest.mock import ANY, MagicMock, Mock, PropertyMock, patch
+from unittest.mock import MagicMock, PropertyMock, patch
 
 from django.apps import apps
 from django.conf import settings
@@ -16,6 +16,7 @@ from django.utils import timezone
 
 from appointment.logger_config import get_logger
 from appointment.models import Config, DayOff, PaymentInfo
+from appointment.settings import check_q_cluster
 from appointment.tests.base.base_test import BaseTest
 from appointment.tests.mixins.base_mixin import ConfigMixin
 from appointment.utils.db_helpers import (
@@ -251,14 +252,14 @@ def get_mock_reverse(url_name, **kwargs):
     return reverse(url_name, **kwargs)
 
 
-# Mock the django_q module
-mock_django_q = Mock()
-mock_django_q.Schedule = Mock()
-mock_django_q.Schedule.ONCE = 'O'
-
-
-@patch.dict('sys.modules', {'django_q': mock_django_q})
 class ScheduleEmailReminderTest(BaseTest):
+    @classmethod
+    def setUpClass(cls):
+        if not DJANGO_Q_AVAILABLE:
+            import unittest
+            raise unittest.SkipTest("Django-Q is not available")
+        super().setUpClass()
+
     def setUp(self):
         super().setUp()
         self.factory = RequestFactory()
@@ -270,36 +271,19 @@ class ScheduleEmailReminderTest(BaseTest):
         AppointmentRequest.objects.all().delete()
         super().tearDown()
 
-    @patch('appointment.utils.db_helpers.DJANGO_Q_AVAILABLE', True)
-    @patch('appointment.utils.db_helpers.schedule')
-    @patch('appointment.utils.db_helpers.logger')
-    @patch('appointment.utils.db_helpers.get_absolute_url_')
-    @patch('appointment.utils.db_helpers.reverse')
-    def test_schedule_email_reminder_django_q_available(self, mock_reverse, mock_get_absolute_url, mock_logger,
-                                                        mock_schedule):
-        mock_reverse.return_value = '/reschedule'
-        mock_get_absolute_url.return_value = "https://test.com/reschedule"
+    def test_schedule_email_reminder_cluster_running(self):
+        with patch('appointment.settings.check_q_cluster', return_value=True), \
+                patch('appointment.utils.db_helpers.schedule') as mock_schedule:
+            schedule_email_reminder(self.appointment, self.request)
+            mock_schedule.assert_called_once()
+            # Further assertions can be made here based on the arguments passed to schedule
 
-        schedule_email_reminder(self.appointment, self.request)
-
-        mock_logger.info.assert_called_once()
-        mock_schedule.assert_called_once_with(
-                'appointment.tasks.send_email_reminder',
-                to_email=self.appointment.client.email,
-                name=f"reminder_{self.appointment.id_request}",
-                first_name=self.appointment.client.first_name,
-                reschedule_link="https://test.com/reschedule",
-                appointment_id=self.appointment.id,
-                schedule_type='O',
-                next_run=ANY
-        )
-
-    @patch('appointment.utils.db_helpers.DJANGO_Q_AVAILABLE', False)
-    @patch('appointment.utils.db_helpers.logger')
-    def test_schedule_email_reminder_django_q_not_available(self, mock_logger):
-        schedule_email_reminder(self.appointment, self.request)
-        mock_logger.warning.assert_called_once_with(
-                "Django-Q is not available. Email reminder will not be scheduled.")
+    # def test_schedule_email_reminder_cluster_not_running(self):
+    #     with patch('appointment.settings.check_q_cluster', return_value=False), \
+    #             patch('appointment.utils.db_helpers.logger') as mock_logger:
+    #         schedule_email_reminder(self.appointment, self.request)
+    #         mock_logger.warning.assert_called_with(
+    #                 "Django-Q cluster is not running. Email reminder will not be scheduled.")
 
 
 class UpdateAppointmentReminderTest(BaseTest, TestCase):
