@@ -51,8 +51,12 @@
 <body>
 <div class="email-container">
     <h1>{% translate 'New Appointment Request' %}</h1>
-    <p>{% translate 'Dear Admin,' %}</p>
-    <p>{% translate 'You have received a new appointment request. Here are the details:' %}</p>
+    <p>{% translate 'Dear' %} {{ recipient_name }},</p>
+    {% if is_staff_member %}
+        <p>{% translate 'You have received a new appointment request. Here are the details:' %}</p>
+    {% else %}
+        <p>{% translate 'A new appointment request has been received for' %} {{ staff_member_name }}. {% translate 'Here are the details:' %}</p>
+    {% endif %}
 
     <div class="appointment-details">
         <p><strong>{% translate 'Client Name' %}:</strong> {{ client_name }}</p>
@@ -60,11 +64,16 @@
         <p><strong>{% translate 'Appointment Date' %}:</strong> {{ appointment.appointment_request.date }}</p>
         <p><strong>{% translate 'Time' %}:</strong> {{ appointment.appointment_request.start_time }}
             - {{ appointment.appointment_request.end_time }}</p>
-        <p><strong>{% translate 'Contact Details' %}:</strong> {{ appointment.phone }} | {{ appointment.client.email }}</p>
+        <p><strong>{% translate 'Contact Details' %}:</strong> {{ appointment.phone }} | {{ appointment.client.email }}
+        </p>
         <p><strong>{% translate 'Additional Info' %}:</strong> {{ appointment.additional_info|default:"N/A" }}</p>
     </div>
 
-    <p>{% translate 'Please review the appointment request and take the necessary action.' %}</p>
+    {% if is_staff_member %}
+        <p>{% translate 'Please review the appointment request and take the necessary action.' %}</p>
+    {% else %}
+        <p>{% translate 'Please ensure that' %} {{ staff_member_name }} {% translate 'reviews this appointment request and takes the necessary action.' %}</p>
+    {% endif %}
 
     <div class="footer">
         <p>{% translate 'This is an automated message. Please do not reply directly to this email.' %}</p>
