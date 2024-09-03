@@ -2,7 +2,8 @@
 # Path: appointment/email_sender/email_sender.py
 import os
 
-from django.core.mail import mail_admins, send_mail
+from django.conf import settings
+from django.core.mail import send_mail
 from django.template import loader
 
 from appointment.logger_config import get_logger
@@ -53,7 +54,7 @@ def render_email_template(template_url, context):
 
 
 def send_email(recipient_list, subject: str, template_url: str = None, context: dict = None, from_email=None,
-               message: str = None):
+               message: str = None, attachments=None):
     if not has_required_email_settings():
         return
 
@@ -61,41 +62,62 @@ def send_email(recipient_list, subject: str, template_url: str = None, context: 
     html_message = render_email_template(template_url, context)
 
     if get_use_django_q_for_emails() and check_q_cluster() and DJANGO_Q_AVAILABLE:
-        # Asynchronously send the email using Django-Q
+        # Pass only the necessary data to construct the email
         async_task(
-                "appointment.tasks.send_email_task", recipient_list=recipient_list, subject=subject,
-                message=message, html_message=html_message if template_url else None, from_email=from_email
+                'appointment.tasks.send_email_task',
+                recipient_list=recipient_list,
+                subject=subject,
+                message=message,
+                html_message=html_message,
+                from_email=from_email,
+                attachments=attachments
         )
     else:
         # Synchronously send the email
         try:
             send_mail(
-                    subject=subject, message=message if not template_url else "",
-                    html_message=html_message if template_url else None, from_email=from_email,
-                    recipient_list=recipient_list, fail_silently=False,
+                    subject=subject,
+                    message=message if not template_url else "",
+                    html_message=html_message if template_url else None,
+                    from_email=from_email,
+                    recipient_list=recipient_list,
+                    fail_silently=False,
             )
         except Exception as e:
             logger.error(f"Error sending email: {e}")
 
 
-def notify_admin(subject: str, template_url: str = None, context: dict = None, message: str = None):
+def notify_admin(subject: str, template_url: str = None, context: dict = None, message: str = None,
+                 recipient_email: str = None, attachments=None):
     if not has_required_email_settings():
         return
 
     html_message = render_email_template(template_url, context)
 
+    recipients = [recipient_email] if recipient_email else [email for name, email in settings.ADMINS]
+
     if get_use_django_q_for_emails() and check_q_cluster() and DJANGO_Q_AVAILABLE:
-        # Enqueue the task to send admin email asynchronously
-        async_task('appointment.tasks.notify_admin_task', subject=subject, message=message, html_message=html_message)
+        # Asynchronously send the email using Django-Q
+        async_task("appointment.tasks.send_email_task",
+                   subject=subject,
+                   message=message,
+                   html_message=html_message,
+                   from_email=settings.DEFAULT_FROM_EMAIL,
+                   recipient_list=recipients,
+                   attachments=attachments)
     else:
-        # Synchronously send admin email
+        # Synchronously send the email
         try:
-            mail_admins(
-                    subject=subject, message=message if not template_url else "",
-                    html_message=html_message if template_url else None
+            send_mail(
+                    subject=subject,
+                    message=message if not template_url else "",
+                    html_message=html_message if template_url else None,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=recipients,
+                    fail_silently=False,
             )
         except Exception as e:
-            logger.error(f"Error sending email to admin: {e}")
+            logger.error(f"Error sending email: {e}")
 
 
 def get_use_django_q_for_emails():
