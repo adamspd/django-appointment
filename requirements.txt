@@ -3,7 +3,7 @@ Pillow==10.4.0
 phonenumbers==8.13.44
 django-phonenumber-field==8.0.0
 babel==2.16.0
-setuptools==74.1.1
+setuptools==74.1.2
 requests~=2.32.3
 python-dotenv==1.0.1
 colorama~=0.4.6
