@@ -3,7 +3,7 @@
 
 import datetime
 from unittest import skip
-from unittest.mock import ANY, MagicMock, PropertyMock, patch
+from unittest.mock import ANY, MagicMock, Mock, PropertyMock, patch
 
 from django.apps import apps
 from django.conf import settings
@@ -251,6 +251,12 @@ def get_mock_reverse(url_name, **kwargs):
     return reverse(url_name, **kwargs)
 
 
+# Mock the django_q module
+mock_django_q = Mock()
+mock_django_q.Schedule = Mock()
+mock_django_q.Schedule.ONCE = 'O'
+
+
 class ScheduleEmailReminderTest(BaseTest):
     def setUp(self):
         super().setUp()
@@ -283,8 +289,8 @@ class ScheduleEmailReminderTest(BaseTest):
                 first_name=self.appointment.client.first_name,
                 reschedule_link="https://test.com/reschedule",
                 appointment_id=self.appointment.id,
-                schedule_type='O',  # Use 'O' instead of Mock(ONCE=1)
-                next_run=ANY  # We can't predict the exact datetime, so we use ANY
+                schedule_type='O',
+                next_run=ANY
         )
 
     @patch('appointment.utils.db_helpers.DJANGO_Q_AVAILABLE', False)
