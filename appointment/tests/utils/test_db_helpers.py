@@ -257,6 +257,7 @@ mock_django_q.Schedule = Mock()
 mock_django_q.Schedule.ONCE = 'O'
 
 
+@patch.dict('sys.modules', {'django_q': mock_django_q})
 class ScheduleEmailReminderTest(BaseTest):
     def setUp(self):
         super().setUp()
