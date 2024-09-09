@@ -314,6 +314,7 @@ def appointment_client_information(request, appointment_request_id, id_request):
 
     if request.method == 'POST':
         appointment_form = AppointmentForm(request.POST)
+
         client_data_form = ClientDataForm(request.POST)
 
         if appointment_form.is_valid() and client_data_form.is_valid():
