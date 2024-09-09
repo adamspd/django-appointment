@@ -2,7 +2,7 @@ import datetime
 from unittest.mock import patch
 
 from django.core.cache import cache
-from django.test import override_settings
+from django.test import TransactionTestCase, override_settings
 
 from appointment.models import StaffMember
 from appointment.tests.base.base_test import BaseTest
@@ -10,7 +10,7 @@ from appointment.utils.db_helpers import Config, WorkingHours, get_staff_member_
     get_staff_member_end_time, get_staff_member_slot_duration, get_staff_member_start_time
 
 
-class BaseStaffMemberTimeTestSetup(BaseTest):
+class BaseStaffMemberTimeTestSetup(BaseTest, TransactionTestCase):
     """Base setup class for staff member time function tests."""
 
     @classmethod
@@ -23,6 +23,9 @@ class BaseStaffMemberTimeTestSetup(BaseTest):
 
     def setUp(self):
         super().setUp()
+        cache.clear()
+        Config.objects.all().delete()
+        WorkingHours.objects.all().delete()
 
         # Set staff member-specific settings
         self.staff_member1.slot_duration = 15
@@ -43,34 +46,38 @@ class BaseStaffMemberTimeTestSetup(BaseTest):
     def tearDown(self):
         super().tearDown()
         StaffMember.objects.all().delete()
-        if Config.objects.exists():
-            Config.objects.all().delete()
+        Config.objects.all().delete()
         WorkingHours.objects.all().delete()
         cache.clear()
 
 
-@patch('appointment.utils.db_helpers.APPOINTMENT_BUFFER_TIME', 59)
 class TestGetStaffMemberBufferTime(BaseStaffMemberTimeTestSetup):
     """Test suite for get_staff_member_buffer_time function."""
 
+    @patch('appointment.utils.db_helpers.APPOINTMENT_BUFFER_TIME', 59)
     def test_staff_member_buffer_time_with_global_setting(self):
         """Test buffer time when staff member-specific setting is None."""
         self.staff_member1.appointment_buffer_time = None
         self.staff_member1.save()
-        buffer_time = get_staff_member_buffer_time(self.staff_member1, datetime.date(2023, 10, 9))
+
+        with patch('appointment.utils.db_helpers.get_config', return_value=None):
+            buffer_time = get_staff_member_buffer_time(self.staff_member1, datetime.date(2023, 10, 9))
+
         self.assertEqual(buffer_time, 59)  # Global setting
 
+    @patch('appointment.utils.db_helpers.APPOINTMENT_BUFFER_TIME', 59)
     def test_staff_member_buffer_time_with_staff_member_setting(self):
         """Test buffer time using staff member-specific setting."""
         buffer_time = get_staff_member_buffer_time(self.staff_member1, datetime.date(2023, 10, 9))
         self.assertEqual(buffer_time, 45)  # Staff member specific setting
 
+    @patch('appointment.utils.db_helpers.APPOINTMENT_BUFFER_TIME', 59)
     def test_staff_member_buffer_time_with_working_hours_conflict(self):
         """Test buffer time when it conflicts with WorkingHours."""
-        self.staff_member1.appointment_buffer_time = 120  # Set a buffer time greater than WorkingHours start time
+        self.staff_member1.appointment_buffer_time = 120
         self.staff_member1.save()
         buffer_time = get_staff_member_buffer_time(self.staff_member1, datetime.date(2023, 10, 9))
-        self.assertEqual(buffer_time, 120)  # Should still use staff member-specific setting even if it causes conflict
+        self.assertEqual(buffer_time, 120)
 
 
 @patch('appointment.utils.db_helpers.APPOINTMENT_SLOT_DURATION', 31)
