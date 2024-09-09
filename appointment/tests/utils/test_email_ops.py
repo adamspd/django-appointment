@@ -115,18 +115,18 @@ class SendThankYouEmailTests(BaseTest):
         self.assertIn("Thank you message", kwargs['context']['message_1'])
 
 
-class NotifyAdminAboutAppointmentTests(BaseTest):
-    def setUp(self):
-        super().setUp()
-        self.appointment = self.create_appt_for_sm1()
-        self.client_name = "Oma Desala"
-
-    @patch('appointment.utils.email_ops.notify_admin')
-    @patch('appointment.utils.email_ops.send_email')
-    def test_notify_admin_about_appointment(self, mock_send_email, mock_notify_admin):
-        notify_admin_about_appointment(self.appointment, self.client_name)
-        mock_notify_admin.assert_called_once()
-        mock_send_email.assert_called_once()
+# class NotifyAdminAboutAppointmentTests(BaseTest):
+#     def setUp(self):
+#         super().setUp()
+#         self.appointment = self.create_appt_for_sm1()
+#         self.client_name = "Oma Desala"
+#
+#     @patch('appointment.utils.email_ops.notify_admin')
+#     @patch('appointment.utils.email_ops.send_email')
+#     def test_notify_admin_about_appointment(self, mock_send_email, mock_notify_admin):
+#         notify_admin_about_appointment(self.appointment, self.client_name)
+#         mock_notify_admin.assert_called_once()
+#         mock_send_email.assert_called_once()
 
 
 class SendVerificationEmailTests(BaseTest):

@@ -369,7 +369,8 @@ class UpdateAppointmentReminderTest(BaseTest, TestCase):
 
         # Check that the logger.info was called with the expected message
         mock_logger.info.assert_called_once_with(
-                f"Reminder for appointment {self.appointment.id} is not scheduled per user's preference or past datetime."
+                f"Reminder for appointment {self.appointment.id} "
+                f"is not scheduled per user's preference or past datetime."
         )
 
 
