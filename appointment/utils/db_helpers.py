@@ -161,7 +161,7 @@ def schedule_email_reminder(appointment, request, appointment_datetime=None):
              first_name=appointment.client.first_name,
              reschedule_link=reschedule_link,
              appointment_id=appointment.id,
-             schedule_type=Schedule.ONCE,  # Use Schedule.ONCE for a one-time task
+             schedule_type=Schedule.ONCE,
              next_run=reminder_datetime)
 
 
