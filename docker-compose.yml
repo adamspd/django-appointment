@@ -1,9 +1,11 @@
 services:
-  web:
+  web: &web
     build:
       context: .
+      dockerfile: Dockerfile
       args:
-        - USE_DJANGO_Q=${USE_DJANGO_Q:-False}
+        USE_DJANGO_Q: "True"
+    image: django_appointment_web_local
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/app
@@ -15,16 +17,25 @@ services:
   qcluster:
     build:
       context: .
+      dockerfile: Dockerfile
       args:
-        - USE_DJANGO_Q=${USE_DJANGO_Q:-False}
+        USE_DJANGO_Q: "True"
+    image: django_appointment_qcluster_local
     command: python manage.py qcluster
+    depends_on:
+      - web
     volumes:
       - .:/app
     env_file:
       - .env
-    depends_on:
-      - web
-    environment:
-      - USE_DJANGO_Q=${USE_DJANGO_Q:-False}
-    deploy:
-      replicas: ${USE_DJANGO_Q:-0}
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+volumes:
+  redis-data:
+    driver: local
