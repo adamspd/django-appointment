@@ -7,4 +7,4 @@ setuptools==75.2.0
 requests~=2.32.3
 python-dotenv==1.0.1
 colorama~=0.4.6
-django-q2==1.7.3
+django-q2==1.7.4
