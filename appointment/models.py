@@ -907,4 +907,6 @@ class WorkingHours(models.Model):
         return self.staff_member.user.id == user_id
 
     class Meta:
+        verbose_name = "Working Hour"
+        verbose_name_plural = "Working Hours"
         unique_together = ['staff_member', 'day_of_week']
