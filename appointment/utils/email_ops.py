@@ -17,7 +17,7 @@ from django.utils.translation import gettext as _
 from appointment import messages_ as email_messages
 from appointment.email_sender import notify_admin, send_email
 from appointment.logger_config import get_logger
-from appointment.models import AppointmentRequest, EmailVerificationCode, PasswordResetToken
+from appointment.models import AppointmentRequest, EmailVerificationCode, PasswordResetToken, Appointment
 from appointment.settings import APPOINTMENT_PAYMENT_URL
 from appointment.utils.date_time import convert_24_hour_time_to_12_hour_time
 from appointment.utils.db_helpers import get_absolute_url_, get_website_name
@@ -47,7 +47,7 @@ def get_thank_you_message(ar: AppointmentRequest) -> str:
 
 
 def send_thank_you_email(ar: AppointmentRequest, user, request, email: str, appointment_details=None,
-                         account_details=None, ics_file=None):
+                         account_details=None):
     """Send a thank-you email to the client for booking an appointment.
 
     :param ar: The appointment request associated with the booking.
@@ -55,23 +55,30 @@ def send_thank_you_email(ar: AppointmentRequest, user, request, email: str, appo
     :param email: The email address of the client.
     :param appointment_details: Additional details about the appointment (default None).
     :param account_details: Additional details about the account (default None).
-    :param ics_file: The ICS file to attach to the email (default None).
     :param request: The request object.
     :return: None
     """
     # Month and year like "J A N 2 0 2 1"
     month_year = ar.date.strftime("%b %Y").upper()
     day = ar.date.strftime("%d")
-    token = PasswordResetToken.create_token(user=user, expiration_minutes=2880)  # 2 days expiration
-    ui_db64 = urlsafe_base64_encode(force_bytes(user.pk))
-    relative_set_passwd_link = reverse('appointment:set_passwd', args=[ui_db64, token.token])
-    set_passwd_link = get_absolute_url_(relative_set_passwd_link, request=request)
+
+    # if first time user, account details won't be none, thus creating a password reset link for the user
+    set_passwd_link = None
+    if account_details:
+        token = PasswordResetToken.create_token(user=user, expiration_minutes=2880)  # 2 days expiration
+        ui_db64 = urlsafe_base64_encode(force_bytes(user.pk))
+        relative_set_passwd_link = reverse('appointment:set_passwd', args=[ui_db64, token.token])
+        set_passwd_link = get_absolute_url_(relative_set_passwd_link, request=request)
 
     relative_reschedule_url = reverse('appointment:prepare_reschedule_appointment', args=[ar.get_id_request()])
     reschedule_link = get_absolute_url_(relative_reschedule_url, request)
 
     message = _("To enhance your experience, we have created a personalized account for you. It will allow "
                 "you to manage your appointments, view service details, and make any necessary adjustments with ease.")
+
+    # let's get the ics file
+    appt = Appointment.objects.get(appointment_request=ar)
+    ics_file = generate_ics_file(appt)
 
     email_context = {
         'first_name': user.first_name,
@@ -267,10 +274,18 @@ def notify_admin_about_reschedule(reschedule_history, appointment_request, clien
         'company': get_website_name(),
     }
 
+    # let's get the new ics file
+    appt = Appointment.objects.get(appointment_request=appointment_request)
+    ics_file = generate_ics_file(appt)
+
     subject = _("Reschedule Request for ") + client_name
     staff_member = appointment_request.staff_member
-    # Assuming notify_admin and send_email are previously defined functions
-    notify_admin(subject=subject, template_url='email_sender/reschedule_email.html', context=email_context)
+
+    # Notifying admin
+    notify_admin(subject=subject, template_url='email_sender/reschedule_email.html', context=email_context,
+                 attachments=[('appointment.ics', ics_file, 'text/calendar')])
+
     if staff_member.user.email not in settings.ADMINS:
-        send_email(recipient_list=[staff_member.user.email], subject=subject,
-                   template_url='email_sender/reschedule_email.html', context=email_context)
+        send_email(recipient_list=[staff_member.user.email], subject=subject, context=email_context,
+                   template_url='email_sender/reschedule_email.html',
+                   attachments=[('appointment.ics', ics_file, 'text/calendar')])
