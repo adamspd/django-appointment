@@ -389,16 +389,6 @@ def enter_verification_code(request, appointment_request_id, id_request):
             appointment_data = get_appointment_data_from_session(request)
             response = create_appointment(request=request, appointment_request_obj=appointment_request_object,
                                           client_data={'email': email}, appointment_data=appointment_data)
-            appointment = Appointment.objects.get(appointment_request=appointment_request_object)
-            appointment_details = {
-                'Service': appointment.get_service_name(),
-                'Appointment Date': appointment.get_appointment_date(),
-                'Appointment Time': appointment.appointment_request.start_time,
-                'Duration': appointment.get_service_duration()
-            }
-            ics_file = generate_ics_file(appointment)
-            send_thank_you_email(ar=appointment_request_object, user=user, email=email,
-                                 appointment_details=appointment_details, request=request, ics_file=ics_file)
             return response
         else:
             messages.error(request, _("Invalid verification code."))
@@ -435,9 +425,14 @@ def default_thank_you(request, appointment_id):
     }
     if username_in_user_model():
         account_details[_('Username')] = appointment.client.username
-    ics_file = generate_ics_file(appointment)
+
+    # If the client already has an account, don't show the 'create password' part in the email
+    if appointment.client.has_usable_password():
+        account_details = None
+
+    # Send the thank-you email (also used for rescheduling and after verification code sent)
     send_thank_you_email(ar=ar, user=appointment.client, email=email, appointment_details=appointment_details,
-                         account_details=account_details, request=request, ics_file=ics_file)
+                         account_details=account_details, request=request)
     extra_context = {
         'appointment': appointment,
     }
