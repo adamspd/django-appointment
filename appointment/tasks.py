@@ -5,6 +5,7 @@
 Author: Adams Pierre David
 Since: 3.1.0
 """
+from django.core.mail import EmailMessage
 from django.utils.translation import gettext as _
 
 from appointment.email_sender import notify_admin, send_email
@@ -42,18 +43,23 @@ def send_email_reminder(to_email, first_name, reschedule_link, appointment_id):
     )
 
 
-def send_email_task(recipient_list, subject, message, html_message, from_email):
-    """
-   Task function to send an email asynchronously using Django's send_mail function.
-   This function tries to send an email and logs an error if it fails.
-   """
+def send_email_task(recipient_list, subject, message, html_message, from_email, attachments=None):
     try:
-        from django.core.mail import send_mail
-        logger.info(f"Sending email to {recipient_list} with subject: {subject}")
-        send_mail(
-                subject=subject, message=message, html_message=html_message, from_email=from_email,
-                recipient_list=recipient_list, fail_silently=False,
+        email = EmailMessage(
+                subject=subject,
+                body=message if not html_message else html_message,
+                from_email=from_email,
+                to=recipient_list
         )
+
+        if html_message:
+            email.content_subtype = "html"
+
+        if attachments:
+            for attachment in attachments:
+                email.attach(*attachment)
+
+        email.send(fail_silently=False)
     except Exception as e:
         logger.error(f"Error sending email from task: {e}")
 
