@@ -8,7 +8,6 @@ Since: 1.0.0
 
 from datetime import date, timedelta
 
-from appointment.settings import check_q_cluster
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.forms import SetPasswordForm
@@ -22,13 +21,14 @@ from django.utils.http import urlsafe_base64_decode
 from django.utils.timezone import get_current_timezone_name
 from django.utils.translation import gettext as _
 
-from appointment.forms import AppointmentForm, AppointmentRequestForm, SlotForm, ClientDataForm
+from appointment.forms import AppointmentForm, AppointmentRequestForm, ClientDataForm, SlotForm
 from appointment.logger_config import get_logger
 from appointment.models import (
     Appointment, AppointmentRequest, AppointmentRescheduleHistory, Config, DayOff, EmailVerificationCode,
     PasswordResetToken, Service,
     StaffMember
 )
+from appointment.settings import check_q_cluster
 from appointment.utils.db_helpers import (
     can_appointment_be_rescheduled, check_day_off_for_staff, create_and_save_appointment, create_new_user,
     create_payment_info_and_get_url, get_non_working_days_for_staff, get_user_by_email, get_user_model,
@@ -47,6 +47,7 @@ from .services import get_appointments_and_slots, get_available_slots_for_staff
 from .settings import (APPOINTMENT_PAYMENT_URL, APPOINTMENT_THANK_YOU_URL)
 from .utils.date_time import convert_str_to_date
 from .utils.error_codes import ErrorCode
+from .utils.ics_utils import generate_ics_file
 from .utils.json_context import get_generic_context_with_extra, json_response
 
 CLIENT_MODEL = get_user_model()
@@ -395,8 +396,9 @@ def enter_verification_code(request, appointment_request_id, id_request):
                 'Appointment Time': appointment.appointment_request.start_time,
                 'Duration': appointment.get_service_duration()
             }
+            ics_file = generate_ics_file(appointment)
             send_thank_you_email(ar=appointment_request_object, user=user, email=email,
-                                 appointment_details=appointment_details, request=request)
+                                 appointment_details=appointment_details, request=request, ics_file=ics_file)
             return response
         else:
             messages.error(request, _("Invalid verification code."))
@@ -433,8 +435,9 @@ def default_thank_you(request, appointment_id):
     }
     if username_in_user_model():
         account_details[_('Username')] = appointment.client.username
+    ics_file = generate_ics_file(appointment)
     send_thank_you_email(ar=ar, user=appointment.client, email=email, appointment_details=appointment_details,
-                         account_details=account_details, request=request)
+                         account_details=account_details, request=request, ics_file=ics_file)
     extra_context = {
         'appointment': appointment,
     }
