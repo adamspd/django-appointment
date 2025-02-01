@@ -50,6 +50,7 @@ and [here](https://github.com/adamspd/django-appointment/tree/main/docs/release_
 6. Email notifications for appointment scheduling and reminders:
    - Instant email notifications to clients upon scheduling an appointment.
    - Automated email reminders sent 24 hours before the appointment (requires Django Q).
+   - ICS file attachment for calendar synchronization.
 7. Integration with Django Q for efficient task scheduling and email sending.
 
 ## Key features introduced in previous versions.
@@ -59,7 +60,7 @@ and [here](https://github.com/adamspd/django-appointment/tree/main/docs/release_
 
 ## Added Features and Bug Fixes in version 3.x.x
 
-See the [release notes](https://github.com/adamspd/django-appointment/releases/tag/v3.3.1).
+See the [release notes](https://github.com/adamspd/django-appointment/releases/tag/v3.8.0).
 For older version,
 see their [release notes](https://github.com/adamspd/django-appointment/tree/main/docs/release_notes).
 
