@@ -5,4 +5,4 @@ babel==2.17.0
 setuptools==77.0.3
 requests~=2.32.3
 django-q2==1.7.6
-python-dotenv==1.0.1
+python-dotenv==1.1.0
