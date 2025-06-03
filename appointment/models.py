@@ -21,6 +21,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.modelfields import PhoneNumberField
+from recurrence.fields import RecurrenceField
 
 from appointment.utils.date_time import convert_minutes_in_human_readable_format, get_timestamp, get_weekday_num, \
     time_difference
@@ -291,6 +292,9 @@ class AppointmentRequest(models.Model):
     payment_type = models.CharField(max_length=4, choices=PAYMENT_TYPES, default='full')
     id_request = models.CharField(max_length=100, blank=True, null=True)
     reschedule_attempts = models.PositiveIntegerField(default=0)
+    is_recurring = models.BooleanField(default=False)
+    recurrence_rule = RecurrenceField(null=True, blank=True)
+    end_recurrence = models.DateTimeField(null=True, blank=True)
 
     # meta data
     created_at = models.DateTimeField(auto_now_add=True)
@@ -441,6 +445,8 @@ class Appointment(models.Model):
     paid = models.BooleanField(default=False)
     amount_to_pay = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     id_request = models.CharField(max_length=100, blank=True, null=True)
+    is_recurring = models.BooleanField(default=False)
+    parent_appointment = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='child_appointments')
 
     # meta datas
     created_at = models.DateTimeField(auto_now_add=True)

@@ -27,7 +27,8 @@ class SlotForm(forms.Form):
 class AppointmentRequestForm(forms.ModelForm):
     class Meta:
         model = AppointmentRequest
-        fields = ('date', 'start_time', 'end_time', 'service', 'staff_member')
+        fields = ('date', 'start_time', 'end_time', 'service', 'staff_member',
+                  'is_recurring', 'recurrence_rule', 'end_recurrence')
 
 
 class ReschedulingForm(forms.ModelForm):

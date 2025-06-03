@@ -108,10 +108,11 @@ def check_day_off_for_staff(staff_member, date) -> bool:
     return DayOff.objects.filter(staff_member=staff_member, start_date__lte=date, end_date__gte=date).exists()
 
 
-def create_and_save_appointment(ar, client_data: dict, appointment_data: dict, request):
+def create_and_save_appointment(ar, client_data: dict, appointment_data: dict, request, parent_appointment_id=None):
     """Create and save a new appointment based on the provided appointment request and client data.
 
     :param ar: The appointment request associated with the new appointment.
+    :param parent_appointment_id: Optional ID of a parent appointment for recurring series.
     :param client_data: The data of the client making the appointment.
     :param appointment_data: Additional data for the appointment, including phone number, address, etc.
     :param request: The request object.
@@ -119,7 +120,10 @@ def create_and_save_appointment(ar, client_data: dict, appointment_data: dict, r
     """
     user = get_user_by_email(client_data['email'])
     appointment = Appointment.objects.create(
-            client=user, appointment_request=ar,
+            client=user,
+            appointment_request=ar,
+            is_recurring=ar.is_recurring,  # Set based on the AppointmentRequest
+            parent_appointment_id=parent_appointment_id,  # Set if provided
             **appointment_data
     )
     appointment.save()

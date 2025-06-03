@@ -1257,3 +1257,217 @@ class CreateAppointmentTests(BaseTest):
     #
     #     # Verify that the redirect_to_payment_or_thank_you_page was called with the created appointment
     #     mock_redirect.assert_called_once_with(mock_appointment)
+
+
+class RecurringAppointmentCreationTests(BaseTest):
+    def setUp(self):
+        super().setUp()
+        # self.service1, self.staff_member1 are provided by BaseTest
+        # Create a client user for these tests if not already provided by BaseTest in a generic way
+        self.client_user = self.users.get('normal_user1') # Assuming BaseTest creates this
+        if not self.client_user:
+             self.client_user = create_user_with_username({
+                'username': 'testrecurclient',
+                'email': 'testrecurclient@example.com',
+                'first_name': 'Test',
+                'last_name': 'ClientRecur'
+            })
+        self.client.force_login(self.user_admin) # Admin/staff to bypass certain checks if any, or use client_user if flow needs it
+
+    def test_create_simple_daily_recurring_appointment(self):
+        start_date = date.today() + timedelta(days=7)
+        start_time_obj = time(10, 0)
+
+        # Calculate end_time based on service duration
+        service_duration = self.service1.duration
+        initial_datetime = timezone.make_aware(datetime.combine(start_date, start_time_obj))
+        end_time_obj = (initial_datetime + service_duration).time()
+
+        form_data = {
+            'service': self.service1.id,
+            'staff_member': self.staff_member1.id,
+            'date': start_date.isoformat(),
+            'start_time': start_time_obj.strftime('%H:%M:%S'),
+            'end_time': end_time_obj.strftime('%H:%M:%S'),
+            'is_recurring': 'on', # HTML checkbox sends 'on'
+            'recurrence_rule': 'RRULE:FREQ=DAILY;COUNT=3',
+            # 'end_recurrence': None, # Not needed due to COUNT
+        }
+
+        response = self.client.post(reverse('appointment:appointment_request_submit'), form_data)
+        self.assertEqual(response.status_code, 302, "Form submission should redirect.")
+
+        recurring_ar_ids = self.client.session.get('recurring_appointment_request_ids')
+        self.assertIsNotNone(recurring_ar_ids, "Session should contain recurring_appointment_request_ids.")
+        self.assertEqual(len(recurring_ar_ids), 3, "Should be 3 recurring appointment request IDs.")
+
+        appointment_requests = AppointmentRequest.objects.filter(id__in=recurring_ar_ids).order_by('date', 'start_time')
+        self.assertEqual(appointment_requests.count(), 3)
+
+        for i, ar in enumerate(appointment_requests):
+            self.assertTrue(ar.is_recurring)
+            self.assertEqual(ar.date, start_date + timedelta(days=i))
+            self.assertEqual(ar.start_time, start_time_obj)
+            self.assertEqual(ar.end_time, end_time_obj)
+            self.assertEqual(ar.service, self.service1)
+            self.assertEqual(ar.staff_member, self.staff_member1)
+
+        # Follow through to appointment_client_information
+        first_ar = appointment_requests.first()
+        client_info_url = reverse('appointment:appointment_client_information',
+                                  kwargs={'appointment_request_id': first_ar.id,
+                                          'id_request': first_ar.id_request})
+
+        client_form_data = {
+            'name': f"{self.client_user.first_name} {self.client_user.last_name}", # Ensure 'name' is passed if ClientDataForm expects it
+            'email': self.client_user.email,
+            'phone': '+1234567890', # Example phone
+            'address': '123 Test St',   # Example address
+            'want_reminder': 'on',
+            'payment_type': 'full', # Assuming this is a valid choice
+        }
+
+        # Log in the client user for this part of the flow
+        self.client.force_login(self.client_user)
+        response_client_info = self.client.post(client_info_url, client_form_data)
+
+        self.assertEqual(response_client_info.status_code, 302, "Client info submission should redirect.")
+        # Depending on APPOINTMENT_PAYMENT_URL, this could be payment or thank you page
+        # For now, just check redirect. A more specific check would look at the target URL.
+
+        final_appointments = Appointment.objects.filter(appointment_request__id__in=recurring_ar_ids).order_by(
+            'appointment_request__date', 'appointment_request__start_time'
+        )
+        self.assertEqual(final_appointments.count(), 3)
+
+        parent_appointment = None
+        for i, appt in enumerate(final_appointments):
+            self.assertTrue(appt.is_recurring)
+            self.assertEqual(appt.client, self.client_user)
+            if i == 0:
+                self.assertIsNone(appt.parent_appointment)
+                parent_appointment = appt
+            else:
+                self.assertIsNotNone(appt.parent_appointment)
+                self.assertEqual(appt.parent_appointment, parent_appointment)
+
+            # Check if date and time from AR is correctly in Appointment
+            ar = appt.appointment_request
+            self.assertEqual(datetime.combine(ar.date, ar.start_time), appt.get_start_time().replace(tzinfo=None))
+
+
+    def test_create_non_recurring_appointment_still_works(self):
+        start_date = date.today() + timedelta(days=10)
+        start_time_obj = time(11, 0)
+        service_duration = self.service1.duration
+        initial_datetime = timezone.make_aware(datetime.combine(start_date, start_time_obj))
+        end_time_obj = (initial_datetime + service_duration).time()
+
+        form_data = {
+            'service': self.service1.id,
+            'staff_member': self.staff_member1.id,
+            'date': start_date.isoformat(),
+            'start_time': start_time_obj.strftime('%H:%M:%S'),
+            'end_time': end_time_obj.strftime('%H:%M:%S'),
+            # is_recurring is not 'on'
+        }
+
+        response = self.client.post(reverse('appointment:appointment_request_submit'), form_data)
+        self.assertEqual(response.status_code, 302)
+
+        # Check session - should not have recurring_appointment_request_ids or it should be empty/cleared
+        self.assertIsNone(self.client.session.get('recurring_appointment_request_ids'))
+
+        # Get the created AppointmentRequest (there should be only one)
+        # We need its ID from the redirect URL or by querying
+        # Assuming redirect URL is like /.../client-info/<ar_id>/<ar_id_request>/
+        redirect_url_parts = response.url.split('/')
+        ar_id_from_redirect = int(redirect_url_parts[-3]) # Heuristic, adjust if URL structure is different
+
+        created_ar = AppointmentRequest.objects.get(pk=ar_id_from_redirect)
+        self.assertFalse(created_ar.is_recurring)
+
+        # Follow through to appointment_client_information
+        client_info_url = reverse('appointment:appointment_client_information',
+                                  kwargs={'appointment_request_id': created_ar.id,
+                                          'id_request': created_ar.id_request})
+
+        client_form_data = {
+            'name': f"{self.client_user.first_name} {self.client_user.last_name}",
+            'email': self.client_user.email,
+            'phone': '+1987654321',
+            'address': '456 NonRecur St',
+            'want_reminder': 'off',
+            'payment_type': 'down',
+        }
+        self.client.force_login(self.client_user)
+        response_client_info = self.client.post(client_info_url, client_form_data)
+        self.assertEqual(response_client_info.status_code, 302)
+
+        final_appointments = Appointment.objects.filter(appointment_request=created_ar)
+        self.assertEqual(final_appointments.count(), 1)
+        single_appointment = final_appointments.first()
+        self.assertFalse(single_appointment.is_recurring)
+        self.assertIsNone(single_appointment.parent_appointment)
+        self.assertEqual(single_appointment.client, self.client_user)
+
+    def test_create_recurring_weekly_with_end_date_field(self):
+        # Find a Monday for start_date
+        today = date.today()
+        start_date = today + timedelta(days=(0 - today.weekday() + 7) % 7) # Next Monday
+        if start_date <= today: # If today is Monday, take next Monday
+            start_date += timedelta(days=7)
+
+        start_time_obj = time(14, 0)
+        service_duration = self.service1.duration
+        initial_datetime = timezone.make_aware(datetime.combine(start_date, start_time_obj))
+        end_time_obj = (initial_datetime + service_duration).time()
+
+        # End recurrence 3 weeks later (should give 3 occurrences: start_date, start_date+1w, start_date+2w)
+        end_recurrence_dt = initial_datetime + timedelta(weeks=2, hours=1) # Ensure it includes the start of the last desired occurrence
+
+        form_data = {
+            'service': self.service1.id,
+            'staff_member': self.staff_member1.id,
+            'date': start_date.isoformat(),
+            'start_time': start_time_obj.strftime('%H:%M:%S'),
+            'end_time': end_time_obj.strftime('%H:%M:%S'),
+            'is_recurring': 'on',
+            'recurrence_rule': 'RRULE:FREQ=WEEKLY;BYDAY=MO', # Weekly on Monday
+            'end_recurrence': end_recurrence_dt.strftime('%Y-%m-%dT%H:%M'), # Format for datetime-local
+        }
+
+        response = self.client.post(reverse('appointment:appointment_request_submit'), form_data)
+        self.assertEqual(response.status_code, 302, f"Form submission failed with errors: {response.context.get('form').errors if response.context else 'No form in context'}")
+
+        recurring_ar_ids = self.client.session.get('recurring_appointment_request_ids')
+        self.assertIsNotNone(recurring_ar_ids)
+        # Expect 3 occurrences: current week, next week, week after that.
+        self.assertEqual(len(recurring_ar_ids), 3)
+
+        appointment_requests = AppointmentRequest.objects.filter(id__in=recurring_ar_ids).order_by('date')
+        self.assertEqual(appointment_requests.count(), 3)
+
+        for i, ar in enumerate(appointment_requests):
+            self.assertTrue(ar.is_recurring)
+            self.assertEqual(ar.date, start_date + timedelta(weeks=i)) # Check dates are weekly
+            self.assertEqual(ar.start_time.strftime('%H:%M'), start_time_obj.strftime('%H:%M')) # Compare as string to avoid microsecond issues
+
+        # Follow through (simplified, focusing on count)
+        first_ar = appointment_requests.first()
+        client_info_url = reverse('appointment:appointment_client_information',
+                                  kwargs={'appointment_request_id': first_ar.id, 'id_request': first_ar.id_request})
+        client_form_data = {
+            'name': f"{self.client_user.first_name} {self.client_user.last_name}",
+            'email': self.client_user.email,
+            'phone': '+1222333444',
+            'address': '789 Weekly Rd',
+            'payment_type': 'full',
+        }
+        self.client.force_login(self.client_user)
+        response_client_info = self.client.post(client_info_url, client_form_data)
+        self.assertEqual(response_client_info.status_code, 302)
+
+        final_appointments = Appointment.objects.filter(appointment_request__id__in=recurring_ar_ids)
+        self.assertEqual(final_appointments.count(), 3)
+        # Further checks on parent_appointment can be added as in the daily test.

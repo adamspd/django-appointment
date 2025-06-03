@@ -59,6 +59,28 @@
                         <form method="post" action="{% url 'appointment:appointment_request_submit' %}"
                               class="appointment-form">
                             {% csrf_token %}
+                            <div class="form-group"> <!-- Using .form-group for styling consistency if bootstrap-like styling is used -->
+                                <label for="id_is_recurring" class="form-check-label">{% trans "Recurring Appointment?" %}</label>
+                                <input type="checkbox" name="is_recurring" id="id_is_recurring" class="form-check-input">
+                            </div>
+
+                            <div id="recurrence_rule_fields" style="display:none;">
+                                <div class="form-group">
+                                    <label for="id_recurrence_rule">{% trans "Recurrence Rule (RRULE)" %}</label>
+                                    <textarea name="recurrence_rule" id="id_recurrence_rule" class="form-control" rows="3" placeholder="RRULE:FREQ=WEEKLY;BYDAY=MO;INTERVAL=1;UNTIL=YYYYMMDDTHHMMSSZ"></textarea>
+                                    <small class="form-text text-muted">
+                                        {% trans "Example for weekly on Monday: RRULE:FREQ=WEEKLY;BYDAY=MO" %}<br>
+                                        {% trans "Example for daily until a date: RRULE:FREQ=DAILY;UNTIL=20241231T000000Z" %}<br>
+                                        {% trans "Ensure date/time is in UTC (Z) if UNTIL is used with time." %}
+                                    </small>
+                                </div>
+                                <div class="form-group">
+                                    <label for="id_end_recurrence">{% trans "End Recurrence Datetime" %}</label>
+                                    <input type="datetime-local" name="end_recurrence" id="id_end_recurrence" class="form-control">
+                                    <small class="form-text text-muted">{% trans "Optional. When the recurrence should end. If not set, it may default to 1 year or depend on the RRULE's UNTIL/COUNT part." %}</small>
+                                </div>
+                            </div>
+
                             <div class="staff-members-list">
                                 <label class="djangoAppt_item-name" for="staff_id">{{ label }}</label>
                                 <select name="staff_member" id="staff_id">
@@ -130,4 +152,17 @@
     </script>
     <script src="{% static 'js/appointments.js' %}"></script>
     <script src="{% static 'js/js-utils.js' %}"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const isRecurringCheckbox = document.getElementById('id_is_recurring');
+        const recurrenceFieldsDiv = document.getElementById('recurrence_rule_fields');
+
+        if (isRecurringCheckbox && recurrenceFieldsDiv) {
+            isRecurringCheckbox.addEventListener('change', function() {
+                recurrenceFieldsDiv.style.display = this.checked ? 'block' : 'none';
+            });
+        }
+    });
+    </script>
+    {% if form %}{{ form.media }}{% endif %}
 {% endblock %}

@@ -18,8 +18,9 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
-from django.utils.timezone import get_current_timezone_name
+from django.utils.timezone import get_current_timezone_name, make_aware
 from django.utils.translation import gettext as _
+from datetime import datetime
 
 from appointment.forms import AppointmentForm, AppointmentRequestForm, ClientDataForm, SlotForm
 from appointment.logger_config import get_logger
@@ -38,6 +39,7 @@ from appointment.utils.db_helpers import (
 from appointment.utils.email_ops import notify_admin_about_appointment, notify_admin_about_reschedule, \
     send_reschedule_confirmation_email, \
     send_thank_you_email
+from .utils.recurring_utils import generate_recurring_occurrences
 from appointment.utils.session import get_appointment_data_from_session, handle_existing_email
 from appointment.utils.view_helpers import get_locale
 from .decorators import require_ajax
@@ -246,13 +248,90 @@ def appointment_request_submit(request):
                 messages.error(request, _("Selected staff member does not exist."))
             else:
                 logger.info(
-                        f"date_f {form.cleaned_data['date']} start_time {form.cleaned_data['start_time']} end_time "
-                        f"{form.cleaned_data['end_time']} service {form.cleaned_data['service']} staff {staff_member}")
-                ar = form.save()
-                request.session[f'appointment_completed_{ar.id_request}'] = False
-                # Redirect the user to the account creation page
-                return redirect('appointment:appointment_client_information', appointment_request_id=ar.id,
-                                id_request=ar.id_request)
+                    f"date_f {form.cleaned_data['date']} start_time {form.cleaned_data['start_time']} end_time "
+                    f"{form.cleaned_data['end_time']} service {form.cleaned_data['service']} staff {staff_member}")
+
+                is_recurring = form.cleaned_data.get('is_recurring')
+                recurrence_rule = form.cleaned_data.get('recurrence_rule')
+                end_recurrence_dt_naive = form.cleaned_data.get('end_recurrence')
+
+                end_recurrence_dt = None
+                if end_recurrence_dt_naive:
+                    if isinstance(end_recurrence_dt_naive, datetime): # if already datetime
+                        end_recurrence_dt = timezone.make_aware(end_recurrence_dt_naive) if timezone.is_naive(end_recurrence_dt_naive) else end_recurrence_dt_naive
+                    elif isinstance(end_recurrence_dt_naive, date): # if it's a date object, combine with midnight
+                        end_recurrence_dt = timezone.make_aware(datetime.combine(end_recurrence_dt_naive, datetime.min.time()))
+
+
+                original_date_obj = form.cleaned_data['date']
+                original_start_time_obj = form.cleaned_data['start_time']
+                service_obj = form.cleaned_data['service']
+                staff_member_obj = form.cleaned_data['staff_member']
+                ar_to_redirect = None
+
+                if is_recurring and recurrence_rule:
+                    initial_start_datetime_naive = datetime.combine(original_date_obj, original_start_time_obj)
+                    initial_start_datetime = timezone.make_aware(initial_start_datetime_naive) if timezone.is_naive(initial_start_datetime_naive) else initial_start_datetime_naive
+                    service_duration = service_obj.duration
+
+                    occurrences_data = generate_recurring_occurrences(
+                        initial_start_datetime,
+                        recurrence_rule,
+                        end_recurrence_dt,
+                        service_duration
+                    )
+
+                    created_request_ids = []
+                    first_ar = None
+
+                    if not occurrences_data:
+                        messages.error(request, _("Could not generate any occurrences for the recurring appointment based on the provided rule and end date."))
+                        context = get_generic_context_with_extra(request, {'form': form}, admin=False) # Ensure form is passed to context
+                        return render(request, 'appointment/appointments.html', context=context)
+
+                    for occurrence in occurrences_data:
+                        try:
+                            current_ar = AppointmentRequest(
+                                date=occurrence['date'],
+                                start_time=occurrence['start_time'],
+                                end_time=occurrence['end_time'],
+                                service=service_obj,
+                                staff_member=staff_member_obj,
+                                is_recurring=True
+                            )
+                            current_ar.full_clean()  # Validate the instance
+                            current_ar.save()
+                            created_request_ids.append(current_ar.id)
+                            if first_ar is None:
+                                first_ar = current_ar
+                        except Exception as e: # Catch ValidationError and other potential errors
+                            logger.error(f"Error creating recurring AppointmentRequest: {e}")
+                            messages.error(request, _("Error creating one or more recurring appointments. Please check staff availability and try again."))
+                            context = get_generic_context_with_extra(request, {'form': form}, admin=False)
+                            return render(request, 'appointment/appointments.html', context=context)
+
+                    if first_ar:
+                        request.session['recurring_appointment_request_ids'] = created_request_ids
+                        ar_to_redirect = first_ar
+                    else:
+                        # This case should ideally be caught by 'if not occurrences_data' earlier
+                        messages.error(request, _("No occurrences were generated for the recurring appointment."))
+                        context = get_generic_context_with_extra(request, {'form': form}, admin=False)
+                        return render(request, 'appointment/appointments.html', context=context)
+                else:
+                    ar_to_redirect = form.save()
+                    if 'recurring_appointment_request_ids' in request.session:
+                        del request.session['recurring_appointment_request_ids']
+
+                if ar_to_redirect:
+                    request.session[f'appointment_completed_{ar_to_redirect.id_request}'] = False
+                    return redirect('appointment:appointment_client_information',
+                                    appointment_request_id=ar_to_redirect.id,
+                                    id_request=ar_to_redirect.id_request)
+                else:
+                    # Should not happen if logic is correct, but as a fallback
+                    messages.error(request, _('Could not proceed with appointment submission.'))
+
         else:
             # Handle the case if the form is not valid
             messages.error(request, _('There was an error in your submission. Please check the form and try again.'))
@@ -293,6 +372,8 @@ def create_appointment(request, appointment_request_obj, client_data, appointmen
     :param appointment_data: The appointment data.
     :return: The redirect response.
     """
+    # This function is now more of a wrapper if used directly.
+    # The main logic will be within appointment_client_information for individual and recurring.
     appointment = create_and_save_appointment(appointment_request_obj, client_data, appointment_data, request)
     notify_admin_about_appointment(appointment, appointment.client.first_name)
     return redirect_to_payment_or_thank_you_page(appointment)
@@ -320,25 +401,101 @@ def appointment_client_information(request, appointment_request_id, id_request):
 
         if appointment_form.is_valid() and client_data_form.is_valid():
             appointment_data = appointment_form.cleaned_data
+            appointment_data = appointment_form.cleaned_data
             client_data = client_data_form.cleaned_data
             payment_type = request.POST.get('payment_type')
-            ar.payment_type = payment_type
-            ar.save()
+            # Original AR from the initial request (might be the first of a series or a single AR)
+            original_ar = get_object_or_404(AppointmentRequest, pk=appointment_request_id)
 
-            # Check if email is already in the database
+            # User handling (creation or retrieval) should occur ONCE.
+            user_object_for_series = None
             is_email_in_db = CLIENT_MODEL.objects.filter(email__exact=client_data['email']).exists()
             if is_email_in_db:
-                return handle_existing_email(request, client_data, appointment_data, appointment_request_id, id_request)
+                # This function might need adjustment if it directly creates an appointment
+                # For now, let's assume it can retrieve/verify user and we proceed.
+                # It might be better to refactor handle_existing_email to just return the user
+                # or handle the redirection itself if verification is needed.
+                # For simplicity, if email exists, we'll try to get the user.
+                # A more robust solution would integrate user verification flow here.
+                user_object_for_series = get_user_by_email(client_data['email'])
+                if not request.user.is_authenticated or request.user.email != client_data['email']:
+                    # If user is in DB but not logged in as that user, trigger verification/login
+                    return handle_existing_email(request, client_data, appointment_data, appointment_request_id, id_request)
+                # If user is already logged in and email matches, proceed.
+            else:
+                logger.info(f"Creating a new user: {client_data}")
+                user_object_for_series = create_new_user(client_data) # Ensure client_data has name for create_new_user
+                login(request, user_object_for_series) # Log in the new user
+                messages.success(request, _("An account was created for you."))
 
-            logger.info(f"Creating a new user: {client_data}")
-            user = create_new_user(client_data)
-            messages.success(request, _("An account was created for you."))
+            if not user_object_for_series: # Fallback if user somehow not set
+                messages.error(request, _("Could not identify or create user account."))
+                return redirect('appointment:appointment_request_submit')
 
-            # Create a new appointment
-            response = create_appointment(request, ar, client_data, appointment_data)
-            request.session.setdefault(f'appointment_submitted_{id_request}', True)
-            return response
-    else:
+
+            recurring_ar_ids = request.session.get('recurring_appointment_request_ids')
+            final_redirect_response = None
+            parent_appointment_for_series = None
+
+            if recurring_ar_ids:
+                processed_appointments_count = 0
+                for ar_id in recurring_ar_ids:
+                    try:
+                        current_main_ar_obj = get_object_or_404(AppointmentRequest, pk=ar_id)
+                        current_main_ar_obj.payment_type = payment_type # Apply payment type to each
+                        current_main_ar_obj.save()
+
+                        # Ensure client_data for create_and_save_appointment uses the user_object_for_series
+                        client_data_for_creation = {'email': user_object_for_series.email}
+
+                        created_appointment_instance = create_and_save_appointment(
+                            current_main_ar_obj,
+                            client_data_for_creation, # Use consistent user data
+                            appointment_data,
+                            request,
+                            parent_appointment_id=parent_appointment_for_series.id if parent_appointment_for_series else None
+                        )
+
+                        if parent_appointment_for_series is None:
+                            parent_appointment_for_series = created_appointment_instance
+
+                        if final_redirect_response is None: # First appointment in series sets the redirect
+                            notify_admin_about_appointment(created_appointment_instance, user_object_for_series.first_name)
+                            final_redirect_response = redirect_to_payment_or_thank_you_page(created_appointment_instance)
+
+                        processed_appointments_count +=1
+                    except Exception as e:
+                        logger.error(f"Error processing recurring appointment {ar_id}: {e}")
+                        messages.error(request, _(f"An error occurred while finalizing one of your recurring appointments. Processed {processed_appointments_count} appointments."))
+                        # Decide on redirect: maybe to a summary page or back to form
+                        return redirect('appointment:appointment_request_submit') # Or a more specific error page
+
+                # Use id_request of the first appointment for session flag
+                if parent_appointment_for_series:
+                     request.session.setdefault(f'appointment_submitted_{parent_appointment_for_series.appointment_request.id_request}', True)
+
+                if 'recurring_appointment_request_ids' in request.session:
+                    del request.session['recurring_appointment_request_ids']
+
+                if final_redirect_response:
+                    return final_redirect_response
+                else: # Should not happen if recurring_ar_ids had items
+                    messages.error(request, _("Could not finalize recurring appointments."))
+                    return redirect('appointment:appointment_request_submit')
+            else:
+                # Standard non-recurring appointment processing
+                original_ar.payment_type = payment_type
+                original_ar.save()
+
+                client_data_for_creation = {'email': user_object_for_series.email}
+                created_appointment_instance = create_and_save_appointment(
+                    original_ar, client_data_for_creation, appointment_data, request
+                )
+                notify_admin_about_appointment(created_appointment_instance, user_object_for_series.first_name)
+                request.session.setdefault(f'appointment_submitted_{id_request}', True)
+                return redirect_to_payment_or_thank_you_page(created_appointment_instance)
+
+    else: # GET request
         appointment_form = AppointmentForm()
         client_data_form = ClientDataForm()
 
