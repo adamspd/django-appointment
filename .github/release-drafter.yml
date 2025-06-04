@@ -10,11 +10,13 @@ categories:
       - 'fix'
       - 'bugfix'
       - 'bug'
+      - 'hotfix'
     collapse-after: 3
   - title: '🧰 Maintenance'
     labels:
       - 'chore'
       - 'maintenance'
+      - 'dependencies'
     collapse-after: 3
   - title: '🔨 Refactor'
     labels:
@@ -39,11 +41,10 @@ categories:
       - 'security'
       - 'security-fixes'
     collapse-after: 3
-  - title: '✨ Enhancement'
-    collapse-after: 3
+
 change-template: '- $TITLE by @$AUTHOR in (#$NUMBER)'
 change-title-escapes: '\<*_&'
 
 template: |
-  ## What’s Changed
+  ## What's Changed
   $CHANGES

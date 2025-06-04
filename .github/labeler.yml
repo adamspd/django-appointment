@@ -44,6 +44,9 @@ bug:
 fix:
   - head-branch: [ '^fix', 'fix' ]
 
+hotfix:
+  - head-branch: [ '^hotfix', 'hotfix' ]
+
 bugfix:
   - head-branch: [ '^bugfix', 'bugfix' ]
 
