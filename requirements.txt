@@ -7,5 +7,5 @@ setuptools==78.1.0
 requests~=2.32.3
 python-dotenv==1.1.0
 colorama~=0.4.6
-django-q2==1.7.6
+django-q2==1.8.0
 icalendar~=6.1.3
