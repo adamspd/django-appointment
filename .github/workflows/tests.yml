@@ -17,7 +17,7 @@ env:
 
 jobs:
   testing:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     strategy:
       max-parallel: 10
       matrix:
