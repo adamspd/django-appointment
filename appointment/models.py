@@ -10,7 +10,6 @@ import datetime
 import random
 import string
 import uuid
-from decimal import Decimal, InvalidOperation
 
 from babel.numbers import get_currency_symbol
 from django.conf import settings
@@ -21,7 +20,9 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.modelfields import PhoneNumberField
+from recurrence.fields import RecurrenceField
 
+from appointment.logger_config import get_logger
 from appointment.utils.date_time import convert_minutes_in_human_readable_format, get_timestamp, get_weekday_num, \
     time_difference
 from appointment.utils.view_helpers import generate_random_id, get_locale
@@ -41,6 +42,7 @@ DAYS_OF_WEEK = (
     (6, 'Saturday'),
 )
 
+logger = get_logger(__name__)
 
 def generate_rgb_color():
     hue = random.random()  # Random hue between 0 and 1
@@ -614,6 +616,59 @@ class Appointment(models.Model):
         }
 
 
+class RecurringAppointment(models.Model):
+    appointment_request = models.OneToOneField(AppointmentRequest, on_delete=models.CASCADE,
+                                               related_name='recurring_info')
+    recurrence_rule = RecurrenceField()
+    end_date = models.DateField(null=True, blank=True, help_text=_("When the recurring pattern ends"))
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'appointment_recurring_appointment'
+
+    def __str__(self):
+        return f"Recurring: {self.appointment_request}"
+
+    def occurs_on_date(self, target_date):
+        """Check if this recurring appointment occurs on the given date."""
+        if not self.is_active:
+            return False
+
+        if target_date < self.appointment_request.date:
+            return False
+
+        if self.end_date and target_date > self.end_date:
+            return False
+
+        from appointment.utils.date_time import combine_date_and_time
+        from django.utils import timezone
+
+        # Create datetime for the start of this recurring pattern
+        dtstart = combine_date_and_time(self.appointment_request.date, self.appointment_request.start_time)
+        if timezone.is_naive(dtstart):
+            dtstart = timezone.make_aware(dtstart)
+
+        # Check if target_date is in the recurrence pattern
+        target_datetime = combine_date_and_time(target_date, self.appointment_request.start_time)
+        if timezone.is_naive(target_datetime):
+            target_datetime = timezone.make_aware(target_datetime)
+
+        try:
+            # Use django-recurrence to check if this date matches the pattern
+            occurrences = self.recurrence_rule.between(
+                    target_datetime,
+                    target_datetime + timezone.timedelta(days=1),
+                    dtstart=dtstart,
+                    inc=True
+            )
+            return len(occurrences) > 0
+
+        except (AttributeError, ValueError, TypeError) as e:
+            logger.error(f"Error checking recurrence for {self}: {e}")
+            return False
+
+
 class Config(models.Model):
     """
     Represents configuration settings for the appointment system. There can only be one Config object in the database.
@@ -657,6 +712,10 @@ class Config(models.Model):
         default=True,
         help_text=_("Allows clients to change the staff member when rescheduling an appointment.")
     )
+    max_recurring_months = models.PositiveIntegerField(
+        default=3,
+        help_text=_("Maximum number of months a recurring appointment can be set for.")
+    )
 
     # meta data
     created_at = models.DateTimeField(auto_now_add=True)
@@ -688,7 +747,7 @@ class Config(models.Model):
 
     def __str__(self):
         return f"Config {self.pk}: slot_duration={self.slot_duration}, lead_time={self.lead_time}, " \
-               f"finish_time={self.finish_time}"
+               f"finish_time={self.finish_time}, etc."
 
 
 class PaymentInfo(models.Model):

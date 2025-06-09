@@ -45,6 +45,9 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
 
         selectedDate = info.dateStr;
         getAvailableSlots(info.dateStr, staffId);
+        if (window.syncRecurringWithCalendarSelection) {
+            window.syncRecurringWithCalendarSelection();
+        }
     },
     datesSet: function (info) {
         highlightSelectedDate();
@@ -89,46 +92,83 @@ body.on('click', '.djangoAppt_btn-request-next-slot', function () {
     requestNextAvailableSlot(serviceId);
 })
 
-body.on('click', '.btn-submit-appointment', function () {
+body.on('click', '.btn-submit-appointment', function (e) {
+    e.preventDefault(); // Prevent default form submission
+
     const selectedSlot = $('.djangoAppt_appointment-slot.selected').text();
     const selectedDate = $('.djangoAppt_date_chosen').text();
+
+    // Validate that both slot and date are selected
     if (!selectedSlot || !selectedDate) {
         alert(selectDateAndTimeAlertTxt);
         return;
     }
-    if (selectedSlot && selectedDate) {
-        const startTime = convertTo24Hour(selectedSlot);
-        const APPOINTMENT_BASE_TEMPLATE = localStorage.getItem('APPOINTMENT_BASE_TEMPLATE');
-        // Convert the selectedDate string to a valid format
-        const dateParts = selectedDate.split(', ');
-        const monthDayYear = dateParts[1] + "," + dateParts[2];
-        const formattedDate = new Date(monthDayYear + " " + startTime);
 
-        const date = formattedDate.toISOString().slice(0, 10);
-        const endTimeDate = new Date(formattedDate.getTime() + serviceDuration * 60000);
-        const endTime = formatTime(endTimeDate);
-        const reasonForRescheduling = $('#reason_for_rescheduling').val();
+    // Additional validation - check if we actually have meaningful data
+    if (!selectedSlot.trim() || !selectedDate.trim()) {
+        const warningContainer = $('.warning-message');
+        if (warningContainer.find('.submit-warning').length === 0) {
+            warningContainer.append('<p class="submit-warning">' + selectTimeSlotWarningTxt + '</p>');
+        }
+        return;
+    }
+
+    const startTime = convertTo24Hour(selectedSlot);
+    const dateParts = selectedDate.split(', ');
+    const monthDayYear = dateParts[1] + "," + dateParts[2];
+    const formattedDate = new Date(monthDayYear + " " + startTime);
+    const date = formattedDate.toISOString().slice(0, 10);
+    const endTimeDate = new Date(formattedDate.getTime() + serviceDuration * 60000);
+    const endTime = formatTime(endTimeDate);
+
+    // Get the staff member value
+    const staffMember = $('#staff_id').val();
+
+    // Check if it's a recurring appointment
+    const isRecurring = $('#id_is_recurring').is(':checked');
+
+    if (isRecurring) {
+        // Use the recurring form
+        const recurringForm = $('.appointment-form');
+
+        // Populate hidden fields for recurring appointments
+        $('#hidden_staff_member').val(staffMember);
+        $('#hidden_selected_date').val(date);
+        $('#hidden_selected_time').val(startTime);
+
+        if (rescheduledDate) {
+            const reasonForRescheduling = $('#reason_for_rescheduling').val();
+            $('#hidden_reason_for_rescheduling').val(reasonForRescheduling);
+        }
+
+        // Submit the form with recurring data
+        recurringForm.submit();
+    } else {
+        // Use the original form for single appointments
         const form = $('.appointment-form');
         let formAction = rescheduledDate ? appointmentRescheduleURL : appointmentRequestSubmitURL;
         form.attr('action', formAction);
-        if (!form.find('input[name="appointment_request_id"]').length) {
+
+        // Add hidden fields to original form
+        if (!form.find('input[name="appointment_request_id"]').length && rescheduledDate) {
             form.append($('<input>', {
                 type: 'hidden',
                 name: 'appointment_request_id',
                 value: appointmentRequestId
             }));
         }
+
         form.append($('<input>', {type: 'hidden', name: 'date', value: date}));
         form.append($('<input>', {type: 'hidden', name: 'start_time', value: startTime}));
         form.append($('<input>', {type: 'hidden', name: 'end_time', value: endTime}));
         form.append($('<input>', {type: 'hidden', name: 'service', value: serviceId}));
-        form.append($('<input>', {type: 'hidden', name: 'reason_for_rescheduling', value: reasonForRescheduling}));
-        form.submit();
-    } else {
-        const warningContainer = $('.warning-message');
-        if (warningContainer.find('submit-warning') === 0) {
-            warningContainer.append('<p class="submit-warning">' + selectTimeSlotWarningTxt + '</p>');
+
+        if (rescheduledDate) {
+            const reasonForRescheduling = $('#reason_for_rescheduling').val();
+            form.append($('<input>', {type: 'hidden', name: 'reason_for_rescheduling', value: reasonForRescheduling}));
         }
+
+        form.submit();
     }
 });
 
@@ -313,7 +353,7 @@ function getAvailableSlots(selectedDate, staffId = null) {
             $('#service-datetime-chosen').text(data.date_chosen);
             isRequestInProgress = false;
         },
-        error: function() {
+        error: function () {
             isRequestInProgress = false; // Ensure the flag is reset even if the request fails
         }
     });

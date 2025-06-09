@@ -1,0 +1,438 @@
+/* Keep original two-column layout intact */
+.djangoAppt_page-body {
+    display: flex;
+    flex-direction: row;
+    margin-top: 50px;
+}
+
+.djangoAppt_appointment-calendar {
+    flex: 3;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.1);
+}
+
+.djangoAppt_service-description {
+    flex: 1;
+    margin-left: 20px;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Full-width bottom section for recurring + submit */
+.djangoAppt_bottom-section {
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin-top: 20px;
+    width: 100%;
+}
+
+/* Submit button section */
+.djangoAppt_submit-section {
+    text-align: center;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.djangoAppt_submit-section .btn-submit-appointment {
+    padding: 12px 30px;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+/* Update recurring section for full width */
+.recurring-appointment-section {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+}
+
+/* Improve recurring form grid for horizontal layout */
+.recurring-form-grid {
+    display: grid;
+    grid-template-columns: auto auto 1fr;
+    gap: 20px;
+    align-items: start;
+    margin-bottom: 20px;
+}
+
+/* Day picker takes full width when weekly is selected */
+#weekly_day_selection {
+    grid-column: 1 / -1; /* Span all columns */
+}
+
+/* Responsive behavior - keep your existing responsive rules */
+@media (max-width: 1199px) {
+    .djangoAppt_page-body {
+        flex-direction: column;
+    }
+
+    .djangoAppt_appointment-calendar {
+        flex: 1;
+        padding: 10px;
+    }
+
+    .djangoAppt_service-description {
+        flex: 1;
+        margin-left: 0;
+        margin-top: 20px;
+    }
+
+    /* Stack recurring form vertically on smaller screens */
+    .recurring-form-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    #weekly_day_selection {
+        grid-column: 1;
+    }
+}
+
+@media (max-width: 768px) {
+    .djangoAppt_bottom-section {
+        padding: 15px;
+        margin-top: 15px;
+    }
+
+    .djangoAppt_submit-section .btn-submit-appointment {
+        width: 100%;
+        padding: 15px;
+    }
+}
+
+@media (max-width: 450px) {
+    .djangoAppt_bottom-section {
+        padding: 10px;
+    }
+
+    .recurring-form-grid {
+        gap: 12px;
+    }
+}
+
+/* Ultra Compact Recurring Settings + Right-Aligned Submit */
+/* Recurring Section Wrapper - Full Width */
+.recurring-section-wrapper {
+    margin-top: 20px;
+    padding: 15px 20px;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #e0e0e0;
+}
+
+/* Toggle Switch - Minimal */
+.recurring-toggle-wrapper {
+    margin-bottom: 12px;
+}
+
+.recurring-toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    padding: 8px 12px;
+    background-color: white;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    transition: background-color 0.2s ease;
+    width: fit-content;
+}
+
+.recurring-toggle-label:hover {
+    background-color: #f0f0f0;
+}
+
+.recurring-checkbox {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.recurring-toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 36px;
+    height: 20px;
+    background-color: #ccc;
+    border-radius: 20px;
+    transition: background-color 0.3s;
+}
+
+.recurring-toggle-switch:before {
+    content: "";
+    position: absolute;
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    top: 2px;
+    background-color: white;
+    border-radius: 50%;
+    transition: transform 0.3s;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.recurring-checkbox:checked + .recurring-toggle-switch {
+    background-color: #0c042c;
+}
+
+.recurring-checkbox:checked + .recurring-toggle-switch:before {
+    transform: translateX(16px);
+}
+
+.recurring-toggle-text {
+    font-weight: 500;
+    color: #333;
+    font-size: 14px;
+}
+
+/* Ultra Compact Configuration Panel */
+.recurring-config-panel {
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 12px;
+    margin-top: 8px;
+}
+
+/* Super Tight Grid Layout */
+.recurring-form-grid {
+    display: grid;
+    grid-template-columns: 120px 1fr 120px;
+    gap: 12px;
+    align-items: start;
+    margin-bottom: 10px;
+}
+
+.recurring-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.recurring-label {
+    font-weight: 500;
+    color: #333;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+}
+
+.recurring-select {
+    padding: 4px 6px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    background-color: white;
+    color: #333;
+    font-size: 12px;
+    width: 100%;
+}
+
+.recurring-select:focus {
+    outline: none;
+    border-color: #0c042c;
+    box-shadow: 0 0 0 1px rgba(12, 4, 44, 0.2);
+}
+
+.recurring-date-input {
+    padding: 4px 6px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    background-color: white;
+    color: #333;
+    font-size: 12px;
+    width: 100%;
+}
+
+.recurring-date-input:focus {
+    outline: none;
+    border-color: #0c042c;
+    box-shadow: 0 0 0 1px rgba(12, 4, 44, 0.2);
+}
+
+/* Ultra Compact Day Picker */
+.day-picker {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+    margin-top: 2px;
+}
+
+.day-button {
+    padding: 3px 2px;
+    border: 1px solid #ddd;
+    background-color: white;
+    color: #666;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-size: 10px;
+    font-weight: 500;
+    text-align: center;
+    min-height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.day-button:hover {
+    border-color: #0c042c;
+    color: #0c042c;
+}
+
+.day-button.selected {
+    background-color: #0c042c;
+    border-color: #0c042c;
+    color: white;
+}
+
+.day-button:focus {
+    outline: none;
+    box-shadow: 0 0 0 1px rgba(12, 4, 44, 0.4);
+}
+
+/* Compact Preview */
+.recurring-preview-box {
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 3px;
+    padding: 6px 8px;
+    font-size: 11px;
+    color: #495057;
+    font-style: italic;
+}
+
+/* Submit Button Section - Right Aligned */
+.submit-section-wrapper {
+    margin-top: 20px;
+    padding: 15px 20px;
+    text-align: right;
+    background-color: white;
+    border-radius: 6px;
+    border: 1px solid #e0e0e0;
+}
+
+.btn-submit-appointment {
+    padding: 10px 24px;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 4px;
+    border: none;
+    background-color: #0c042c;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.btn-submit-appointment:hover:not(:disabled) {
+    background-color: #1a0f3a;
+}
+
+.btn-submit-appointment:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .recurring-section-wrapper {
+        margin-top: 15px;
+        padding: 12px 15px;
+    }
+
+    .recurring-form-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .recurring-field {
+        gap: 3px;
+    }
+
+    .day-picker {
+        gap: 3px;
+        max-width: 280px;
+        margin: 4px auto 0;
+    }
+
+    .day-button {
+        min-height: 26px;
+        font-size: 11px;
+    }
+
+    .recurring-toggle-text {
+        font-size: 13px;
+    }
+
+    .submit-section-wrapper {
+        padding: 12px 15px;
+        text-align: center;
+    }
+
+    .btn-submit-appointment {
+        width: 100%;
+        max-width: 200px;
+    }
+}
+
+@media (max-width: 480px) {
+    .recurring-section-wrapper {
+        padding: 10px 12px;
+    }
+
+    .recurring-config-panel {
+        padding: 10px;
+    }
+
+    .recurring-form-grid {
+        gap: 8px;
+    }
+
+    .day-picker {
+        gap: 2px;
+        max-width: 260px;
+    }
+
+    .day-button {
+        min-height: 24px;
+        font-size: 10px;
+        padding: 2px 1px;
+    }
+
+    .recurring-toggle-label {
+        padding: 6px 10px;
+    }
+
+    .submit-section-wrapper {
+        padding: 10px 12px;
+    }
+}
+
+/* Very Small Screens */
+@media (max-width: 380px) {
+    .day-picker {
+        max-width: 240px;
+    }
+
+    .day-button {
+        min-height: 22px;
+        font-size: 9px;
+    }
+
+    .recurring-label {
+        font-size: 10px;
+    }
+
+    .recurring-select,
+    .recurring-date-input {
+        font-size: 11px;
+    }
+}

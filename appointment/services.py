@@ -23,7 +23,8 @@ from appointment.utils.date_time import (
 from appointment.utils.db_helpers import (
     Appointment, AppointmentRequest, EmailVerificationCode, Service, StaffMember, WorkingHours, calculate_slots,
     calculate_staff_slots, check_day_off_for_staff, create_and_save_appointment, create_new_user,
-    day_off_exists_for_date_range, exclude_booked_slots, exclude_pending_reschedules, get_all_appointments,
+    day_off_exists_for_date_range, exclude_booked_slots, exclude_pending_reschedules, exclude_recurring_appointments,
+    get_all_appointments,
     get_all_staff_members,
     get_appointment_by_id, get_appointments_for_date_and_time, get_staff_member_appointment_list,
     get_staff_member_from_user_id_or_logged_in, get_times_from_config, get_user_by_email,
@@ -432,6 +433,7 @@ def get_available_slots_for_staff(date, staff_member):
     slot_duration = datetime.timedelta(minutes=staff_member.get_slot_duration())
     slots = calculate_staff_slots(date, staff_member)
     slots = exclude_pending_reschedules(slots, staff_member, date)
+    slots = exclude_recurring_appointments(slots, staff_member, date, slot_duration)
     appointments = get_appointments_for_date_and_time(date, working_hours_dict['start_time'],
                                                       working_hours_dict['end_time'], staff_member)
     return exclude_booked_slots(appointments, slots, slot_duration)

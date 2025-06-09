@@ -17,6 +17,7 @@ from django.core.cache import cache
 from django.core.exceptions import FieldDoesNotExist
 from django.urls import reverse
 from django.utils import timezone
+from django.db.models import Q
 
 from appointment.logger_config import get_logger
 from appointment.settings import (
@@ -119,8 +120,7 @@ def create_and_save_appointment(ar, client_data: dict, appointment_data: dict, r
     """
     user = get_user_by_email(client_data['email'])
     appointment = Appointment.objects.create(
-            client=user, appointment_request=ar,
-            **appointment_data
+            client=user, appointment_request=ar, **appointment_data
     )
     appointment.save()
     logger.info(f"New appointment created: {appointment.to_dict()}")
@@ -346,6 +346,98 @@ def create_payment_info_and_get_url(appointment):
         payment_url = APPOINTMENT_PAYMENT_URL
 
     return payment_url
+
+
+def exclude_recurring_appointments(slots, staff_member, date, slot_duration):
+    """Exclude slots that are blocked by recurring appointments."""
+    from appointment.models import RecurringAppointment
+
+    # Get all active recurring appointments for this staff member
+    recurring_appointments = RecurringAppointment.objects.filter(
+            appointment_request__staff_member=staff_member,
+            is_active=True,
+            appointment_request__date__lte=date  # Started on or before this date
+    ).filter(
+            Q(end_date__isnull=True) | Q(end_date__gte=date)  # No end date or ends after this date
+    ).select_related('appointment_request')
+
+    available_slots = []
+    for slot in slots:
+        slot_end = slot + slot_duration
+        is_available = True
+
+        for recurring_appt in recurring_appointments:
+            # Check if this recurring appointment occurs on this date
+            if recurring_appt.occurs_on_date(date):
+                # Get the time range for this recurring appointment
+                recurring_start = datetime.datetime.combine(date, recurring_appt.appointment_request.start_time)
+                recurring_end = datetime.datetime.combine(date, recurring_appt.appointment_request.end_time)
+
+                # Check if slot conflicts with this recurring appointment
+                if recurring_start < slot_end and slot < recurring_end:
+                    is_available = False
+                    break
+
+        if is_available:
+            available_slots.append(slot)
+
+    return available_slots
+
+
+def create_recurring_appointment(appointment_request, recurrence_rule, end_date=None):
+    """Create a recurring appointment from an existing AppointmentRequest."""
+    from appointment.models import RecurringAppointment
+
+    recurring_appointment = RecurringAppointment.objects.create(
+            appointment_request=appointment_request,
+            recurrence_rule=_parse_recurrence_rule(recurrence_rule),
+            end_date=end_date
+    )
+
+    logger.info(f"Created recurring appointment: {recurring_appointment}")
+    return recurring_appointment
+
+
+def _parse_recurrence_rule(recurrence_rule_string):
+    """Convert RRULE string to django-recurrence Recurrence object."""
+    import recurrence
+    from datetime import datetime
+
+    if recurrence_rule_string.startswith('RRULE:'):
+        clean_rule = recurrence_rule_string[6:]
+    else:
+        clean_rule = recurrence_rule_string
+
+    rule_parts = clean_rule.split(';')
+    rule_params = {}
+    freq = None
+
+    for part in rule_parts:
+        key, value = part.split('=')
+        if key == 'FREQ':
+            if value == 'WEEKLY':
+                freq = recurrence.WEEKLY
+            elif value == 'DAILY':
+                freq = recurrence.DAILY
+            elif value == 'MONTHLY':
+                freq = recurrence.MONTHLY
+        elif key == 'BYDAY':
+            days = []
+            day_map = {
+                'MO': recurrence.MONDAY, 'TU': recurrence.TUESDAY, 'WE': recurrence.WEDNESDAY,
+                'TH': recurrence.THURSDAY, 'FR': recurrence.FRIDAY, 'SA': recurrence.SATURDAY, 'SU': recurrence.SUNDAY
+            }
+            for day in value.split(','):
+                if day in day_map:
+                    days.append(day_map[day])
+            rule_params['byday'] = days
+        elif key == 'UNTIL':
+            until_dt = datetime.strptime(value, '%Y%m%dT%H%M%SZ')
+            rule_params['until'] = until_dt
+
+    # Create the Rule and Recurrence objects
+    rule = recurrence.Rule(freq, **rule_params)
+    return recurrence.Recurrence(rrules=[rule])
 
 
 def exclude_booked_slots(appointments, slots, slot_duration=None):
