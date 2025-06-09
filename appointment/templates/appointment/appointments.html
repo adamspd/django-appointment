@@ -229,6 +229,15 @@
                 }
             }
 
+            window.revalidateSubmitButton = function () {
+                console.log('revalidateSubmitButton called');
+                console.log('Recurring checked:', isRecurringCheckbox.checked);
+                console.log('End date value:', endDateInput.value);
+
+                // Force validation regardless of current button state
+                return validateRecurringSettings();
+            };
+
             // Sync form data with hidden fields
             function syncFormData() {
                 const staffSelect = document.getElementById('staff_id');
@@ -365,6 +374,42 @@
                 previewText.textContent = previewHtml || 'Configure settings';
             }
 
+            // Validate recurring settings and update submit button state
+            function validateRecurringSettings() {
+                const submitButton = document.querySelector('.btn-submit-appointment');
+
+                if (isRecurringCheckbox.checked) {
+                    // If recurring is enabled, end date is required
+                    const hasEndDate = endDateInput.value && endDateInput.value.trim() !== '';
+
+                    if (!hasEndDate) {
+                        submitButton.disabled = true;
+                        submitButton.title = 'End date is required for recurring appointments';
+                        return false;
+                    }
+
+                    // If weekly, at least one day must be selected
+                    if (frequencySelect.value === 'WEEKLY') {
+                        const selectedDays = document.querySelectorAll('.day-button.selected');
+                        if (selectedDays.length === 0) {
+                            submitButton.disabled = true;
+                            submitButton.title = 'Select at least one day for weekly recurring appointments';
+                            return false;
+                        }
+                    }
+                }
+
+                // If we get here, validation passed - but don't enable if other conditions aren't met
+                // (like no time slot selected - that's handled by the original appointments.js logic)
+                const hasSelectedSlot = document.querySelector('.djangoAppt_appointment-slot.selected');
+                if (hasSelectedSlot) {
+                    submitButton.disabled = false;
+                    submitButton.title = '';
+                }
+
+                return true;
+            }
+
             // Toggle recurring settings visibility
             if (isRecurringCheckbox && recurrenceFieldsDiv) {
                 isRecurringCheckbox.addEventListener('change', function () {
@@ -375,6 +420,7 @@
                         rruleInput.value = '';
                     }
                     syncFormData();
+                    validateRecurringSettings();
                 });
             }
 
@@ -385,6 +431,7 @@
                     setTimeout(() => window.syncRecurringWithCalendarSelection(), 100);
                 }
                 updateRecurrenceRule();
+                validateRecurringSettings();
             });
 
             // Handle day button clicks
@@ -392,6 +439,7 @@
                 button.addEventListener('click', function () {
                     this.classList.toggle('selected');
                     updateRecurrenceRule();
+                    validateRecurringSettings();
                 });
             });
 
@@ -399,7 +447,7 @@
             function setDateConstraints() {
                 const today = new Date();
                 const maxDate = new Date();
-                maxDate.setMonth(today.getMonth() + {{ max_recurring_months|default:3 }}); // 3 months from now
+                maxDate.setMonth(today.getMonth() + {{ max_recurring_months|default:3 }});
 
                 // Format dates for input[type="date"]
                 const todayStr = today.toISOString().split('T')[0];
@@ -416,7 +464,7 @@
                 today.setHours(0, 0, 0, 0);
 
                 const maxDate = new Date();
-                maxDate.setMonth(today.getMonth() + 3);
+                maxDate.setMonth(today.getMonth() + {{ max_recurring_months|default:3 }});
                 maxDate.setHours(23, 59, 59, 999);
 
                 if (selectedDate < today) {
@@ -439,6 +487,7 @@
                 if (validateEndDate()) {
                     updateRecurrenceRule();
                     syncFormData();
+                    validateRecurringSettings();
                 }
             });
 

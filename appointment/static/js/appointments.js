@@ -252,6 +252,7 @@ function getAvailableSlots(selectedDate, staffId = null) {
 
     // Clear previous error messages and slots
     slotList.empty();
+    $('.btn-submit-appointment').attr('disabled', 'disabled');
     errorMessageContainer.find('.djangoAppt_no-availability-text').remove();
 
     // Remove the "Next available date" message
@@ -342,6 +343,11 @@ function getAvailableSlots(selectedDate, staffId = null) {
 
                     // Enable the submit button
                     $('.btn-submit-appointment').removeAttr('disabled');
+
+                    //revalidate the recurring settings
+                    if (window.revalidateSubmitButton) {
+                        window.revalidateSubmitButton();
+                    }
 
                     // Continue with the existing logic
                     const selectedSlot = $(this).text();
