@@ -31,7 +31,8 @@ from appointment.models import (
 from appointment.settings import check_q_cluster
 from appointment.utils.db_helpers import (
     can_appointment_be_rescheduled, check_day_off_for_staff, create_and_save_appointment, create_new_user,
-    create_payment_info_and_get_url, get_non_working_days_for_staff, get_user_by_email, get_user_model,
+    create_payment_info_and_get_url, create_recurring_appointment, get_non_working_days_for_staff, get_user_by_email,
+    get_user_model,
     get_website_name, get_weekday_num_from_date, is_working_day, staff_change_allowed_on_reschedule,
     username_in_user_model
 )
@@ -223,38 +224,58 @@ def appointment_request(request, service_id=None, staff_member_id=None):
         'date_chosen': date_chosen,
         'locale': get_locale(),
         'timezoneTxt': get_current_timezone_name(),
-        'label': label
+        'label': label,
+        'max_recurring_months': config.max_recurring_months,
     }
     context = get_generic_context_with_extra(request, extra_context, admin=False)
     return render(request, 'appointment/appointments.html', context=context)
 
 
-def appointment_request_submit(request):
-    """This view function handles the submission of the appointment request form.
+def _log_appointment_submission(cleaned_data):
+    """Log the details of the appointment submission."""
+    logger.info(
+            f"Appointment submission - date: {cleaned_data['date']}, "
+            f"start_time: {cleaned_data['start_time']}, end_time: {cleaned_data['end_time']}, "
+            f"service: {cleaned_data['service']}, staff: {cleaned_data['staff_member']}, "
+            f"is_recurring: {cleaned_data.get('is_recurring', False)}"
+    )
 
-    :param request: The request instance.
-    :return: The rendered HTML page.
-    """
+
+def appointment_request_submit(request):
+    """This view function handles the submission of the appointment request form."""
     if request.method == 'POST':
         form = AppointmentRequestForm(request.POST)
         if form.is_valid():
-            # Use form.cleaned_data to get the cleaned and validated data
             staff_member = form.cleaned_data['staff_member']
 
-            staff_exists = StaffMember.objects.filter(id=staff_member.id).exists()
-            if not staff_exists:
+            if not StaffMember.objects.filter(id=staff_member.id).exists():
                 messages.error(request, _("Selected staff member does not exist."))
             else:
-                logger.info(
-                        f"date_f {form.cleaned_data['date']} start_time {form.cleaned_data['start_time']} end_time "
-                        f"{form.cleaned_data['end_time']} service {form.cleaned_data['service']} staff {staff_member}")
+                _log_appointment_submission(form.cleaned_data)
+
+                # Create the base AppointmentRequest
                 ar = form.save()
+
+                # Check if it's recurring
+                is_recurring = form.cleaned_data.get('is_recurring')
+                if is_recurring:
+                    recurrence_rule = form.cleaned_data.get('recurrence_rule')
+                    end_recurrence = form.cleaned_data.get('end_recurrence')
+
+                    if recurrence_rule:
+                        try:
+                            # Create the recurring appointment linked to this AppointmentRequest
+                            create_recurring_appointment(ar, recurrence_rule, end_recurrence)
+                            logger.info(f"Created recurring appointment for AppointmentRequest {ar.id}")
+                        except Exception as e:
+                            logger.error(f"Error creating recurring appointment: {e}")
+                            # Don't fail the whole request, just log the error
+
                 request.session[f'appointment_completed_{ar.id_request}'] = False
-                # Redirect the user to the account creation page
-                return redirect('appointment:appointment_client_information', appointment_request_id=ar.id,
+                return redirect('appointment:appointment_client_information',
+                                appointment_request_id=ar.id,
                                 id_request=ar.id_request)
         else:
-            # Handle the case if the form is not valid
             messages.error(request, _('There was an error in your submission. Please check the form and try again.'))
     else:
         form = AppointmentRequestForm()
