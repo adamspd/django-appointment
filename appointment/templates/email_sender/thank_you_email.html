@@ -216,6 +216,9 @@
                                     {% for key, value in more_details.items %}
                                         <li>{{ key }}: {{ value }}</li>
                                     {% endfor %}
+                                     {% if appointment.appointment_request.is_recurring %}
+                                         <li>{% translate 'Recurrence' %}: {{ appointment.appointment_request.recurrence_description }}</li>
+                                     {% endif %}
                                 </ul>
                             </div>
 

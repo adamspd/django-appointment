@@ -11,7 +11,7 @@ from django.contrib import admin
 
 from .models import (
     Appointment, AppointmentRequest, AppointmentRescheduleHistory, Config, DayOff, EmailVerificationCode,
-    PasswordResetToken, Service, StaffMember, WorkingHours
+    PasswordResetToken, RecurringAppointment, Service, StaffMember, WorkingHours
 )
 
 
@@ -34,6 +34,15 @@ class AppointmentAdmin(admin.ModelAdmin):
     list_display = ('client', 'appointment_request', 'created_at', 'updated_at',)
     search_fields = ('appointment_request__service__name',)
     list_filter = ('client', 'appointment_request__service',)
+
+
+@admin.register(RecurringAppointment)
+class RecurringAppointmentAdmin(admin.ModelAdmin):
+    list_display = ('appointment_request', 'recurrence_rule', 'end_date', 'is_active', 'created_at',)
+    search_fields = ('appointment_request__service__name',)
+    list_filter = ('end_date', 'recurrence_rule')
+    date_hierarchy = 'created_at'
+    ordering = ('-created_at',)
 
 
 @admin.register(EmailVerificationCode)

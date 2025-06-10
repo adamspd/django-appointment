@@ -93,83 +93,90 @@ body.on('click', '.djangoAppt_btn-request-next-slot', function () {
 })
 
 body.on('click', '.btn-submit-appointment', function (e) {
-    e.preventDefault(); // Prevent default form submission
+    e.preventDefault();
 
-    const selectedSlot = $('.djangoAppt_appointment-slot.selected').text();
-    const selectedDate = $('.djangoAppt_date_chosen').text();
+    const $slot = $('.djangoAppt_appointment-slot.selected');
+    const $date = $('.djangoAppt_date_chosen');
+    const selectedSlot = $slot.text().trim();
+    const selectedDate = $date.text().trim();
 
-    // Validate that both slot and date are selected
+    // Validate selection
     if (!selectedSlot || !selectedDate) {
         alert(selectDateAndTimeAlertTxt);
         return;
     }
 
-    // Additional validation - check if we actually have meaningful data
+    // Additional validation
+    const $warning = $('.warning-message');
     if (!selectedSlot.trim() || !selectedDate.trim()) {
-        const warningContainer = $('.warning-message');
-        if (warningContainer.find('.submit-warning').length === 0) {
-            warningContainer.append('<p class="submit-warning">' + selectTimeSlotWarningTxt + '</p>');
+        if ($warning.find('.submit-warning').length === 0) {
+            $warning.append(`<p class="submit-warning">${selectTimeSlotWarningTxt}</p>`);
         }
         return;
     }
 
+    // Extract time and date
     const startTime = convertTo24Hour(selectedSlot);
-    const dateParts = selectedDate.split(', ');
-    const monthDayYear = dateParts[1] + "," + dateParts[2];
-    const formattedDate = new Date(monthDayYear + " " + startTime);
+
+    const dateParts = selectedDate.split(', '); // e.g. ["Tuesday", "June 11", "2025"]
+    if (dateParts.length < 3) {
+        alert('Invalid date format. Please select a valid appointment date.');
+        return;
+    }
+
+    const monthDayYear = `${dateParts[1]} ${dateParts[2]}`; // "June 11 2025"
+    const formattedDate = new Date(`${monthDayYear} ${startTime}`);
+    if (isNaN(formattedDate)) {
+        console.error('Invalid formatted date:', `${monthDayYear} ${startTime}`);
+        alert('Invalid date/time. Please verify your selections.');
+        return;
+    }
+
     const date = formattedDate.toISOString().slice(0, 10);
-    const endTimeDate = new Date(formattedDate.getTime() + serviceDuration * 60000);
-    const endTime = formatTime(endTimeDate);
+    const endTime = formatTime(new Date(formattedDate.getTime() + serviceDuration * 60000));
 
-    // Get the staff member value
     const staffMember = $('#staff_id').val();
-
-    // Check if it's a recurring appointment
     const isRecurring = $('#id_is_recurring').is(':checked');
+    const $form = $('.appointment-form');
 
-    if (isRecurring) {
-        // Use the recurring form
-        const recurringForm = $('.appointment-form');
+    // Prepare hidden fields
+    const hiddenFields = [
+        { name: 'date', value: date },
+        { name: 'start_time', value: startTime },
+        { name: 'end_time', value: endTime },
+        { name: 'service', value: serviceId },
+        { name: 'staff_member', value: staffMember }
+    ];
 
-        // Populate hidden fields for recurring appointments
-        $('#hidden_staff_member').val(staffMember);
-        $('#hidden_selected_date').val(date);
-        $('#hidden_selected_time').val(startTime);
+    if (rescheduledDate) {
+        hiddenFields.push({
+            name: 'reason_for_rescheduling',
+            value: $('#reason_for_rescheduling').val()
+        });
+    }
 
-        if (rescheduledDate) {
-            const reasonForRescheduling = $('#reason_for_rescheduling').val();
-            $('#hidden_reason_for_rescheduling').val(reasonForRescheduling);
-        }
+    if (!isRecurring) {
+        const actionUrl = rescheduledDate ? appointmentRescheduleURL : appointmentRequestSubmitURL;
+        $form.attr('action', actionUrl);
 
-        // Submit the form with recurring data
-        recurringForm.submit();
-    } else {
-        // Use the original form for single appointments
-        const form = $('.appointment-form');
-        let formAction = rescheduledDate ? appointmentRescheduleURL : appointmentRequestSubmitURL;
-        form.attr('action', formAction);
-
-        // Add hidden fields to original form
-        if (!form.find('input[name="appointment_request_id"]').length && rescheduledDate) {
-            form.append($('<input>', {
-                type: 'hidden',
+        if (rescheduledDate && !$form.find('input[name="appointment_request_id"]').length) {
+            hiddenFields.push({
                 name: 'appointment_request_id',
                 value: appointmentRequestId
-            }));
+            });
         }
-
-        form.append($('<input>', {type: 'hidden', name: 'date', value: date}));
-        form.append($('<input>', {type: 'hidden', name: 'start_time', value: startTime}));
-        form.append($('<input>', {type: 'hidden', name: 'end_time', value: endTime}));
-        form.append($('<input>', {type: 'hidden', name: 'service', value: serviceId}));
-
-        if (rescheduledDate) {
-            const reasonForRescheduling = $('#reason_for_rescheduling').val();
-            form.append($('<input>', {type: 'hidden', name: 'reason_for_rescheduling', value: reasonForRescheduling}));
-        }
-
-        form.submit();
     }
+
+    // Append fields and submit
+    for (const field of hiddenFields) {
+        $form.append($('<input>', {
+            type: 'hidden',
+            name: field.name,
+            value: field.value
+        }));
+    }
+
+    $form.submit();
 });
 
 $('#staff_id').on('change', function () {

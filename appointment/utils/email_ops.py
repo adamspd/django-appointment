@@ -93,6 +93,7 @@ def send_thank_you_email(ar: AppointmentRequest, user, request, email: str, appo
         'activation_link': set_passwd_link,
         'main_title': _("Appointment successfully scheduled"),
         'reschedule_link': reschedule_link,
+        'appointment': appt,
     }
     send_email(
             recipient_list=[email], subject=_("Thank you for booking us."),
@@ -245,6 +246,9 @@ def send_reschedule_confirmation_email(request, reschedule_history, appointment_
         'end_time': convert_24_hour_time_to_12_hour_time(reschedule_history.end_time),
         'confirmation_link': confirmation_link,
         'company': get_website_name(),
+        'old_appointment_is_recurring': appointment_request.is_recurring(),
+        'old_recurrence_description': appointment_request.recurrence_description,
+        'appointment': Appointment.objects.get(appointment_request=appointment_request),
     }
 
     subject = _("Confirm Your Appointment Rescheduling")
@@ -272,6 +276,9 @@ def notify_admin_about_reschedule(reschedule_history, appointment_request, clien
         'old_end_time': convert_24_hour_time_to_12_hour_time(appointment_request.end_time),
         'end_time': convert_24_hour_time_to_12_hour_time(reschedule_history.end_time),
         'company': get_website_name(),
+        'old_appointment_is_recurring': appointment_request.is_recurring(),
+        'old_recurrence_description': appointment_request.recurrence_description,
+        'appointment': Appointment.objects.get(appointment_request=appointment_request),
     }
 
     # let's get the new ics file
