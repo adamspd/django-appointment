@@ -833,7 +833,7 @@ class Config(models.Model):
 
     def __str__(self):
         return f"Config {self.pk}: slot_duration={self.slot_duration}, lead_time={self.lead_time}, " \
-               f"finish_time={self.finish_time}, etc."
+               f"finish_time={self.finish_time}"
 
 
 class PaymentInfo(models.Model):
