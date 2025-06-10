@@ -48,7 +48,6 @@ from .services import get_appointments_and_slots, get_available_slots_for_staff
 from .settings import (APPOINTMENT_PAYMENT_URL, APPOINTMENT_THANK_YOU_URL)
 from .utils.date_time import convert_str_to_date
 from .utils.error_codes import ErrorCode
-from .utils.ics_utils import generate_ics_file
 from .utils.json_context import get_generic_context_with_extra, json_response
 
 CLIENT_MODEL = get_user_model()
@@ -276,6 +275,7 @@ def appointment_request_submit(request):
                                 appointment_request_id=ar.id,
                                 id_request=ar.id_request)
         else:
+            logger.error(f"Form submission error: {form.errors}")
             messages.error(request, _('There was an error in your submission. Please check the form and try again.'))
     else:
         form = AppointmentRequestForm()

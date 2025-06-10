@@ -29,7 +29,7 @@ task scheduling. It also allows clients to reschedule appointments if it is allo
 Django-Appointment is a Django app engineered for managing appointment scheduling with ease and flexibility. It enables
 users to define custom configurations for time slots, lead time, and finish time, or use the default values
 provided. This app proficiently manages conflicts and availability for appointments, ensuring a seamless user
-experience.
+experience. It now also includes the capability to schedule recurring appointments.
 
 For a detailed walkthrough and live example of the system, please refer to
 [this tutorial](https://github.com/adamspd/django-appointment/tree/main/docs/explanation.md).
@@ -52,6 +52,7 @@ and [here](https://github.com/adamspd/django-appointment/tree/main/docs/release_
    - Automated email reminders sent 24 hours before the appointment (requires Django Q).
    - ICS file attachment for calendar synchronization.
 7. Integration with Django Q for efficient task scheduling and email sending.
+8. Recurring Appointments: Schedule appointments that repeat daily, weekly, or monthly, with a 3-month default end date.
 
 ## Key features introduced in previous versions.
 

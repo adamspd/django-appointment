@@ -71,6 +71,55 @@ If the service is paid and a payment link is set in settings, the `Pay now` butt
 
 Upon completion, an account is created for the user, and an email is sent with appointment and account details, provided the email settings are correctly configured.
 
+## Scheduling Recurring Appointments
+
+*(Note: Screenshots for this feature will be added later.)*
+
+This section describes how clients can schedule appointments that repeat over time, and how these appointments appear to administrators or staff.
+
+### Enabling Recurring Appointments (Client View):
+
+When a client is making an appointment, they will have an option to make it a recurring event. This is typically done through a checkbox on the appointment form.
+
+-   **UI Element**: Look for a checkbox labeled something like:
+    `[ ] Make this a recurring appointment?`
+
+-   **Frequency Selection**: If the checkbox is selected, further options will appear:
+    -   A dropdown menu to select the recurrence frequency:
+        -   Daily
+        -   Weekly
+        -   Monthly
+    -   **For "Weekly" recurrence**: Day pickers (e.g., checkboxes for Monday, Tuesday, Wednesday, etc.) will allow the client to select which days of the week the appointment should repeat.
+    -   An optional date input field labeled "Repeat until" where the client can specify an end date for the recurrence. If left blank, the appointment might recur indefinitely or up to a system-defined limit.
+
+-   **Form Representation Example**:
+
+    ```
+    Service: Consultation
+    Date: 2023-10-26
+    Time: 10:00 AM
+    Staff: Dr. Smith
+
+    [x] Make this a recurring appointment?
+
+    Frequency: [Weekly \v]
+    Repeat on: [x] Mon  [ ] Tue  [x] Wed  [ ] Thu  [ ] Fri  [ ] Sat  [ ] Sun
+    Repeat until: [2023-12-31] (optional)
+    ```
+
+### Understanding Recurrence Details (Client View):
+
+After setting up a recurring appointment, the system should provide a clear summary of the recurrence schedule before final confirmation. This helps the client verify their settings.
+
+-   **Confirmation Text Example**: "Your appointment for Consultation with Dr. Smith is scheduled for 10:00 AM, repeating every Monday and Wednesday, starting on 2023-10-26 until 2023-12-31."
+
+### Viewing Recurring Appointments (Admin/Staff View):
+
+In the admin or staff interface, recurring appointments should be clearly distinguishable from single, non-repeating appointments.
+
+-   **Indicators**: This might be through a special icon, a note in the appointment details, or a separate view for recurring series. For example, an appointment entry might show "Repeats weekly (M, W) until 2023-12-31".
+-   *(Details on managing recurring series, like editing or deleting the entire series versus a single instance, will be covered in advanced documentation.)*
+
 ### Managing Appointments
 
 As an admin, you can now view the newly created appointment in your staff member appointment list:

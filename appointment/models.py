@@ -364,6 +364,17 @@ class AppointmentRequest(models.Model):
     def get_reschedule_history(self):
         return self.reschedule_histories.all().order_by('-created_at')
 
+    def is_recurring(self):
+        """Check if this appointment request is recurring."""
+        return hasattr(self, 'recurring_info') and self.recurring_info is not None
+
+    @property
+    def recurrence_description(self):
+        """Get the recurrence description if this is a recurring appointment."""
+        if self.is_recurring():
+            return self.recurring_info.get_recurrence_description()
+        return None
+
 
 class AppointmentRescheduleHistory(models.Model):
     appointment_request = models.ForeignKey(
@@ -667,6 +678,81 @@ class RecurringAppointment(models.Model):
         except (AttributeError, ValueError, TypeError) as e:
             logger.error(f"Error checking recurrence for {self}: {e}")
             return False
+
+    def get_recurrence_description(self):
+        """Get a human-readable description of the recurrence pattern."""
+        from django.utils.translation import gettext as _
+
+        if not self.recurrence_rule or not self.recurrence_rule.rrules:
+            return None
+
+        rrule = self.recurrence_rule.rrules[0]
+        description_parts = []
+
+        # Handle weekly with specific days
+        if rrule.freq == 2:  # Weekly
+            weekday_map = {
+                0: _('Monday'), 1: _('Tuesday'), 2: _('Wednesday'), 3: _('Thursday'),
+                4: _('Friday'), 5: _('Saturday'), 6: _('Sunday')
+            }
+
+            days = []
+            if hasattr(rrule, 'byday') and rrule.byday:
+                for weekday in rrule.byday:
+                    if isinstance(weekday, int) and weekday in weekday_map:
+                        days.append(str(weekday_map[weekday]))
+
+            if days:
+                if len(days) == 1:
+                    description_parts.append(str(_('Every week on {day}').format(day=days[0])))
+                elif len(days) == 7:
+                    description_parts.append(str(_('Every day')))
+                else:
+                    description_parts.append(str(_('Every week on {days}').format(days=', '.join(days))))
+            else:
+                # If no specific days are set, fall back to using the appointment start date
+                appointment_date = self.appointment_request.date
+                weekday_num = appointment_date.weekday()  # 0=Monday, 6=Sunday
+                day_name = str(weekday_map[weekday_num])
+                description_parts.append(str(_('Every week on {day}').format(day=day_name)))
+
+        elif rrule.freq == 1:  # Monthly
+            # Get the day of the month from the original appointment date
+            appointment_date = self.appointment_request.date
+            day_of_month = appointment_date.day
+
+            # Format with ordinal (1st, 2nd, 3rd, etc.)
+            if 10 <= day_of_month % 100 <= 20:
+                suffix = 'th'
+            else:
+                suffix = {1: 'st', 2: 'nd', 3: 'rd'}.get(day_of_month % 10, 'th')
+
+            description_parts.append(str(_('Every month on the {day}').format(day=f"{day_of_month}{suffix}")))
+
+        elif rrule.freq == 3:  # Daily
+            description_parts.append(str(_('Every day')))
+        elif rrule.freq == 0:  # Yearly
+            # Get the date from the original appointment
+            appointment_date = self.appointment_request.date
+            date_str = appointment_date.strftime('%B %d')  # e.g., "July 15"
+            description_parts.append(str(_('Every year on {date}').format(date=date_str)))
+        else:
+            # Other frequencies
+            freq_map = {
+                4: _('Every hour'),
+                5: _('Every minute'),
+                6: _('Every second')
+            }
+            frequency = freq_map.get(rrule.freq, _('Unknown frequency'))
+            description_parts.append(str(frequency))
+
+        # Add end date if present
+        if self.end_date:
+            description_parts.append(str(_('until {date}').format(date=self.end_date.strftime('%B %d, %Y'))))
+        elif hasattr(rrule, 'until') and rrule.until:
+            description_parts.append(str(_('until {date}').format(date=rrule.until.strftime('%B %d, %Y'))))
+
+        return ' '.join(description_parts)
 
 
 class Config(models.Model):
