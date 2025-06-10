@@ -138,6 +138,12 @@
                 <span class="info-label">{% translate 'Time' %}</span>
                 <span class="info-value">{{ appointment.appointment_request.start_time }} - {{ appointment.appointment_request.end_time }}</span>
             </div>
+            {% if appointment.appointment_request.is_recurring %}
+            <div class="info-row">
+                <span class="info-label">{% translate 'Recurrence' %}</span>
+                <span class="info-value">{{ appointment.appointment_request.recurrence_description }}</span>
+            </div>
+            {% endif %}
             <div class="info-row">
                 <span class="info-label">{% translate 'Location' %}</span>
                 <span class="info-value">{{ appointment.address }}</span>

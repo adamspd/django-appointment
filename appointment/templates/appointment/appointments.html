@@ -4,6 +4,7 @@
 {% block customCSS %}
     <link rel="stylesheet" type="text/css" href="{% static 'css/appt-common.css' %}"/>
     <link rel="stylesheet" type="text/css" href="{% static 'css/appointments.css' %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/recurring-enhancement.css' %}"/>
 {% endblock %}
 {% block title %}
     {{ page_title }}
@@ -56,37 +57,95 @@
                         {% endif %}
                     </div>
                     <div class="djangoAppt_service-description">
-                        <form method="post" action="{% url 'appointment:appointment_request_submit' %}"
-                              class="appointment-form">
-                            {% csrf_token %}
-                            <div class="staff-members-list">
-                                <label class="djangoAppt_item-name" for="staff_id">{{ label }}</label>
-                                <select name="staff_member" id="staff_id">
-                                    {% if not staff_member %}
-                                        <option value="none"
-                                                selected>{% trans 'Please select a staff member' %}</option>
-                                    {% endif %}
-                                    {% for sf in all_staff_members %}
-                                        <option value="{{ sf.id }}"
-                                                {% if staff_member and staff_member.id == sf.id %}selected{% endif %}>{{ sf.get_staff_member_name }}</option>
-                                    {% endfor %}
+                        <div class="staff-members-list">
+                            <label class="djangoAppt_item-name" for="staff_id">{{ label }}</label>
+                            <select name="staff_member" id="staff_id">
+                                {% if not staff_member %}
+                                    <option value="none"
+                                            selected>{% trans 'Please select a staff member' %}</option>
+                                {% endif %}
+                                {% for sf in all_staff_members %}
+                                    <option value="{{ sf.id }}"
+                                            {% if staff_member and staff_member.id == sf.id %}selected{% endif %}>{{ sf.get_staff_member_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div>{% trans "Service Details" %}</div>
+                        <hr class="djangoAppt_second-part">
+                        <div class="djangoAppt_service-description-content">
+                            <p class="djangoAppt_item-name">{{ service.name }}</p>
+                            <p id="service-datetime-chosen" class="service-datetime-chosen">{{ date_chosen }}</p>
+                            <p>{{ service.get_duration }}</p>
+                            <p>{{ service.get_price_text }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FULL WIDTH: Recurring Settings Section -->
+                <div class="recurring-section-wrapper">
+                    <div class="recurring-toggle-wrapper">
+                        <label for="id_is_recurring" class="recurring-toggle-label">
+                            <input type="checkbox" name="is_recurring" id="id_is_recurring" class="recurring-checkbox">
+                            <span class="recurring-toggle-switch"></span>
+                            <span class="recurring-toggle-text">{% trans "Recurring Appointment?" %}</span>
+                        </label>
+                    </div>
+
+                    <div id="recurrence_rule_fields" class="recurring-config-panel" style="display:none;">
+                        <div class="recurring-form-grid">
+                            <div class="recurring-field">
+                                <label class="recurring-label">{% trans "Repeat every" %}</label>
+                                <select id="recurrence_frequency" class="recurring-select">
+                                    <option value="DAILY">{% trans "Day" %}</option>
+                                    <option value="WEEKLY" selected>{% trans "Week" %}</option>
+                                    <option value="MONTHLY">{% trans "Month" %}</option>
                                 </select>
                             </div>
 
-                            <div>{% trans "Service Details" %}</div>
-                            <hr class="djangoAppt_second-part">
-                            <div class="djangoAppt_service-description-content">
-                                <p class="djangoAppt_item-name">{{ service.name }}</p>
-                                <p id="service-datetime-chosen" class="service-datetime-chosen">{{ date_chosen }}</p>
-                                <p>{{ service.get_duration }}</p>
-                                <p>{{ service.get_price_text }}</p>
-                                <button type="submit"
-                                        class="btn btn-primary btn-submit-appointment"
-                                        disabled>{% trans 'Next' %}</button>
+                            <div class="recurring-field" id="weekly_day_selection">
+                                <label class="recurring-label">{% trans "On these days" %}</label>
+                                <div class="day-picker">
+                                    <button type="button" class="day-button" data-day="MO">M</button>
+                                    <button type="button" class="day-button" data-day="TU">T</button>
+                                    <button type="button" class="day-button" data-day="WE">W</button>
+                                    <button type="button" class="day-button" data-day="TH">T</button>
+                                    <button type="button" class="day-button" data-day="FR">F</button>
+                                    <button type="button" class="day-button" data-day="SA">S</button>
+                                    <button type="button" class="day-button" data-day="SU">S</button>
+                                </div>
                             </div>
-                        </form>
+
+                            <div class="recurring-field">
+                                <label for="id_end_recurrence" class="recurring-label">{% trans "Until" %}</label>
+                                <input type="date" name="end_recurrence" id="id_end_recurrence"
+                                       class="recurring-date-input">
+                            </div>
+                        </div>
+
+                        <div class="recurring-preview-box">
+                            <span id="recurring_preview_text">{% trans "Configure settings to see preview" %}</span>
+                        </div>
                     </div>
                 </div>
+
+                <!-- FULL WIDTH: Submit Button Section -->
+                <div class="submit-section-wrapper">
+                    <form method="post" action="{% url 'appointment:appointment_request_submit' %}"
+                          class="appointment-form">
+                        {% csrf_token %}
+
+                        <!-- Recurring fields only -->
+                        <input type="hidden" name="is_recurring" id="hidden_is_recurring" value="false">
+                        <textarea name="recurrence_rule" id="id_recurrence_rule" style="display: none;"></textarea>
+                        <input type="hidden" name="end_recurrence" id="hidden_end_recurrence" value="">
+
+                        <button type="submit" class="btn btn-primary btn-submit-appointment" disabled>
+                            {% trans 'Next' %}
+                        </button>
+                    </form>
+                </div>
+
                 {% if messages %}
                     {% for message in messages %}
                         <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
@@ -120,6 +179,7 @@
         const appointmentRequestId = "{{ ar_id_request }}";
         const appointmentRequestSubmitURL = "{% url 'appointment:appointment_request_submit' %}";
         const appointmentRescheduleURL = "{% url 'appointment:reschedule_appointment_submit' %}";
+        const maxRecurringMonths = {{ max_recurring_months|default:3 }};
     </script>
     <script>
         const requestNonAvailableSlotBtnTxt = "{% trans 'Request next available slot' %}";
@@ -130,4 +190,6 @@
     </script>
     <script src="{% static 'js/appointments.js' %}"></script>
     <script src="{% static 'js/js-utils.js' %}"></script>
+    <script src="{% static 'js/recurring-appointments.js' %}"></script>
+    {% if form %}{{ form.media }}{% endif %}
 {% endblock %}

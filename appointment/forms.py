@@ -25,9 +25,24 @@ class SlotForm(forms.Form):
 
 
 class AppointmentRequestForm(forms.ModelForm):
+    is_recurring = forms.BooleanField(required=False, label=_("Recurring appointment"))
+    recurrence_rule = forms.CharField(required=False, widget=forms.HiddenInput())
+    end_recurrence = forms.DateField(required=False, label=_("End date"),
+                                     widget=forms.DateInput(attrs={'type': 'date'}))
+
     class Meta:
         model = AppointmentRequest
-        fields = ('date', 'start_time', 'end_time', 'service', 'staff_member')
+        fields = ['date', 'start_time', 'end_time', 'service', 'staff_member']
+
+    def clean(self):
+        cleaned_data = super().clean()
+        is_recurring = cleaned_data.get('is_recurring')
+        recurrence_rule = cleaned_data.get('recurrence_rule')
+
+        if is_recurring and not recurrence_rule:
+            raise forms.ValidationError(_("Recurrence rule is required for recurring appointments."))
+
+        return cleaned_data
 
 
 class ReschedulingForm(forms.ModelForm):

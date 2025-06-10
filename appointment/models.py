@@ -10,7 +10,6 @@ import datetime
 import random
 import string
 import uuid
-from decimal import Decimal, InvalidOperation
 
 from babel.numbers import get_currency_symbol
 from django.conf import settings
@@ -21,7 +20,9 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.modelfields import PhoneNumberField
+from recurrence.fields import RecurrenceField
 
+from appointment.logger_config import get_logger
 from appointment.utils.date_time import convert_minutes_in_human_readable_format, get_timestamp, get_weekday_num, \
     time_difference
 from appointment.utils.view_helpers import generate_random_id, get_locale
@@ -41,6 +42,7 @@ DAYS_OF_WEEK = (
     (6, 'Saturday'),
 )
 
+logger = get_logger(__name__)
 
 def generate_rgb_color():
     hue = random.random()  # Random hue between 0 and 1
@@ -362,6 +364,17 @@ class AppointmentRequest(models.Model):
     def get_reschedule_history(self):
         return self.reschedule_histories.all().order_by('-created_at')
 
+    def is_recurring(self):
+        """Check if this appointment request is recurring."""
+        return hasattr(self, 'recurring_info') and self.recurring_info is not None
+
+    @property
+    def recurrence_description(self):
+        """Get the recurrence description if this is a recurring appointment."""
+        if self.is_recurring():
+            return self.recurring_info.get_recurrence_description()
+        return None
+
 
 class AppointmentRescheduleHistory(models.Model):
     appointment_request = models.ForeignKey(
@@ -614,6 +627,134 @@ class Appointment(models.Model):
         }
 
 
+class RecurringAppointment(models.Model):
+    appointment_request = models.OneToOneField(AppointmentRequest, on_delete=models.CASCADE,
+                                               related_name='recurring_info')
+    recurrence_rule = RecurrenceField()
+    end_date = models.DateField(null=True, blank=True, help_text=_("When the recurring pattern ends"))
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'appointment_recurring_appointment'
+
+    def __str__(self):
+        return f"Recurring: {self.appointment_request}"
+
+    def occurs_on_date(self, target_date):
+        """Check if this recurring appointment occurs on the given date."""
+        if not self.is_active:
+            return False
+
+        if target_date < self.appointment_request.date:
+            return False
+
+        if self.end_date and target_date > self.end_date:
+            return False
+
+        from appointment.utils.date_time import combine_date_and_time
+        from django.utils import timezone
+
+        # Create datetime for the start of this recurring pattern
+        dtstart = combine_date_and_time(self.appointment_request.date, self.appointment_request.start_time)
+        if timezone.is_naive(dtstart):
+            dtstart = timezone.make_aware(dtstart)
+
+        # Check if target_date is in the recurrence pattern
+        target_datetime = combine_date_and_time(target_date, self.appointment_request.start_time)
+        if timezone.is_naive(target_datetime):
+            target_datetime = timezone.make_aware(target_datetime)
+
+        try:
+            # Use django-recurrence to check if this date matches the pattern
+            occurrences = self.recurrence_rule.between(
+                    target_datetime,
+                    target_datetime + timezone.timedelta(days=1),
+                    dtstart=dtstart,
+                    inc=True
+            )
+            return len(occurrences) > 0
+
+        except (AttributeError, ValueError, TypeError) as e:
+            logger.error(f"Error checking recurrence for {self}: {e}")
+            return False
+
+    def get_recurrence_description(self):
+        """Get a human-readable description of the recurrence pattern."""
+        from django.utils.translation import gettext as _
+
+        if not self.recurrence_rule or not self.recurrence_rule.rrules:
+            return None
+
+        rrule = self.recurrence_rule.rrules[0]
+        description_parts = []
+
+        # Handle weekly with specific days
+        if rrule.freq == 2:  # Weekly
+            weekday_map = {
+                0: _('Monday'), 1: _('Tuesday'), 2: _('Wednesday'), 3: _('Thursday'),
+                4: _('Friday'), 5: _('Saturday'), 6: _('Sunday')
+            }
+
+            days = []
+            if hasattr(rrule, 'byday') and rrule.byday:
+                for weekday in rrule.byday:
+                    if isinstance(weekday, int) and weekday in weekday_map:
+                        days.append(str(weekday_map[weekday]))
+
+            if days:
+                if len(days) == 1:
+                    description_parts.append(str(_('Every week on {day}').format(day=days[0])))
+                elif len(days) == 7:
+                    description_parts.append(str(_('Every day')))
+                else:
+                    description_parts.append(str(_('Every week on {days}').format(days=', '.join(days))))
+            else:
+                # If no specific days are set, fall back to using the appointment start date
+                appointment_date = self.appointment_request.date
+                weekday_num = appointment_date.weekday()  # 0=Monday, 6=Sunday
+                day_name = str(weekday_map[weekday_num])
+                description_parts.append(str(_('Every week on {day}').format(day=day_name)))
+
+        elif rrule.freq == 1:  # Monthly
+            # Get the day of the month from the original appointment date
+            appointment_date = self.appointment_request.date
+            day_of_month = appointment_date.day
+
+            # Format with ordinal (1st, 2nd, 3rd, etc.)
+            if 10 <= day_of_month % 100 <= 20:
+                suffix = 'th'
+            else:
+                suffix = {1: 'st', 2: 'nd', 3: 'rd'}.get(day_of_month % 10, 'th')
+
+            description_parts.append(str(_('Every month on the {day}').format(day=f"{day_of_month}{suffix}")))
+
+        elif rrule.freq == 3:  # Daily
+            description_parts.append(str(_('Every day')))
+        elif rrule.freq == 0:  # Yearly
+            # Get the date from the original appointment
+            appointment_date = self.appointment_request.date
+            date_str = appointment_date.strftime('%B %d')  # e.g., "July 15"
+            description_parts.append(str(_('Every year on {date}').format(date=date_str)))
+        else:
+            # Other frequencies
+            freq_map = {
+                4: _('Every hour'),
+                5: _('Every minute'),
+                6: _('Every second')
+            }
+            frequency = freq_map.get(rrule.freq, _('Unknown frequency'))
+            description_parts.append(str(frequency))
+
+        # Add end date if present
+        if self.end_date:
+            description_parts.append(str(_('until {date}').format(date=self.end_date.strftime('%B %d, %Y'))))
+        elif hasattr(rrule, 'until') and rrule.until:
+            description_parts.append(str(_('until {date}').format(date=rrule.until.strftime('%B %d, %Y'))))
+
+        return ' '.join(description_parts)
+
+
 class Config(models.Model):
     """
     Represents configuration settings for the appointment system. There can only be one Config object in the database.
@@ -656,6 +797,10 @@ class Config(models.Model):
     allow_staff_change_on_reschedule = models.BooleanField(
         default=True,
         help_text=_("Allows clients to change the staff member when rescheduling an appointment.")
+    )
+    max_recurring_months = models.PositiveIntegerField(
+        default=3,
+        help_text=_("Maximum number of months a recurring appointment can be set for.")
     )
 
     # meta data

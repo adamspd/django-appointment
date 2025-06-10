@@ -1,4 +1,4 @@
-Django==5.1.7
+Django==5.2.2
 Pillow==11.2.1
 phonenumbers==9.0.7
 django-phonenumber-field==8.1.0
@@ -9,3 +9,4 @@ python-dotenv==1.1.0
 colorama~=0.4.6
 django-q2==1.8.0
 icalendar~=6.3.1
+django-recurrence>=1.11.1
