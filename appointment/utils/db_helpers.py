@@ -388,14 +388,11 @@ def create_recurring_appointment(appointment_request, recurrence_rule, end_date=
     """Create a recurring appointment from an existing AppointmentRequest."""
     from appointment.models import RecurringAppointment
 
-    recurring_appointment = RecurringAppointment.objects.create(
+    return RecurringAppointment.objects.create(
             appointment_request=appointment_request,
             recurrence_rule=_parse_recurrence_rule(recurrence_rule),
             end_date=end_date
     )
-
-    logger.info(f"Created recurring appointment: {recurring_appointment}")
-    return recurring_appointment
 
 
 def _parse_recurrence_rule(recurrence_rule_string):
