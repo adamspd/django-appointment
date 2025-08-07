@@ -16,6 +16,35 @@
 [![Django compatible version](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/adamspd/django-appointment/main/django_compatible.json)](https://github.com/adamspd/django-appointment/blob/main/compatibility_matrix.md)
 [![Python compatible version](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/adamspd/django-appointment/main/python_compatible.json)](https://github.com/adamspd/django-appointment/blob/main/compatibility_matrix.md)
 
+Django-Appointment is a Django app engineered for managing appointment scheduling with ease and flexibility. It enables
+users to define custom configurations for time slots, lead time, and finish time, or use the default values
+provided. This app proficiently manages conflicts and availability for appointments, ensuring a seamless user
+experience.
+
+## 🚨 STOP! Try the Demo First 🚨
+
+**Before you install anything, go play with the live demo:**
+
+### 👉 [**LIVE DEMO**](https://django-appt.adamspierredavid.com/) 👈
+
+**Seriously, it will help you get less confused about how the system works.** The demo shows you exactly what you're getting into and will save you (and me) a lot of headaches.
+
+**What you'll see in the demo:**
+- 📅 How the appointment booking interface works
+- ⚙️ How the admin configuration affects the frontend
+- 📧 Email notifications in action 
+- 🔄 Conflict resolution and availability management
+
+⚠️ **Important**: Use **real email addresses** or `okfiw@thenightcoders.tech` if you don't care about testing the email notification and/or you're concerned about using your personal email. Sending notifications to too many fake emails **will get my server blacklisted** by Gmail/Yahoo/etc., and I'll have to **kill the demo for everyone** before this happens - **my email server matters more** than your testing convenience. 
+
+**Privacy note**: A crontab erases the demo database every 2 hours, so I don't collect or store your email addresses - I have zero interest in doing so.
+
+For the record: yes, I know when you use fake emails because Google and the others **bounce them back to me**, and I monitor the demo email account specifically for this.
+
+*Note: Please read the [terms of use](https://django-appt.adamspierredavid.com/terms-and-conditions/) before using the demo.*
+
+---
+
 🆕 **New**: The documentation website is now
 available [here](https://django-appt-doc.adamspierredavid.com). It includes reasons for using the
 application, its features, and detailed configuration instructions.
@@ -25,11 +54,6 @@ version 2.0.0. Please read
 the [migration guide](https://github.com/adamspd/django-appointment/tree/main/docs/migration_guides/v2_1_0.md) before
 updating. Version 3.x.x introduces the ability to send email reminders for appointments using Django Q for efficient
 task scheduling. It also allows clients to reschedule appointments if it is allowed by admins.
-
-Django-Appointment is a Django app engineered for managing appointment scheduling with ease and flexibility. It enables
-users to define custom configurations for time slots, lead time, and finish time, or use the default values
-provided. This app proficiently manages conflicts and availability for appointments, ensuring a seamless user
-experience.
 
 For a detailed walkthrough and live example of the system, please refer to
 [this tutorial](https://github.com/adamspd/django-appointment/tree/main/docs/explanation.md).
@@ -65,6 +89,8 @@ For older version,
 see their [release notes](https://github.com/adamspd/django-appointment/tree/main/docs/release_notes).
 
 ## Quick Start 🚀
+
+⚠️ **Haven't tried the demo yet?** Go [here](https://django-appt.adamspierredavid.com/) first - it'll make everything clearer.
 
 1. Install Django-Appointment in your project using pip:
 
@@ -394,15 +420,6 @@ more information.
 
 Please refer to the [security policy](https://github.com/adamspd/django-appointment/tree/main/SECURITY.md) for more
 information.
-
-## Notes 📝⚠️
-
-I'm working on a testing website for the application that is not fully functional yet, no hard feelings. Before using
-it,
-it's important to me that you read the terms of use, only then you can use it if you agree to them. The demo website is
-located
-at [https://django-appt.adamspierredavid.com/](https://django-appt.adamspierredavid.com/terms-and-conditions/). Ideas
-are welcome.
 
 ## About the Author
 
