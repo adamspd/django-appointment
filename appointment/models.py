@@ -10,7 +10,6 @@ import datetime
 import random
 import string
 import uuid
-from decimal import Decimal, InvalidOperation
 
 from babel.numbers import get_currency_symbol
 from django.conf import settings
@@ -32,13 +31,13 @@ PAYMENT_TYPES = (
 )
 
 DAYS_OF_WEEK = (
-    (0, 'Sunday'),
-    (1, 'Monday'),
-    (2, 'Tuesday'),
-    (3, 'Wednesday'),
-    (4, 'Thursday'),
-    (5, 'Friday'),
-    (6, 'Saturday'),
+    (0, _('Sunday')),
+    (1, _('Monday')),
+    (2, _('Tuesday')),
+    (3, _('Wednesday')),
+    (4, _('Thursday')),
+    (5, _('Friday')),
+    (6, _('Saturday')),
 )
 
 
@@ -65,26 +64,62 @@ class Service(models.Model):
     Version: 1.1.0
     Since: 1.0.0
     """
-    name = models.CharField(max_length=100, blank=False)
-    description = models.TextField(blank=True, null=True)
-    duration = models.DurationField(validators=[MinValueValidator(datetime.timedelta(seconds=1))])
-    price = models.DecimalField(max_digits=8, decimal_places=2, validators=[MinValueValidator(0)])
-    down_payment = models.DecimalField(max_digits=6, decimal_places=2, default=0, validators=[MinValueValidator(0)])
-    image = models.ImageField(upload_to='services/', blank=True, null=True)
-    currency = models.CharField(max_length=3, default='USD', validators=[MaxLengthValidator(3), MinLengthValidator(3)])
-    background_color = models.CharField(max_length=50, null=True, blank=True, default=generate_rgb_color)
+    name = models.CharField(max_length=100, blank=False, verbose_name=_('Name'))
+    description = models.TextField(blank=True, null=True, verbose_name=_('Description'))
+    duration = models.DurationField(
+        validators=[MinValueValidator(datetime.timedelta(seconds=1))],
+        verbose_name=_("Duration")
+    )
+    price = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        validators=[MinValueValidator(0)],
+        verbose_name=_("Price")
+    )
+    down_payment = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        default=0,
+        validators=[MinValueValidator(0)],
+        verbose_name=_("Down Payment")
+    )
+    image = models.ImageField(upload_to='services/', blank=True, null=True, verbose_name=_('Image'), )
+    currency = models.CharField(
+        max_length=3,
+        default='USD',
+        validators=[MaxLengthValidator(3), MinLengthValidator(3)],
+        verbose_name=_("Currency")
+    )
+    background_color = models.CharField(
+        max_length=50,
+        null=True,
+        blank=True,
+        default=generate_rgb_color,
+        verbose_name=_("Background Color")
+    )
     reschedule_limit = models.PositiveIntegerField(
         default=0,
-        help_text=_("Maximum number of times an appointment can be rescheduled.")
+        help_text=_("Maximum number of times an appointment can be rescheduled."),
+        verbose_name=_("Reschedule limit")
     )
     allow_rescheduling = models.BooleanField(
         default=False,
-        help_text=_("Indicates whether appointments for this service can be rescheduled.")
+        help_text=_("Indicates whether appointments for this service can be rescheduled."),
+        verbose_name=_("Allow Rescheduling")
     )
 
     # meta data
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Created At'))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_('Updated At'))
+
+    class Meta:
+        verbose_name = _('Service')
+        verbose_name_plural = _('Services')
+        ordering = ['name']  # alphabetical by default
+        indexes = [
+            models.Index(fields=['name']),
+            models.Index(fields=['price']),
+        ]
 
     def __str__(self):
         return self.name
@@ -132,7 +167,7 @@ class Service(models.Model):
 
     def get_price_text(self):
         if self.price == 0:
-            return "Free"
+            return _("Free")
         else:
             return f"{self.get_price()}{self.get_currency_icon()}"
 
@@ -160,33 +195,54 @@ class Service(models.Model):
 
 
 class StaffMember(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    services_offered = models.ManyToManyField(Service)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name=_("User"))
+    services_offered = models.ManyToManyField(
+        Service,
+        verbose_name=_("Services Offered"),
+        help_text=_("Services that this staff member provides.")
+    )
     slot_duration = models.PositiveIntegerField(
         null=True, blank=True,
+        verbose_name=_("Slot Duration"),
         help_text=_("Minimum time for an appointment in minutes, recommended 30.")
     )
     lead_time = models.TimeField(
         null=True, blank=True,
+        verbose_name=_("Lead Time"),
         help_text=_("Time when the staff member starts working.")
     )
     finish_time = models.TimeField(
         null=True, blank=True,
+        verbose_name=_("Finish Time"),
         help_text=_("Time when the staff member stops working.")
     )
     appointment_buffer_time = models.FloatField(
         blank=True, null=True,
+        verbose_name=_("Appointment Buffer Time"),
         help_text=_("Time between now and the first available slot for the current day (doesn't affect tomorrow). "
                     "e.g: If you start working at 9:00 AM and the current time is 8:30 AM and you set it to 30 "
                     "minutes, the first available slot will be at 9:00 AM. If you set the appointment buffer time to "
                     "60 minutes, the first available slot will be at 9:30 AM.")
     )
-    work_on_saturday = models.BooleanField(default=False)
-    work_on_sunday = models.BooleanField(default=False)
+    work_on_saturday = models.BooleanField(
+        default=False,
+        verbose_name=_("Work on Saturday"),
+        help_text=_("Indicates whether this staff member works on Saturdays.")
+    )
+    work_on_sunday = models.BooleanField(
+        default=False,
+        verbose_name=_("Work on Sunday"),
+        help_text=_("Indicates whether this staff member works on Sundays.")
+    )
 
     # meta data
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_("Updated At"))
+
+    class Meta:
+        verbose_name = _("Staff Member")
+        verbose_name_plural = _("Staff Members")
+        ordering = ['user__first_name', 'user__last_name']
 
     def __str__(self):
         return f"{self.get_staff_member_name()}"
@@ -283,18 +339,42 @@ class AppointmentRequest(models.Model):
     Author: Adams Pierre David
     Since: 1.0.0
     """
-    date = models.DateField()
-    start_time = models.TimeField()
-    end_time = models.TimeField()
-    service = models.ForeignKey(Service, on_delete=models.CASCADE)
-    staff_member = models.ForeignKey(StaffMember, on_delete=models.SET_NULL, null=True)
-    payment_type = models.CharField(max_length=4, choices=PAYMENT_TYPES, default='full')
-    id_request = models.CharField(max_length=100, blank=True, null=True)
-    reschedule_attempts = models.PositiveIntegerField(default=0)
+    date = models.DateField(verbose_name=_("Date"), help_text=_("The date of the appointment request."))
+    start_time = models.TimeField(
+        verbose_name=_("Start Time"),
+        help_text=_("The start time of the appointment request.")
+    )
+    end_time = models.TimeField(
+        verbose_name=_("End Time"),
+        help_text=_("The end time of the appointment request.")
+    )
+    service = models.ForeignKey(Service, on_delete=models.CASCADE, verbose_name=_("Service"))
+    staff_member = models.ForeignKey(StaffMember, on_delete=models.SET_NULL, null=True, verbose_name=_("Staff Member"))
+    payment_type = models.CharField(
+        max_length=4,
+        choices=PAYMENT_TYPES,
+        default='full',
+        verbose_name=_("Payment Type")
+    )
+    id_request = models.CharField(max_length=100, blank=True, null=True, verbose_name=_("Request ID"))
+    reschedule_attempts = models.PositiveIntegerField(
+        default=0,
+        verbose_name=_("Reschedule Attempts"),
+        help_text=_("Number of times this appointment has been rescheduled.")
+    )
 
     # meta data
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_("Updated At"))
+
+    class Meta:
+        verbose_name = _("Appointment Request")
+        verbose_name_plural = _("Appointment Requests")
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['date', 'start_time']),
+            models.Index(fields=['staff_member', 'date']),
+        ]
 
     def __str__(self):
         return f"{self.date} - {self.start_time} to {self.end_time} - {self.service.name}"
@@ -366,34 +446,52 @@ class AppointmentRequest(models.Model):
 class AppointmentRescheduleHistory(models.Model):
     appointment_request = models.ForeignKey(
         'AppointmentRequest',
-        on_delete=models.CASCADE, related_name='reschedule_histories'
+        on_delete=models.CASCADE, related_name='reschedule_histories',
+        verbose_name=_("Appointment Request"),
+        help_text=_("The appointment request made by a client.")
     )
-    date = models.DateField(help_text=_("The previous date of the appointment before it was rescheduled."))
+    date = models.DateField(
+        verbose_name=_("Date"),
+        help_text=_("The previous date of the appointment before it was rescheduled.")
+    )
     start_time = models.TimeField(
+        verbose_name=_("Start Time"),
         help_text=_("The previous start time of the appointment before it was rescheduled.")
     )
     end_time = models.TimeField(
+        verbose_name=_("End Time"),
         help_text=_("The previous end time of the appointment before it was rescheduled.")
     )
     staff_member = models.ForeignKey(
         StaffMember, on_delete=models.SET_NULL, null=True,
+        verbose_name=_("Staff Member"),
         help_text=_("The previous staff member of the appointment before it was rescheduled.")
     )
     reason_for_rescheduling = models.TextField(
         blank=True, null=True,
+        verbose_name=_("Reason for Rescheduling"),
         help_text=_("Reason for the appointment reschedule.")
     )
     reschedule_status = models.CharField(
         max_length=10,
-        choices=[('pending', 'Pending'), ('confirmed', 'Confirmed')],
+        choices=[('pending', _('Pending')), ('confirmed', _('Confirmed'))],
         default='pending',
+        verbose_name=_("Reschedule Status"),
         help_text=_("Indicates the status of the reschedule action.")
     )
-    id_request = models.CharField(max_length=100, blank=True, null=True)
+    id_request = models.CharField(max_length=100, blank=True, null=True, verbose_name=_("Request ID"),)
 
     # meta data
-    created_at = models.DateTimeField(auto_now_add=True, help_text=_("The date and time the reschedule was recorded."))
-    updated_at = models.DateTimeField(auto_now=True, help_text=_("The date and time the reschedule was confirmed."))
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name=_("Created At"),
+        help_text=_("The date and time the reschedule was recorded.")
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name=_("Updated At"),
+        help_text=_("The date and time the reschedule was confirmed.")
+    )
 
     class Meta:
         verbose_name = _("Appointment Reschedule History")
@@ -431,20 +529,69 @@ class Appointment(models.Model):
     Version: 1.1.0
     Since: 1.0.0
     """
-    client = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
-    appointment_request = models.OneToOneField(AppointmentRequest, on_delete=models.CASCADE)
-    phone = PhoneNumberField(blank=True)
-    address = models.CharField(max_length=255, blank=True, null=True, default="",
-                               help_text=_("Does not have to be specific, just the city and the state"))
-    want_reminder = models.BooleanField(default=False)
-    additional_info = models.TextField(blank=True, null=True)
-    paid = models.BooleanField(default=False)
-    amount_to_pay = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    id_request = models.CharField(max_length=100, blank=True, null=True)
+    client = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        verbose_name=_("Client"),
+        help_text=_("The user who made the appointment request.")
+    )
+    appointment_request = models.OneToOneField(
+        AppointmentRequest,
+        on_delete=models.CASCADE,
+        verbose_name=_("Appointment Request"),
+        help_text=_("The appointment request made by the client.")
+    )
+    phone = PhoneNumberField(blank=True, verbose_name=_("Phone Number"))
+    address = models.CharField(
+        max_length=255,
+        blank=True, null=True,
+        default="",
+        verbose_name=_("Address"),
+        help_text=_("Does not have to be specific, just the city and the state")
+    )
+    want_reminder = models.BooleanField(
+        default=False,
+        verbose_name=_("Want Reminder"),
+        help_text=_("Indicates whether the client wants a reminder for the appointment.")
+    )
+    additional_info = models.TextField(
+        blank=True, null=True,
+        verbose_name=_("Additional Info"),
+        help_text=_("Any additional information the client wants to provide for the appointment.")
+    )
+    paid = models.BooleanField(
+        default=False,
+        verbose_name=_("Paid"),
+        help_text=_("Indicates whether the appointment has been paid for.")
+    )
+    amount_to_pay = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        blank=True, null=True,
+        verbose_name=_("Amount to Pay"),
+        help_text=_("The amount to be paid for the appointment. "
+                    "If 0, it means the appointment is free or already paid.")
+    )
+    id_request = models.CharField(max_length=100, blank=True, null=True, verbose_name=_("Request ID"))
 
     # meta datas
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_("Updated At"))
+
+    class Meta:
+        verbose_name = _("Appointment")
+        verbose_name_plural = _("Appointments")
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['client', '-created_at']),
+        ]
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(amount_to_pay__gte=0),
+                name='positive_amount_to_pay'
+            )
+        ]
 
     def __str__(self):
         return f"{self.client} - " \
@@ -625,42 +772,55 @@ class Config(models.Model):
     """
     slot_duration = models.PositiveIntegerField(
         null=True,
+        verbose_name=_("Slot Duration"),
         help_text=_("Minimum time for an appointment in minutes, recommended 30."),
     )
     lead_time = models.TimeField(
         null=True,
+        verbose_name=_("Lead Time"),
         help_text=_("Time when we start working."),
     )
     finish_time = models.TimeField(
         null=True,
+        verbose_name=_("Finish Time"),
         help_text=_("Time when we stop working."),
     )
     appointment_buffer_time = models.FloatField(
         null=True,
+        verbose_name=_("Appointment Buffer Time"),
         help_text=_("Time between now and the first available slot for the current day (doesn't affect tomorrow)."),
     )
     website_name = models.CharField(
         max_length=255,
         default="",
+        verbose_name=_("Website Name"),
         help_text=_("Name of your website."),
     )
     app_offered_by_label = models.CharField(
         max_length=255,
         default=_("Offered by"),
+        verbose_name=_("`Offered by` Label"),
         help_text=_("Label for `Offered by` on the appointment page")
     )
     default_reschedule_limit = models.PositiveIntegerField(
         default=3,
+        verbose_name=_("Default Reschedule Limit"),
         help_text=_("Default maximum number of times an appointment can be rescheduled across all services.")
     )
     allow_staff_change_on_reschedule = models.BooleanField(
         default=True,
+        verbose_name=_("Allow Staff Change on Reschedule"),
         help_text=_("Allows clients to change the staff member when rescheduling an appointment.")
     )
 
     # meta data
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_("Updated At"))
+
+    class Meta:
+        verbose_name = _("Config")
+        verbose_name_plural = _("Configs")
+        ordering = ['-created_at']
 
     def clean(self):
         if Config.objects.exists() and not self.pk:
@@ -699,11 +859,16 @@ class PaymentInfo(models.Model):
     Version: 1.1.0
     Since: 1.0.0
     """
-    appointment = models.ForeignKey(Appointment, on_delete=models.CASCADE)
+    appointment = models.ForeignKey(Appointment, on_delete=models.CASCADE, verbose_name=_("Appointment"))
 
     # meta data
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_("Updated At"))
+
+    class Meta:
+        verbose_name = _("Payment Info")
+        verbose_name_plural = _("Payment Infos")
+        ordering = ['-created_at']
 
     def __str__(self):
         return f"{self.appointment.get_service_name()} - {self.appointment.get_service_price()}"
@@ -744,12 +909,21 @@ class EmailVerificationCode(models.Model):
     Version: 1.1.0
     Since: 1.1.0
     """
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    code = models.CharField(max_length=6)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name=_("User"))
+    code = models.CharField(
+        max_length=6,
+        verbose_name=_("Verification Code"),
+        help_text=_("The verification code sent to the user's email.")
+    )
 
     # meta data
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_("Updated At"))
+
+    class Meta:
+        verbose_name = _("Email Verification Code")
+        verbose_name_plural = _("Email Verification Codes")
+        ordering = ['-created_at']
 
     def __str__(self):
         return f"{self.code}"
@@ -775,18 +949,33 @@ class PasswordResetToken(models.Model):
     """
 
     class TokenStatus(models.TextChoices):
-        ACTIVE = 'active', 'Active'
-        VERIFIED = 'verified', 'Verified'
-        INVALIDATED = 'invalidated', 'Invalidated'
+        ACTIVE = 'active', _('Active')
+        VERIFIED = 'verified', _('Verified')
+        INVALIDATED = 'invalidated', _('Invalidated')
 
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='password_reset_tokens')
-    token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    expires_at = models.DateTimeField()
-    status = models.CharField(max_length=11, choices=TokenStatus.choices, default=TokenStatus.ACTIVE)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='password_reset_tokens',
+        verbose_name=_("User"),
+    )
+    token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, verbose_name=_("Token"))
+    expires_at = models.DateTimeField(verbose_name=_("Expires At"))
+    status = models.CharField(
+        max_length=11,
+        choices=TokenStatus.choices,
+        default=TokenStatus.ACTIVE,
+        verbose_name=_("Status"),
+    )
 
     # meta data
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_("Updated At"))
+
+    class Meta:
+        verbose_name = _("Password Reset Token")
+        verbose_name_plural = _("Password Reset Tokens")
+        ordering = ['-created_at']
 
     def __str__(self):
         return f"Password reset token for {self.user} [{self.token} status: {self.status} expires at {self.expires_at}]"
@@ -844,14 +1033,19 @@ class PasswordResetToken(models.Model):
 
 
 class DayOff(models.Model):
-    staff_member = models.ForeignKey(StaffMember, on_delete=models.CASCADE)
-    start_date = models.DateField()
-    end_date = models.DateField()
-    description = models.CharField(max_length=255, blank=True, null=True)
+    staff_member = models.ForeignKey(StaffMember, on_delete=models.CASCADE, verbose_name=_("Staff Member"))
+    start_date = models.DateField(verbose_name=_("Start Date"))
+    end_date = models.DateField(verbose_name=_("End Date"))
+    description = models.CharField(max_length=255, blank=True, null=True, verbose_name=_("Description"))
 
     # meta data
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_("Updated At"))
+
+    class Meta:
+        verbose_name = _("Day Off")
+        verbose_name_plural = _("Days Off")
+        ordering = ['-start_date']
 
     def __str__(self):
         return f"{self.start_date} to {self.end_date} - {self.description if self.description else 'Day off'}"
@@ -866,14 +1060,26 @@ class DayOff(models.Model):
 
 
 class WorkingHours(models.Model):
-    staff_member = models.ForeignKey(StaffMember, on_delete=models.CASCADE)
-    day_of_week = models.PositiveIntegerField(choices=DAYS_OF_WEEK)
-    start_time = models.TimeField()
-    end_time = models.TimeField()
+    staff_member = models.ForeignKey(StaffMember, on_delete=models.CASCADE, verbose_name=_("Staff Member"))
+    day_of_week = models.PositiveIntegerField(choices=DAYS_OF_WEEK, verbose_name=_("Day of Week"))
+    start_time = models.TimeField(verbose_name=_("Start Time"))
+    end_time = models.TimeField(verbose_name=_("End Time"))
 
     # meta data
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_("Updated At"))
+
+    class Meta:
+        verbose_name = _("Working Hour")
+        verbose_name_plural = _("Working Hours")
+        ordering = ['day_of_week', 'start_time']
+        unique_together = ['staff_member', 'day_of_week']
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(start_time__lt=models.F('end_time')),
+                name='start_time_before_end_time'
+            )
+        ]
 
     def __str__(self):
         return f"{self.get_day_of_week_display()} - {self.start_time} to {self.end_time}"
@@ -905,8 +1111,3 @@ class WorkingHours(models.Model):
 
     def is_owner(self, user_id):
         return self.staff_member.user.id == user_id
-
-    class Meta:
-        verbose_name = "Working Hour"
-        verbose_name_plural = "Working Hours"
-        unique_together = ['staff_member', 'day_of_week']
