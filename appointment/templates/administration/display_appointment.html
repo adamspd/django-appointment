@@ -17,67 +17,131 @@
     <section class="content content-wrapper">
         <div class="appointment-display-content">
             <div class="app-content">
-                <div class="appointment-card">
-                    <h2>{{ page_title }}</h2>
-                    <div class="appointment-details">
-                        <div class="appointment-detail hover-element">
-                            <i class="fas fa-calendar-alt"></i>
-                            <strong>{% trans 'Date' %}:</strong> {{ appointment.get_date }}
+                <!-- Header -->
+                <div class="appointment-header">
+                    <h1 class="appointment-title">{{ page_title }}</h1>
+                    <p class="appointment-subtitle">{{ page_description }}</p>
+                </div>
+
+                <!-- Main content -->
+                <div class="appointment-content">
+                    <!-- Left Panel - Details -->
+                    <div class="details-panel">
+                        <!-- Timing Information -->
+                        <div class="detail-group">
+                            <h3>
+                                <i class="fas fa-calendar-alt"></i>
+                                {% trans 'Schedule' %}
+                            </h3>
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans 'Date' %}</span>
+                                <span class="detail-value">{{ appointment.get_date }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans 'Start time' %}</span>
+                                <span class="detail-value">{{ appointment.get_start_time|time:"g:i A" }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans 'End time' %}</span>
+                                <span class="detail-value">{{ appointment.get_end_time|time:"g:i A" }}</span>
+                            </div>
                         </div>
-                        <div class="appointment-detail hover-element">
-                            <i class="fas fa-clock"></i>
-                            <strong>{% trans 'Start time' %}:</strong> {{ appointment.get_start_time|time:"g:i A" }}
+
+                        <!-- Service Information -->
+                        <div class="detail-group">
+                            <h3>
+                                <i class="fas fa-hands-helping"></i>
+                                {% trans 'Service' %}
+                            </h3>
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans 'Service' %}</span>
+                                <span class="detail-value">{{ appointment.get_service_name }}</span>
+                            </div>
                         </div>
-                        <div class="appointment-detail hover-element">
-                            <i class="fas fa-clock"></i>
-                            <strong>{% trans 'End time' %}:</strong> {{ appointment.get_end_time|time:"g:i A" }}
+
+                        <!-- Client Information -->
+                        <div class="detail-group">
+                            <h3>
+                                <i class="fas fa-user"></i>
+                                {% trans 'Client Details' %}
+                            </h3>
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans 'Client' %}</span>
+                                <span class="detail-value">{{ appointment.get_client_name }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans 'Email' %}</span>
+                                <span class="detail-value">{{ appointment.client.email }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans 'Phone' %}</span>
+                                <span class="detail-value">{{ appointment.phone }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans 'Client address' %}</span>
+                                <span class="detail-value">{{ appointment.address }}</span>
+                            </div>
                         </div>
-                        <div class="appointment-detail hover-element">
-                            <i class="fas fa-hands-helping"></i>
-                            <strong>{% trans 'Service' %}:</strong> {{ appointment.get_service_name }}
+
+                        <!-- Additional Information -->
+                        <div class="detail-group">
+                            <h3>
+                                <i class="fas fa-info-circle"></i>
+                                {% trans 'Notes' %}
+                            </h3>
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans 'Wants reminder' %}</span>
+                                <span class="detail-value">{{ appointment.wants_reminder_text }}</span>
+                            </div>
+                            {% if appointment.additional_info %}
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans 'Additional Information' %}</span>
+                                <span class="detail-value">{{ appointment.additional_info }}</span>
+                            </div>
+                            {% endif %}
                         </div>
-                        <div class="appointment-detail hover-element">
-                            <i class="fas fa-user"></i>
-                            <strong>{% trans 'Client' %}:</strong> {{ appointment.get_client_name }}
-                        </div>
-                        <div class="appointment-detail hover-element">
-                            <i class="fas fa-envelope"></i>
-                            <strong>{% trans 'Email' %}:</strong> {{ appointment.client.email }}
-                        </div>
-                        <div class="appointment-detail hover-element">
-                            <i class="fas fa-phone"></i>
-                            <strong>{% trans 'Phone' %}:</strong> {{ appointment.phone }}
-                        </div>
-                        <div class="appointment-detail hover-element">
-                            <i class="fas fa-comment"></i>
-                            <strong>{% trans 'Wants reminder' %}:</strong> {{ appointment.want_reminder }}
-                        </div>
-                        <div class="appointment-detail hover-element">
-                            <i class="fas fa-map-marker-alt"></i>
-                            <strong>{% trans 'Client address' %}:</strong> {{ appointment.address }}
-                        </div>
-                        <div class="appointment-detail hover-element">
-                            <i class="fas fa-info-circle"></i>
-                            <strong>{% trans 'Additional Information' %}:</strong> {{ appointment.additional_info }}
-                        </div>
-                        <div class="appointment-detail {% if appointment.is_paid %} is-paid-true {% else %} is-paid-false {% endif %}">
-                            <i class="fas fa-money-bill-wave"></i>
-                            <strong>{% trans 'Is paid' %}:</strong> {{ appointment.is_paid_text }}
-                        </div>
-                        <div class="appointment-detail hover-element">
-                            <i class="fas fa-dollar-sign"></i>
-                            <strong>{% trans 'Service price' %}:</strong> {{ appointment.get_appointment_amount_to_pay_text }}
+                    </div>
+
+                    <!-- Right Panel - Status -->
+                    <div class="status-panel">
+                        <!-- Payment Status -->
+                        <div class="status-card {% if appointment.is_paid %}paid{% else %}unpaid{% endif %}">
+                            <div class="status-icon">
+                                {% if appointment.is_paid %}
+                                    <i class="fas fa-check-circle"></i>
+                                {% else %}
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                {% endif %}
+                            </div>
+                            <div class="status-text">
+                                {% if appointment.is_paid %}
+                                    {% trans 'Payment Complete' %}
+                                {% else %}
+                                    {% trans 'Payment Pending' %}
+                                {% endif %}
+                            </div>
+                            <div class="status-amount">{{ appointment.get_appointment_amount_to_pay_text }}</div>
+                            <p style="opacity: 0.5; margin-top: -1.5rem;">
+                                {% if appointment.is_paid %}
+                                    {% trans 'Paid in full' %}
+                                {% else %}
+                                    {% trans 'Amount due' %}
+                                {% endif %}
+                            </p>
                         </div>
                     </div>
                 </div>
-                <div class="messages" style="margin: 20px 0">
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
-                                 role="alert">{{ message }}</div>
-                        {% endfor %}
-                    {% endif %}
+
+                <!-- Messages -->
+                {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                        <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}" role="alert">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
                 </div>
+                {% endif %}
             </div>
         </div>
     </section>
