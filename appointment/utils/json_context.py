@@ -9,6 +9,7 @@ Since: 2.0.0
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
+from django.utils import translation
 
 from appointment.settings import APPOINTMENT_ADMIN_BASE_TEMPLATE, APPOINTMENT_BASE_TEMPLATE
 from appointment.utils.db_helpers import username_in_user_model
@@ -52,10 +53,14 @@ def json_response(message, status=200, success=True, custom_data=None, error_cod
 
 def get_generic_context(request, admin=True):
     """Get the generic context for the admin pages."""
+    current_lang = translation.get_language() or 'en'
+    # FullCalendar expects 'fr' not 'fr-FR'
+    locale = current_lang.split('-')[0] if '-' in current_lang else current_lang
     return {
         'BASE_TEMPLATE': APPOINTMENT_ADMIN_BASE_TEMPLATE if admin else APPOINTMENT_BASE_TEMPLATE,
         'user': request.user,
         'is_superuser': request.user.is_superuser,
+        'locale': locale
     }
 
 
