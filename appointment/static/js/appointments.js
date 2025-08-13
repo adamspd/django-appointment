@@ -3,6 +3,7 @@ let nextAvailableDateSelector = $('.djangoAppt_next-available-date')
 const body = $('body');
 let nonWorkingDays = [];
 let selectedDate = rescheduledDate || null;
+let selectedDateIso = null;
 let staffId = $('#staff_id').val() || null;
 let previouslySelectedCell = null;
 let isRequestInProgress = false;
@@ -11,9 +12,17 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
     initialView: 'dayGridMonth',
     initialDate: selectedDate,
     timeZone: timezone,
+    locale: locale,
     headerToolbar: {
         left: 'title',
         right: 'prev,today,next',
+    },
+    buttonText: {
+        today: todayBtnText,
+    },
+    buttonHints: {
+        prev: previousMonthBtnText,
+        next: nextMonthBtnText,
     },
     height: '400px',
     themeSystem: 'bootstrap',
@@ -65,8 +74,6 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
     },
 });
 
-calendar.setOption('locale', locale);
-
 $(document).ready(function () {
     staffId = $('#staff_id').val() || null;
     calendar.render();
@@ -92,25 +99,49 @@ body.on('click', '.djangoAppt_btn-request-next-slot', function () {
 body.on('click', '.btn-submit-appointment', function () {
     const selectedSlot = $('.djangoAppt_appointment-slot.selected').text();
     const selectedDate = $('.djangoAppt_date_chosen').text();
+
+    console.log("=== FORM SUBMISSION DEBUG ===");
+    console.log("selectedSlot:", selectedSlot);
+    console.log("selectedDate:", selectedDate);
+    console.log("selectedDateIso:", selectedDateIso);
+    console.log("serviceId:", serviceId);
+    console.log("serviceDuration:", serviceDuration);
+
     if (!selectedSlot || !selectedDate) {
+        console.log("VALIDATION FAILED: Missing slot or date");
         alert(selectDateAndTimeAlertTxt);
         return;
     }
-    if (selectedSlot && selectedDate) {
-        const startTime = convertTo24Hour(selectedSlot);
-        const APPOINTMENT_BASE_TEMPLATE = localStorage.getItem('APPOINTMENT_BASE_TEMPLATE');
-        // Convert the selectedDate string to a valid format
-        const dateParts = selectedDate.split(', ');
-        const monthDayYear = dateParts[1] + "," + dateParts[2];
-        const formattedDate = new Date(monthDayYear + " " + startTime);
 
-        const date = formattedDate.toISOString().slice(0, 10);
+    if (selectedSlot && selectedDateIso) {
+        const startTime = convertTo24Hour(selectedSlot);
+        const date = selectedDateIso;
+
+        console.log("startTime:", startTime);
+        console.log("date (ISO):", date);
+
+        // Calculate end time using ISO date instead of localized date
+        const formattedDate = new Date(selectedDateIso + "T" + startTime + ":00");
+        console.log("formattedDate:", formattedDate);
+
         const endTimeDate = new Date(formattedDate.getTime() + serviceDuration * 60000);
+        console.log("endTimeDate:", endTimeDate);
+
         const endTime = formatTime(endTimeDate);
+        console.log("endTime:", endTime);
+
         const reasonForRescheduling = $('#reason_for_rescheduling').val();
         const form = $('.appointment-form');
         let formAction = rescheduledDate ? appointmentRescheduleURL : appointmentRequestSubmitURL;
         form.attr('action', formAction);
+
+        console.log("Form data to be sent:");
+        console.log("- date:", date);
+        console.log("- start_time:", startTime);
+        console.log("- end_time:", endTime);
+        console.log("- service:", serviceId);
+        console.log("- reason_for_rescheduling:", reasonForRescheduling);
+
         if (!form.find('input[name="appointment_request_id"]').length) {
             form.append($('<input>', {
                 type: 'hidden',
@@ -118,13 +149,20 @@ body.on('click', '.btn-submit-appointment', function () {
                 value: appointmentRequestId
             }));
         }
+
         form.append($('<input>', {type: 'hidden', name: 'date', value: date}));
         form.append($('<input>', {type: 'hidden', name: 'start_time', value: startTime}));
         form.append($('<input>', {type: 'hidden', name: 'end_time', value: endTime}));
         form.append($('<input>', {type: 'hidden', name: 'service', value: serviceId}));
         form.append($('<input>', {type: 'hidden', name: 'reason_for_rescheduling', value: reasonForRescheduling}));
+
+        console.log("About to submit form");
         form.submit();
     } else {
+        console.log("VALIDATION FAILED: selectedSlot or selectedDateIso is missing");
+        console.log("selectedSlot:", selectedSlot);
+        console.log("selectedDateIso:", selectedDateIso);
+
         const warningContainer = $('.warning-message');
         if (warningContainer.find('submit-warning') === 0) {
             warningContainer.append('<p class="submit-warning">' + selectTimeSlotWarningTxt + '</p>');
@@ -309,6 +347,7 @@ function getAvailableSlots(selectedDate, staffId = null) {
                 });
             }
             // Update the date chosen
+            selectedDateIso = data.date_iso;
             $('.djangoAppt_date_chosen').text(data.date_chosen);
             $('#service-datetime-chosen').text(data.date_chosen);
             isRequestInProgress = false;
@@ -341,8 +380,8 @@ function requestNextAvailableSlot(serviceId) {
                 // Set the date in the calendar to the next available date
                 nextAvailableDateResponse = data.next_available_date;
                 const selectedDateObj = moment.tz(nextAvailableDateResponse, timezone);
-                const nextAvailableDate = selectedDateObj.toDate();
-                formattedDate = new Intl.DateTimeFormat('en-US', {
+                const nextAvailableDate = selectedDateObj.toDate()
+                formattedDate = new Intl.DateTimeFormat(locale, {
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric'
