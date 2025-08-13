@@ -18,7 +18,7 @@ from django.core.validators import MaxLengthValidator, MinLengthValidator, MinVa
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext_lazy as _, ngettext
 from phonenumber_field.modelfields import PhoneNumberField
 
 from appointment.utils.date_time import convert_minutes_in_human_readable_format, get_timestamp, get_weekday_num, \
@@ -145,13 +145,32 @@ class Service(models.Model):
         parts = []
 
         if days:
-            parts.append(f"{days} day{'s' if days > 1 else ''}")
+            parts.append(ngettext(
+                    "%(count)d day",
+                    "%(count)d days",
+                    days
+            ) % {'count': days})
+
         if hours:
-            parts.append(f"{hours} hour{'s' if hours > 1 else ''}")
+            parts.append(ngettext(
+                    "%(count)d hour",
+                    "%(count)d hours",
+                    hours
+            ) % {'count': hours})
+
         if minutes:
-            parts.append(f"{minutes} minute{'s' if minutes > 1 else ''}")
+            parts.append(ngettext(
+                    "%(count)d minute",
+                    "%(count)d minutes",
+                    minutes
+            ) % {'count': minutes})
+
         if seconds:
-            parts.append(f"{seconds} second{'s' if seconds > 1 else ''}")
+            parts.append(ngettext(
+                    "%(count)d second",
+                    "%(count)d seconds",
+                    seconds
+            ) % {'count': seconds})
 
         return ' '.join(parts)
 
@@ -666,7 +685,7 @@ class Appointment(models.Model):
         return self.appointment_request.date
 
     def is_paid(self):
-        if self.get_service_price() == 0:
+        if self.get_service_price() == 0 or self.amount_to_pay == 0:
             return True
         return self.paid
 
@@ -684,12 +703,15 @@ class Appointment(models.Model):
             return self.amount_to_pay  # Return the original float value
 
     def get_appointment_amount_to_pay_text(self):
-        if self.amount_to_pay == 0:
-            return "Free"
+        if self.amount_to_pay == 0 and self.get_service_price() == 0:
+            return _("Free")
         return f"{self.get_appointment_amount_to_pay()}{self.get_service().get_currency_icon()}"
 
     def get_appointment_currency(self):
         return self.appointment_request.service.currency
+
+    def wants_reminder_text(self):
+        return _("Yes") if self.want_reminder else _("No")
 
     def get_appointment_id_request(self):
         return self.id_request
