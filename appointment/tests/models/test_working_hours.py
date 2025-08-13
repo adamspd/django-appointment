@@ -52,20 +52,21 @@ class WorkingHoursValidationTestCase(TestCase, UserMixin, ServiceMixin, StaffMem
     def test_working_hours_start_time_before_end_time(self):
         """A WorkingHours instance cannot be created if start_time is after end_time."""
         with self.assertRaises(ValidationError):
-            WorkingHours.objects.create(
-                staff_member=self.staff_member,
-                day_of_week=2,
-                start_time=time(17, 0),
-                end_time=time(9, 0)
-            ).clean()
+            working_hours = WorkingHours(
+                    staff_member=self.staff_member,
+                    day_of_week=2,
+                    start_time=time(17, 0),
+                    end_time=time(9, 0)
+            )
+            working_hours.full_clean()
 
     def test_working_hours_without_staff_member(self):
         """A WorkingHours instance cannot be created without a staff member."""
         with self.assertRaises(IntegrityError):
             WorkingHours.objects.create(
-                day_of_week=3,
-                start_time=time(9, 0),
-                end_time=time(17, 0)
+                    day_of_week=3,
+                    start_time=time(9, 0),
+                    end_time=time(17, 0)
             )
 
     def test_working_hours_is_owner(self):
@@ -76,19 +77,19 @@ class WorkingHoursValidationTestCase(TestCase, UserMixin, ServiceMixin, StaffMem
     def test_staff_member_weekend_status_update(self):
         """Test that the staff member's weekend status is updated when a WorkingHours instance is created."""
         WorkingHours.objects.create(
-            staff_member=self.staff_member,
-            day_of_week=6,  # Saturday
-            start_time=time(9, 0),
-            end_time=time(12, 0)
+                staff_member=self.staff_member,
+                day_of_week=6,  # Saturday
+                start_time=time(9, 0),
+                end_time=time(12, 0)
         )
         self.staff_member.refresh_from_db()
         self.assertTrue(self.staff_member.work_on_saturday)
 
         WorkingHours.objects.create(
-            staff_member=self.staff_member,
-            day_of_week=0,  # Sunday
-            start_time=time(9, 0),
-            end_time=time(12, 0)
+                staff_member=self.staff_member,
+                day_of_week=0,  # Sunday
+                start_time=time(9, 0),
+                end_time=time(12, 0)
         )
         self.staff_member.refresh_from_db()
         self.assertTrue(self.staff_member.work_on_sunday)
@@ -97,8 +98,8 @@ class WorkingHoursValidationTestCase(TestCase, UserMixin, ServiceMixin, StaffMem
         """A WorkingHours instance cannot be created if the staff member already has a working hours on that day."""
         with self.assertRaises(IntegrityError):
             WorkingHours.objects.create(
-                staff_member=self.staff_member,
-                day_of_week=1,  # Same day as the working_hours created in setUp
-                start_time=time(9, 0),
-                end_time=time(17, 0)
+                    staff_member=self.staff_member,
+                    day_of_week=1,  # Same day as the working_hours created in setUp
+                    start_time=time(9, 0),
+                    end_time=time(17, 0)
             )
