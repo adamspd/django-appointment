@@ -15,8 +15,9 @@ from django.db.models import Q
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from django.utils import timezone
+from django.utils import timezone, translation
 from django.utils.encoding import force_str
+from django.utils.formats import date_format
 from django.utils.http import urlsafe_base64_decode
 from django.utils.timezone import get_current_timezone_name
 from django.utils.translation import gettext as _
@@ -45,7 +46,7 @@ from .email_sender.email_sender import has_required_email_settings
 from .messages_ import passwd_error, passwd_set_successfully
 from .services import get_appointments_and_slots, get_available_slots_for_staff
 from .settings import (APPOINTMENT_PAYMENT_URL, APPOINTMENT_THANK_YOU_URL)
-from .utils.date_time import convert_str_to_date
+from .utils.date_time import DATE_FORMATS, convert_str_to_date
 from .utils.error_codes import ErrorCode
 from .utils.ics_utils import generate_ics_file
 from .utils.json_context import get_generic_context_with_extra, json_response
@@ -66,7 +67,7 @@ def get_available_slots_ajax(request):
     slot_form = SlotForm(request.GET)
     error_code = 0
     if not slot_form.is_valid():
-        custom_data = {'error': True, 'available_slots': [], 'date_chosen': ''}
+        custom_data = {'error': True, 'available_slots': [], 'date_chosen': '', 'date_iso': ''}
         if 'selected_date' in slot_form.errors:
             error_code = ErrorCode.PAST_DATE
         elif 'staff_member' in slot_form.errors:
@@ -77,13 +78,19 @@ def get_available_slots_ajax(request):
 
     selected_date = slot_form.cleaned_data['selected_date']
     sm = slot_form.cleaned_data['staff_member']
-    date_chosen = selected_date.strftime("%a, %B %d, %Y")
-    custom_data = {'date_chosen': date_chosen}
+    current_lang = translation.get_language()
+    format_string = DATE_FORMATS.get(current_lang, "D, F j, Y")
+    date_chosen = date_format(selected_date, format_string, use_l10n=True)
+    custom_data = {
+        'date_chosen': date_chosen,
+        'date_iso': selected_date.isoformat()
+    }
 
     days_off_exist = check_day_off_for_staff(staff_member=sm, date=selected_date)
     if days_off_exist:
         message = _("Day off. Please select another date!")
         custom_data['available_slots'] = []
+        custom_data['date_iso'] = selected_date.isoformat()
         return json_response(message=message, custom_data=custom_data, success=False, error_code=ErrorCode.INVALID_DATE)
     # if selected_date is not a working day for the staff, return an empty list of slots and 'message' is Day Off
     weekday_num = get_weekday_num_from_date(selected_date)
@@ -94,6 +101,7 @@ def get_available_slots_ajax(request):
         message = _("Not a working day for {staff_member}. Please select another date!").format(
                 staff_member=sm.get_staff_member_first_name())
         custom_data['available_slots'] = []
+        custom_data['date_iso'] = selected_date.isoformat()
         return json_response(message=message, custom_data=custom_data, success=False, error_code=ErrorCode.INVALID_DATE)
     available_slots = get_available_slots_for_staff(selected_date, sm)
 
@@ -105,9 +113,11 @@ def get_available_slots_ajax(request):
     custom_data['available_slots'] = [slot.strftime('%I:%M %p') for slot in available_slots]
     if len(available_slots) == 0:
         custom_data['error'] = True
+        custom_data['date_iso'] = selected_date.isoformat()
         message = _('No availability')
         return json_response(message=message, custom_data=custom_data, success=False, error_code=ErrorCode.INVALID_DATE)
     custom_data['error'] = False
+    custom_data['date_iso'] = selected_date.isoformat()
     return json_response(message='Successfully retrieved available slots', custom_data=custom_data, success=True)
 
 
@@ -193,7 +203,7 @@ def appointment_request(request, service_id=None, staff_member_id=None):
     all_staff_members = None
     available_slots = []
     config = Config.objects.first()
-    label = config.app_offered_by_label if config else _("Offered by")
+    label = _(config.app_offered_by_label) if config and config.app_offered_by_label else _("Offered by")
 
     if service_id:
         service = get_object_or_404(Service, pk=service_id)
@@ -212,7 +222,16 @@ def appointment_request(request, service_id=None, staff_member_id=None):
     page_title = f"{service.name} - {get_website_name()}"
     page_description = _("Book an appointment for {s} at {wn}.").format(s=service.name, wn=get_website_name())
 
-    date_chosen = date.today().strftime("%a, %B %d, %Y")
+    # TODO: The following conditional formatting is ugly (in my opinion) but necessary because Django's built-in
+    #  DATE_FORMAT doesn't include weekdays, and different languages have different
+    #  punctuation conventions (French: "jeu 14 août 2025" vs English: "Thu, August 14, 2025").
+    #  Django's FORMAT_MODULE_PATH would be the "official" solution, but this simple dictionary
+    #  approach is much easier for contributors than creating separate format files per language.
+    #  Future contributors: add your language's preferred format in the DATE_FORMATS dictionary in utils.date_time.py
+    #  file.
+    current_lang = translation.get_language()
+    format_string = DATE_FORMATS.get(current_lang, "D, F j, Y")
+    date_chosen = date_format(date.today(), format_string, use_l10n=True)
     extra_context = {
         'service': service,
         'staff_member': staff_member,
@@ -255,6 +274,8 @@ def appointment_request_submit(request):
                                 id_request=ar.id_request)
         else:
             # Handle the case if the form is not valid
+            logger.error(f"Form errors: {form.errors}")
+            logger.error(f"Form data: {request.POST}")
             messages.error(request, _('There was an error in your submission. Please check the form and try again.'))
     else:
         form = AppointmentRequestForm()

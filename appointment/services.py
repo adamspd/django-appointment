@@ -74,7 +74,7 @@ def prepare_appointment_display_data(user, appointment_id):
     # Prepare the data for display
     page_title = _("Appointment details") + _(": {client_name}").format(client_name=appointment.get_client_name())
     if user.is_superuser:
-        page_title += f' (by: {appointment.get_staff_member_name()})'
+        page_title += f' ({_("by")}: {appointment.get_staff_member_name()})'
 
     return appointment, page_title, None, 200
 
@@ -88,10 +88,10 @@ def prepare_user_profile_data(user, staff_user_id):
     """
     if user.is_superuser and staff_user_id is None:
         staff_members = get_all_staff_members()
-        btn_staff_me = "Staff me"
+        btn_staff_me = _("Staff me")
         btn_staff_me_link = reverse('appointment:make_superuser_staff_member')
         if StaffMember.objects.filter(user=user).exists():
-            btn_staff_me = "Remove me"
+            btn_staff_me = _("Remove me")
             btn_staff_me_link = reverse('appointment:remove_superuser_staff_member')
         data = {
             'error': False,

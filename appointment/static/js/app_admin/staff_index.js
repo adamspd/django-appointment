@@ -123,6 +123,13 @@ function getCalendarConfig(events) {
     return {
         initialView: 'dayGridMonth',
         headerToolbar: getHeaderToolbarConfig(),
+        buttonText: {
+            today: todayBtnText,
+            month: monthBtnText,
+            week: weekBtnText,
+            day: dayBtnText,
+            list: listBtnText
+        },
         navLinks: true,
         editable: true,
         dayMaxEvents: true,

@@ -20,8 +20,10 @@ from .utils.validators import not_in_the_past
 
 class SlotForm(forms.Form):
     selected_date = forms.DateField(validators=[not_in_the_past])
-    staff_member = forms.ModelChoiceField(StaffMember.objects.all(),
-                                          error_messages={'invalid_choice': 'Staff member does not exist'})
+    staff_member = forms.ModelChoiceField(
+            StaffMember.objects.all(),
+            error_messages={'invalid_choice': _('Staff member does not exist')}
+    )
 
 
 class AppointmentRequestForm(forms.ModelForm):
@@ -35,7 +37,7 @@ class ReschedulingForm(forms.ModelForm):
         model = AppointmentRescheduleHistory
         fields = ['reason_for_rescheduling']
         widgets = {
-            'reason_for_rescheduling': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Reason for rescheduling...'}),
+            'reason_for_rescheduling': forms.Textarea(attrs={'rows': 4, 'placeholder': _('Reason for rescheduling...')}),
         }
 
 
@@ -50,7 +52,7 @@ class AppointmentForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['phone'].widget.attrs.update(
                 {
-                    'placeholder': '1234567890'
+                    'placeholder': _('1234567890')
                 })
         self.fields['additional_info'].widget.attrs.update(
                 {
@@ -61,26 +63,26 @@ class AppointmentForm(forms.ModelForm):
                 {
                     'rows': 2,
                     'class': 'form-control',
-                    'placeholder': '1234 Main St, City, State, Zip Code',
+                    'placeholder': _('1234 Main St, City, State, Zip Code'),
                     'required': 'true'
                 })
         self.fields['additional_info'].widget.attrs.update(
                 {
                     'class': 'form-control',
-                    'placeholder': 'I would like to be contacted by phone.'
+                    'placeholder': _('I would like to be contacted by phone.')
                 })
 
 
 class ClientDataForm(forms.Form):
-    name = forms.CharField(max_length=50, widget=forms.TextInput(attrs={'class': 'form-control'}))
-    email = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'form-control'}))
+    name = forms.CharField(max_length=50, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('John Doe')}))
+    email = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': _('john.doe@example.com')}))
 
 
 class PersonalInformationForm(forms.Form):
     # first_name, last_name, email
-    first_name = forms.CharField(max_length=50, widget=forms.TextInput(attrs={'class': 'form-control'}))
-    last_name = forms.CharField(max_length=50, widget=forms.TextInput(attrs={'class': 'form-control'}))
-    email = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'form-control'}))
+    first_name = forms.CharField(max_length=50, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('John')}))
+    last_name = forms.CharField(max_length=50, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('Doe')}))
+    email = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': _('john.doe@example.com')}))
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)  # pop the user from the kwargs
@@ -205,19 +207,19 @@ class ServiceForm(forms.ModelForm):
             }),
             'description': forms.Textarea(attrs={
                 'class': 'form-control',
-                'placeholder': "Example: Overview of client's needs."
+                'placeholder': _("Example: Overview of client's needs.")
             }),
             'duration': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'HH:MM:SS, (example: 00:15:00 for 15 minutes)'
+                'placeholder': _('HH:MM:SS, (example: 00:15:00 for 15 minutes)')
             }),
             'price': forms.NumberInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Example: 100.00 (0 for free)'
+                'placeholder': _('Example: 100.00 (0 for free)')
             }),
             'down_payment': forms.NumberInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Example: 50.00 (0 for free)'
+                'placeholder': _('Example: 50.00 (0 for free)')
             }),
             'image': forms.ClearableFileInput(attrs={'class': 'form-control'}),
             'currency': forms.Select(choices=[('USD', 'USD'), ('EUR', 'EUR'), ('GBP', 'GBP')],
