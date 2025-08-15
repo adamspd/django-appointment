@@ -111,7 +111,6 @@
     <script>
         const timezone = "{{ timezoneTxt }}";
         const locale = "{{ locale }}";
-        console.log("Locale is:", locale);
         const availableSlotsAjaxURL = "{% url 'appointment:available_slots_ajax' %}";
         const requestNextAvailableSlotURLTemplate = "{% url 'appointment:request_next_available_slot' service_id=0 %}";
         const getNonWorkingDaysURL = "{% url 'appointment:get_non_working_days_ajax' %}";
