@@ -163,7 +163,7 @@ class StaffMemberForm(forms.ModelForm):
         super(StaffMemberForm, self).__init__(*args, **kwargs)
         # Exclude users who are already staff members
         existing_staff_user_ids = StaffMember.objects.values_list('user', flat=True)
-        # Filter queryset for user-field to include only superusers or users not already staff members
+        # Filter queryset for user field to include only superusers or users not already staff members
         self.fields['user'].queryset = get_user_model().objects.filter(
                 is_superuser=True
         ).exclude(id__in=existing_staff_user_ids) | get_user_model().objects.exclude(
