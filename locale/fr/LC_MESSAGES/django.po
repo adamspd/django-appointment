@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: django-appointment 3.9.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-13 22:36+0200\n"
+"POT-Creation-Date: 2025-08-15 17:42+0200\n"
 "PO-Revision-Date: 2025-08-13 13:19+0200\n"
 "Last-Translator: Adams Pierre David <django-appt@adamspierredavid.com>\n"
 "Language-Team: French <django-appt@adamspierredavid.com>\n"
@@ -19,63 +19,79 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "X-Generator: Lokalize 23.08.5\n"
 
-#: appointment/forms.py:24
+#: appointment/forms.py:25
 msgid "Staff member does not exist"
 msgstr "Le membre du personnel n'existe pas."
 
-#: appointment/forms.py:38
+#: appointment/forms.py:40
 msgid "Reason for rescheduling..."
 msgstr "Raison du report..."
 
-#: appointment/forms.py:53
+#: appointment/forms.py:55
 msgid "1234567890"
 msgstr "0612345678"
 
-#: appointment/forms.py:64
+#: appointment/forms.py:66
 msgid "1234 Main St, City, State, Zip Code"
 msgstr "4 avenue de Paris 78000 Versailles, France"
 
-#: appointment/forms.py:70
+#: appointment/forms.py:72
 msgid "I would like to be contacted by phone."
 msgstr "Je souhaite être contacté par téléphone."
 
-#: appointment/forms.py:99
+#: appointment/forms.py:77
+msgid "John Doe"
+msgstr ""
+
+#: appointment/forms.py:78 appointment/forms.py:85
+msgid "john.doe@example.com"
+msgstr ""
+
+#: appointment/forms.py:83
+msgid "John"
+msgstr ""
+
+#: appointment/forms.py:84
+msgid "Doe"
+msgstr ""
+
+#: appointment/forms.py:101
 msgid "This email is already taken."
 msgstr "Cet email est déjà utilisé."
 
-#: appointment/forms.py:113 appointment/forms.py:142
+#: appointment/forms.py:115 appointment/forms.py:144
 msgid "Example value: 30, 60, 90, 120... (in minutes)"
 msgstr "Exemple de valeur : 30, 60, 90, 120... (en minutes)"
 
-#: appointment/forms.py:117 appointment/forms.py:146
+#: appointment/forms.py:119 appointment/forms.py:148
 msgid "Example value: 08:00:00, 09:00:00... (24-hour format)"
 msgstr "Exemple de valeur : 08:00:00, 09:00:00... (format 24 heures)"
 
-#: appointment/forms.py:121 appointment/forms.py:150
+#: appointment/forms.py:123 appointment/forms.py:152
 msgid "Example value: 17:00:00, 18:00:00... (24-hour format)"
 msgstr "Exemple de valeur : 17:00:00, 18:00:00... (format 24 heures)"
 
-#: appointment/forms.py:125 appointment/forms.py:154
+#: appointment/forms.py:127 appointment/forms.py:156
 msgid "Example value: 15, 30, 45, 60... (in minutes)"
 msgstr "Exemple de valeur : 15, 30, 45, 60... (en minutes)"
 
-#: appointment/forms.py:204
+#: appointment/forms.py:206
 msgid "Example: First Consultation"
 msgstr "Exemple : Première Consultation"
 
-#: appointment/forms.py:208
+#: appointment/forms.py:210
 msgid "Example: Overview of client's needs."
 msgstr "Exemple : Aperçu des besoins du client."
 
-#: appointment/forms.py:212
+#: appointment/forms.py:214
 msgid "HH:MM:SS, (example: 00:15:00 for 15 minutes)"
 msgstr "HH:MM:SS, (exemple : 00:15:00 pour 15 minutes)"
 
-#: appointment/forms.py:216
+#: appointment/forms.py:218
 msgid "Example: 100.00 (0 for free)"
 msgstr "Exemple : 100.00 (0 pour gratuit)"
 
-#: appointment/forms.py:220
+#: appointment/forms.py:222
 msgid "Example: 50.00 (0 for free)"
 msgstr "Exemple : 50.00 (0 pour gratuit)"
 
@@ -825,6 +841,18 @@ msgstr ": {client_name}"
 msgid "by"
 msgstr "par"
 
+#: appointment/services.py:91
+#, fuzzy
+#| msgid "Staff Member"
+msgid "Staff me"
+msgstr "Membre du personnel"
+
+#: appointment/services.py:94
+#, fuzzy
+#| msgid "Remove"
+msgid "Remove me"
+msgstr "Supprimer"
+
 #: appointment/services.py:110
 msgid "You can only view your own profile"
 msgstr "Vous ne pouvez consulter que votre propre profil"
@@ -1441,6 +1469,10 @@ msgstr "Mois prochain"
 #: appointment/templates/appointment/appointments.html:133
 msgid "Previous month"
 msgstr "Mois précédent"
+
+#: appointment/templates/appointment/appointments.html:134
+msgid "Next available date"
+msgstr "Prochaine date disponible"
 
 #: appointment/templates/appointment/default_thank_you.html:16
 msgid "See you soon"
