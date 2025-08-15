@@ -275,6 +275,31 @@ See an example of a base.html template [here](https://github.com/adamspd/django-
 2. Modify these values as needed for your application, and the app will adapt to the new settings.
 3. For further customization, you can extend the provided models, views, and templates or create your own.
 
+## Internationalization 🌍
+
+Django-Appointment includes built-in support for multiple languages with localized date formats and translations.
+
+**Currently supported languages:**
+- English (en) - Default
+- French (fr) - Complete translation
+
+**Features:**
+- 🗣️ UI translations for 2 languages (more welcome!)
+- 📅 Localized date formats for 35+ languages
+- 🌐 Automatic language detection
+- 📝 RTL language support
+
+**Quick setup:**
+```python
+# settings.py
+USE_I18N = True
+USE_L10N = True
+LANGUAGES = [('en', 'English'), ('fr', 'French')]
+```
+
+**Want to add your language or translate database content?**
+👉 **[See the full Internationalization Guide](INTERNATIONALIZATION.md)**
+
 ## Docker Support 🐳
 
 Django-Appointment now supports Docker, making it easier to set up, develop, and test.
