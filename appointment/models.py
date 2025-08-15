@@ -685,7 +685,7 @@ class Appointment(models.Model):
         return self.appointment_request.date
 
     def is_paid(self):
-        if self.get_service_price() == 0 or self.amount_to_pay == 0:
+        if self.get_service_price() == 0 or (self.amount_to_pay is not None and self.amount_to_pay == 0):
             return True
         return self.paid
 
