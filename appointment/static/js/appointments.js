@@ -394,7 +394,7 @@ function requestNextAvailableSlot(serviceId) {
             if (data.error) {
                 nextAvailableDateText = nextAvailableDateResponse;
             } else {
-                nextAvailableDateText = `Next available date: ${formattedDate}`;
+                nextAvailableDateText = `${nextAvailableDateTxt}: ${formattedDate}`;
             }
             if (nextAvailableDateSelector.length > 0) {
                 // Update the content of the existing .next-available-date element
