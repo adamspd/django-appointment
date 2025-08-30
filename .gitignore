@@ -67,10 +67,6 @@ coverage.xml
 .pytest_cache/
 cover/
 
-# Translations
-*.mo
-*.pot
-
 # Django stuff:
 *.log
 local_settings.py
@@ -179,3 +175,6 @@ cython_debug/
 **/migrations/**
 /services/
 data
+
+*.pyc
+*.pyx
