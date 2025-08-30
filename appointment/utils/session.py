@@ -84,7 +84,7 @@ def get_appointment_data_from_session(request):
     """
     phone = request.session.get('phone')
     phone_obj = PhoneNumber.from_string(phone)
-    want_reminder = request.session.get('want_reminder') == 'on'
+    want_reminder = request.session.get('want_reminder', False)
     address = request.session.get('address')
     additional_info = request.session.get('additional_info')
 
