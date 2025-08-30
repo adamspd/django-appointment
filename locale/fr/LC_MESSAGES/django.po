@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: django-appointment 3.9.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-15 17:42+0200\n"
+"POT-Creation-Date: 2025-08-30 15:43+0200\n"
 "PO-Revision-Date: 2025-08-13 13:19+0200\n"
 "Last-Translator: Adams Pierre David <django-appt@adamspierredavid.com>\n"
 "Language-Team: French <django-appt@adamspierredavid.com>\n"
@@ -41,19 +41,19 @@ msgstr "Je souhaite être contacté par téléphone."
 
 #: appointment/forms.py:77
 msgid "John Doe"
-msgstr ""
+msgstr "Michel Dupont"
 
 #: appointment/forms.py:78 appointment/forms.py:85
 msgid "john.doe@example.com"
-msgstr ""
+msgstr "michel.dupont@example.com"
 
 #: appointment/forms.py:83
 msgid "John"
-msgstr ""
+msgstr "Michel"
 
 #: appointment/forms.py:84
 msgid "Doe"
-msgstr ""
+msgstr "Dupont"
 
 #: appointment/forms.py:101
 msgid "This email is already taken."
@@ -842,16 +842,12 @@ msgid "by"
 msgstr "par"
 
 #: appointment/services.py:91
-#, fuzzy
-#| msgid "Staff Member"
 msgid "Staff me"
-msgstr "Membre du personnel"
+msgstr "Me rajouter"
 
 #: appointment/services.py:94
-#, fuzzy
-#| msgid "Remove"
 msgid "Remove me"
-msgstr "Supprimer"
+msgstr "Me supprimer"
 
 #: appointment/services.py:110
 msgid "You can only view your own profile"
@@ -1178,7 +1174,7 @@ msgid "No staff members found."
 msgstr "Aucun membre du personnel trouvé."
 
 #: appointment/templates/administration/staff_index.html:336
-#: appointment/templates/appointment/appointments.html:131
+#: appointment/templates/appointment/appointments.html:130
 msgid "Today"
 msgstr "Aujourd'hui"
 
@@ -1440,37 +1436,37 @@ msgstr "Veuillez sélectionner un membre du personnel"
 msgid "Next"
 msgstr "Suivant"
 
-#: appointment/templates/appointment/appointments.html:126
+#: appointment/templates/appointment/appointments.html:125
 msgid "Request next available slot"
 msgstr "Demander le prochain créneau disponible"
 
-#: appointment/templates/appointment/appointments.html:127
+#: appointment/templates/appointment/appointments.html:126
 msgid "No staff member selected."
 msgstr "Aucun membre du personnel sélectionné."
 
-#: appointment/templates/appointment/appointments.html:128
+#: appointment/templates/appointment/appointments.html:127
 msgid "Please select a time slot before submitting the appointment request."
 msgstr ""
 "Veuillez sélectionner un créneau horaire avant de soumettre la demande de "
 "rendez-vous."
 
-#: appointment/templates/appointment/appointments.html:129
+#: appointment/templates/appointment/appointments.html:128
 msgid "Date is in the past."
 msgstr "La date est dans le passé."
 
-#: appointment/templates/appointment/appointments.html:130
+#: appointment/templates/appointment/appointments.html:129
 msgid "Please select a date and time"
 msgstr "Veuillez sélectionner une date et une heure"
 
-#: appointment/templates/appointment/appointments.html:132
+#: appointment/templates/appointment/appointments.html:131
 msgid "Next month"
 msgstr "Mois prochain"
 
-#: appointment/templates/appointment/appointments.html:133
+#: appointment/templates/appointment/appointments.html:132
 msgid "Previous month"
 msgstr "Mois précédent"
 
-#: appointment/templates/appointment/appointments.html:134
+#: appointment/templates/appointment/appointments.html:133
 msgid "Next available date"
 msgstr "Prochaine date disponible"
 
