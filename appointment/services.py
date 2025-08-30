@@ -411,11 +411,12 @@ def get_available_slots(date, appointments):
     return [slot.strftime('%I:%M %p') for slot in slots]
 
 
-def get_available_slots_for_staff(date, staff_member):
+def get_available_slots_for_staff(date, staff_member, day_of_week: int):
     """Calculate the available time slots for a given date and a staff member.
 
     :param date: The date for which to calculate the available slots
     :param staff_member: The staff member for which to calculate the available slots
+    :param day_of_week: The day of the week as an integer (0=Sunday, 6=Saturday).
     :return: A list of available time slots as strings in the format '%I:%M %p' like ['10:00 AM', '10:30 AM']
     """
     # Check if the provided date is a day off for the staff member
@@ -424,7 +425,6 @@ def get_available_slots_for_staff(date, staff_member):
         return []
 
     # Check if the staff member works on the provided date
-    day_of_week = get_weekday_num_from_date()  # Python's weekday starts from Monday (0) to Sunday (6)
     working_hours_dict = get_working_hours_for_staff_and_day(staff_member, day_of_week)
     if not working_hours_dict:
         return []
