@@ -1,140 +1,356 @@
-.appointment-display-content{
-    margin: 30px auto;
-    padding: 20px 0;
+/* Scoped to appointment display only - no global resets */
+.appointment-display-content {
+    min-height: 100vh;
+    padding: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.appointment-display-content * {
+    box-sizing: border-box; /* Scoped reset only for our component */
 }
 
 .app-content {
-    max-width: 950px;
-    padding: 20px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    margin: 0 auto;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 1200px;
+    background: var(--card-bg, #ffffff);
+    border: 1px solid var(--border-color, #e5e7eb);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 20px 40px var(--shadow-color, rgba(0, 0, 0, 0.1));
+    color: var(--text-color, #374151);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    line-height: 1.6;
 }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(800px);
-        background-color: transparent;
-    }
-    to   {
-        opacity: 1;
-        transform: translateY(0);
-    }
+/* Header section */
+.appointment-header {
+    background: var(--header-bg, linear-gradient(135deg, #f9fafb, #f3f4f6));
+    padding: 2rem;
+    border-bottom: 1px solid var(--border-color, #e5e7eb);
+    position: relative;
+    overflow: hidden;
 }
 
-@keyframes fadeInGreen {
-    from {
-        background-color: transparent;
-    }
-    to   {
-        background-color: #4CAF50; /* green */
-    }
+.appointment-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--accent-gradient, linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899));
 }
 
-@keyframes fadeInRed {
-    from {
-        background-color: transparent;
-    }
-    to   {
-        background-color: #F44336; /* red */
-    }
+.appointment-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    background: var(--title-gradient, linear-gradient(135deg, #3b82f6, #8b5cf6));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-top: 0;
 }
 
+.appointment-subtitle {
+    color: var(--text-muted, #6b7280);
+    font-size: 1.1rem;
+    font-weight: 500;
+}
 
-.appointment-card {
-    border: 1px solid #e0e0e0;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    margin-top: 20px;
-    animation: fadeIn 0.5s forwards;
+/* Main content grid */
+.appointment-content {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 0;
+    min-height: 600px;
+}
+
+/* Left panel - main details */
+.details-panel {
+    padding: 2rem;
     display: flex;
     flex-direction: column;
-    align-items: center; /* Center the contents */
+    gap: 1.5rem;
+    background: var(--panel-bg, transparent);
 }
 
-.appointment-card h2 {
-    margin-top: 0;
-    border-bottom: 1px solid #e0e0e0;
-    padding-bottom: 10px;
-    width: 100%;
-}
-
-.appointment-details {
+/* Right panel - status and actions */
+.status-panel {
+    background: var(--status-panel-bg, #f8fafc);
+    border-left: 1px solid var(--border-color, #e5e7eb);
+    padding: 2rem;
     display: flex;
-    flex-wrap: wrap;
-    margin-top: 20px;
-    width: 100%;
-    justify-content: space-between; /* Evenly space the details */
+    flex-direction: column;
+    gap: 2rem;
 }
 
-.appointment-detail, .appointment-detail-payment {
-    flex: 1;
-    padding: 10px;
-    border: 1px solid #e0e0e0;
-    margin: 5px;
-    border-radius: 4px;
-    flex-basis: 48%; /* Allow 2 details per row with a little space in between */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Add subtle shadow */
-    transition: all 0.3s; /* Smooth transitions */
-    animation: fadeIn 0.6s forwards; /* Default fade-in */
+/* Detail groups */
+.detail-group {
+    background: var(--detail-group-bg, rgba(0, 0, 0, 0.02));
+    border: 1px solid var(--border-light, #e5e7eb);
+    border-radius: 8px;
+    padding: 1.5rem;
+    transition: all 0.2s ease;
 }
 
-.appointment-detail:nth-child(1) { animation-delay: 0.05s; }
-.appointment-detail:nth-child(2) { animation-delay: 0.05s; }
-.appointment-detail:nth-child(3) { animation-delay: 0.1s; }
-.appointment-detail:nth-child(4) { animation-delay: 0.1s; }
-.appointment-detail:nth-child(5) { animation-delay: 0.15s; }
-.appointment-detail:nth-child(6) { animation-delay: 0.15s; }
-.appointment-detail:nth-child(7) { animation-delay: 0.2s; }
-.appointment-detail:nth-child(8) { animation-delay: 0.2s; }
-.appointment-detail:nth-child(9) { animation-delay: 0.25s; }
-.appointment-detail:nth-child(10) { animation-delay: 0.25s; }
-.appointment-detail:nth-child(11) { animation-delay: 0.3s; }
-.appointment-detail:nth-child(12) { animation-delay: 0.3s; }
-
-.is-paid-true {
-    animation: fadeIn 0.35s forwards, fadeInGreen 0.35s forwards;
-    color: white;
+.detail-group:hover {
+    background: var(--detail-group-hover-bg, rgba(0, 0, 0, 0.04));
+    border-color: var(--border-hover, #d1d5db);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 25px var(--shadow-hover, rgba(0, 0, 0, 0.1));
 }
 
-.is-paid-false {
-    animation: fadeIn 0.35s forwards, fadeInRed 0.35s forwards;
-    color: white;
+.detail-group h3 {
+    color: var(--accent-color, #3b82f6);
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0;
 }
 
-
-.hover-element:hover {
-    background-color: #f7f7f7;
-    transform: translateY(-5px); /* Slight elevation on hover */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* Enhanced shadow on hover */
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border-subtle, rgba(0, 0, 0, 0.05));
 }
 
-.appointment-detail i {
-    margin-right: 10px;
-    color: #555; /* Slightly darker icon color */
+.detail-row:last-child {
+    border-bottom: none;
 }
 
-/* Mobile First Styles (Default) */
-.appointment-detail, .appointment-detail-payment {
-    flex-basis: 100%; /* Each detail takes the full width on mobile */
-    margin: 10px 0; /* Adjusted margin */
+.detail-label {
+    color: var(--text-muted, #6b7280);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
-/* Tablet Styles */
-@media (min-width: 768px) and (max-width: 991px) {
-    .appointment-detail, .appointment-detail-payment {
-        flex-basis: 48%; /* 2 details per row for tablets */
-        margin: 5px; /* Revert to original margin */
+.detail-value {
+    color: var(--text-strong, #111827);
+    font-weight: 600;
+    text-align: right;
+    word-break: break-word;
+    max-width: 60%;
+}
+
+/* Status card - this is where we need strong colors regardless of theme */
+.status-card {
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.status-card.paid {
+    background: linear-gradient(135deg, #064e3b, #065f46);
+    border: 1px solid #059669;
+    color: #ffffff;
+}
+
+.status-card.unpaid {
+    background: linear-gradient(135deg, #7f1d1d, #991b1b);
+    border: 1px solid #dc2626;
+    color: #ffffff;
+    animation: subtle-pulse 3s infinite;
+}
+
+/* Default status card for unknown states */
+.status-card:not(.paid):not(.unpaid) {
+    background: var(--status-default-bg, #f3f4f6);
+    border: 1px solid var(--border-color, #e5e7eb);
+    color: var(--text-color, #374151);
+}
+
+.status-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.status-card.paid .status-icon {
+    color: #10b981;
+}
+
+.status-card.unpaid .status-icon {
+    color: #ef4444;
+}
+
+.status-text {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.status-amount {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin: 1rem 0;
+}
+
+/* Quick stats */
+.quick-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.stat-item {
+    background: var(--stat-bg, rgba(0, 0, 0, 0.05));
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+
+.stat-item:hover {
+    background: var(--stat-hover-bg, rgba(0, 0, 0, 0.08));
+    transform: translateY(-1px);
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--accent-color, #3b82f6);
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: var(--text-muted, #6b7280);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Messages - inherit from base theme */
+.messages {
+    margin: 2rem;
+    margin-top: 0;
+}
+
+.messages .alert {
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    border-left: 4px solid;
+}
+
+/* Only override if base theme doesn't have these */
+.messages .alert:not([class*="alert-"]) {
+    background: var(--alert-bg, #f3f4f6);
+    border-color: var(--alert-border, #d1d5db);
+    color: var(--text-color, #374151);
+}
+
+/* Animations */
+@keyframes subtle-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.95; }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .appointment-display-content {
+        padding: 1rem;
+    }
+
+    .appointment-content {
+        grid-template-columns: 1fr;
+    }
+
+    .status-panel {
+        border-left: none;
+        border-top: 1px solid var(--border-color, #e5e7eb);
+    }
+
+    .appointment-title {
+        font-size: 2rem;
+    }
+
+    .appointment-header {
+        padding: 1.5rem;
+    }
+
+    .details-panel,
+    .status-panel {
+        padding: 1.5rem;
+    }
+
+    .detail-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .detail-value {
+        text-align: left;
+        max-width: 100%;
+    }
+
+    .status-amount {
+        font-size: 2rem;
+    }
+
+    .quick-stats {
+        grid-template-columns: 1fr;
     }
 }
 
-/* Desktop Styles */
-@media (min-width: 992px) {
-    .appointment-detail, .appointment-detail-payment {
-        flex-basis: 48%; /* 2 details per row for desktop */
-        margin: 5px;
+@media (max-width: 480px) {
+    .appointment-header {
+        padding: 1rem;
     }
+
+    .appointment-title {
+        font-size: 1.75rem;
+    }
+
+    .details-panel,
+    .status-panel {
+        padding: 1rem;
+        gap: 1rem;
+    }
+
+    .detail-group {
+        padding: 1rem;
+    }
+
+    .status-card {
+        padding: 1.5rem;
+    }
+}
+
+/* Icon adjustments for FontAwesome */
+.detail-group h3 i,
+.status-icon i {
+    width: 16px;
+    opacity: 0.8;
+}
+
+.status-icon i {
+    width: auto;
+    font-size: inherit;
+}
+
+/* Additional hover states */
+.status-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px var(--shadow-strong, rgba(0, 0, 0, 0.15));
+}
+
+/* Smooth transitions for all interactive elements */
+.detail-group,
+.status-card,
+.stat-item {
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
