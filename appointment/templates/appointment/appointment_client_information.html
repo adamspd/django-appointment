@@ -147,21 +147,74 @@
             // Get the form and the 'submit' button
             const form = document.querySelector('form');
             const submitButtons = Array.from(form.querySelectorAll('button[type="submit"]'));
+            const emailField = form.querySelector('input[type="email"]');
+
+            // Create email validation message element
+            const emailValidationMessage = document.createElement('div');
+            emailValidationMessage.className = 'email-validation-message';
+            emailValidationMessage.style.color = 'red';
+            emailValidationMessage.style.fontSize = '14px';
+            emailValidationMessage.style.marginTop = '5px';
+            emailValidationMessage.style.display = 'none';
+
+            // Insert validation message after email field
+            if (emailField) {
+                emailField.parentNode.insertBefore(emailValidationMessage, emailField.nextSibling);
+            }
+
+            // Email validation function
+            function validateEmail(email) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return emailRegex.test(email);
+            }
 
             // Disable the 'submit' buttons initially
             submitButtons.forEach(button => button.disabled = true);
 
             // Listen for input events on the form
-            form.addEventListener('input', function () {
+            form.addEventListener('input', function (event) {
+                // Email validation on typing
+                if (event.target.type === 'email') {
+                    const email = event.target.value.trim();
+
+                    if (email === '') {
+                        // Empty email - hide validation message
+                        emailValidationMessage.style.display = 'none';
+                        event.target.style.borderColor = '';
+                    } else if (!validateEmail(email)) {
+                        // Invalid email
+                        emailValidationMessage.textContent = '{% trans "Please enter a valid email address" %}';
+                        emailValidationMessage.style.display = 'block';
+                        event.target.style.borderColor = 'red';
+                    } else {
+                        // Valid email
+                        emailValidationMessage.style.display = 'none';
+                        event.target.style.borderColor = 'green';
+                    }
+                }
+
                 // Get all required fields
                 const requiredFields = Array.from(form.querySelectorAll('[required]'));
 
-                // Check if all required fields are filled
+                // Check if all required fields are filled AND email is valid (if present)
                 const allFieldsFilled = requiredFields.every(field => field.value.trim() !== '');
+                const emailValid = !emailField || emailField.value.trim() === '' || validateEmail(emailField.value.trim());
 
-                // Enable or disable the 'submit' buttons based on whether all fields are filled
-                submitButtons.forEach(button => button.disabled = !allFieldsFilled);
+                // Enable or disable the 'submit' buttons based on whether all fields are filled and email is valid
+                submitButtons.forEach(button => button.disabled = !(allFieldsFilled && emailValid));
             });
+
+            // Also validate on blur (when user leaves the field)
+            if (emailField) {
+                emailField.addEventListener('blur', function () {
+                    const email = this.value.trim();
+                    if (email !== '' && !validateEmail(email)) {
+                        emailValidationMessage.textContent = '{% trans "Please enter a valid email address" %}';
+                        emailValidationMessage.style.display = 'block';
+                        this.style.borderColor = 'red';
+                    }
+                });
+            }
         });
     </script>
 {% endblock %}

@@ -29,6 +29,7 @@ recursive-include appointment/static/img *.jpg
 recursive-include appointment/templates/ *.html
 recursive-include appointment/tests *.py
 recursive-include appointment/utils *.py
+recursive-include appointment/locale *.po *.mo
 
 # Exclusions
 exclude release_notes.md
