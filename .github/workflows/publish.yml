@@ -3,7 +3,7 @@ name: Publishing
 on:
   push:
     branches:
-      - main
+      - '*'
     tags:
       - '*'
   workflow_dispatch:
@@ -64,7 +64,8 @@ jobs:
           path: dist/*
 
       - name: Publish to PyPI
-        if: needs.prepare-and-check.outputs.publish_to_pypi == 'true'
+        # Only publish to PyPI on the main branch
+        if: needs.prepare-and-check.outputs.publish_to_pypi == 'true' && github.ref == 'refs/heads/main'
         run: twine upload dist/*
         env:
           TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
@@ -79,7 +80,8 @@ jobs:
 
   create-release:
     needs: [prepare-and-check, build-and-publish]
-    if: needs.prepare-and-check.outputs.publish_to_pypi == 'true'
+    # Only create GitHub releases for real PyPI publishes AND only on the main branch
+    if: needs.prepare-and-check.outputs.publish_to_pypi == 'true' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       id-token: write

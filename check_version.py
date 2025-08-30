@@ -27,8 +27,14 @@ def check_package_version(package_name, current_version, github_ref_=None):
     publish_to_pypi = False
     publish_to_testpypi = False
 
-    # Determine if this is a test version based on the GitHub ref or __test_version__
-    is_test_version = "test" in github_ref_ if github_ref_ else __test_version__
+    # Determine if this is a test version - prioritize __test_version__ flag
+    if __test_version__:
+        is_test_version = True
+    elif github_ref_ and "test" in github_ref_:
+        is_test_version = True
+    else:
+        is_test_version = False
+
     pypi_url = "https://test.pypi.org/pypi/" if is_test_version else "https://pypi.org/pypi/"
 
     # Check if the current version exists on the respective PyPI repository
