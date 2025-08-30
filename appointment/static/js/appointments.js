@@ -3,6 +3,7 @@ let nextAvailableDateSelector = $('.djangoAppt_next-available-date')
 const body = $('body');
 let nonWorkingDays = [];
 let selectedDate = rescheduledDate || null;
+let selectedDateIso = null;
 let staffId = $('#staff_id').val() || null;
 let previouslySelectedCell = null;
 let isRequestInProgress = false;
@@ -11,9 +12,17 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
     initialView: 'dayGridMonth',
     initialDate: selectedDate,
     timeZone: timezone,
+    locale: locale,
     headerToolbar: {
         left: 'title',
         right: 'prev,today,next',
+    },
+    buttonText: {
+        today: todayBtnText,
+    },
+    buttonHints: {
+        prev: previousMonthBtnText,
+        next: nextMonthBtnText,
     },
     height: '400px',
     themeSystem: 'bootstrap',
@@ -65,8 +74,6 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
     },
 });
 
-calendar.setOption('locale', locale);
-
 $(document).ready(function () {
     staffId = $('#staff_id').val() || null;
     calendar.render();
@@ -96,17 +103,16 @@ body.on('click', '.btn-submit-appointment', function () {
         alert(selectDateAndTimeAlertTxt);
         return;
     }
-    if (selectedSlot && selectedDate) {
-        const startTime = convertTo24Hour(selectedSlot);
-        const APPOINTMENT_BASE_TEMPLATE = localStorage.getItem('APPOINTMENT_BASE_TEMPLATE');
-        // Convert the selectedDate string to a valid format
-        const dateParts = selectedDate.split(', ');
-        const monthDayYear = dateParts[1] + "," + dateParts[2];
-        const formattedDate = new Date(monthDayYear + " " + startTime);
 
-        const date = formattedDate.toISOString().slice(0, 10);
+    if (selectedSlot && selectedDateIso) {
+        const startTime = convertTo24Hour(selectedSlot);
+        const date = selectedDateIso;
+
+        // Calculate end time using ISO date instead of localized date
+        const formattedDate = new Date(selectedDateIso + "T" + startTime + ":00");
         const endTimeDate = new Date(formattedDate.getTime() + serviceDuration * 60000);
         const endTime = formatTime(endTimeDate);
+
         const reasonForRescheduling = $('#reason_for_rescheduling').val();
         const form = $('.appointment-form');
         let formAction = rescheduledDate ? appointmentRescheduleURL : appointmentRequestSubmitURL;
@@ -309,6 +315,7 @@ function getAvailableSlots(selectedDate, staffId = null) {
                 });
             }
             // Update the date chosen
+            selectedDateIso = data.date_iso;
             $('.djangoAppt_date_chosen').text(data.date_chosen);
             $('#service-datetime-chosen').text(data.date_chosen);
             isRequestInProgress = false;
@@ -341,8 +348,8 @@ function requestNextAvailableSlot(serviceId) {
                 // Set the date in the calendar to the next available date
                 nextAvailableDateResponse = data.next_available_date;
                 const selectedDateObj = moment.tz(nextAvailableDateResponse, timezone);
-                const nextAvailableDate = selectedDateObj.toDate();
-                formattedDate = new Intl.DateTimeFormat('en-US', {
+                const nextAvailableDate = selectedDateObj.toDate()
+                formattedDate = new Intl.DateTimeFormat(locale, {
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric'
@@ -355,7 +362,7 @@ function requestNextAvailableSlot(serviceId) {
             if (data.error) {
                 nextAvailableDateText = nextAvailableDateResponse;
             } else {
-                nextAvailableDateText = `Next available date: ${formattedDate}`;
+                nextAvailableDateText = `${nextAvailableDateTxt}: ${formattedDate}`;
             }
             if (nextAvailableDateSelector.length > 0) {
                 // Update the content of the existing .next-available-date element

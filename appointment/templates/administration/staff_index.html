@@ -282,7 +282,7 @@
     </section>
     <div id="customContextMenu" style="display: none; position: absolute; z-index: 1000;">
         <ul>
-            <li id="newAppointmentOption"><a href="#">New Appointment</a></li>
+            <li id="newAppointmentOption"><a href="#">{% trans "New Appointment" %}</a></li>
         </ul>
     </div>
 
@@ -323,9 +323,9 @@
         const confirmDeletionTitleTxt = "{% trans 'Confirm Deletion' %}";
         const confirmDeletionTxt = "{% trans 'Are you sure you want to delete this appointment?' %}";
         const deleteBtnTxt = "{% trans 'Delete' %}";
-        const eventsOnTxt = "{% trans 'Events on' %}";
-        const noEventTxt = "{% trans 'No events for this day.' %}";
-        const newEventTxt = "{% trans 'New Event' %}";
+        const eventsOnTxt = "{% trans 'Appointments on' %}";
+        const noEventTxt = "{% trans 'No appointment for this day.' %}";
+        const newEventTxt = "{% trans 'New Appointment' %}";
         const successTxt = "{% trans 'Success' %}";
         const errorTxt = "{% trans 'Error' %}";
         const updateApptErrorTitleTxt = "{% trans 'Error: Unable to delete appointment.' %}";
@@ -333,6 +333,11 @@
         const notStaffMemberTxt = "{% trans "You're not a staff member. Can't perform this action !" %}";
         const noServiceOfferedTxt = "{% trans "You don't offer any service. Add new service from your profile." %}";
         const noStaffMemberTxt = "{% trans "No staff members found." %}";
+        const todayBtnText = "{% trans 'Today' %}";
+        const monthBtnText = "{% trans 'Month' %}";
+        const weekBtnText = "{% trans 'Week' %}";
+        const dayBtnText = "{% trans 'Day' %}";
+        const listBtnText = "{% trans 'List' %}";
     </script>
 
     <script src="{% static 'js/modal/error_modal.js' %}"></script>

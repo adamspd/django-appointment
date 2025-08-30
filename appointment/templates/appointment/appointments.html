@@ -102,11 +102,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.30.1/moment.js"
             integrity="sha512-3CuraBvy05nIgcoXjVN33mACRyI89ydVHg7y/HMN9wcTVbHeur0SeBzweSd/rxySapO7Tmfu68+JlKkLTnDFNg=="
             crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.45/moment-timezone-with-data.min.js"
-            integrity="sha512-t/mY3un180WRfsSkWy4Yi0tAxEDGcY2rAEx873hb5BrkvLA0QLk54+SjfYgFBBoCdJDV1H86M8uyZdJhAOHeyA=="
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.6.0/moment-timezone-with-data.min.js"
+            integrity="sha512-+FcC+reETRqrbKDor++Otoek++yhj4Q1pu/VjNTYHywub+2uoKV+0o0C+yLDun7b+MzAQ0qz9G5ShZUUJpxN1Q=="
             crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.10/index.global.min.js"
-            integrity="sha512-JCQkxdym6GmQ+AFVioDUq8dWaWN6tbKRhRyHvYZPupQ6DxpXzkW106FXS1ORgo/m3gxtt5lHRMqSdm2OfPajtg=="
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.19/index.global.js"
+            integrity="sha512-VjS1thnR7k73t4wDPXADrXrEBf2ET2QmzfpOvd3vjznxChj+PXuMRpgyV8AY4xkVYtSNBx7aGMazsYBY0QH9FQ=="
             crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script>
         const timezone = "{{ timezoneTxt }}";
@@ -127,6 +127,10 @@
         const selectTimeSlotWarningTxt = "{% trans 'Please select a time slot before submitting the appointment request.' %}";
         const dateInPastErrorTxt = "{% trans 'Date is in the past.' %}";
         const selectDateAndTimeAlertTxt = "{% trans 'Please select a date and time' %}";
+        const todayBtnText = "{% trans 'Today' %}";
+        const nextMonthBtnText = "{% trans 'Next month' %}";
+        const previousMonthBtnText = "{% trans 'Previous month' %}";
+        const nextAvailableDateTxt = "{% trans 'Next available date' %}";
     </script>
     <script src="{% static 'js/appointments.js' %}"></script>
     <script src="{% static 'js/js-utils.js' %}"></script>
