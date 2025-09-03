@@ -679,18 +679,30 @@ def get_working_hours_for_staff_and_day(staff_member, day_of_week):
     :return: The working hours for the given staff member and day of the week.
     """
     working_hours = WorkingHours.objects.filter(staff_member=staff_member, day_of_week=day_of_week).first()
-    start_time = staff_member.get_lead_time()
-    end_time = staff_member.get_finish_time()
-    if not working_hours and not (start_time and end_time):
-        return None
+
+    # TODO: I can't leave the following logic.
+    #  Needs to be commented out and just return None if no working hours are set for that day.
+    #  Because if a user doesn't have working hours set for a specific day, it means they are not
+    #  working that day.
+    #  We can't assume default working hours just because the user set default start and end times.
+    #  Leaving this behavior would mean that if a user sets default start and end times, they are considered
+    #  working every day of the week, which is not the intended behavior.
+    #  Removing this part would also mean that the default start and end time is useless and should be removed.
+    # start_time = staff_member.get_lead_time()
+    # end_time = staff_member.get_finish_time()
+    # if not working_hours and not (start_time and end_time):
+    #     return None
     # If no specific working hours are set for that day, use the default start and end times from StaffMember
+    # if not working_hours:
+    #     return {
+    #         'staff_member': staff_member,
+    #         'day_of_week': day_of_week,
+    #         'start_time': staff_member.get_lead_time(),
+    #         'end_time': staff_member.get_finish_time()
+    #     }
+
     if not working_hours:
-        return {
-            'staff_member': staff_member,
-            'day_of_week': day_of_week,
-            'start_time': staff_member.get_lead_time(),
-            'end_time': staff_member.get_finish_time()
-        }
+        return None
 
     # If a WorkingHours instance is found, convert it to a dictionary for consistent return type
     return {
