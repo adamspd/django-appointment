@@ -574,30 +574,30 @@ class GetAvailableSlotsForStaffTests(BaseTest):
     def test_day_off(self):
         """Test if a day off is handled correctly when getting available slots."""
         # Ask for slots for it, and it should return an empty list since next Monday is a day off
-        slots = get_available_slots_for_staff(self.next_monday, self.staff_member1)
+        slots = get_available_slots_for_staff(self.next_monday, self.staff_member1, 1)
         self.assertEqual(slots, [])
 
     def test_staff_does_not_work(self):
         """Test if a staff member who doesn't work on a given day is handled correctly when getting available slots."""
         # For next week, the staff member works only on Monday and Wednesday, but puts a day off on Monday
         # So the staff member should not have any available slots except for Wednesday, which is day #2 (python weekday)
-        slots = get_available_slots_for_staff(self.next_monday, self.staff_member1)
+        slots = get_available_slots_for_staff(self.next_monday, self.staff_member1, 1)
         self.assertEqual(slots, [])
-        slots = get_available_slots_for_staff(self.next_tuesday, self.staff_member1)
+        slots = get_available_slots_for_staff(self.next_tuesday, self.staff_member1, 2)
         self.assertEqual(slots, [])
-        slots = get_available_slots_for_staff(self.next_thursday, self.staff_member1)
+        slots = get_available_slots_for_staff(self.next_thursday, self.staff_member1, 4)
         self.assertEqual(slots, [])
-        slots = get_available_slots_for_staff(self.next_friday, self.staff_member1)
+        slots = get_available_slots_for_staff(self.next_friday, self.staff_member1, 5)
         self.assertEqual(slots, [])
-        slots = get_available_slots_for_staff(self.next_saturday, self.staff_member1)
+        slots = get_available_slots_for_staff(self.next_saturday, self.staff_member1, 6)
         self.assertEqual(slots, [])
-        slots = get_available_slots_for_staff(self.next_sunday, self.staff_member1)
+        slots = get_available_slots_for_staff(self.next_sunday, self.staff_member1, 0)
         self.assertEqual(slots, [])
 
     def test_available_slots(self):
         """Test if available slots are returned correctly."""
         # On a Wednesday, the staff member should have slots from 9 AM to 5 PM
-        slots = get_available_slots_for_staff(self.next_wednesday, self.staff_member1)
+        slots = get_available_slots_for_staff(self.next_wednesday, self.staff_member1, 3)
         expected_slots = [
             datetime.datetime(self.next_wednesday.year, self.next_wednesday.month, self.next_wednesday.day, hour) for
             hour in range(9, 17)]
@@ -617,7 +617,7 @@ class GetAvailableSlotsForStaffTests(BaseTest):
         self.create_appointment_(user=self.users['client1'], appointment_request=appt_request)
 
         # Now, the staff member should not have that slot available
-        slots = get_available_slots_for_staff(self.next_wednesday, self.staff_member1)
+        slots = get_available_slots_for_staff(self.next_wednesday, self.staff_member1, 3)
         expected_slots = [
             datetime.datetime(self.next_wednesday.year, self.next_wednesday.month, self.next_wednesday.day, hour, 0) for
             hour in range(9, 17) if hour != 10]
@@ -630,8 +630,53 @@ class GetAvailableSlotsForStaffTests(BaseTest):
         # Let's remove the config object also since it may contain default working days
         Config.objects.all().delete()
         # Now no slots should be available
-        slots = get_available_slots_for_staff(self.next_thursday, self.staff_member1)
+        slots = get_available_slots_for_staff(self.next_thursday, self.staff_member1, 4)
         self.assertEqual(slots, [])
+
+    def test_comprehensive_slot_calculation(self):
+        """Test the complete slot calculation logic with real scenarios."""
+
+        # Setup: Staff member works Monday (1) and Wednesday (3), 9-17
+        # Monday has a day off, Wednesday is clear
+
+        # Test 1: Monday with day off - should return empty
+        monday_slots = get_available_slots_for_staff(self.next_monday, self.staff_member1, 1)
+        self.assertEqual(monday_slots, [], "Next monday should have no slots due to day off")
+
+        # Test 2: Wednesday with no appointments - should return full schedule
+        wednesday_slots = get_available_slots_for_staff(self.next_wednesday, self.staff_member1, 3)
+        self.assertEqual(len(wednesday_slots), 8, "Wednesday should have 8 hourly slots (9-17)")
+
+        # Test 3: Book an appointment on Wednesday 10-11, then check remaining slots
+        start_time = datetime.time(10, 0)
+        end_time = datetime.time(11, 0)
+        appt_request = self.create_appointment_request_(
+                service=self.service1,
+                staff_member=self.staff_member1,
+                date_=self.next_wednesday,
+                start_time=start_time,
+                end_time=end_time
+        )
+        self.create_appointment_(user=self.users['client1'], appointment_request=appt_request)
+
+        # Re-calculate slots after booking
+        updated_slots = get_available_slots_for_staff(self.next_wednesday, self.staff_member1, 3)
+        self.assertEqual(len(updated_slots), 7, "Should have 7 slots left after booking one")
+
+        # Test 4: Wrong day number should return empty (simulate caller error)
+        # day_of_week is the most important parameter here because it is used in the get_available_slots_for_staff
+        # function when calling the function get_working_hours_for_staff_and_day,
+        # Hence the importance to do the following instead:
+        # day_of_week = get_weekday_num_from_date(self.next_wednesday)
+        # day_slots = get_available_slots_for_staff(self.next_wednesday, self.staff_member1, day_of_week)
+        # instead of passing 2 (Tuesday) which is incorrect for a Wednesday.
+        wrong_day_slots = get_available_slots_for_staff(self.next_wednesday, self.staff_member1,
+                                                        2)  # Tuesday=2 but it's Wednesday
+        self.assertEqual(wrong_day_slots, [], "Wrong day number should return no slots")
+
+        # Test 5: Non-working day
+        tuesday_slots = get_available_slots_for_staff(self.next_tuesday, self.staff_member1, 2)
+        self.assertEqual(tuesday_slots, [], "Tuesday should have no slots (staff doesn't work)")
 
 
 class UpdatePersonalInfoServiceTest(BaseTest):
