@@ -434,7 +434,7 @@ def create_new_staff_member(request):
 @require_superuser
 def make_superuser_staff_member(request):
     user = request.user
-    StaffMember.objects.create(user=user)
+    StaffMember.objects.get_or_create(user=user)
     return redirect('appointment:user_profile')
 
 
