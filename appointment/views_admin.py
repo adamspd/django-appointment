@@ -149,6 +149,7 @@ def add_working_hours(request, staff_user_id=None, response_type='html'):
     staff_user_id = staff_user_id or request.user.pk
     if not check_permissions(staff_user_id, request.user):
         message = _("You can only add your own working hours.")
+        print(f"Is staff {request.user.is_staff} ? or superuser: {request.user.is_superuser} ?")
         return handle_unauthorized_response(request, message, response_type)
     staff_user_id = staff_user_id if staff_user_id else request.user.pk
     staff_member = get_staff_member_by_user_id(user_id=staff_user_id)
