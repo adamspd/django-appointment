@@ -44,7 +44,7 @@ from appointment.utils.view_helpers import get_locale
 from .decorators import require_ajax
 from .email_sender.email_sender import has_required_email_settings
 from .messages_ import passwd_error, passwd_set_successfully
-from .services import get_appointments_and_slots, get_available_slots_for_staff
+from .services import get_appointments_and_slots, get_available_slots_for_staff, get_times_from_config, calculate_slots
 from .settings import (APPOINTMENT_PAYMENT_URL, APPOINTMENT_THANK_YOU_URL)
 from .utils.date_time import DATE_FORMATS, convert_str_to_date
 from .utils.error_codes import ErrorCode
@@ -98,12 +98,20 @@ def get_available_slots_ajax(request):
 
     custom_data['staff_member'] = sm.get_staff_member_name()
     if not is_working_day_:
-        message = _("Not a working day for {staff_member}. Please select another date!").format(
+        message = _("Not available for {staff_member}. Please select another date!").format(
                 staff_member=sm.get_staff_member_first_name())
         custom_data['available_slots'] = []
         custom_data['date_iso'] = selected_date.isoformat()
         return json_response(message=message, custom_data=custom_data, success=False, error_code=ErrorCode.INVALID_DATE)
     available_slots = get_available_slots_for_staff(selected_date, sm, weekday_num)
+
+    # Generate all slots, ignoring booked slots
+    start_time, end_time, slot_duration, buff_time = get_times_from_config(selected_date)
+    now = timezone.now()
+    buffer_time = now + buff_time if selected_date == now.date() else now
+    all_slots = calculate_slots(start_time, end_time, buffer_time, slot_duration)
+
+    custom_data['all_slots'] = [slot.strftime('%I:%M %p') for slot in all_slots]
 
     # Check if the selected_date is today and filter out past slots
     if selected_date == date.today():
@@ -203,6 +211,7 @@ def appointment_request(request, service_id=None, staff_member_id=None):
     all_staff_members = None
     available_slots = []
     config = Config.objects.first()
+    future_days = config.future_days_limit if config else 14
     label = _(config.app_offered_by_label) if config and config.app_offered_by_label else _("Offered by")
 
     if service_id:
@@ -232,6 +241,7 @@ def appointment_request(request, service_id=None, staff_member_id=None):
     current_lang = translation.get_language()
     format_string = DATE_FORMATS.get(current_lang, "D, F j, Y")
     date_chosen = date_format(date.today(), format_string, use_l10n=True)
+    microscope_chosen = staff_member.get_staff_member_name if staff_member else ''
     extra_context = {
         'service': service,
         'staff_member': staff_member,
@@ -240,8 +250,10 @@ def appointment_request(request, service_id=None, staff_member_id=None):
         'page_description': page_description,
         'available_slots': available_slots,
         'date_chosen': date_chosen,
+        'microscope_chosen': microscope_chosen,
         'locale': get_locale(),
         'timezoneTxt': get_current_timezone_name(),
+        'future_date_limit': future_days,
         'label': label
     }
     context = get_generic_context_with_extra(request, extra_context, admin=False)
@@ -270,7 +282,22 @@ def appointment_request_submit(request):
                 ar = form.save()
                 request.session[f'appointment_completed_{ar.id_request}'] = False
                 # Redirect the user to the account creation page
-                return redirect('appointment:appointment_client_information', appointment_request_id=ar.id,
+                if request.user.is_authenticated:
+                    # User is logged in — save appointment immediately
+                    client_data = {
+                        "name": request.user.get_full_name() or request.user.username,
+                        "email": request.user.email,
+                        "phone": "",  # Optional: get from profile if available
+                        "address": "",
+                        "additional_info": "",
+                    }
+
+                    create_appointment(request, ar, client_data, {})
+                    service = Service.objects.get(id=ar.service.id)
+                    messages.success(request, _("Your appointment has been created successfully."))
+                    return redirect('appointment:appointment_request', service_id=service.id)  # Change to your success page
+                else:
+                    return redirect('appointment:appointment_client_information', appointment_request_id=ar.id,
                                 id_request=ar.id_request)
         else:
             # Handle the case if the form is not valid
@@ -359,6 +386,7 @@ def appointment_client_information(request, appointment_request_id, id_request):
             response = create_appointment(request, ar, client_data, appointment_data)
             request.session.setdefault(f'appointment_submitted_{id_request}', True)
             return response
+           
     else:
         appointment_form = AppointmentForm()
         client_data_form = ClientDataForm()
@@ -511,7 +539,7 @@ def prepare_reschedule_appointment(request, id_request):
 
     service = ar.service
     selected_sm = ar.staff_member
-    config = Config.objects.first()
+    config = Config.objects.all()
     label = config.app_offered_by_label if config else _("Offered by")
     # if staff change allowed, filter all staff offering the service otherwise, filter only the selected staff member
     staff_filter_criteria = {'id': ar.staff_member.id} if not staff_change_allowed_on_reschedule() else {
@@ -522,6 +550,9 @@ def prepare_reschedule_appointment(request, id_request):
     page_title = _("Rescheduling appointment for {s}").format(s=service.name)
     page_description = _("Reschedule your appointment for {s} at {wn}.").format(s=service.name, wn=get_website_name())
     date_chosen = ar.date.strftime("%a, %B %d, %Y")
+    microscope_chosen = ar.staff_member.get_staff_member_name()
+
+    print(date_chosen)
 
     extra_context = {
         'service': service,

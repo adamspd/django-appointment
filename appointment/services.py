@@ -411,6 +411,27 @@ def get_available_slots(date, appointments):
     return [slot.strftime('%I:%M %p') for slot in slots]
 
 
+def get_all_slots_with_availability(date, appointments):
+    start_time, end_time, slot_duration, buff_time = get_times_from_config(date)
+    now = timezone.now()
+    buffer_time = now + buff_time if date == now.date() else now
+
+    all_slots = calculate_slots(start_time, end_time, buffer_time, slot_duration)
+
+    # Create a dict of booked slots for quick lookup
+    booked_times = {appt.start_time.strftime('%I:%M %p') for appt in appointments}
+
+    slots_with_availability = []
+    for slot in all_slots:
+        slot_time_str = slot.strftime('%I:%M %p')
+        slots_with_availability.append({
+            "time": slot_time_str,
+            "available": slot_time_str not in booked_times
+        })
+
+    return slots_with_availability
+
+
 def get_available_slots_for_staff(date, staff_member, day_of_week: int):
     """Calculate the available time slots for a given date and a staff member.
 

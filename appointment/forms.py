@@ -134,11 +134,11 @@ class StaffAppointmentInformationForm(forms.ModelForm):
 class StaffMemberForm(forms.ModelForm):
     class Meta:
         model = StaffMember
-        fields = ['user', 'services_offered', 'slot_duration', 'lead_time', 'finish_time',
+        fields = ['microscope', 'services_offered', 'slot_duration', 'lead_time', 'finish_time',
                   'appointment_buffer_time', 'work_on_saturday', 'work_on_sunday']
         widgets = {
-            'user': forms.Select(attrs={'class': 'form-control'}),
-            'service_offered': forms.Select(attrs={'class': 'form-control'}),
+            'microscope': forms.Select(attrs={'class': 'form-control'}),
+            'services_offered': forms.Select(attrs={'class': 'form-control'}),
             'slot_duration': forms.NumberInput(attrs={
                 'class': 'form-control',
                 'placeholder': _('Example value: 30, 60, 90, 120... (in minutes)')

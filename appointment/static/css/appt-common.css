@@ -116,7 +116,7 @@ a {
 
 .djangoAppt_appointment-slot {
     border: 1px solid #ccc;
-    background-color: rgba(0, 48, 124, 0.95);
+    background-color: #0071a1;
     color: #fff;
     padding: 7px;
     margin-bottom: 6px;
@@ -127,6 +127,16 @@ a {
 .djangoAppt_appointment-slot:hover {
     background-color: #fff;
     color: rgba(42, 42, 42, 0.82);
+}
+
+.djangoAppt_appointment-slot.disabled,
+.djangoAppt_appointment-slot.disabled:hover {
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    color: #999;
+    cursor: not-allowed;
+    pointer-events: none; /* disables clicking entirely */
+    opacity: 0.6; 
 }
 
 .selected {
@@ -149,21 +159,21 @@ a {
 
 /* Change the color of the buttons for the calendar */
 .fc-button {
-    background-color: rgba(0, 48, 124, 0.95) !important;
-    border-color: rgba(2, 76, 157, 0.85) !important;
+    background-color: #000000 !important;
+    border-color: #000000 !important;
     color: #fff !important;
 }
 
 /* Change the color of the buttons when hovered */
 .fc-button:hover {
-    background-color: #025bbb !important;
-    border-color: #0056b3;
+    background-color: #28292b !important;
+    border-color: #28292b;
 }
 
 /* Change the color of the buttons when active or focused */
 .fc-button:active, .fc-button:focus {
-    background-color: #0759b2 !important;
-    border-color: #145294;
+    background-color: #28292b !important;
+    border-color: #28292b;
 }
 
 .djangoAppt_date_chosen {
@@ -183,14 +193,15 @@ a {
 .djangoAppt_no-availability-text {
     margin-left: 5px;
     padding-left: 5px;
-    color: #f00;
+    color: rgb(14, 181, 231);
     font-weight: bold;
 }
 
 .disabled-day {
     background-color: #ECECEC; /* light gray */
     opacity: 0.5;
-    pointer-events: none; /* makes it unclickable */
+    pointer-events: not-allowed; /* makes it unclickable */
+    cursor: not-allowed;
 }
 
 /* responsive */
@@ -245,7 +256,7 @@ a {
 }
 
 #staff_id:hover {
-    background-color: #f6c6c6;
+    background-color: #1ca4ff;
 }
 
 #staff_id:focus {
@@ -448,5 +459,6 @@ a {
 }
 
 .selected-cell {
-    background-color: #aaddff; /* or any color you prefer */
+    background-color: #00aaf0; /* or any color you prefer */
+    opacity: 0.5;
 }

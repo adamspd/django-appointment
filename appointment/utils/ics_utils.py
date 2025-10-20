@@ -22,8 +22,8 @@ def generate_ics_file(appointment: Appointment):
     event.add('location', appointment.address)
     event.add('description', appointment.additional_info)
 
-    organizer = f"MAILTO:{appointment.appointment_request.staff_member.user.email}"
-    event.add('organizer', organizer)
+    #organizer = f"MAILTO:{appointment.appointment_request.staff_member.user.email}"
+    #event.add('organizer', organizer)
 
     attendee = f"MAILTO:{appointment.client.email}"
     event.add('attendee', attendee)

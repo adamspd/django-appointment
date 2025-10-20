@@ -18,7 +18,7 @@
                 <h1 class="page-title">
                     {% if page_header %}{{ page_header }}{% else %}{{ service.name }}{% endif %} </h1>
                 <small class="page-description">
-                    {% trans "Check out our availability and book the date and time that works for you" %}
+                    {% trans "Check on the date and time that works for you" %}
                 </small>
                 <hr>
 
@@ -56,15 +56,14 @@
                         {% endif %}
                     </div>
                     <div class="djangoAppt_service-description">
-                        <form method="post" action="{% url 'appointment:appointment_request_submit' %}"
-                              class="appointment-form">
+                        <form method="post" action="{% url 'appointment:appointment_request_submit' %}" class="appointment-form">
                             {% csrf_token %}
                             <div class="staff-members-list">
                                 <label class="djangoAppt_item-name" for="staff_id">{{ label }}</label>
                                 <select name="staff_member" id="staff_id">
                                     {% if not staff_member %}
                                         <option value="none"
-                                                selected>{% trans 'Please select a staff member' %}</option>
+                                                selected>{% trans 'Please select a microscope' %}</option>
                                     {% endif %}
                                     {% for sf in all_staff_members %}
                                         <option value="{{ sf.id }}"
@@ -73,13 +72,13 @@
                                 </select>
                             </div>
 
-                            <div>{% trans "Service Details" %}</div>
+                            
                             <hr class="djangoAppt_second-part">
                             <div class="djangoAppt_service-description-content">
                                 <p class="djangoAppt_item-name">{{ service.name }}</p>
+                                <p>{{ microscope_chosen }}</p>
                                 <p id="service-datetime-chosen" class="service-datetime-chosen">{{ date_chosen }}</p>
                                 <p>{{ service.get_duration }}</p>
-                                <p>{{ service.get_price_text }}</p>
                                 <button type="submit"
                                         class="btn btn-primary btn-submit-appointment"
                                         disabled>{% trans 'Next' %}</button>
@@ -117,13 +116,14 @@
         const serviceId = "{{ service.id }}";
         const serviceDuration = parseInt("{{ service.duration.total_seconds }}") / 60;
         const rescheduledDate = "{{ rescheduled_date }}";
+        const futureDateLimit = "{{ future_date_limit }}";
         const appointmentRequestId = "{{ ar_id_request }}";
         const appointmentRequestSubmitURL = "{% url 'appointment:appointment_request_submit' %}";
         const appointmentRescheduleURL = "{% url 'appointment:reschedule_appointment_submit' %}";
     </script>
     <script>
         const requestNonAvailableSlotBtnTxt = "{% trans 'Request next available slot' %}";
-        const noStaffMemberSelectedTxt = "{% trans 'No staff member selected.' %}";
+        const noStaffMemberSelectedTxt = "{% trans 'No microscope selected.' %}";
         const selectTimeSlotWarningTxt = "{% trans 'Please select a time slot before submitting the appointment request.' %}";
         const dateInPastErrorTxt = "{% trans 'Date is in the past.' %}";
         const selectDateAndTimeAlertTxt = "{% trans 'Please select a date and time' %}";

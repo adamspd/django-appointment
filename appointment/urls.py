@@ -9,9 +9,9 @@ Since: 1.0.0
 from django.urls import include, path
 
 from appointment.views import (
-    appointment_client_information, appointment_request, appointment_request_submit, confirm_reschedule,
-    default_thank_you, enter_verification_code, get_available_slots_ajax, get_next_available_date_ajax,
-    get_non_working_days_ajax, prepare_reschedule_appointment, reschedule_appointment_submit, set_passwd
+     appointment_client_information, appointment_request, appointment_request_submit, confirm_reschedule,
+     default_thank_you, enter_verification_code, get_available_slots_ajax, get_next_available_date_ajax,
+     get_non_working_days_ajax, prepare_reschedule_appointment, reschedule_appointment_submit, set_passwd
 )
 from appointment.views_admin import (
     add_day_off, add_or_update_service, add_or_update_staff_info, add_staff_member_info, add_working_hours,

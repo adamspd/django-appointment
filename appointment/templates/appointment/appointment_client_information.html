@@ -40,7 +40,7 @@
                             <div class="already-have-account">
                                 <div>
                                     {% trans 'Already have an account?' %}
-                                    <a href="#">{% trans 'Log in' %}</a> {% trans 'for faster booking.' %}
+                                    <a href="{% url 'login' %}">{% trans 'Log in' %}</a> {% trans 'for faster booking.' %}
                                 </div>
                             </div>
                             <div class="name-email">
@@ -87,6 +87,8 @@
 
                     <div class="service-description-content">
                         <div class="item-name">{{ ar.get_service_name }}</div>
+                        <div class="microscope-name">{{ ar.get_microscope_name }}</div>
+                        <p>{{ request.user }}</p>
                         <div id="service-datetime-chosen"
                              class="service-datetime-chosen">
                             {{ ar.date }}&nbsp;{% trans "at" %}&nbsp;{{ ar.start_time }}

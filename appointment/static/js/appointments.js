@@ -7,6 +7,7 @@ let selectedDateIso = null;
 let staffId = $('#staff_id').val() || null;
 let previouslySelectedCell = null;
 let isRequestInProgress = false;
+let fdl = parseInt(futureDateLimit) || 14; // default to 14 if not provided
 
 const calendar = new FullCalendar.Calendar(calendarEl, {
     initialView: 'dayGridMonth',
@@ -36,6 +37,10 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
     },
     selectable: true,
     dateClick: function (info) {
+        if (info.dayEl.classList.contains('disabled-day')) {
+            return; // Ignore clicks on disabled days
+        }
+
         const day = info.date.getDay();  // Get the day of the week (0 for Sunday, 6 for Saturday)
         if (nonWorkingDays.includes(day)) {
             return;
@@ -66,8 +71,13 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
         return (info.start >= getDateWithoutTime(new Date()));
     },
     dayCellClassNames: function (info) {
+        //console.error(info);
         const day = info.date.getDay();
-        if (nonWorkingDays.includes(day)) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // normalize
+        const twoWeeksLater = new Date(today);
+        twoWeeksLater.setDate(today.getDate() + fdl);
+        if (info.date > twoWeeksLater || nonWorkingDays.includes(day)) {
             return ['disabled-day'];
         }
         return [];
@@ -294,12 +304,26 @@ function getAvailableSlots(selectedDate, staffId = null) {
                 $('.djangoAppt_no-availability-text').remove();
                 $('.djangoAppt_btn-request-next-slot').remove();
                 const uniqueSlots = [...new Set(data.available_slots)]; // remove duplicates
-                for (let i = 0; i < uniqueSlots.length; i++) {
-                    slotList.append('<li class="djangoAppt_appointment-slot">' + uniqueSlots[i] + '</li>');
-                }
+                // for (let i = 0; i < uniqueSlots.length; i++) {
+                //     slotList.append('<li class="djangoAppt_appointment-slot">' + uniqueSlots[i] + '</li>');
+                // }
+                data.all_slots.forEach(slot => {
+                    const li = $('<li>')
+                        .addClass('djangoAppt_appointment-slot')
+                        .text(slot);
 
-                // Attach click event to the slots
+                    if (!data.available_slots.includes(slot)) {
+                        li.addClass('disabled');  // <-- disable slot if taken
+                    }
+
+                    slotList.append(li);
+                });
+
+                //Attach click event to the slots
                 $('.djangoAppt_appointment-slot').on('click', function () {
+                    if ($(this).hasClass('disabled')) {
+                        return; // ignore clicks on unavailable slots
+                    }
                     // Remove the 'selected' class from all other appointment slots
                     $('.djangoAppt_appointment-slot').removeClass('selected');
 
@@ -313,6 +337,18 @@ function getAvailableSlots(selectedDate, staffId = null) {
                     const selectedSlot = $(this).text();
                     $('#service-datetime-chosen').text(data.date_chosen + ' ' + selectedSlot);
                 });
+                // slotList.off('click').on('click', '.djangoAppt_appointment-slot', function () {
+                //     if ($(this).hasClass('disabled')) {
+                //         return; // <-- prevent selecting a taken slot
+                //     }
+
+                //     $('.djangoAppt_appointment-slot').removeClass('selected');
+                //     $(this).addClass('selected');
+                //     $('.btn-submit-appointment').removeAttr('disabled');
+
+                //     const selectedSlot = $(this).text();
+                //     $('#service-datetime-chosen').text(data.date_chosen + ' ' + selectedSlot);
+                // });
             }
             // Update the date chosen
             selectedDateIso = data.date_iso;

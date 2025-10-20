@@ -214,7 +214,13 @@ class Service(models.Model):
 
 
 class StaffMember(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name=_("User"))
+    #user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name=_("User"))
+    microscope = models.OneToOneField(
+        "reservation.Microscope",
+        default=False,
+        on_delete=models.CASCADE,
+        verbose_name=_("Microscope")
+    )  
     services_offered = models.ManyToManyField(
         Service,
         verbose_name=_("Services Offered"),
@@ -259,9 +265,11 @@ class StaffMember(models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name=_("Updated At"))
 
     class Meta:
-        verbose_name = _("Staff Member")
-        verbose_name_plural = _("Staff Members")
-        ordering = ['user__first_name', 'user__last_name']
+        verbose_name = _("Microscope hour")
+        verbose_name_plural = _("Microscope hours")
+        #ordering = ['user__first_name', 'user__last_name']
+
+        ordering = ["id"]
 
     def __str__(self):
         return f"{self.get_staff_member_name()}"
@@ -287,16 +295,16 @@ class StaffMember(models.Model):
 
     def get_staff_member_name(self):
         name_options = [
-            getattr(self.user, 'get_full_name', lambda: '')(),
-            f"{self.user.first_name} {self.user.last_name}",
-            self.user.username,
-            self.user.email,
+            getattr(self.microscope, 'get_full_name', lambda: '')(),
+            f"{self.microscope.name}",
+            #self.user.username,
+            #self.user.email,
             f"Staff Member {self.id}"
         ]
         return next((name.strip() for name in name_options if name.strip()), "Unknown")
 
     def get_staff_member_first_name(self):
-        return self.user.first_name
+        return self.microscope
 
     def get_non_working_days(self):
         non_working_days = []
@@ -426,6 +434,9 @@ class AppointmentRequest(models.Model):
 
     def get_service_name(self):
         return self.service.name
+    
+    def get_microscope_name(self):
+        return self.staff_member.get_staff_member_name()
 
     def get_service_price(self):
         return self.service.get_price()
@@ -550,8 +561,8 @@ class Appointment(models.Model):
     """
     client = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        null=True,
+        on_delete=models.CASCADE,
+        null=False,
         verbose_name=_("Client"),
         help_text=_("The user who made the appointment request.")
     )
@@ -811,6 +822,11 @@ class Config(models.Model):
         null=True,
         verbose_name=_("Appointment Buffer Time"),
         help_text=_("Time between now and the first available slot for the current day (doesn't affect tomorrow)."),
+    )
+    future_days_limit = models.PositiveIntegerField(
+        default=14,
+        verbose_name=_("Future Days Limit"),
+        help_text=_("Maximum number of days in the future that can be booked (default is 14 days)."),
     )
     website_name = models.CharField(
         max_length=255,

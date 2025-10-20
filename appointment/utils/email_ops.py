@@ -161,15 +161,15 @@ def notify_admin_about_appointment(appointment, client_name: str):
     notified_emails = set()
 
     # Prepare the staff member notification
-    staff_email = staff_member.user.email
-    staff_name = staff_member.user.get_full_name() or staff_member.user.username
-    staff_context = {
-        'recipient_name': staff_name,
-        'client_name': client_name,
-        'appointment': appointment,
-        'is_staff_member': True,
-        'staff_member_name': staff_name
-    }
+    # staff_email = staff_member.user.email
+    # staff_name = staff_member.user.get_full_name() or staff_member.user.username
+    # staff_context = {
+    #     'recipient_name': staff_name,
+    #     'client_name': client_name,
+    #     'appointment': appointment,
+    #     'is_staff_member': True,
+    #     'staff_member_name': staff_name
+    # }
 
     # Notify admins
     for admin_name, admin_email in settings.ADMINS:
@@ -199,15 +199,15 @@ def notify_admin_about_appointment(appointment, client_name: str):
         notified_emails.add(admin_email)
 
     # Notify staff member if they haven't been notified as an admin
-    if staff_email not in notified_emails:
-        logger.info(f"Notifying the staff member for new appointment {appointment.id}")
-        send_email(
-                recipient_list=[staff_email],
-                subject=_("New Appointment Request for ") + client_name,
-                template_url='email_sender/admin_new_appointment_email.html',
-                context=staff_context,
-                attachments=[('appointment.ics', ics_file, 'text/calendar')]
-        )
+    # if staff_email not in notified_emails:
+    #     logger.info(f"Notifying the staff member for new appointment {appointment.id}")
+    #     send_email(
+    #             recipient_list=[staff_email],
+    #             subject=_("New Appointment Request for ") + client_name,
+    #             template_url='email_sender/admin_new_appointment_email.html',
+    #             context=staff_context,
+    #             attachments=[('appointment.ics', ics_file, 'text/calendar')]
+    #     )
 
     logger.info(f"Notifications sent for appointment {appointment.id}")
 
