@@ -67,10 +67,11 @@
                                             type="radio" 
                                             name="staff_member" 
                                             id="staff_{{ sf.id }}" 
-                                            value="{{ sf.id }}" >
+                                            value="{{ sf.id }}" 
+                                            style="transform: scale(1.2);">
                                             <!-- {% if staff_member and staff_member.id == sf.id %}checked{% endif %}> -->
                                         
-                                        <label class="form-check-label" for="staff_{{ sf.id }}">
+                                        <label class="form-check-label" for="staff_{{ sf.id }}" style="font-size: 1.2em;">
                                             {{ sf.get_staff_member_name }}
                                         </label>
                                     </div>

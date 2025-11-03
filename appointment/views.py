@@ -113,6 +113,17 @@ def get_available_slots_ajax(request):
 
     custom_data['all_slots'] = [slot.strftime('%I:%M %p') for slot in all_slots]
 
+    booked_slots_user = {}
+    booked_appointments = Appointment.objects.filter(
+        appointment_request__staff_member=sm,
+        appointment_request__date=selected_date
+    ).select_related('client', 'appointment_request')
+
+    for appt in booked_appointments:
+        start_time_str = appt.get_start_time().strftime('%I:%M %p')
+        booked_slots_user[start_time_str] = appt.client.get_full_name()
+
+    custom_data['booked_slots_user'] = booked_slots_user
     # Check if the selected_date is today and filter out past slots
     if selected_date == date.today():
         current_time = timezone.now().time()

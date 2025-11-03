@@ -328,6 +328,9 @@ function getAvailableSlots(selectedDate, staffId = null) {
                     if (!data.available_slots.includes(slot)) {
                         console.log('Disabling slot:', slot);
                         li.addClass('disabled');  // <-- disable slot if taken
+
+                        const bookedBy = data.booked_slots_user?.[slot] || "Booked";
+                        li.attr('title', `Booked by: ${bookedBy}`);
                     }
 
                     slotList.append(li);

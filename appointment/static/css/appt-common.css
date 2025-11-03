@@ -122,6 +122,7 @@ a {
     margin-bottom: 6px;
     cursor: pointer;
     border-radius: 4px;
+    position: relative;
 }
 
 .djangoAppt_appointment-slot:hover {
@@ -129,14 +130,12 @@ a {
     color: rgba(42, 42, 42, 0.82);
 }
 
-.djangoAppt_appointment-slot.disabled,
-.djangoAppt_appointment-slot.disabled:hover {
+.djangoAppt_appointment-slot.disabled {
     background-color: #f0f0f0;
     border: 1px solid #ccc;
     color: #999;
     cursor: not-allowed;
-    pointer-events: none; /* disables clicking entirely */
-    opacity: 0.6; 
+    opacity: 0.6;
 }
 
 .selected {
