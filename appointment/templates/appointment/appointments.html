@@ -59,17 +59,22 @@
                         <form method="post" action="{% url 'appointment:appointment_request_submit' %}" class="appointment-form">
                             {% csrf_token %}
                             <div class="staff-members-list">
-                                <label class="djangoAppt_item-name" for="staff_id">{{ label }}</label>
-                                <select name="staff_member" id="staff_id">
-                                    {% if not staff_member %}
-                                        <option value="none"
-                                                selected>{% trans 'Please select a microscope' %}</option>
-                                    {% endif %}
-                                    {% for sf in all_staff_members %}
-                                        <option value="{{ sf.id }}"
-                                                {% if staff_member and staff_member.id == sf.id %}selected{% endif %}>{{ sf.get_staff_member_name }}</option>
-                                    {% endfor %}
-                                </select>
+                                <label class="djangoAppt_item-name mb-2">{{ label }}</label>
+
+                                {% for sf in all_staff_members %}
+                                    <div class="form-check">
+                                        <input class="form-check-input" 
+                                            type="radio" 
+                                            name="staff_member" 
+                                            id="staff_{{ sf.id }}" 
+                                            value="{{ sf.id }}" >
+                                            <!-- {% if staff_member and staff_member.id == sf.id %}checked{% endif %}> -->
+                                        
+                                        <label class="form-check-label" for="staff_{{ sf.id }}">
+                                            {{ sf.get_staff_member_name }}
+                                        </label>
+                                    </div>
+                                {% endfor %}
                             </div>
 
                             
@@ -81,17 +86,19 @@
                                 <p>{{ service.get_duration }}</p>
                                 <button type="submit"
                                         class="btn btn-primary btn-submit-appointment"
-                                        disabled>{% trans 'Next' %}</button>
+                                        disabled>{% trans 'Confirm Appointment' %}</button>
                             </div>
                         </form>
                     </div>
                 </div>
-                {% if messages %}
+
+
+                <!-- {% if messages %}
                     {% for message in messages %}
                         <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
                              role="alert">{{ message }}</div>
                     {% endfor %}
-                {% endif %}
+                {% endif %} -->
             </div>
         </div>
     </div>
@@ -117,6 +124,7 @@
         const serviceDuration = parseInt("{{ service.duration.total_seconds }}") / 60;
         const rescheduledDate = "{{ rescheduled_date }}";
         const futureDateLimit = "{{ future_date_limit }}";
+        const firstDayOfWeek = "{{ first_day }}";
         const appointmentRequestId = "{{ ar_id_request }}";
         const appointmentRequestSubmitURL = "{% url 'appointment:appointment_request_submit' %}";
         const appointmentRescheduleURL = "{% url 'appointment:reschedule_appointment_submit' %}";

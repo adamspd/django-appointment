@@ -212,6 +212,7 @@ def appointment_request(request, service_id=None, staff_member_id=None):
     available_slots = []
     config = Config.objects.first()
     future_days = config.future_days_limit if config else 14
+    first_day_of_week = config.first_day_of_week if config else 1
     label = _(config.app_offered_by_label) if config and config.app_offered_by_label else _("Offered by")
 
     if service_id:
@@ -254,6 +255,7 @@ def appointment_request(request, service_id=None, staff_member_id=None):
         'locale': get_locale(),
         'timezoneTxt': get_current_timezone_name(),
         'future_date_limit': future_days,
+        'first_day': first_day_of_week,
         'label': label
     }
     context = get_generic_context_with_extra(request, extra_context, admin=False)

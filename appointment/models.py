@@ -390,6 +390,15 @@ class AppointmentRequest(models.Model):
         help_text=_("Number of times this appointment has been rescheduled.")
     )
 
+    @property
+    def day_name(self):
+        """
+        Returns the full name of the day of the week (e.g., "Monday").
+        """
+        if self.date:
+            return self.date.strftime('%A')
+        return None
+
     # meta data
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=_("Updated At"))
@@ -407,15 +416,21 @@ class AppointmentRequest(models.Model):
         return f"{self.date} - {self.start_time} to {self.end_time} - {self.service.name}"
 
     def clean(self):
-        if self.start_time is not None and self.end_time is not None:
-            if self.start_time > self.end_time:
-                raise ValidationError(_("Start time must be before end time"))
-            if self.start_time == self.end_time:
-                raise ValidationError(_("Start time and end time cannot be the same"))
-
         # Ensure the date is not in the past:
         if self.date and self.date < datetime.date.today():
             raise ValidationError(_("Date cannot be in the past"))
+        
+        # if self.start_time is not None and self.end_time is not None:
+        #     if self.start_time > self.end_time:
+        #         #raise ValidationError(_("Start time must be before end time"))
+        #         pass
+        #     if self.start_time == self.end_time:
+        #         raise ValidationError(_("Start time and end time cannot be the same"))
+            
+        if self.start_time is not None and self.end_time is not None:
+            if self.start_time >= self.end_time and self.end_time != datetime.time(0, 0):
+                raise ValidationError(_("Start time must be before end time or the same"))
+
 
     def save(self, *args, **kwargs):
         # if no id_request is provided, generate one
@@ -828,6 +843,12 @@ class Config(models.Model):
         verbose_name=_("Future Days Limit"),
         help_text=_("Maximum number of days in the future that can be booked (default is 14 days)."),
     )
+    first_day_of_week = models.PositiveIntegerField(
+        choices=DAYS_OF_WEEK,
+        default=1,
+        verbose_name=_("First Day of the Week"),
+        help_text=_("The first day of the week for the calendar view. Monday is 1 and Sunday is 0."),
+    )
     website_name = models.CharField(
         max_length=255,
         default="",
@@ -864,8 +885,9 @@ class Config(models.Model):
         if Config.objects.exists() and not self.pk:
             raise ValidationError(_("You can only create one Config object"))
         if self.lead_time is not None and self.finish_time is not None:
-            if self.lead_time >= self.finish_time:
+            if self.lead_time > self.finish_time: #changed >=
                 raise ValidationError(_("Lead time must be before finish time"))
+                
         if self.appointment_buffer_time is not None and self.appointment_buffer_time < 0:
             raise ValidationError(_("Appointment buffer time cannot be negative"))
         if self.slot_duration is not None and self.slot_duration <= 0:
@@ -1112,12 +1134,12 @@ class WorkingHours(models.Model):
         verbose_name_plural = _("Working Hours")
         ordering = ['day_of_week', 'start_time']
         unique_together = ['staff_member', 'day_of_week']
-        constraints = [
-            models.CheckConstraint(
-                check=models.Q(start_time__lt=models.F('end_time')),
-                name='start_time_before_end_time'
-            )
-        ]
+        # constraints = [
+        #     models.CheckConstraint(
+        #         check=models.Q(start_time__lt=models.F('end_time')),
+        #         name='start_time_before_end_time'
+        #     )
+        # ]
 
     def __str__(self):
         return f"{self.get_day_of_week_display()} - {self.start_time} to {self.end_time}"
@@ -1134,7 +1156,7 @@ class WorkingHours(models.Model):
         self.staff_member.save()
 
     def clean(self):
-        if self.start_time >= self.end_time:
+        if self.start_time > self.end_time : # changed >=
             raise ValidationError("Start time must be before end time")
 
     def get_start_time(self):

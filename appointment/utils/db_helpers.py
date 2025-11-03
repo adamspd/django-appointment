@@ -65,7 +65,7 @@ def calculate_slots(start_time, end_time, buffer_time, slot_duration):
     """
     slots = []
     buffer_time = buffer_time.replace(tzinfo=None)
-    while start_time + slot_duration <= end_time:
+    while start_time < end_time:
         if start_time >= buffer_time:
             slots.append(start_time)
         start_time += slot_duration
@@ -355,6 +355,10 @@ def exclude_booked_slots(appointments, slots, slot_duration=None):
     :param slots: The slots to exclude the appointments from.
     :param slot_duration: The duration of each slot.
     :return: The slots with the booked slots excluded.
+
+    Here was the FIX for the 11 PM issue. In the appointments for 11 PM start time,
+    the end time was 12 AM (midnight) of the same day, which caused the overlap check to fail.
+    We adjusted the end time by adding one day if it is less than or equal to the start time.
     """
     available_slots = []
     for slot in slots:
@@ -363,12 +367,18 @@ def exclude_booked_slots(appointments, slots, slot_duration=None):
         for appointment in appointments:
             appointment_start_time = appointment.get_start_time()
             appointment_end_time = appointment.get_end_time()
+
+            if appointment_end_time <= appointment_start_time:
+                appointment_end_time = appointment_end_time + datetime.timedelta(days=1)
+
             if appointment_start_time < slot_end and slot < appointment_end_time:
                 is_available = False
                 break
         if is_available:
             available_slots.append(slot)
+
     return available_slots
+    
 
 
 def exclude_pending_reschedules(slots, staff_member, date):

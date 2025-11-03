@@ -226,7 +226,7 @@ def time_difference(time1, time2):
         raise ValueError("Both inputs should be of the same type, either datetime.time or datetime.datetime")
 
     # Check if datetime2 is earlier than datetime1
-    if datetime2 < datetime1:
+    if datetime2 < datetime1 and datetime2.time() != datetime.time(0, 0):
         raise ValueError("The second time provided (time2) should not be earlier than the first time (time1).")
 
     # Find the difference

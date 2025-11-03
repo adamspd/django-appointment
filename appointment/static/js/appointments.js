@@ -1,5 +1,14 @@
 const calendarEl = document.getElementById('calendar');
+
 let nextAvailableDateSelector = $('.djangoAppt_next-available-date')
+// let nextHour = new Date(nextAvailableDateSelector);
+// nextHour.setMinutes(0, 0, 0);
+// if (nextAvailableDateSelector.getMinutes() > 0 || nextAvailableDateSelector.getSeconds() > 0 || nextAvailableDateSelector.getMilliseconds() > 0) {
+//   // only add an hour if we're not already exactly on the hour
+//   nextHour.setHours(nextAvailableDateSelector.getHours() + 1);
+// }
+// nextAvailableDateSelector = nextHour;
+
 const body = $('body');
 let nonWorkingDays = [];
 let selectedDate = rescheduledDate || null;
@@ -8,12 +17,14 @@ let staffId = $('#staff_id').val() || null;
 let previouslySelectedCell = null;
 let isRequestInProgress = false;
 let fdl = parseInt(futureDateLimit) || 14; // default to 14 if not provided
+let firstdayofweek = parseInt(firstDayOfWeek) || 1; // default to Monday if not provided
 
 const calendar = new FullCalendar.Calendar(calendarEl, {
     initialView: 'dayGridMonth',
     initialDate: selectedDate,
     timeZone: timezone,
     locale: locale,
+    firstDay: firstdayofweek,
     headerToolbar: {
         left: 'title',
         right: 'prev,today,next',
@@ -148,7 +159,7 @@ body.on('click', '.btn-submit-appointment', function () {
     }
 });
 
-$('#staff_id').on('change', function () {
+$('input[name="staff_member"]').on('change', function () {
     staffId = $(this).val() || null;  // If staffId is an empty string, set it to null
     let currentDate = null
     if (selectedDate == null) {
@@ -307,12 +318,15 @@ function getAvailableSlots(selectedDate, staffId = null) {
                 // for (let i = 0; i < uniqueSlots.length; i++) {
                 //     slotList.append('<li class="djangoAppt_appointment-slot">' + uniqueSlots[i] + '</li>');
                 // }
+                console.log('All slots:', data.all_slots);
                 data.all_slots.forEach(slot => {
                     const li = $('<li>')
                         .addClass('djangoAppt_appointment-slot')
                         .text(slot);
 
+                    console.log("available_slots:", data.available_slots);
                     if (!data.available_slots.includes(slot)) {
+                        console.log('Disabling slot:', slot);
                         li.addClass('disabled');  // <-- disable slot if taken
                     }
 
