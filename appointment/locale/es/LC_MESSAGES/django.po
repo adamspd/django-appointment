@@ -1,23 +1,22 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# Spanish translation for django-appointment
+# Copyright (C) 2025 Adams Pierre David
+# This file is distributed under the same license as the django-appointment package.
+# Alexander Mamani <contact@alexandermamani.com>, 2025.
 #
-#, fuzzy
+# SPDX-FileCopyrightText: 2025 Adams Pierre David <django-appt@adamspierredavid.com>
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: django-appointment 3.9.1\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-11-03 02:45+0000\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
+"PO-Revision-Date: 2025-11-03 10:30+0000\n"
+"Last-Translator: Alexander Mamani <contact@alexandermamani.com>\n"
+"Language-Team: Spanish <https://github.com/alexandermamaniy/django-appointment>\n"
+"Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? "
-"1 : 2;\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: appointment/forms.py:25
 msgid "Staff member does not exist"
@@ -121,8 +120,8 @@ msgid ""
 "is to pay for\n"
 "the booking."
 msgstr ""
-"¡Estamos emocionados de tenerte a bordo! Gracias por reservar con nosotros. "
-"El siguiente paso es para pagar por\n"
+"¡Estamos emocionados de tenerte a bordo! Gracias por reservar con nosotros. El siguiente paso "
+"es para pagar por\n"
 "la reserva."
 
 #: appointment/messages_.py:20
@@ -133,8 +132,7 @@ msgstr "Reserva actualizada con éxito."
 msgid ""
 "We've successfully set your password. You can now log in to your account."
 msgstr ""
-"Hemos establecido tu contraseña con éxito. Ahora puedes iniciar sesión en tu "
-"cuenta."
+"Hemos establecido tu contraseña con éxito. Ahora puedes iniciar sesión en tu cuenta."
 
 #: appointment/messages_.py:24 appointment/tests/test_views.py:905
 #: appointment/tests/test_views.py:916 appointment/tests/test_views.py:926
@@ -578,8 +576,7 @@ msgstr "Información adicional"
 msgid ""
 "Any additional information the client wants to provide for the appointment."
 msgstr ""
-"Cualquier información adicional que el cliente quiera proporcionar para la "
-"cita."
+"Cualquier información adicional que el cliente quiera proporcionar para la cita."
 
 #: appointment/models.py:584
 msgid "Paid"
@@ -628,8 +625,7 @@ msgstr "{staff_member} no trabaja este día."
 msgid ""
 "The appointment start time is outside of {staff_member}'s working hours."
 msgstr ""
-"La hora de inicio de la cita está fuera del horario laboral de "
-"{staff_member}."
+"La hora de inicio de la cita está fuera del horario laboral de {staff_member}."
 
 #: appointment/models.py:755
 #, python-brace-format
@@ -697,8 +693,7 @@ msgstr "Permitir cambio de personal al reprogramar"
 msgid ""
 "Allows clients to change the staff member when rescheduling an appointment."
 msgstr ""
-"Permite a los clientes cambiar el miembro del personal al reprogramar una "
-"cita."
+"Permite a los clientes cambiar el miembro del personal al reprogramar una cita."
 
 #: appointment/models.py:843
 msgid "Config"
@@ -1025,8 +1020,7 @@ msgstr "Ingresar código de verificación"
 #: appointment/templates/appointment/enter_verification_code.html:16
 msgid "We've sent a verification code to your email. Please enter it below"
 msgstr ""
-"Hemos enviado un código de verificación a tu correo electrónico. Por favor "
-"ingrésalo a continuación"
+"Hemos enviado un código de verificación a tu correo electrónico. Por favor ingrésalo a continuación"
 
 #: appointment/templates/administration/email_change_verification_code.html:22
 #: appointment/templates/appointment/enter_verification_code.html:21
@@ -1068,9 +1062,7 @@ msgstr "Crear miembro del personal manualmente"
 
 #: appointment/templates/administration/manage_staff_member.html:33
 msgid "Hold down “Control”, or “Command” on a Mac, to select more than one."
-msgstr ""
-"Mantén presionado “Control”, o “Command” en una Mac, para seleccionar más de "
-"uno."
+msgstr "Mantén presionado “Control”, o “Command” en una Mac, para seleccionar más de uno."
 
 #: appointment/templates/administration/manage_staff_member.html:70
 #: appointment/views_admin.py:465
@@ -1158,8 +1150,7 @@ msgstr "Yo no eres un miembro del personal. ¡No se puede realizar esta acción!
 
 #: appointment/templates/administration/staff_index.html:334
 msgid "You don't offer any service. Add new service from your profile."
-msgstr ""
-"Tu no ofreces ningún servicio. Agrega un nuevo servicio desde tu perfil."
+msgstr "Tu no ofreces ningún servicio. Agrega un nuevo servicio desde tu perfil."
 
 #: appointment/templates/administration/staff_index.html:335
 msgid "No staff members found."
@@ -1313,9 +1304,7 @@ msgstr ""
 
 #: appointment/templates/administration/user_profile.html:224
 msgid "Changes made in one service will change it for every staff member."
-msgstr ""
-"Los cambios realizados en un servicio lo cambiarán para todos los miembros "
-"del personal."
+msgstr "Los cambios realizados en un servicio lo cambiarán para todos los miembros del personal."
 
 #: appointment/templates/administration/user_profile.html:249
 msgid "No service offered yet"
@@ -1436,9 +1425,7 @@ msgstr "Ningún miembro del personal seleccionado."
 
 #: appointment/templates/appointment/appointments.html:127
 msgid "Please select a time slot before submitting the appointment request."
-msgstr ""
-"Por favor selecciona un espacio de tiempo antes de enviar la solicitud de "
-"cita."
+msgstr "Por favor selecciona un espacio de tiempo antes de enviar la solicitud de cita."
 
 #: appointment/templates/appointment/appointments.html:128
 msgid "Date is in the past."
@@ -1490,9 +1477,7 @@ msgstr "Reprogramación exitosa"
 
 #: appointment/templates/appointment/rescheduling_thank_you.html:58
 msgid "Your appointment rescheduling was successful. Please confirm via email."
-msgstr ""
-"Tu reprogramación de cita fue exitosa. Por favor confirma vía correo "
-"electrónico."
+msgstr "Tu reprogramación de cita fue exitosa. Por favor confirma vía correo electrónico."
 
 #: appointment/templates/appointment/rescheduling_thank_you.html:65
 msgid ""
@@ -1580,8 +1565,7 @@ msgstr "revise esta solicitud de cita y toma las medidas necesarias."
 msgid ""
 "This is an automated message. Please do not reply directly to this email."
 msgstr ""
-"Este es un mensaje automatizado. Por favor no respondas directamente a este "
-"correo electrónico."
+"Este es un mensaje automatizado. Por favor no respondas directamente a este correo electrónico."
 
 #: appointment/templates/email_sender/reminder_email.html:7
 #: appointment/templates/email_sender/reminder_email.html:115
@@ -1627,8 +1611,7 @@ msgstr "Gracias por elegirnos!"
 msgid ""
 "Please ensure the appointment setup is complete and ready for the client."
 msgstr ""
-"Por favor asegúrate de que la configuración de la cita esté completa y lista "
-"para el cliente."
+"Por favor asegúrate de que la configuración de la cita esté completa y lista para el cliente."
 
 #: appointment/templates/email_sender/reschedule_email.html:6
 msgid "Appointment Reschedule Confirmation"
@@ -2047,8 +2030,7 @@ msgstr "Día libre. ¡Por favor selecciona otra fecha!"
 #: appointment/views.py:101
 #, python-brace-format
 msgid "Not a working day for {staff_member}. Please select another date!"
-msgstr ""
-"No es un día laborable para {staff_member}. ¡Por favor selecciona otra fecha!"
+msgstr "No es un día laborable para {staff_member}. ¡Por favor selecciona otra fecha!"
 
 #: appointment/views.py:117
 msgid "No availability"
@@ -2085,9 +2067,7 @@ msgstr "Nombre de usuario"
 
 #: appointment/views.py:468
 msgid "Please try resetting your password again or contact support for help."
-msgstr ""
-"Por favor intenta restablecer tu contraseña nuevamente o contacta al soporte "
-"para obtener ayuda."
+msgstr "Por favor intenta restablecer tu contraseña nuevamente o contacta al soporte para obtener ayuda."
 
 #: appointment/views.py:484
 msgid "Password Reset Successful"
@@ -2117,15 +2097,13 @@ msgstr "O-o-oh! Este enlace ya no es válido."
 
 #: appointment/views.py:587
 msgid "O-o-oh! Can't find the pending reschedule request."
-msgstr ""
-"O-o-oh! No se puede encontrar la solicitud de reprogramación pendiente."
+msgstr "O-o-oh! No se puede encontrar la solicitud de reprogramación pendiente."
 
 #: appointment/views_admin.py:62
 msgid ""
 "User doesn't have a staff member instance. Please contact the administrator."
 msgstr ""
-"El usuario no tiene una instancia de miembro del personal. Por favor "
-"contacte al administrador."
+"El usuario no tiene una instancia de miembro del personal. Por favor contacte al administrador."
 
 #: appointment/views_admin.py:103
 msgid "You can only add your own days off"
@@ -2169,9 +2147,7 @@ msgstr "¡Correo electrónico actualizado con éxito!"
 
 #: appointment/views_admin.py:394
 msgid "The verification code provided is incorrect. Please try again."
-msgstr ""
-"El código de verificación proporcionado es incorrecto. Por favor, inténtalo "
-"de nuevo."
+msgstr "El código de verificación proporcionado es incorrecto. Por favor, inténtalo de nuevo."
 
 #: appointment/views_admin.py:430
 msgid "Create"
