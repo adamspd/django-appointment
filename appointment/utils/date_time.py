@@ -244,7 +244,7 @@ DATE_FORMATS = {
     'de': "D, j. F Y",                       # "Do, 14. August 2025" (German: period after day)
     'el': "D, j F Y",                        # "Πέμ, 14 Αυγούστου 2025" (Greek: comma after weekday)
     'en': "D, F j, Y",                       # "Thu, August 14, 2025" (English: commas)
-    'es': r"D, j \de F \de Y",               # "jue, 14 de agosto de 2025" (Spanish: with "de")
+    'es': r"D, j \d\e F \d\e Y",               # "jue, 14 de agosto de 2025" (Spanish: with "de")
     'et': "D, j. F Y",                       # "N, 14. august 2025" (Estonian: period after day)
     'fa': "D، j F Y",                        # "پ، 14 اوت 2025" (Persian: RTL with Persian comma)
     'fi': "D j. Fta Y",                      # "to 14. elokuuta 2025" (Finnish: partitive case for month)

@@ -6,7 +6,7 @@ Author: Adams Pierre David
 Since: 1.1.0
 """
 
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 
 thank_you_no_payment = _("""We're excited to have you on board!""")
 
