@@ -20,7 +20,7 @@ from appointment.logger_config import get_logger
 from appointment.models import AppointmentRequest, EmailVerificationCode, PasswordResetToken, Appointment
 from appointment.settings import APPOINTMENT_PAYMENT_URL
 from appointment.utils.date_time import convert_24_hour_time_to_12_hour_time
-from appointment.utils.db_helpers import get_absolute_url_, get_website_name
+from appointment.utils.db_helpers import get_absolute_url_, get_website_name, username_in_user_model
 from appointment.utils.ics_utils import generate_ics_file
 
 logger = get_logger(__name__)
@@ -117,29 +117,36 @@ def send_reset_link_to_staff_member(user, request, email: str, account_details=N
     set_passwd_link = get_absolute_url_(relative_set_passwd_link, request=request)
     website_name = get_website_name()
 
+    # Get username safely
+    if username_in_user_model() and hasattr(user, 'username'):
+        login_instruction = _("To login, use username '{username}' or your email address.").format(
+            username=user.username)
+    else:
+        login_instruction = _("To login, use your email address.")
+
     message = _("""
-        Hello {first_name},
+            Hello {first_name},
 
-        A request has been received to set a password for your staff account for the year {current_year} at {company}.
+            A request has been received to set a password for your staff account for the year {current_year} at {company}.
 
-        Please click the link below to set up your new password:
-        {activation_link}
-        
-        To login, if ask for a username, use '{username}', otherwise use your email address.
+            Please click the link below to set up your new password:
+            {activation_link}
 
-        If you did not request this, please ignore this email.
+            {login_instruction}
 
-        {account_details}
+            If you did not request this, please ignore this email.
 
-        Regards,
-        {company}
-        """).format(
+            {account_details}
+
+            Regards,
+            {company}
+            """).format(
             first_name=user.first_name,
             current_year=datetime.datetime.now().year,
             company=website_name,
             activation_link=set_passwd_link,
-            account_details=account_details if account_details else _("No additional details provided."),
-            username=user.username
+            login_instruction=login_instruction,
+            account_details=account_details if account_details else _("No additional details provided.")
     )
 
     # Assuming send_email is a method you have that sends an email
@@ -162,7 +169,12 @@ def notify_admin_about_appointment(appointment, client_name: str):
 
     # Prepare the staff member notification
     staff_email = staff_member.user.email
-    staff_name = staff_member.user.get_full_name() or staff_member.user.username
+    staff_name = (
+            staff_member.user.get_full_name() or
+            (staff_member.user.username if username_in_user_model() else None) or
+            staff_member.user.email or
+            f"Staff Member {staff_member.id}"
+    )
     staff_context = {
         'recipient_name': staff_name,
         'client_name': client_name,
