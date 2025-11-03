@@ -1,0 +1,2210 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-11-03 02:45+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? "
+"1 : 2;\n"
+
+#: appointment/forms.py:25
+msgid "Staff member does not exist"
+msgstr "Miembro del personal no existe"
+
+#: appointment/forms.py:40
+msgid "Reason for rescheduling..."
+msgstr "Razón para reprogramar..."
+
+#: appointment/forms.py:55
+msgid "1234567890"
+msgstr "0987654321"
+
+#: appointment/forms.py:66
+msgid "1234 Main St, City, State, Zip Code"
+msgstr "Calle Principal 1234, Ciudad, Estado, Código Postal"
+
+#: appointment/forms.py:72
+msgid "I would like to be contacted by phone."
+msgstr "Te gustaría que me contacten por teléfono."
+
+#: appointment/forms.py:77
+msgid "John Doe"
+msgstr "Alex Mamani"
+
+#: appointment/forms.py:78 appointment/forms.py:85
+#, fuzzy
+#| msgid "alex.mamani@example.com"
+msgid "john.doe@example.com"
+msgstr "alex.mamani@example.com"
+
+#: appointment/forms.py:83
+msgid "John"
+msgstr "Alex"
+
+#: appointment/forms.py:84
+msgid "Doe"
+msgstr "Mamani"
+
+#: appointment/forms.py:101
+msgid "This email is already taken."
+msgstr "Este correo electrónico ya está en uso."
+
+#: appointment/forms.py:115 appointment/forms.py:144
+msgid "Example value: 30, 60, 90, 120... (in minutes)"
+msgstr "Ejemplo de valor: 30, 60, 90, 120... (en minutos)"
+
+#: appointment/forms.py:119 appointment/forms.py:148
+msgid "Example value: 08:00:00, 09:00:00... (24-hour format)"
+msgstr "Ejemplo de valor: 08:00:00, 09:00:00... (formato de 24 horas)"
+
+#: appointment/forms.py:123 appointment/forms.py:152
+msgid "Example value: 17:00:00, 18:00:00... (24-hour format)"
+msgstr "Ejemplo de valor: 17:00:00, 18:00:00... (formato de 24 horas)"
+
+#: appointment/forms.py:127 appointment/forms.py:156
+msgid "Example value: 15, 30, 45, 60... (in minutes)"
+msgstr "Ejemplo de valor: 15, 30, 45, 60... (en minutos)"
+
+#: appointment/forms.py:206
+msgid "Example: First Consultation"
+msgstr "Ejemplo: Primera Consulta"
+
+#: appointment/forms.py:210
+msgid "Example: Overview of client's needs."
+msgstr "Ejemplo: Resumen de las necesidades del cliente."
+
+#: appointment/forms.py:214
+msgid "HH:MM:SS, (example: 00:15:00 for 15 minutes)"
+msgstr "HH:MM:SS, (ejemplo: 00:15:00 para 15 minutos)"
+
+#: appointment/forms.py:218
+msgid "Example: 100.00 (0 for free)"
+msgstr "Ejemplo: 100.00 (0 para gratis)"
+
+#: appointment/forms.py:222
+msgid "Example: 50.00 (0 for free)"
+msgstr "Ejemplo: 50.00 (0 para gratis)"
+
+#: appointment/messages_.py:11
+msgid "We're excited to have you on board!"
+msgstr "Estamos emocionados de tenerte a bordo!"
+
+#: appointment/messages_.py:13
+msgid ""
+"We're excited to have you on board! The next step is \n"
+"to pay for the booking. You have the choice to pay the whole amount or a "
+"down deposit.\n"
+"If you choose the deposit, you will have to pay the rest of the amount on "
+"the day of the booking."
+msgstr ""
+"¡Estamos emocionados de tenerte a bordo! El siguiente paso es \n"
+"pagar la reserva. Tienes la opción de pagar el monto total o un depósito "
+"inicial.\n"
+"Si eliges el depósito, tendrás que pagar el resto del monto de el día de la "
+"reserva."
+
+#: appointment/messages_.py:17
+msgid ""
+"We're excited to have you on board! Thank you for booking us. The next step "
+"is to pay for\n"
+"the booking."
+msgstr ""
+"¡Estamos emocionados de tenerte a bordo! Gracias por reservar con nosotros. "
+"El siguiente paso es para pagar por\n"
+"la reserva."
+
+#: appointment/messages_.py:20
+msgid "Appointment updated successfully."
+msgstr "Reserva actualizada con éxito."
+
+#: appointment/messages_.py:22
+msgid ""
+"We've successfully set your password. You can now log in to your account."
+msgstr ""
+"Hemos establecido tu contraseña con éxito. Ahora puedes iniciar sesión en tu "
+"cuenta."
+
+#: appointment/messages_.py:24 appointment/tests/test_views.py:905
+#: appointment/tests/test_views.py:916 appointment/tests/test_views.py:926
+#: appointment/views.py:496
+msgid "The password reset link is invalid or has expired."
+msgstr "El enlace para restablecer la contraseña no es válido o ha expirado."
+
+#: appointment/models.py:29
+msgid "Full payment"
+msgstr "Pago completo"
+
+#: appointment/models.py:30
+#: appointment/templates/administration/user_profile.html:235
+msgid "Down payment"
+msgstr "Pago inicial"
+
+#: appointment/models.py:34 appointment/models.py:316
+#: appointment/tests/models/test_staff_member.py:187
+msgid "Sunday"
+msgstr "Domingo"
+
+#: appointment/models.py:35 appointment/tests/models/test_working_hours.py:37
+msgid "Monday"
+msgstr "Lunes"
+
+#: appointment/models.py:36
+msgid "Tuesday"
+msgstr "Martes"
+
+#: appointment/models.py:37
+msgid "Wednesday"
+msgstr "Miércoles"
+
+#: appointment/models.py:38
+msgid "Thursday"
+msgstr "Jueves"
+
+#: appointment/models.py:39
+msgid "Friday"
+msgstr "Viernes"
+
+#: appointment/models.py:40 appointment/models.py:314
+#: appointment/tests/models/test_staff_member.py:175
+msgid "Saturday"
+msgstr "Sábado"
+
+#: appointment/models.py:67
+#: appointment/templates/administration/service_list.html:28
+#: appointment/templates/administration/staff_list.html:38
+#: appointment/templates/administration/user_profile.html:231
+msgid "Name"
+msgstr "Nombre"
+
+#: appointment/models.py:68 appointment/models.py:1061
+#: appointment/templates/administration/manage_day_off.html:63
+#: appointment/templates/administration/user_profile.html:102
+#: appointment/templates/administration/user_profile.html:232
+msgid "Description"
+msgstr "Descripción"
+
+#: appointment/models.py:71
+#: appointment/templates/administration/service_list.html:29
+#: appointment/templates/administration/user_profile.html:233
+#: appointment/templates/appointment/default_thank_you.html:23
+#: appointment/views.py:442
+msgid "Duration"
+msgstr "Duración"
+
+#: appointment/models.py:77
+#: appointment/templates/administration/service_list.html:30
+#: appointment/templates/administration/user_profile.html:234
+msgid "Price"
+msgstr "Precio"
+
+#: appointment/models.py:84
+#: appointment/templates/appointment/appointment_client_information.html:115
+msgid "Down Payment"
+msgstr "Pago inicial"
+
+#: appointment/models.py:86
+msgid "Image"
+msgstr "Imagen"
+
+#: appointment/models.py:91
+msgid "Currency"
+msgstr "Tipo de moneda"
+
+#: appointment/models.py:98
+msgid "Background Color"
+msgstr "Color de fondo"
+
+#: appointment/models.py:102
+msgid "Maximum number of times an appointment can be rescheduled."
+msgstr "Numéro máximo de veces que se puede reprogramar una cita."
+
+#: appointment/models.py:103
+msgid "Reschedule limit"
+msgstr "Limite de reprogramación"
+
+#: appointment/models.py:107
+msgid "Indicates whether appointments for this service can be rescheduled."
+msgstr "Indica si las citas para este servicio se pueden reprogramar."
+
+#: appointment/models.py:108
+msgid "Allow Rescheduling"
+msgstr "Permitir reprogramación"
+
+#: appointment/models.py:112 appointment/models.py:258
+#: appointment/models.py:386 appointment/models.py:506
+#: appointment/models.py:598 appointment/models.py:839
+#: appointment/models.py:887 appointment/models.py:942
+#: appointment/models.py:994 appointment/models.py:1064
+#: appointment/models.py:1091
+msgid "Created At"
+msgstr "Creado en"
+
+#: appointment/models.py:113 appointment/models.py:259
+#: appointment/models.py:387 appointment/models.py:511
+#: appointment/models.py:599 appointment/models.py:840
+#: appointment/models.py:888 appointment/models.py:943
+#: appointment/models.py:995 appointment/models.py:1065
+#: appointment/models.py:1092
+msgid "Updated At"
+msgstr "Actualizado en"
+
+#: appointment/models.py:116 appointment/models.py:370
+#: appointment/templates/administration/display_appointment.html:54
+#: appointment/templates/administration/display_appointment.html:57
+#: appointment/templates/appointment/default_thank_you.html:20
+#: appointment/templates/email_sender/reminder_email.html:130
+#: appointment/views.py:439
+msgid "Service"
+msgstr "Servicio"
+
+#: appointment/models.py:117
+msgid "Services"
+msgstr "Servicios"
+
+#: appointment/models.py:149 appointment/utils/date_time.py:84
+#, python-format
+msgid "%(count)d day"
+msgid_plural "%(count)d days"
+msgstr[0] "%(count)d día"
+msgstr[1] "%(count)d días"
+
+#: appointment/models.py:156 appointment/utils/date_time.py:88
+#, python-format
+msgid "%(count)d hour"
+msgid_plural "%(count)d hours"
+msgstr[0] "%(count)d hora"
+msgstr[1] "%(count)d horas"
+
+#: appointment/models.py:163 appointment/utils/date_time.py:92
+#, python-format
+msgid "%(count)d minute"
+msgid_plural "%(count)d minutes"
+msgstr[0] "%(count)d minuto"
+msgstr[1] "%(count)d minutos"
+
+#: appointment/models.py:170
+#, python-format
+msgid "%(count)d second"
+msgid_plural "%(count)d seconds"
+msgstr[0] "%(count)d segundo"
+msgstr[1] "%(count)d segundos"
+
+#: appointment/models.py:189 appointment/models.py:707
+msgid "Free"
+msgstr "Gratis"
+
+#: appointment/models.py:217 appointment/models.py:934
+#: appointment/models.py:982
+msgid "User"
+msgstr "Usuario"
+
+#: appointment/models.py:220
+msgid "Services Offered"
+msgstr "Servicios ofrecidos"
+
+#: appointment/models.py:221
+msgid "Services that this staff member provides."
+msgstr "Servicios que este miembro del personal proporciona."
+
+#: appointment/models.py:225 appointment/models.py:797
+msgid "Slot Duration"
+msgstr "Duración del espacio"
+
+#: appointment/models.py:226 appointment/models.py:798
+msgid "Minimum time for an appointment in minutes, recommended 30."
+msgstr "Tiempo mínimo para una cita en minutos, recomendado 30."
+
+#: appointment/models.py:230 appointment/models.py:802
+msgid "Lead Time"
+msgstr "Tiempo de anticipación"
+
+#: appointment/models.py:231
+msgid "Time when the staff member starts working."
+msgstr "Tiempo cuando el miembro del personal comienza a trabajar."
+
+#: appointment/models.py:235 appointment/models.py:807
+msgid "Finish Time"
+msgstr "Tiempo de finalización"
+
+#: appointment/models.py:236
+msgid "Time when the staff member stops working."
+msgstr "Tiempo cuando el miembro del personal deja de trabajar."
+
+#: appointment/models.py:240 appointment/models.py:812
+msgid "Appointment Buffer Time"
+msgstr "Tiempo de espera para la cita"
+
+#: appointment/models.py:241
+msgid ""
+"Time between now and the first available slot for the current day (doesn't "
+"affect tomorrow). e.g: If you start working at 9:00 AM and the current time "
+"is 8:30 AM and you set it to 30 minutes, the first available slot will be at "
+"9:00 AM. If you set the appointment buffer time to 60 minutes, the first "
+"available slot will be at 9:30 AM."
+msgstr ""
+"Tiempo entre ahora y el primer espacio disponible para el día actual (no "
+"afecta mañana). por ejemplo: Si comienzas a trabajar a las 9:00 AM y la hora "
+"actual es 8:30 AM y lo configuras a 30 minutos, el primer espacio disponible "
+"será a las 9:00 AM. Si configuras el tiempo de espera para la cita a 60 "
+"minutos, la primera franja horaria disponible será a las 9:30 AM."
+
+#: appointment/models.py:248
+msgid "Work on Saturday"
+msgstr "Se trabaja el sábado"
+
+#: appointment/models.py:249
+msgid "Indicates whether this staff member works on Saturdays."
+msgstr "Indica si este miembro del personal trabaja los sábados."
+
+#: appointment/models.py:253
+msgid "Work on Sunday"
+msgstr "Se trabaja el domingo"
+
+#: appointment/models.py:254
+msgid "Indicates whether this staff member works on Sundays."
+msgstr "Indica si este miembro del personal trabaja los domingos."
+
+#: appointment/models.py:262 appointment/models.py:371
+#: appointment/models.py:486 appointment/models.py:1058
+#: appointment/models.py:1085
+#: appointment/templates/administration/manage_day_off.html:32
+#: appointment/templates/administration/manage_working_hours.html:34
+#: appointment/templates/administration/staff_index.html:357
+msgid "Staff Member"
+msgstr "Miembro del personal"
+
+#: appointment/models.py:263
+#: appointment/templates/administration/staff_list.html:22
+msgid "Staff Members"
+msgstr "Miembros del personal"
+
+#: appointment/models.py:312 appointment/tests/models/test_staff_member.py:181
+msgid "Saturday and Sunday"
+msgstr "Sabado y domingo"
+
+#: appointment/models.py:318 appointment/tests/models/test_staff_member.py:193
+msgid "None"
+msgstr "Ninguno"
+
+#: appointment/models.py:361 appointment/models.py:473
+#: appointment/templates/administration/display_appointment.html:37
+#: appointment/templates/email_sender/reminder_email.html:134
+#: appointment/templates/email_sender/reschedule_email.html:64
+#: appointment/templates/email_sender/reschedule_email.html:69
+msgid "Date"
+msgstr "Fecha"
+
+#: appointment/models.py:361
+msgid "The date of the appointment request."
+msgstr "La fecha de la solicitud de cita."
+
+#: appointment/models.py:363 appointment/models.py:477
+#: appointment/models.py:1087
+msgid "Start Time"
+msgstr "Hora de inicio"
+
+#: appointment/models.py:364
+msgid "The start time of the appointment request."
+msgstr "La hora de inicio de la solicitud de cita."
+
+#: appointment/models.py:367 appointment/models.py:481
+#: appointment/models.py:1088
+msgid "End Time"
+msgstr "Hora de finalización"
+
+#: appointment/models.py:368
+msgid "The end time of the appointment request."
+msgstr "La hora de finalización de la solicitud de cita."
+
+#: appointment/models.py:376
+msgid "Payment Type"
+msgstr "Tipo de pago"
+
+#: appointment/models.py:378 appointment/models.py:501
+#: appointment/models.py:595
+msgid "Request ID"
+msgstr "ID de solicitud"
+
+#: appointment/models.py:381
+msgid "Reschedule Attempts"
+msgstr "Intentos de reprogramación"
+
+#: appointment/models.py:382
+msgid "Number of times this appointment has been rescheduled."
+msgstr "Numéro de veces que se ha reprogramado esta cita."
+
+#: appointment/models.py:390 appointment/models.py:469
+#: appointment/models.py:561
+msgid "Appointment Request"
+msgstr "Solicitud de cita"
+
+#: appointment/models.py:391
+msgid "Appointment Requests"
+msgstr "Solicitudes de citas"
+
+#: appointment/models.py:404
+msgid "Start time must be before end time"
+msgstr "La hora de inicio debe ser antes de la hora de finalización"
+
+#: appointment/models.py:406 appointment/models.py:418
+msgid "Start time and end time cannot be the same"
+msgstr "La hora de inicio y la hora de finalización no pueden ser las mismas"
+
+#: appointment/models.py:410 appointment/models.py:421
+#: appointment/models.py:529
+msgid "Date cannot be in the past"
+msgstr "La fecha no puede estar en el pasado"
+
+#: appointment/models.py:424
+msgid "Duration cannot exceed the service duration"
+msgstr "La duración no puede exceder la duración del servicio"
+
+#: appointment/models.py:470
+msgid "The appointment request made by a client."
+msgstr "La solicitud de cita realizada por un cliente."
+
+#: appointment/models.py:474
+msgid "The previous date of the appointment before it was rescheduled."
+msgstr "Fecha previa de la cita antes de ser reprogramada."
+
+#: appointment/models.py:478
+msgid "The previous start time of the appointment before it was rescheduled."
+msgstr "Fecha de inicio previa de la cita antes de ser reprogramada."
+
+#: appointment/models.py:482
+msgid "The previous end time of the appointment before it was rescheduled."
+msgstr "Fecha de finalización previa de la cita antes de ser reprogramada."
+
+#: appointment/models.py:487
+msgid "The previous staff member of the appointment before it was rescheduled."
+msgstr "Miembro del personal previo de la cita antes de ser reprogramada."
+
+#: appointment/models.py:491
+msgid "Reason for Rescheduling"
+msgstr "Razón para reprogramar"
+
+#: appointment/models.py:492
+msgid "Reason for the appointment reschedule."
+msgstr "Razón para la reprogramación de la cita."
+
+#: appointment/models.py:496
+msgid "Pending"
+msgstr "Pendiente"
+
+#: appointment/models.py:496
+msgid "Confirmed"
+msgstr "Confirmado"
+
+#: appointment/models.py:498
+msgid "Reschedule Status"
+msgstr "Estado de reprogramación"
+
+#: appointment/models.py:499
+msgid "Indicates the status of the reschedule action."
+msgstr "Indica el estado de la acción de reprogramación."
+
+#: appointment/models.py:507
+msgid "The date and time the reschedule was recorded."
+msgstr "La fecha y hora en que se registró la reprogramación."
+
+#: appointment/models.py:512
+msgid "The date and time the reschedule was confirmed."
+msgstr "La fecha y hora en que se confirmó la reprogramación."
+
+#: appointment/models.py:516
+msgid "Appointment Reschedule History"
+msgstr "Historial de reprogramación de citas"
+
+#: appointment/models.py:517
+msgid "Appointment Reschedule Histories"
+msgstr "Historiales de reprogramación de citas"
+
+#: appointment/models.py:533
+msgid "The date is not valid"
+msgstr "La fecha no es válida"
+
+#: appointment/models.py:555
+#: appointment/templates/administration/display_appointment.html:69
+msgid "Client"
+msgstr "Cliente"
+
+#: appointment/models.py:556
+msgid "The user who made the appointment request."
+msgstr "El usuario que realizó la solicitud de cita."
+
+#: appointment/models.py:562
+msgid "The appointment request made by the client."
+msgstr "La solicitud de cita realizada por el cliente."
+
+#: appointment/models.py:564
+#: appointment/templates/administration/staff_index.html:374
+msgid "Phone Number"
+msgstr "Número de teléfono"
+
+#: appointment/models.py:569
+msgid "Address"
+msgstr "Dirección"
+
+#: appointment/models.py:570
+msgid "Does not have to be specific, just the city and the state"
+msgstr "No tiene que ser específico, solo la ciudad y el estado"
+
+#: appointment/models.py:574
+msgid "Want Reminder"
+msgstr "Quiere recordatorio"
+
+#: appointment/models.py:575
+msgid "Indicates whether the client wants a reminder for the appointment."
+msgstr "Indica si el cliente quiere un recordatorio para la cita."
+
+#: appointment/models.py:579
+#: appointment/templates/email_sender/admin_new_appointment_email.html:69
+msgid "Additional Info"
+msgstr "Información adicional"
+
+#: appointment/models.py:580
+msgid ""
+"Any additional information the client wants to provide for the appointment."
+msgstr ""
+"Cualquier información adicional que el cliente quiera proporcionar para la "
+"cita."
+
+#: appointment/models.py:584
+msgid "Paid"
+msgstr "Pagado"
+
+#: appointment/models.py:585
+msgid "Indicates whether the appointment has been paid for."
+msgstr "Indica si la cita ha sido pagada."
+
+#: appointment/models.py:591
+msgid "Amount to Pay"
+msgstr "Monto a pagar"
+
+#: appointment/models.py:592
+msgid ""
+"The amount to be paid for the appointment. If 0, it means the appointment is "
+"free or already paid."
+msgstr ""
+"El monto a pagar por la cita. Si es 0, significa que la cita es gratis o ya "
+"está pagada."
+
+#: appointment/models.py:602 appointment/models.py:884
+msgid "Appointment"
+msgstr "Cita"
+
+#: appointment/models.py:603
+msgid "Appointments"
+msgstr "Citas"
+
+#: appointment/models.py:696 appointment/models.py:714
+msgid "Yes"
+msgstr "Sí"
+
+#: appointment/models.py:696 appointment/models.py:714
+#: appointment/tests/models/test_appointment.py:62
+msgid "No"
+msgstr "No"
+
+#: appointment/models.py:739
+#, python-brace-format
+msgid "{staff_member} does not work on this day."
+msgstr "{staff_member} no trabaja este día."
+
+#: appointment/models.py:744
+#, python-brace-format
+msgid ""
+"The appointment start time is outside of {staff_member}'s working hours."
+msgstr ""
+"La hora de inicio de la cita está fuera del horario laboral de "
+"{staff_member}."
+
+#: appointment/models.py:755
+#, python-brace-format
+msgid "{staff_member} already has an appointment at this time."
+msgstr "{staff_member} ya tiene una cita en este momento."
+
+#: appointment/models.py:761
+#, python-brace-format
+msgid "{staff_member} has a day off on this date."
+msgstr "{staff_member} tiene un día libre en esta fecha."
+
+#: appointment/models.py:803
+msgid "Time when we start working."
+msgstr "Tiempo cuando comenzamos a trabajar."
+
+#: appointment/models.py:808
+msgid "Time when we stop working."
+msgstr "Tiempo cuando dejamos de trabajar."
+
+#: appointment/models.py:813
+msgid ""
+"Time between now and the first available slot for the current day (doesn't "
+"affect tomorrow)."
+msgstr ""
+"Tiempo entre ahora y el primer espacio disponible para el día actual (no "
+"afecta mañana)."
+
+#: appointment/models.py:818
+msgid "Website Name"
+msgstr "Nombre del sitio web"
+
+#: appointment/models.py:819
+msgid "Name of your website."
+msgstr "Nombre de tu sitio web."
+
+#: appointment/models.py:823 appointment/views.py:206 appointment/views.py:515
+msgid "Offered by"
+msgstr "Ofrecido por"
+
+#: appointment/models.py:824
+msgid "`Offered by` Label"
+msgstr "Etiqueta de `Ofrecido por`"
+
+#: appointment/models.py:825
+msgid "Label for `Offered by` on the appointment page"
+msgstr "Etiqueta de `Ofrecido por` en la página de citas"
+
+#: appointment/models.py:829
+msgid "Default Reschedule Limit"
+msgstr "Límite de reprogramación predeterminado"
+
+#: appointment/models.py:830
+msgid ""
+"Default maximum number of times an appointment can be rescheduled across all "
+"services."
+msgstr ""
+"Número máximo predeterminado de veces que se puede reprogramar una cita en "
+"todos los servicios."
+
+#: appointment/models.py:834
+msgid "Allow Staff Change on Reschedule"
+msgstr "Permitir cambio de personal al reprogramar"
+
+#: appointment/models.py:835
+msgid ""
+"Allows clients to change the staff member when rescheduling an appointment."
+msgstr ""
+"Permite a los clientes cambiar el miembro del personal al reprogramar una "
+"cita."
+
+#: appointment/models.py:843
+msgid "Config"
+msgstr "Configuración"
+
+#: appointment/models.py:844
+msgid "Configs"
+msgstr "Configuraciones"
+
+#: appointment/models.py:849
+msgid "You can only create one Config object"
+msgstr "Tu solo puedes crear un objeto de Configuración"
+
+#: appointment/models.py:852
+msgid "Lead time must be before finish time"
+msgstr "El tiempo de anticipación debe ser antes de la hora de finalización"
+
+#: appointment/models.py:854
+msgid "Appointment buffer time cannot be negative"
+msgstr "El tiempo de espera para la cita no puede ser negativo"
+
+#: appointment/models.py:856
+msgid "Slot duration must be greater than 0"
+msgstr "La duración del espacio debe ser mayor que 0"
+
+#: appointment/models.py:891
+msgid "Payment Info"
+msgstr "Información de pago"
+
+#: appointment/models.py:892
+msgid "Payment Infos"
+msgstr "Informaciones de pago"
+
+#: appointment/models.py:937
+msgid "Verification Code"
+msgstr "Código de verificación"
+
+#: appointment/models.py:938
+msgid "The verification code sent to the user's email."
+msgstr "El código de verificación enviado al correo electrónico del usuario."
+
+#: appointment/models.py:946
+msgid "Email Verification Code"
+msgstr "Código de verificación de correo electrónico"
+
+#: appointment/models.py:947
+msgid "Email Verification Codes"
+msgstr "Códigos de verificación de correo electrónico"
+
+#: appointment/models.py:974
+msgid "Active"
+msgstr "Activo"
+
+#: appointment/models.py:975
+msgid "Verified"
+msgstr "Verificado"
+
+#: appointment/models.py:976
+msgid "Invalidated"
+msgstr "Invalido"
+
+#: appointment/models.py:984
+msgid "Token"
+msgstr "Token"
+
+#: appointment/models.py:985
+msgid "Expires At"
+msgstr "Expira en"
+
+#: appointment/models.py:990
+msgid "Status"
+msgstr "Estado"
+
+#: appointment/models.py:998
+msgid "Password Reset Token"
+msgstr "Código de restablecimiento de contraseña"
+
+#: appointment/models.py:999
+msgid "Password Reset Tokens"
+msgstr "Códigos de restablecimiento de contraseña"
+
+#: appointment/models.py:1059
+msgid "Start Date"
+msgstr "Fecha de inicio"
+
+#: appointment/models.py:1060
+msgid "End Date"
+msgstr "Fecha de finalización"
+
+#: appointment/models.py:1068
+msgid "Day Off"
+msgstr "Día libre"
+
+#: appointment/models.py:1069
+#: appointment/templates/administration/user_profile.html:88
+msgid "Days Off"
+msgstr "Días libres"
+
+#: appointment/models.py:1078
+msgid "Start date must be before end date"
+msgstr "La fecha de inicio debe ser antes de la fecha de finalización"
+
+#: appointment/models.py:1086
+#: appointment/templates/administration/manage_working_hours.html:40
+msgid "Day of Week"
+msgstr "Día de la semana"
+
+#: appointment/models.py:1095
+msgid "Working Hour"
+msgstr "Hora laboral"
+
+#: appointment/models.py:1096
+#: appointment/templates/administration/user_profile.html:154
+msgid "Working Hours"
+msgstr "Horas laborales"
+
+#: appointment/services.py:68 appointment/tests/test_services.py:163
+#: appointment/views_admin.py:341
+msgid "Appointment does not exist."
+msgstr "La cita no existe."
+
+#: appointment/services.py:72 appointment/tests/test_services.py:171
+msgid "You are not authorized to view this appointment."
+msgstr "Tu no estás autorizado para ver esta cita."
+
+#: appointment/services.py:75
+#: appointment/templates/appointment/default_thank_you.html:18
+msgid "Appointment details"
+msgstr "Detalles de la cita"
+
+#: appointment/services.py:75
+#, python-brace-format
+msgid ": {client_name}"
+msgstr ": {client_name}"
+
+#: appointment/services.py:91
+msgid "Staff me"
+msgstr "Hacerme miembro del personal"
+
+#: appointment/services.py:94
+msgid "Remove me"
+msgstr "Dejar de ser miembro del personal"
+
+#: appointment/services.py:110
+msgid "You can only view your own profile"
+msgstr "Tu solo puedes ver tu propio perfil"
+
+#: appointment/services.py:119 appointment/views_admin.py:210
+#: appointment/views_admin.py:354
+msgid "Not authorized."
+msgstr "No autorizado."
+
+#: appointment/services.py:129
+msgid ""
+"Here you can add/remove services offered by this staff member by modifying "
+"this section."
+msgstr ""
+"Aquí puedes agregar/eliminar servicios ofrecidos por este miembro del "
+"personal modificando esta sección."
+
+#: appointment/services.py:131
+msgid ""
+"Here you can add/remove services offered by you by modifying this section."
+msgstr ""
+"Aquí puedes agregar/eliminar servicios ofrecidos por ti modificando esta "
+"sección."
+
+#: appointment/services.py:170 appointment/views_admin.py:375
+#: appointment/views_admin.py:472
+msgid "Update"
+msgstr "Actualizar"
+
+#: appointment/services.py:170
+msgid "Add"
+msgstr "Agregar"
+
+#: appointment/services.py:188
+msgid "Days off for this date range already exist."
+msgstr "Días libres para este rango de fechas ya existen."
+
+#: appointment/services.py:216
+msgid "Day off saved successfully."
+msgstr "Día libre guardado con éxito."
+
+#: appointment/services.py:236
+msgid "Invalid data."
+msgstr "Datos inválidos."
+
+#: appointment/services.py:244
+msgid "Start time must be before end time."
+msgstr "La hora de inicio debe ser antes de la hora de finalización."
+
+#: appointment/services.py:250
+msgid "Working hours already exist for this day."
+msgstr "Las horas laborales ya existen para este día."
+
+#: appointment/services.py:256
+msgid "Invalid or no working_hours_id provided."
+msgstr "Inválido o no se proporcionó working_hours_id."
+
+#: appointment/services.py:266
+msgid "Working hours does not exist."
+msgstr "Las horas laborales no existen."
+
+#: appointment/services.py:275
+msgid "Working hours saved successfully."
+msgstr "Las horas laborales se guardaron con éxito."
+
+#: appointment/services.py:448 appointment/tests/test_services.py:936
+msgid "Pay Now"
+msgstr "Pagar ahora"
+
+#: appointment/services.py:449
+#: appointment/templates/appointment/appointment_client_information.html:123
+#: appointment/templates/appointment/appointment_client_information.html:129
+#: appointment/tests/test_services.py:931
+msgid "Finish"
+msgstr "Finalizar"
+
+#: appointment/services.py:485 appointment/tests/test_services.py:723
+msgid "Empty fields are not allowed."
+msgstr "Los campos vacíos no están permitidos."
+
+#: appointment/services.py:493 appointment/tests/test_services.py:716
+msgid "User not found."
+msgstr "Usuario no encontrado."
+
+#: appointment/services.py:527
+msgid "A user with this email already exists."
+msgstr "Ya existe un usuario con este correo electrónico."
+
+#: appointment/services.py:555
+msgid "Service saved successfully."
+msgstr "Servicio guardado con éxito."
+
+#: appointment/tasks.py:34 appointment/tests/test_tasks.py:40
+msgid "Reminder: Upcoming Appointment"
+msgstr "Recordatorio: Próxima cita"
+
+#: appointment/tasks.py:41 appointment/tests/test_tasks.py:48
+msgid "Admin Reminder: Upcoming Appointment"
+msgstr "Recordatorio de administrador: Próxima cita"
+
+#: appointment/templates/administration/display_appointment.html:34
+msgid "Schedule"
+msgstr "Programar"
+
+#: appointment/templates/administration/display_appointment.html:41
+#: appointment/templates/administration/manage_working_hours.html:45
+#: appointment/templates/administration/staff_index.html:385
+#: appointment/templates/administration/user_profile.html:167
+msgid "Start time"
+msgstr "Hora de inicio"
+
+#: appointment/templates/administration/display_appointment.html:45
+#: appointment/templates/administration/manage_working_hours.html:59
+#: appointment/templates/administration/staff_index.html:397
+#: appointment/templates/administration/user_profile.html:168
+msgid "End time"
+msgstr "Hora de finalización"
+
+#: appointment/templates/administration/display_appointment.html:66
+msgid "Client Details"
+msgstr "Detalles del cliente"
+
+#: appointment/templates/administration/display_appointment.html:73
+#: appointment/templates/administration/staff_list.html:39
+#: appointment/templates/administration/user_profile.html:37
+#: appointment/templates/appointment/appointment_client_information.html:50
+msgid "Email"
+msgstr "Correo electrónico"
+
+#: appointment/templates/administration/display_appointment.html:77
+#: appointment/templates/appointment/appointment_client_information.html:64
+msgid "Phone"
+msgstr "Teléfono"
+
+#: appointment/templates/administration/display_appointment.html:81
+#: appointment/templates/administration/staff_index.html:376
+msgid "Client address"
+msgstr "Dirección del cliente"
+
+#: appointment/templates/administration/display_appointment.html:90
+msgid "Notes"
+msgstr "Notas"
+
+#: appointment/templates/administration/display_appointment.html:93
+#: appointment/templates/administration/staff_index.html:379
+msgid "Wants reminder"
+msgstr "Quiere recordatorio"
+
+#: appointment/templates/administration/display_appointment.html:98
+#: appointment/templates/administration/staff_index.html:382
+#: appointment/templates/appointment/appointment_client_information.html:76
+msgid "Additional Information"
+msgstr "Información adicional"
+
+#: appointment/templates/administration/display_appointment.html:118
+msgid "Payment Complete"
+msgstr "Pago completo"
+
+#: appointment/templates/administration/display_appointment.html:120
+msgid "Payment Pending"
+msgstr "Pago pendiente"
+
+#: appointment/templates/administration/display_appointment.html:126
+msgid "Paid in full"
+msgstr "Pagado en su totalidad"
+
+#: appointment/templates/administration/display_appointment.html:128
+msgid "Amount due"
+msgstr "Monto adeudado"
+
+#: appointment/templates/administration/email_change_verification_code.html:8
+#: appointment/templates/administration/email_change_verification_code.html:11
+#: appointment/templates/administration/email_change_verification_code.html:17
+#: appointment/templates/appointment/enter_verification_code.html:9
+#: appointment/templates/appointment/enter_verification_code.html:10
+#: appointment/templates/appointment/enter_verification_code.html:15
+msgid "Enter Verification Code"
+msgstr "Ingresar código de verificación"
+
+#: appointment/templates/administration/email_change_verification_code.html:18
+#: appointment/templates/appointment/enter_verification_code.html:16
+msgid "We've sent a verification code to your email. Please enter it below"
+msgstr ""
+"Hemos enviado un código de verificación a tu correo electrónico. Por favor "
+"ingrésalo a continuación"
+
+#: appointment/templates/administration/email_change_verification_code.html:22
+#: appointment/templates/appointment/enter_verification_code.html:21
+msgid "Code"
+msgstr "Código"
+
+#: appointment/templates/administration/email_change_verification_code.html:25
+#: appointment/templates/administration/manage_day_off.html:69
+#: appointment/templates/appointment/enter_verification_code.html:24
+#: appointment/templates/modal/event_details_modal.html:27
+msgid "Submit"
+msgstr "Enviar"
+
+#: appointment/templates/administration/manage_day_off.html:17
+msgid "Manage Days Off"
+msgstr "Administrar días libres"
+
+#: appointment/templates/administration/manage_day_off.html:39
+#: appointment/templates/administration/user_profile.html:100
+msgid "Start date"
+msgstr "Fecha de inicio"
+
+#: appointment/templates/administration/manage_day_off.html:51
+#: appointment/templates/administration/user_profile.html:101
+msgid "End date"
+msgstr "Fecha de finalización"
+
+#: appointment/templates/administration/manage_staff_member.html:13
+msgid "Staff Appointment Information"
+msgstr "Información de la cita del personal"
+
+#: appointment/templates/administration/manage_staff_member.html:24
+msgid "User not found"
+msgstr "Usuario no encontrado"
+
+#: appointment/templates/administration/manage_staff_member.html:24
+msgid "Create staff member manually"
+msgstr "Crear miembro del personal manualmente"
+
+#: appointment/templates/administration/manage_staff_member.html:33
+msgid "Hold down “Control”, or “Command” on a Mac, to select more than one."
+msgstr ""
+"Mantén presionado “Control”, o “Command” en una Mac, para seleccionar más de "
+"uno."
+
+#: appointment/templates/administration/manage_staff_member.html:70
+#: appointment/views_admin.py:465
+msgid "Save"
+msgstr "Guardar"
+
+#: appointment/templates/administration/manage_staff_personal_info.html:13
+msgid "Staff Personal Information"
+msgstr "Información privada del personal"
+
+#: appointment/templates/administration/manage_working_hours.html:24
+msgid "Manage Working Hours"
+msgstr "Administrar horas laborales"
+
+#: appointment/templates/administration/service_list.html:12
+#: appointment/templates/administration/service_list.html:15
+#: appointment/templates/administration/service_list.html:22
+msgid "Service List"
+msgstr "Lista de servicios"
+
+#: appointment/templates/administration/service_list.html:31
+#: appointment/templates/administration/user_profile.html:103
+#: appointment/templates/administration/user_profile.html:169
+#: appointment/templates/modal/confirm_modal.html:19
+msgid "Action"
+msgstr "Acción"
+
+#: appointment/templates/administration/service_list.html:46
+msgid "Are you sure you want to delete this service?"
+msgstr "¿Estás seguro de que deseas eliminar este servicio?"
+
+#: appointment/templates/administration/service_list.html:63
+msgid "No service found"
+msgstr "No se encontró el servicio"
+
+#: appointment/templates/administration/staff_index.html:285
+#: appointment/templates/administration/staff_index.html:328
+msgid "New Appointment"
+msgstr "Nueva cita"
+
+#: appointment/templates/administration/staff_index.html:323
+#: appointment/templates/administration/user_profile.html:29
+msgid "Confirm Deletion"
+msgstr "Confirmar eliminación"
+
+#: appointment/templates/administration/staff_index.html:324
+msgid "Are you sure you want to delete this appointment?"
+msgstr "¿Estás seguro de que deseas eliminar esta cita?"
+
+#: appointment/templates/administration/staff_index.html:325
+#: appointment/templates/administration/user_profile.html:30
+#: appointment/templates/modal/event_details_modal.html:31
+msgid "Delete"
+msgstr "Eliminar"
+
+#: appointment/templates/administration/staff_index.html:326
+msgid "Appointments on"
+msgstr "Citas en"
+
+#: appointment/templates/administration/staff_index.html:327
+msgid "No appointment for this day."
+msgstr "No hay citas para este día."
+
+#: appointment/templates/administration/staff_index.html:329
+msgid "Success"
+msgstr "Exitoso"
+
+#: appointment/templates/administration/staff_index.html:330
+#: appointment/templates/modal/error_modal.html:7 appointment/views.py:466
+msgid "Error"
+msgstr "Error"
+
+#: appointment/templates/administration/staff_index.html:331
+msgid "Error: Unable to delete appointment."
+msgstr "Error: No se puede eliminar la cita."
+
+#: appointment/templates/administration/staff_index.html:332
+msgid "Appointment not found."
+msgstr "Cita no encontrada."
+
+#: appointment/templates/administration/staff_index.html:333
+#: appointment/views_admin.py:259
+msgid "You're not a staff member. Can't perform this action !"
+msgstr "Yo no eres un miembro del personal. ¡No se puede realizar esta acción!"
+
+#: appointment/templates/administration/staff_index.html:334
+msgid "You don't offer any service. Add new service from your profile."
+msgstr ""
+"Tu no ofreces ningún servicio. Agrega un nuevo servicio desde tu perfil."
+
+#: appointment/templates/administration/staff_index.html:335
+msgid "No staff members found."
+msgstr "No se encontraron miembros del personal."
+
+#: appointment/templates/administration/staff_index.html:336
+#: appointment/templates/appointment/appointments.html:130
+msgid "Today"
+msgstr "Hoy"
+
+#: appointment/templates/administration/staff_index.html:337
+msgid "Month"
+msgstr "Mes"
+
+#: appointment/templates/administration/staff_index.html:338
+msgid "Week"
+msgstr "Semana"
+
+#: appointment/templates/administration/staff_index.html:339
+#: appointment/templates/administration/user_profile.html:166
+msgid "Day"
+msgstr "Día"
+
+#: appointment/templates/administration/staff_index.html:340
+msgid "List"
+msgstr "Lista"
+
+#: appointment/templates/administration/staff_index.html:366
+msgid "Service Name"
+msgstr "Nombre del servicio"
+
+#: appointment/templates/administration/staff_index.html:369
+#: appointment/templates/email_sender/admin_new_appointment_email.html:62
+msgid "Client Name"
+msgstr "Nombre del cliente"
+
+#: appointment/templates/administration/staff_index.html:371
+msgid "Client Email"
+msgstr "Correo electrónico del cliente"
+
+#: appointment/templates/administration/staff_index.html:383
+msgid "Client wants this and that"
+msgstr "El cliente quiere esto y aquello"
+
+#: appointment/templates/administration/staff_list.html:15
+msgid "List of all staff members"
+msgstr "Lista de todos los miembros del personal"
+
+#: appointment/templates/administration/staff_list.html:40
+msgid "Details"
+msgstr "Detalles"
+
+#: appointment/templates/administration/staff_list.html:50
+msgid "View Profile"
+msgstr "Ver perfil"
+
+#: appointment/templates/administration/staff_list.html:52
+msgid "Remove"
+msgstr "Eliminar"
+
+#: appointment/templates/administration/staff_list.html:57
+msgid "No staff members found"
+msgstr "No se encontraron miembros del personal"
+
+#: appointment/templates/administration/staff_list.html:61
+msgid ""
+"PS: Remove means, deleting the staff status of the user. The user account is "
+"still active."
+msgstr ""
+"PD: Eliminar significa, eliminar el estado de miembro del personal del "
+"usuario. La cuenta del usuario esta aun activa."
+
+#: appointment/templates/administration/user_profile.html:32
+msgid "Personal Information"
+msgstr "Información personal"
+
+#: appointment/templates/administration/user_profile.html:35
+msgid "First name"
+msgstr "Nombre"
+
+#: appointment/templates/administration/user_profile.html:36
+msgid "Last name"
+msgstr "Apellido"
+
+#: appointment/templates/administration/user_profile.html:47
+msgid "Appointment Information"
+msgstr "Información de la cita"
+
+#: appointment/templates/administration/user_profile.html:54
+msgid "Slot duration"
+msgstr "Duración del espacio"
+
+#: appointment/templates/administration/user_profile.html:58
+msgid "General start time"
+msgstr "Hora de inicio general"
+
+#: appointment/templates/administration/user_profile.html:59
+msgid "General end time"
+msgstr "Hora de finalización general"
+
+#: appointment/templates/administration/user_profile.html:61
+msgid "Weekend days you work"
+msgstr "Días de fin de semana que trabajas"
+
+#: appointment/templates/administration/user_profile.html:65
+msgid "Appointment buffer time"
+msgstr "Tiempo de espera para la cita"
+
+#: appointment/templates/administration/user_profile.html:76
+msgid "No staff member information yet for this user"
+msgstr "Aún no hay información personal para este usuario"
+
+#: appointment/templates/administration/user_profile.html:94
+msgid ""
+"Days off are days you're not working, you need to set them for holidays as "
+"well so clients don't book you those days."
+msgstr ""
+"Los días libres son días en los que no trabajas, también debes configurarlos "
+"para los días festivos para que los clientes no te reserven esos días."
+
+#: appointment/templates/administration/user_profile.html:125
+#: appointment/templates/administration/user_profile.html:191
+msgid "Are you sure you want to delete this working hours?"
+msgstr "¿Estás seguro de que deseas eliminar este horario laboral?"
+
+#: appointment/templates/administration/user_profile.html:144
+msgid "No days off have been set"
+msgstr "No se han establecido días libres"
+
+#: appointment/templates/administration/user_profile.html:160
+msgid ""
+"Note: If you are a staff member, your working hours will be used to "
+"determine when you are available for appointments."
+msgstr ""
+"Nota: Si eres un miembro del personal, tus horas laborales se utilizarán "
+"para determinar cuándo estás disponible para citas."
+
+#: appointment/templates/administration/user_profile.html:210
+msgid "No working hours have been set"
+msgstr "No se han establecido horas laborales"
+
+#: appointment/templates/administration/user_profile.html:220
+msgid "Service Offered"
+msgstr "Servicio ofrecido"
+
+#: appointment/templates/administration/user_profile.html:223
+msgid "To add/modify a new service, make a request to an admin."
+msgstr ""
+"Para agregar/modificar un nuevo servicio, haga una solicitud a un "
+"administrador."
+
+#: appointment/templates/administration/user_profile.html:224
+msgid "Changes made in one service will change it for every staff member."
+msgstr ""
+"Los cambios realizados en un servicio lo cambiarán para todos los miembros "
+"del personal."
+
+#: appointment/templates/administration/user_profile.html:249
+msgid "No service offered yet"
+msgstr "Aún no se ofrece servicio"
+
+#: appointment/templates/appointment/appointment_client_information.html:8
+msgid "Client Information"
+msgstr "Información del cliente"
+
+#: appointment/templates/appointment/appointment_client_information.html:11
+#, python-format
+msgid ""
+"\n"
+"        Your appointment request for %(service_name)s has been submitted.\n"
+"        Please provide your information to create an account and complete "
+"the payment process.\n"
+"    "
+msgstr ""
+"\n"
+"        Su solicitud de cita para %(service_name)s ha sido enviada.\n"
+"        Por favor proporcione su información para crear una cuenta y "
+"completar el proceso de pago.\n"
+"    "
+
+#: appointment/templates/appointment/appointment_client_information.html:33
+msgid "Fill out your details"
+msgstr "Completa tus datos"
+
+#: appointment/templates/appointment/appointment_client_information.html:39
+msgid "Tell us a bit about yourself"
+msgstr "Dinos un poco de información sobre ti"
+
+#: appointment/templates/appointment/appointment_client_information.html:42
+msgid "Already have an account?"
+msgstr "¿Ya tienes una cuenta?"
+
+#: appointment/templates/appointment/appointment_client_information.html:43
+msgid "Log in"
+msgstr "Iniciar sesión"
+
+#: appointment/templates/appointment/appointment_client_information.html:43
+msgid "for faster booking."
+msgstr "Para una reserva más rápida."
+
+#: appointment/templates/appointment/appointment_client_information.html:47
+msgid "Full Name"
+msgstr "Nombre completo"
+
+#: appointment/templates/appointment/appointment_client_information.html:58
+msgid "I want to receive an EMAIL reminder 24 hours before this session starts"
+msgstr ""
+"Quiero recibir un recordatorio por CORREO ELECTRÓNICO 24 horas antes de que "
+"comience esta sesión"
+
+#: appointment/templates/appointment/appointment_client_information.html:71
+msgid "City and State"
+msgstr "Ciudad y estado"
+
+#: appointment/templates/appointment/appointment_client_information.html:84
+#: appointment/templates/appointment/appointments.html:76
+msgid "Service Details"
+msgstr "Detalles del servicio"
+
+#: appointment/templates/appointment/appointment_client_information.html:92
+msgid "at"
+msgstr "en"
+
+#: appointment/templates/appointment/appointment_client_information.html:101
+msgid "Payment Details"
+msgstr "Detalles de pago"
+
+#: appointment/templates/appointment/appointment_client_information.html:103
+msgid "Total"
+msgstr "Total"
+
+#: appointment/templates/appointment/appointment_client_information.html:109
+msgid "Pay"
+msgstr "Pagar"
+
+#: appointment/templates/appointment/appointment_client_information.html:186
+#: appointment/templates/appointment/appointment_client_information.html:212
+msgid "Please enter a valid email address"
+msgstr "Por favor ingresa una dirección de correo electrónico válida"
+
+#: appointment/templates/appointment/appointments.html:21
+msgid ""
+"Check out our availability and book the date and time that works for you"
+msgstr ""
+"Revisa nuestra disponibilidad y reserva la fecha y hora que más te convenga"
+
+#: appointment/templates/appointment/appointments.html:29
+msgid "Select a date and time"
+msgstr "Selecciona una fecha y hora"
+
+#: appointment/templates/appointment/appointments.html:32
+msgid "Timezone"
+msgstr "Zona horaria"
+
+#: appointment/templates/appointment/appointments.html:52
+msgid "Reason for rescheduling"
+msgstr "Razón para reprogramar"
+
+#: appointment/templates/appointment/appointments.html:67
+msgid "Please select a staff member"
+msgstr "Por favor selecciona un miembro del personal"
+
+#: appointment/templates/appointment/appointments.html:85
+msgid "Next"
+msgstr "Siguiente"
+
+#: appointment/templates/appointment/appointments.html:125
+msgid "Request next available slot"
+msgstr "Solicitar el siguiente espacio disponible"
+
+#: appointment/templates/appointment/appointments.html:126
+msgid "No staff member selected."
+msgstr "Ningún miembro del personal seleccionado."
+
+#: appointment/templates/appointment/appointments.html:127
+msgid "Please select a time slot before submitting the appointment request."
+msgstr ""
+"Por favor selecciona un espacio de tiempo antes de enviar la solicitud de "
+"cita."
+
+#: appointment/templates/appointment/appointments.html:128
+msgid "Date is in the past."
+msgstr "La fecha está en el pasado."
+
+#: appointment/templates/appointment/appointments.html:129
+msgid "Please select a date and time"
+msgstr "Por favor selecciona una fecha y hora"
+
+#: appointment/templates/appointment/appointments.html:131
+msgid "Next month"
+msgstr "Siguiente mes"
+
+#: appointment/templates/appointment/appointments.html:132
+msgid "Previous month"
+msgstr "Mes anterior"
+
+#: appointment/templates/appointment/appointments.html:133
+msgid "Next available date"
+msgstr "Siguiente fecha disponible"
+
+#: appointment/templates/appointment/default_thank_you.html:16
+msgid "See you soon"
+msgstr "Nos vemos pronto"
+
+#: appointment/templates/appointment/default_thank_you.html:17
+msgid ""
+"We've successfully scheduled your appointment! Please check your email for "
+"all the details"
+msgstr ""
+"¡Hemos programado tu cita con éxito! Por favor revisa tu correo electrónico "
+"para todos los detalles"
+
+#: appointment/templates/appointment/default_thank_you.html:21
+#: appointment/templates/email_sender/admin_new_appointment_email.html:64
+#: appointment/views.py:440
+msgid "Appointment Date"
+msgstr "Fecha de la cita"
+
+#: appointment/templates/appointment/default_thank_you.html:22
+#: appointment/views.py:441
+msgid "Appointment Time"
+msgstr "Hora de la cita"
+
+#: appointment/templates/appointment/rescheduling_thank_you.html:55
+#: appointment/templates/appointment/rescheduling_thank_you.html:64
+msgid "Rescheduling Successful"
+msgstr "Reprogramación exitosa"
+
+#: appointment/templates/appointment/rescheduling_thank_you.html:58
+msgid "Your appointment rescheduling was successful. Please confirm via email."
+msgstr ""
+"Tu reprogramación de cita fue exitosa. Por favor confirma vía correo "
+"electrónico."
+
+#: appointment/templates/appointment/rescheduling_thank_you.html:65
+msgid ""
+"Your appointment rescheduling request has been successfully submitted. "
+"Please check your email and click on the confirmation link to finalize the "
+"rescheduling process."
+msgstr ""
+"Tu solicitud de reprogramación de cita ha sido enviada con éxito. Por favor "
+"revisa tu correo electrónico y haz clic en el enlace de confirmación para "
+"finalizar el proceso de reprogramación."
+
+#: appointment/templates/appointment/rescheduling_thank_you.html:66
+msgid "Go to Homepage"
+msgstr "Ir a la página principal"
+
+#: appointment/templates/appointment/set_password.html:78
+#: appointment/templates/appointment/set_password.html:81
+#: appointment/templates/appointment/set_password.html:85
+msgid "Reset Your Password"
+msgstr "Restablece tu contraseña"
+
+#: appointment/templates/appointment/set_password.html:99
+msgid "Reset Password"
+msgstr "Restablecer la contraseña"
+
+#: appointment/templates/base_templates/base.html:7
+msgid "Appointment application"
+msgstr "Aplicación de citas"
+
+#: appointment/templates/email_sender/admin_new_appointment_email.html:7
+msgid "Appointment Request Notification"
+msgstr "Notificación de solicitud de cita"
+
+#: appointment/templates/email_sender/admin_new_appointment_email.html:53
+msgid "New Appointment Request"
+msgstr "Nueva solicitud de cita"
+
+#: appointment/templates/email_sender/admin_new_appointment_email.html:54
+#: appointment/templates/email_sender/reminder_email.html:120
+#: appointment/templates/email_sender/reschedule_email.html:43
+msgid "Dear"
+msgstr "Estimado/a"
+
+#: appointment/templates/email_sender/admin_new_appointment_email.html:56
+msgid "You have received a new appointment request. Here are the details:"
+msgstr "Has recibido una nueva solicitud de cita. Aquí están los detalles:"
+
+#: appointment/templates/email_sender/admin_new_appointment_email.html:58
+msgid "A new appointment request has been received for"
+msgstr "Una nueva solicitud de cita ha sido recibida para"
+
+#: appointment/templates/email_sender/admin_new_appointment_email.html:58
+msgid "Here are the details:"
+msgstr "Aquí están los detalles:"
+
+#: appointment/templates/email_sender/admin_new_appointment_email.html:63
+msgid "Service Requested"
+msgstr "Servicio solicitado"
+
+#: appointment/templates/email_sender/admin_new_appointment_email.html:65
+#: appointment/templates/email_sender/reminder_email.html:138
+#: appointment/templates/email_sender/reschedule_email.html:65
+#: appointment/templates/email_sender/reschedule_email.html:70
+msgid "Time"
+msgstr "Hora"
+
+#: appointment/templates/email_sender/admin_new_appointment_email.html:67
+msgid "Contact Details"
+msgstr "Detalles de contacto"
+
+#: appointment/templates/email_sender/admin_new_appointment_email.html:73
+msgid "Please review the appointment request and take the necessary action."
+msgstr "Por favor revisa la solicitud de cita y toma las medidas necesarias."
+
+#: appointment/templates/email_sender/admin_new_appointment_email.html:75
+msgid "Please ensure that"
+msgstr "Por favor asegúrate de que"
+
+#: appointment/templates/email_sender/admin_new_appointment_email.html:75
+msgid "reviews this appointment request and takes the necessary action."
+msgstr "revise esta solicitud de cita y toma las medidas necesarias."
+
+#: appointment/templates/email_sender/admin_new_appointment_email.html:79
+#: appointment/templates/email_sender/reminder_email.html:156
+msgid ""
+"This is an automated message. Please do not reply directly to this email."
+msgstr ""
+"Este es un mensaje automatizado. Por favor no respondas directamente a este "
+"correo electrónico."
+
+#: appointment/templates/email_sender/reminder_email.html:7
+#: appointment/templates/email_sender/reminder_email.html:115
+msgid "Appointment Reminder"
+msgstr "Recordatorio de cita"
+
+#: appointment/templates/email_sender/reminder_email.html:122
+msgid "Dear Administrator,"
+msgstr "Estimado Administrador,"
+
+#: appointment/templates/email_sender/reminder_email.html:125
+msgid "This is a reminder for your upcoming appointment."
+msgstr "Este es un recordatorio de tu próxima cita."
+
+#: appointment/templates/email_sender/reminder_email.html:128
+#: appointment/templates/email_sender/thank_you_email.html:214
+#: appointment/templates/modal/event_details_modal.html:8
+msgid "Appointment Details"
+msgstr "Detalles de la cita"
+
+#: appointment/templates/email_sender/reminder_email.html:142
+msgid "Location"
+msgstr "Ubicación"
+
+#: appointment/templates/email_sender/reminder_email.html:148
+msgid ""
+"If you need to reschedule, please click the button below or contact us for "
+"further assistance."
+msgstr ""
+"Si necesitas reprogramar, por favor haz clic en el botón de abajo o "
+"contáctanos para más ayuda."
+
+#: appointment/templates/email_sender/reminder_email.html:149
+#: appointment/templates/email_sender/thank_you_email.html:234
+msgid "Reschedule Appointment"
+msgstr "Reprogramar cita"
+
+#: appointment/templates/email_sender/reminder_email.html:150
+msgid "Thank you for choosing us!"
+msgstr "Gracias por elegirnos!"
+
+#: appointment/templates/email_sender/reminder_email.html:152
+msgid ""
+"Please ensure the appointment setup is complete and ready for the client."
+msgstr ""
+"Por favor asegúrate de que la configuración de la cita esté completa y lista "
+"para el cliente."
+
+#: appointment/templates/email_sender/reschedule_email.html:6
+msgid "Appointment Reschedule Confirmation"
+msgstr "Confirmación de reprogramación de cita"
+
+#: appointment/templates/email_sender/reschedule_email.html:40
+msgid "Appointment Reschedule"
+msgstr "Reprogramación de cita"
+
+#: appointment/templates/email_sender/reschedule_email.html:45
+msgid "Hi"
+msgstr "Hola"
+
+#: appointment/templates/email_sender/reschedule_email.html:50
+msgid ""
+"You have requested to reschedule your appointment. Please review the changes "
+"below and confirm:"
+msgstr ""
+"Has solicitado reprogramar tu cita. Por favor revisa los cambios a "
+"continuación y confirma:"
+
+#: appointment/templates/email_sender/reschedule_email.html:54
+msgid "An appointment with"
+msgstr "Una cita con"
+
+#: appointment/templates/email_sender/reschedule_email.html:54
+msgid "for the service"
+msgstr "para el servicio"
+
+#: appointment/templates/email_sender/reschedule_email.html:55
+msgid "has been rescheduled."
+msgstr "ha sido reprogramada."
+
+#: appointment/templates/email_sender/reschedule_email.html:57
+msgid "Reason for rescheduling:"
+msgstr "Razón para reprogramar:"
+
+#: appointment/templates/email_sender/reschedule_email.html:63
+msgid "Original Appointment:"
+msgstr "Cita original:"
+
+#: appointment/templates/email_sender/reschedule_email.html:65
+#: appointment/templates/email_sender/reschedule_email.html:70
+msgid " to "
+msgstr " para "
+
+#: appointment/templates/email_sender/reschedule_email.html:68
+msgid "Rescheduled Appointment:"
+msgstr "Reprogramación de cita:"
+
+#: appointment/templates/email_sender/reschedule_email.html:75
+msgid ""
+"This link will expire in 5 minutes. If you do not confirm within this time "
+"frame, you will need to submit a new reschedule request."
+msgstr ""
+"Este enlace expirará en 5 minutos. Si no confirmas dentro de este período de "
+"tiempo, deberás enviar una nueva solicitud de reprogramación."
+
+#: appointment/templates/email_sender/reschedule_email.html:79
+msgid "Confirm Appointment"
+msgstr "Confirmar cita"
+
+#: appointment/templates/email_sender/reschedule_email.html:82
+msgid ""
+"If the button above does not work, please copy and paste the following link "
+"into your browser:"
+msgstr ""
+"If the button above does not work, please copy and paste the following link "
+"into your browser:"
+
+#: appointment/templates/email_sender/reschedule_email.html:89
+msgid "Thank you,"
+msgstr "Gracias,"
+
+#: appointment/templates/email_sender/thank_you_email.html:143
+msgid "Thank you for choosing us."
+msgstr "Gracias por elegirnos."
+
+#: appointment/templates/email_sender/thank_you_email.html:183
+msgid "Account Activation"
+msgstr "Activación de cuenta"
+
+#: appointment/templates/email_sender/thank_you_email.html:185
+#, python-format
+msgid ""
+"\n"
+"                                        To activate your account and set "
+"your password, please use the following secure\n"
+"                                        link: <a href=\"%(link)s\" "
+"style=\"color: #1155cc;\">Set Your Password</a>. Please\n"
+"                                        note that this link will expire in 2 "
+"days for your security.\n"
+"                                    "
+msgstr ""
+"\n"
+"                                        Para activar su cuenta y establecer "
+"su contraseña, utilice el siguiente enlace seguro\n"
+"                                        enlace: <a href=\"%(link)s\" "
+"style=\"color: #1155cc;\">Establecer su contraseña</a>. Por favor\n"
+"                                        tenga en cuenta que este enlace "
+"expirará en 2 días por su seguridad.\n"
+"                                    "
+
+#: appointment/templates/email_sender/thank_you_email.html:198
+msgid "Account Information"
+msgstr "Información de la cuenta"
+
+#: appointment/templates/email_sender/thank_you_email.html:230
+msgid "Rescheduling"
+msgstr "Reprogramación"
+
+#: appointment/templates/email_sender/thank_you_email.html:232
+msgid ""
+"If your plans change and you need to reschedule your appointment, you can "
+"easily do so by following this link: "
+msgstr ""
+"Si sus planes cambian y necesita reprogramar su cita, puede hacerlo "
+"fácilmente siguiendo este enlace: "
+
+#: appointment/templates/email_sender/thank_you_email.html:244
+msgid "Support"
+msgstr "Soporte"
+
+#: appointment/templates/email_sender/thank_you_email.html:246
+msgid ""
+"\n"
+"                                Should you have any inquiries or require "
+"further assistance, our support team is here to\n"
+"                                help. You can reach us anytime.\n"
+"                            "
+msgstr ""
+"\n"
+"                                Si tiene alguna consulta o necesita más "
+"ayuda, nuestro equipo de soporte está aquí para\n"
+"                                ayudarle. Puede contactarnos en cualquier "
+"momento.\n"
+"                            "
+
+#: appointment/templates/email_sender/thank_you_email.html:252
+msgid ""
+"We look forward to serving you and ensuring that your experience with us is "
+"both rewarding and satisfactory."
+msgstr ""
+"Esperamos poder servirle y asegurarnos de que su experiencia con nosotros "
+"sea tanto gratificante como satisfactoria."
+
+#: appointment/templates/email_sender/thank_you_email.html:254
+msgid "Warm regards"
+msgstr "Un saludo afectuoso"
+
+#: appointment/templates/email_sender/thank_you_email.html:255
+msgid "The Team"
+msgstr "El equipo"
+
+#: appointment/templates/email_sender/thank_you_email.html:277
+msgid "All rights reserved"
+msgstr "Todos los derechos reservados"
+
+#: appointment/templates/error_pages/304_already_submitted.html:12
+#: appointment/templates/error_pages/403_forbidden_rescheduling.html:100
+msgid "Not authorized!"
+msgstr "¡No autorizado!"
+
+#: appointment/templates/error_pages/304_already_submitted.html:15
+#: appointment/templates/error_pages/403_forbidden_rescheduling.html:103
+msgid "Form resubmission not allowed."
+msgstr "Reenvío de formulario no permitido."
+
+#: appointment/templates/error_pages/304_already_submitted.html:24
+msgid "Sorry, re-submission is not allowed"
+msgstr "Perdo, no se permite el reenvío"
+
+#: appointment/templates/error_pages/304_already_submitted.html:25
+msgid "But don't worry, you can create a new appointment"
+msgstr "Pero no te preocupes, puedes crear una nueva cita"
+
+#: appointment/templates/error_pages/304_already_submitted.html:28
+msgid "yes, please do"
+msgstr "Sí, por favor hazlo"
+
+#: appointment/templates/error_pages/403_forbidden.html:89
+msgid "Reality"
+msgstr "Realidad"
+
+#: appointment/templates/error_pages/403_forbidden.html:93
+msgid "Error 403"
+msgstr "Error 403"
+
+#: appointment/templates/error_pages/403_forbidden.html:100
+msgid "You don't have permission to view this resource, and you know it"
+msgstr "Tu no tienes permiso para ver este recurso, y lo sabes"
+
+#: appointment/templates/error_pages/403_forbidden.html:107
+msgid "Go to profile"
+msgstr "Ir al perfil"
+
+#: appointment/templates/error_pages/403_forbidden.html:111
+#: appointment/templates/error_pages/404_not_found.html:221
+msgid "Go back"
+msgstr "Regresar"
+
+#: appointment/templates/error_pages/403_forbidden_rescheduling.html:109
+msgid "Sorry, it's not allowed to reschedule this appointment at this time"
+msgstr "Disculpa, no está permitido reprogramar esta cita en este momento"
+
+#: appointment/templates/error_pages/403_forbidden_rescheduling.html:110
+msgid "Please, send us a message or schedule a new appointment"
+msgstr "Por favor, envíanos un mensaje o programa una nueva cita"
+
+#: appointment/templates/error_pages/404_not_found.html:215
+msgid "O-o-oh! Something broke."
+msgstr "O-o-oh! Algo se rompió."
+
+#: appointment/templates/error_pages/404_not_found.html:219
+msgid "Go home"
+msgstr "Ir a pagina principal"
+
+#: appointment/templates/modal/confirm_modal.html:18
+#: appointment/templates/modal/error_modal.html:17
+#: appointment/templates/modal/event_details_modal.html:19
+msgid "Close"
+msgstr "Cerrar"
+
+#: appointment/templates/modal/event_details_modal.html:17
+msgid "Go"
+msgstr "Ir"
+
+#: appointment/templates/modal/event_details_modal.html:22
+msgid "Cancel"
+msgstr "Cancelar"
+
+#: appointment/templates/modal/event_details_modal.html:25
+msgid "Edit"
+msgstr "Editar"
+
+#: appointment/tests/test_services.py:923
+msgid "Service matching query does not exist"
+msgstr "No se encontró ningún servicio que coincida con la consulta"
+
+#: appointment/tests/test_views.py:162 appointment/views.py:391
+#: appointment/views.py:415
+msgid "Invalid verification code."
+msgstr "Código de verificación inválido."
+
+#: appointment/tests/test_views.py:216 appointment/views_admin.py:507
+msgid "Staff member deleted successfully!"
+msgstr "Se eliminó correctamente al miembro del personal."
+
+#: appointment/tests/test_views.py:280 appointment/views_admin.py:564
+msgid "User is a staff member."
+msgstr "El usuario es un miembro del personal."
+
+#: appointment/tests/test_views.py:296 appointment/views_admin.py:568
+msgid "User is not a staff member."
+msgstr "El usuario no es un miembro del personal."
+
+#: appointment/tests/test_views.py:323 appointment/views_admin.py:541
+msgid "Appointment deleted successfully!"
+msgstr "Cita eliminada con éxito!"
+
+#: appointment/tests/test_views.py:374 appointment/views_admin.py:538
+#: appointment/views_admin.py:552
+msgid "You can only delete your own appointments."
+msgstr "Tu solo puedes eliminar tus propias citas."
+
+#: appointment/tests/test_views.py:581 appointment/views_admin.py:265
+msgid "No services offered by this staff member."
+msgstr "No hay servicios ofrecidos por este miembro del personal."
+
+#: appointment/tests/test_views.py:594 appointment/views_admin.py:492
+msgid "Service deleted successfully!"
+msgstr "¡Servicio eliminado con éxito!"
+
+#: appointment/tests/test_views.py:888 appointment/views.py:480
+msgid "Password reset successfully."
+msgstr "Restablecimiento de contraseña exitoso."
+
+#: appointment/tests/test_views.py:949 appointment/views.py:170
+#: appointment/views.py:180
+msgid "No staff member selected"
+msgstr "Ningún miembro del personal seleccionado"
+
+#: appointment/tests/test_views.py:960 appointment/views.py:177
+msgid "Successfully retrieved non-working days"
+msgstr "Días no laborables recuperados con éxito"
+
+#: appointment/tests/test_views.py:1115 appointment/views.py:279
+#: appointment/views.py:575
+msgid ""
+"There was an error in your submission. Please check the form and try again."
+msgstr ""
+"Hubo un error en su envío. Por favor revise el formulario e intente de nuevo."
+
+#: appointment/tests/utils/test_email_ops.py:109
+#: appointment/utils/email_ops.py:227
+msgid "Email Verification"
+msgstr "Verificación de correo electrónico"
+
+#: appointment/tests/utils/test_email_ops.py:144
+#: appointment/utils/email_ops.py:250
+msgid "Confirm Your Appointment Rescheduling"
+msgstr "Confirma la reprogramación de tu cita"
+
+#: appointment/tests/utils/test_validators.py:15
+#: appointment/utils/validators.py:7
+msgid "Date is in the past"
+msgstr "La fecha está en el pasado"
+
+#: appointment/utils/date_time.py:76
+msgid "Not set."
+msgstr "No establecido."
+
+#: appointment/utils/date_time.py:98
+#, python-brace-format
+msgid "{first_part} and {second_part}"
+msgstr "{first_part} y {second_part}"
+
+#: appointment/utils/date_time.py:100
+#, python-brace-format
+msgid "{days}, {hours} and {minutes}"
+msgstr "{days}, {hours} y {minutes}"
+
+#: appointment/utils/email_ops.py:76
+msgid ""
+"To enhance your experience, we have created a personalized account for you. "
+"It will allow you to manage your appointments, view service details, and "
+"make any necessary adjustments with ease."
+msgstr ""
+"Para mejorar su experiencia, hemos creado una cuenta personalizada para "
+"usted. Le permitirá gestionar sus citas, ver los detalles del servicio y "
+"hacer los ajustes necesarios con facilidad."
+
+#: appointment/utils/email_ops.py:94
+msgid "Appointment successfully scheduled"
+msgstr "Cita programada con éxito"
+
+#: appointment/utils/email_ops.py:98
+msgid "Thank you for booking us."
+msgstr "Gracias por reservar con nosotros."
+
+#: appointment/utils/email_ops.py:120
+#, python-brace-format
+msgid ""
+"\n"
+"        Hello {first_name},\n"
+"\n"
+"        A request has been received to set a password for your staff account "
+"for the year {current_year} at {company}.\n"
+"\n"
+"        Please click the link below to set up your new password:\n"
+"        {activation_link}\n"
+"        \n"
+"        To login, if ask for a username, use '{username}', otherwise use "
+"your email address.\n"
+"\n"
+"        If you did not request this, please ignore this email.\n"
+"\n"
+"        {account_details}\n"
+"\n"
+"        Regards,\n"
+"        {company}\n"
+"        "
+msgstr ""
+"\n"
+"        Hola {first_name},\n"
+"\n"
+"        Se ha recibido una solicitud para establecer una contraseña para su "
+"cuenta de personal para el año {current_year} en {company}.\n"
+"\n"
+"        Haga clic en el enlace a continuación para configurar su nueva "
+"contraseña:\n"
+"        {activation_link}\n"
+"\n"
+"        Para iniciar sesión, si se le pide un nombre de usuario, use "
+"'{username}', de lo contrario use su dirección de correo electrónico.\n"
+"\n"
+"        Si no solicitó esto, por favor ignore este correo electrónico.\n"
+"\n"
+"        {account_details}\n"
+"\n"
+"        Saludos,\n"
+"        {company}\n"
+"        "
+
+#: appointment/utils/email_ops.py:141
+msgid "No additional details provided."
+msgstr "No se proporcionaron detalles adicionales."
+
+#: appointment/utils/email_ops.py:148
+#, python-brace-format
+msgid "Set Your Password for {company}"
+msgstr "Establece tu contraseña para {company}"
+
+#: appointment/utils/email_ops.py:188 appointment/utils/email_ops.py:206
+msgid "New Appointment Request for "
+msgstr "Nueva solicitud de cita para "
+
+#: appointment/utils/email_ops.py:226
+#, python-brace-format
+msgid "Your verification code is {code}."
+msgstr "Tu código de verificación es {code}."
+
+#: appointment/utils/email_ops.py:281
+msgid "Reschedule Request for "
+msgstr "Solicitud de reprogramación para "
+
+#: appointment/utils/session.py:58
+#, python-brace-format
+msgid "Email '{email}' already exists. Login to your account."
+msgstr "Correo electrónico '{email}' ya existe. Inicia sesión en tu cuenta."
+
+#: appointment/views.py:91
+msgid "Day off. Please select another date!"
+msgstr "Día libre. ¡Por favor selecciona otra fecha!"
+
+#: appointment/views.py:101
+#, python-brace-format
+msgid "Not a working day for {staff_member}. Please select another date!"
+msgstr ""
+"No es un día laborable para {staff_member}. ¡Por favor selecciona otra fecha!"
+
+#: appointment/views.py:117
+msgid "No availability"
+msgstr "Sin disponibilidad"
+
+#: appointment/views.py:165
+msgid "Successfully retrieved next available date"
+msgstr "Fecha siguiente disponible recuperada con éxito"
+
+#: appointment/views.py:223
+#, python-brace-format
+msgid "Book an appointment for {s} at {wn}."
+msgstr "Reserva una cita para {s} a las {wn}."
+
+#: appointment/views.py:265
+msgid "Selected staff member does not exist."
+msgstr "El miembro del personal seleccionado no existe."
+
+#: appointment/views.py:356
+msgid "An account was created for you."
+msgstr "Se creó una cuenta para ti."
+
+#: appointment/views.py:388
+msgid "Email verified successfully."
+msgstr "Correo electrónico verificado con éxito."
+
+#: appointment/views.py:445
+msgid "Email address"
+msgstr "Dirección de correo electrónico"
+
+#: appointment/views.py:448
+msgid "Username"
+msgstr "Nombre de usuario"
+
+#: appointment/views.py:468
+msgid "Please try resetting your password again or contact support for help."
+msgstr ""
+"Por favor intenta restablecer tu contraseña nuevamente o contacta al soporte "
+"para obtener ayuda."
+
+#: appointment/views.py:484
+msgid "Password Reset Successful"
+msgstr "Contraseña restablecida con éxito"
+
+#: appointment/views.py:486
+msgid "You can now use your new password to log in."
+msgstr "Ahora puedes usar tu nueva contraseña para iniciar sesión."
+
+#: appointment/views.py:522
+#, python-brace-format
+msgid "Rescheduling appointment for {s}"
+msgstr "Reprogramando cita para {s}"
+
+#: appointment/views.py:523
+#, python-brace-format
+msgid "Reschedule your appointment for {s} at {wn}."
+msgstr "Reprograma tu cita para {s} a las {wn}."
+
+#: appointment/views.py:567 appointment/views.py:615
+msgid "Appointment rescheduled successfully"
+msgstr "Cita reprogramada con éxito"
+
+#: appointment/views.py:586
+msgid "O-o-oh! This link is no longer valid."
+msgstr "O-o-oh! Este enlace ya no es válido."
+
+#: appointment/views.py:587
+msgid "O-o-oh! Can't find the pending reschedule request."
+msgstr ""
+"O-o-oh! No se puede encontrar la solicitud de reprogramación pendiente."
+
+#: appointment/views_admin.py:62
+msgid ""
+"User doesn't have a staff member instance. Please contact the administrator."
+msgstr ""
+"El usuario no tiene una instancia de miembro del personal. Por favor "
+"contacte al administrador."
+
+#: appointment/views_admin.py:103
+msgid "You can only add your own days off"
+msgstr "Solo puedes agregar tus propios días libres"
+
+#: appointment/views_admin.py:124
+msgid "You can only update your own days off."
+msgstr "Solo puedes actualizar tus propios días libres."
+
+#: appointment/views_admin.py:135
+msgid "You can only delete your own days off."
+msgstr "Solo puedes eliminar tus propios días libres."
+
+#: appointment/views_admin.py:151
+msgid "You can only add your own working hours."
+msgstr "Solo puedes agregar tus propias horas laborales."
+
+#: appointment/views_admin.py:174
+msgid "You can only update your own working hours."
+msgstr "Solo puedes actualizar tus propias horas laborales."
+
+#: appointment/views_admin.py:188
+msgid "You can only delete your own working hours."
+msgstr "Solo puedes eliminar tus propias horas laborales."
+
+#: appointment/views_admin.py:246
+msgid "You do not have permission to access this appointment."
+msgstr "No tienes permiso para acceder a esta cita."
+
+#: appointment/views_admin.py:267
+msgid "Successfully fetched services."
+msgstr "Servicios obtenidos con éxito."
+
+#: appointment/views_admin.py:322
+msgid "Appointment date and time are valid."
+msgstr "La fecha y hora de la cita son válidas."
+
+#: appointment/views_admin.py:391
+msgid "Email updated successfully!"
+msgstr "¡Correo electrónico actualizado con éxito!"
+
+#: appointment/views_admin.py:394
+msgid "The verification code provided is incorrect. Please try again."
+msgstr ""
+"El código de verificación proporcionado es incorrecto. Por favor, inténtalo "
+"de nuevo."
+
+#: appointment/views_admin.py:430
+msgid "Create"
+msgstr "Crear"
+
+#: appointment/views_admin.py:466
+msgid "Add Service"
+msgstr "Agregar servicio"
+
+#: appointment/views_admin.py:473
+msgid "Update Service"
+msgstr "Actualizar servicio"
+
+#: appointment/views_admin.py:478
+msgid "View Service"
+msgstr "Ver servicio"
+
+#: appointment/views_admin.py:555
+msgid "Appointment deleted successfully."
+msgstr "Cita eliminada con éxito."
+
+#: appointment/views_admin.py:569
+msgid "User is a superuser."
+msgstr "Usuario es un superusuario."
+
+#: appointments/settings.py:135
+msgid "English"
+msgstr "Inglés"
+
+#: appointments/settings.py:136
+msgid "French"
+msgstr "Frances"
+
+#: appointments/settings.py:137
+msgid "Spanish"
+msgstr "Español"
