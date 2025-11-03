@@ -48,8 +48,8 @@ from .services import get_appointments_and_slots, get_available_slots_for_staff
 from .settings import (APPOINTMENT_PAYMENT_URL, APPOINTMENT_THANK_YOU_URL)
 from .utils.date_time import DATE_FORMATS, convert_str_to_date
 from .utils.error_codes import ErrorCode
-from .utils.ics_utils import generate_ics_file
 from .utils.json_context import get_generic_context_with_extra, json_response
+from .utils.template_helpers import get_custom_template
 
 CLIENT_MODEL = get_user_model()
 
@@ -245,7 +245,8 @@ def appointment_request(request, service_id=None, staff_member_id=None):
         'label': label
     }
     context = get_generic_context_with_extra(request, extra_context, admin=False)
-    return render(request, 'appointment/appointments.html', context=context)
+    appointment_template = get_custom_template('appointments.html', 'appointment/appointments.html')
+    return render(request, appointment_template, context=context)
 
 
 def appointment_request_submit(request):
@@ -281,7 +282,8 @@ def appointment_request_submit(request):
         form = AppointmentRequestForm()
 
     context = get_generic_context_with_extra(request, {'form': form}, admin=False)
-    return render(request, 'appointment/appointments.html', context=context)
+    appointment_template = get_custom_template('appointments.html', 'appointment/appointments.html')
+    return render(request, appointment_template, context=context)
 
 
 def redirect_to_payment_or_thank_you_page(appointment):
@@ -352,7 +354,7 @@ def appointment_client_information(request, appointment_request_id, id_request):
                 return handle_existing_email(request, client_data, appointment_data, appointment_request_id, id_request)
 
             logger.info(f"Creating a new user: {client_data}")
-            user = create_new_user(client_data)
+            _ = create_new_user(client_data)
             messages.success(request, _("An account was created for you."))
 
             # Create a new appointment
@@ -372,7 +374,9 @@ def appointment_client_information(request, appointment_request_id, id_request):
         'has_required_email_reminder_config': has_required_email_reminder_config,
     }
     context = get_generic_context_with_extra(request, extra_context, admin=False)
-    return render(request, 'appointment/appointment_client_information.html', context=context)
+    appointment_client_information_template = get_custom_template('appointment_client_information.html',
+                                                                  'appointment/appointment_client_information.html')
+    return render(request, appointment_client_information_template, context=context)
 
 
 def verify_user_and_login(request, user, code):
@@ -422,7 +426,9 @@ def enter_verification_code(request, appointment_request_id, id_request):
         'id_request': id_request,
     }
     context = get_generic_context_with_extra(request, extra_context, admin=False)
-    return render(request, 'appointment/enter_verification_code.html', context)
+    verification_code_template = get_custom_template('verification_code.html',
+                                                     'appointment/enter_verification_code.html')
+    return render(request, verification_code_template, context)
 
 
 def default_thank_you(request, appointment_id):
@@ -458,7 +464,8 @@ def default_thank_you(request, appointment_id):
         'appointment': appointment,
     }
     context = get_generic_context_with_extra(request, extra_context, admin=False)
-    return render(request, 'appointment/default_thank_you.html', context=context)
+    thank_you_template = get_custom_template('thank_you_page.html', 'appointment/default_thank_you.html')
+    return render(request, thank_you_template, context=context)
 
 
 def set_passwd(request, uidb64, token):
@@ -468,40 +475,50 @@ def set_passwd(request, uidb64, token):
         'page_description': _("Please try resetting your password again or contact support for help."),
     }
     context_ = get_generic_context_with_extra(request, extra, admin=False)
+
+    # Simple template lookup - user must name their templates exactly these names
+    error_template = get_custom_template('password_error.html', 'appointment/thank_you.html')
+    success_template = get_custom_template('password_success.html', 'appointment/thank_you.html')
+    form_template = get_custom_template('password_form.html', 'appointment/set_password.html')
+
     try:
         uid = force_str(urlsafe_base64_decode(uidb64))
         user = get_user_model().objects.get(pk=uid)
         token_verification = PasswordResetToken.verify_token(user, token)
+
         if token_verification is not None:
             if request.method == 'POST':
                 form = SetPasswordForm(user, request.POST)
                 if form.is_valid():
                     form.save()
                     messages.success(request, _("Password reset successfully."))
-                    # Invalidate the token after successful password reset
+                    # Invalidate the token after a successful password reset
                     token_verification.mark_as_verified()
+
                     extra = {
                         'page_title': _("Password Reset Successful"),
                         'page_message': passwd_set_successfully,
                         'page_description': _("You can now use your new password to log in.")
                     }
                     context = get_generic_context_with_extra(request, extra, admin=False)
-                    return render(request, 'appointment/thank_you.html', context=context)
+                    return render(request, success_template, context=context)
             else:
-                form = SetPasswordForm(user)  # Display empty form for GET request
+                form = SetPasswordForm(user)  # Display an empty form for GET request
         else:
             messages.error(request, passwd_error)
-            return render(request, 'appointment/thank_you.html', context=context_)
+            return render(request, error_template, context=context_)
+
     except (TypeError, ValueError, OverflowError, get_user_model().DoesNotExist):
         messages.error(request, _("The password reset link is invalid or has expired."))
-        return render(request, 'appointment/thank_you.html', context=context_)
+        return render(request, error_template, context=context_)
 
     context_.update({'form': form})
-    return render(request, 'appointment/set_password.html', context_)
+    return render(request, form_template, context_)
 
 
 def prepare_reschedule_appointment(request, id_request):
     ar = get_object_or_404(AppointmentRequest, id_request=id_request)
+    appointment_template = get_custom_template('appointments.html', 'appointment/appointments.html')
 
     if not can_appointment_be_rescheduled(ar):
         url = reverse('appointment:appointment_request', kwargs={'service_id': ar.service.id})
@@ -539,10 +556,15 @@ def prepare_reschedule_appointment(request, id_request):
         'ar_id_request': ar.id_request,
     }
     context = get_generic_context_with_extra(request, extra_context, admin=False)
-    return render(request, 'appointment/appointments.html', context=context)
+    return render(request, appointment_template, context=context)
 
 
 def reschedule_appointment_submit(request):
+    # user templates or default
+    rescheduling_thank_you_template = get_custom_template('rescheduling_thank_you.html',
+                                                          'appointment/rescheduling_thank_you.html')
+    appointment_template = get_custom_template('appointments.html', 'appointment/appointments.html')
+
     if request.method == 'POST':
         form = AppointmentRequestForm(request.POST)
         # get form values:
@@ -570,13 +592,13 @@ def reschedule_appointment_submit(request):
             email = Appointment.objects.get(appointment_request=ar).client.email
             send_reschedule_confirmation_email(request=request, reschedule_history=arh, first_name=client_first_name,
                                                email=email, appointment_request=ar)
-            return render(request, 'appointment/rescheduling_thank_you.html', context=context)
+            return render(request, rescheduling_thank_you_template, context=context)
         else:
             messages.error(request, _("There was an error in your submission. Please check the form and try again."))
     else:
         form = AppointmentRequestForm()
     context = get_generic_context_with_extra(request, {'form': form}, admin=False)
-    return render(request, 'appointment/appointments.html', context=context)
+    return render(request, appointment_template, context=context)
 
 
 def confirm_reschedule(request, id_request):
