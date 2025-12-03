@@ -6,7 +6,7 @@ Author: Adams Pierre David
 Since: 1.0.0
 """
 
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 
 from django.contrib import messages
 from django.contrib.auth import login
@@ -273,6 +273,66 @@ def appointment_request(request, service_id=None, staff_member_id=None):
     return render(request, 'appointment/appointments.html', context=context)
 
 
+# def appointment_request_submit(request):
+#     """This view function handles the submission of the appointment request form.
+
+#     :param request: The request instance.
+#     :return: The rendered HTML page.
+#     """
+#     if request.method == 'POST':
+#         form = AppointmentRequestForm(request.POST)
+#         if form.is_valid():
+
+#             selected_slots_json = request.POST.get("selected_slots", "[]")
+#             try:
+#                 import json
+#                 selected_slots = json.loads(selected_slots_json)
+#             except Exception:
+#                 selected_slots = []
+
+#             print("MULTI SLOTS RECEIVED:", selected_slots)
+#             # Use form.cleaned_data to get the cleaned and validated data
+#             staff_member = form.cleaned_data['staff_member']
+
+#             staff_exists = StaffMember.objects.filter(id=staff_member.id).exists()
+#             if not staff_exists:
+#                 messages.error(request, _("Selected staff member does not exist."))
+#             else:
+#                 logger.info(
+#                         f"date_f {form.cleaned_data['date']} start_time {form.cleaned_data['start_time']} end_time "
+#                         f"{form.cleaned_data['end_time']} service {form.cleaned_data['service']} staff {staff_member}")
+#                 ar = form.save()
+#                 request.session[f'appointment_completed_{ar.id_request}'] = False
+                
+#                 # Redirect the user to the account creation page
+#                 if request.user.is_authenticated:
+#                     # User is logged in — save appointment immediately
+#                     client_data = {
+#                         "name": request.user.get_full_name() or request.user.username,
+#                         "email": request.user.email,
+#                         "phone": "",  # Optional: get from profile if available
+#                         "address": "",
+#                         "additional_info": "",
+#                     }
+
+#                     create_appointment(request, ar, client_data, {})
+#                     service = Service.objects.get(id=ar.service.id)
+#                     messages.success(request, _("Your appointment has been created successfully."))
+#                     return redirect('appointment:appointment_request', service_id=service.id)  # Change to your success page
+#                 else:
+#                     return redirect('appointment:appointment_client_information', appointment_request_id=ar.id,
+#                                 id_request=ar.id_request)
+#         else:
+#             # Handle the case if the form is not valid
+#             logger.error(f"Form errors: {form.errors}")
+#             logger.error(f"Form data: {request.POST}")
+#             messages.error(request, _('There was an error in your submission. Please check the form and try again.'))
+#     else:
+#         form = AppointmentRequestForm()
+
+#     context = get_generic_context_with_extra(request, {'form': form}, admin=False)
+#     return render(request, 'appointment/appointments.html', context=context)
+
 def appointment_request_submit(request):
     """This view function handles the submission of the appointment request form.
 
@@ -280,49 +340,84 @@ def appointment_request_submit(request):
     :return: The rendered HTML page.
     """
     if request.method == 'POST':
-        form = AppointmentRequestForm(request.POST)
-        if form.is_valid():
-            # Use form.cleaned_data to get the cleaned and validated data
-            staff_member = form.cleaned_data['staff_member']
+            form = AppointmentRequestForm(request.POST)
+            if form.is_valid():
+                import json
 
-            staff_exists = StaffMember.objects.filter(id=staff_member.id).exists()
-            if not staff_exists:
-                messages.error(request, _("Selected staff member does not exist."))
+                # Get the list of selected slots from hidden input
+                selected_slots_json = request.POST.get("selected_slots", "[]")
+                try:
+                    selected_slots = json.loads(selected_slots_json)
+                except Exception:
+                    selected_slots = []
+
+                if not selected_slots:
+                    messages.error(request, "No time slots selected.")
+                    return redirect(request.path)
+
+                staff_member = form.cleaned_data['staff_member']
+
+                # Verify staff member exists
+                if not StaffMember.objects.filter(id=staff_member.id).exists():
+                    messages.error(request, _("Selected staff member does not exist."))
+                    return redirect(request.path)
+
+                # Loop through each slot and create a separate AppointmentRequest
+                service = form.cleaned_data['service']
+                service_duration = service.duration  # in minutes
+                print("SERVICE DURATION:", service_duration)
+                appointment_date = form.cleaned_data['date']
+
+                # Loop through each selected slot
+                created_appointments = []
+                for slot_time_str in selected_slots:  # e.g., "16:00"
+                    # Convert date + time string to datetime
+                    start_datetime_str = f"{appointment_date} {slot_time_str["start_time"]}"
+                    start_datetime = datetime.strptime(start_datetime_str, "%Y-%m-%d %H:%M")
+                    end_datetime = start_datetime + service_duration
+
+                    # Create AppointmentRequest object
+                    ar_slot = AppointmentRequest(
+                        staff_member=staff_member,
+                        service=service,
+                        date=start_datetime.date(),    # just the date
+                        start_time=start_datetime,     # datetime
+                        end_time=end_datetime          # datetime
+                    )
+                    ar_slot.save()
+                    created_appointments.append(ar_slot)
+
+                    # If user is logged in, create the Appointment immediately
+                    if request.user.is_authenticated:
+                        client_data = {
+                            "name": request.user.get_full_name() or request.user.username,
+                            "email": request.user.email,
+                            "phone": "",
+                            "address": "",
+                            "additional_info": "",
+                        }
+                        create_appointment(request, ar_slot, client_data, {})
+
+                messages.success(
+                    request,
+                    _("Your {} appointments have been created successfully.").format(len(created_appointments))
+                )
+
+                # Redirect after success
+                service = form.cleaned_data['service']
+                return redirect('appointment:appointment_request', service_id=service.id)
+
             else:
-                logger.info(
-                        f"date_f {form.cleaned_data['date']} start_time {form.cleaned_data['start_time']} end_time "
-                        f"{form.cleaned_data['end_time']} service {form.cleaned_data['service']} staff {staff_member}")
-                ar = form.save()
-                request.session[f'appointment_completed_{ar.id_request}'] = False
-                # Redirect the user to the account creation page
-                if request.user.is_authenticated:
-                    # User is logged in — save appointment immediately
-                    client_data = {
-                        "name": request.user.get_full_name() or request.user.username,
-                        "email": request.user.email,
-                        "phone": "",  # Optional: get from profile if available
-                        "address": "",
-                        "additional_info": "",
-                    }
+                # Form not valid
+                logger.error(f"Form errors: {form.errors}")
+                logger.error(f"Form data: {request.POST}")
+                messages.error(request, _('There was an error in your submission. Please check the form and try again.'))
 
-                    create_appointment(request, ar, client_data, {})
-                    service = Service.objects.get(id=ar.service.id)
-                    messages.success(request, _("Your appointment has been created successfully."))
-                    return redirect('appointment:appointment_request', service_id=service.id)  # Change to your success page
-                else:
-                    return redirect('appointment:appointment_client_information', appointment_request_id=ar.id,
-                                id_request=ar.id_request)
-        else:
-            # Handle the case if the form is not valid
-            logger.error(f"Form errors: {form.errors}")
-            logger.error(f"Form data: {request.POST}")
-            messages.error(request, _('There was an error in your submission. Please check the form and try again.'))
     else:
         form = AppointmentRequestForm()
 
     context = get_generic_context_with_extra(request, {'form': form}, admin=False)
     return render(request, 'appointment/appointments.html', context=context)
-
 
 def redirect_to_payment_or_thank_you_page(appointment):
     """This function redirects to the payment page or the thank-you page based on the configuration.
@@ -355,7 +450,7 @@ def create_appointment(request, appointment_request_obj, client_data, appointmen
     :return: The redirect response.
     """
     appointment = create_and_save_appointment(appointment_request_obj, client_data, appointment_data, request)
-    notify_admin_about_appointment(appointment, appointment.client.first_name)
+    #notify_admin_about_appointment(appointment, appointment.client.first_name)
     return redirect_to_payment_or_thank_you_page(appointment)
 
 

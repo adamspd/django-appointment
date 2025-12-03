@@ -23,3 +23,26 @@
     border-radius: 5px;
     transition: background-color 0.3s ease;
 }
+
+.form-check {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  
+  /* make radio buttons big and stylish */
+  .form-check-input {
+    width: 26px;
+    height: 26px;
+    accent-color: #00aaf0; /* green accent color */
+    cursor: pointer;
+    margin-right: 10px;
+  }
+  
+  /* nice readable text */
+  .form-check-label {
+    font-size: 1.2em;
+    color: #000000;
+    cursor: pointer;
+    padding-left: 15px;
+  }

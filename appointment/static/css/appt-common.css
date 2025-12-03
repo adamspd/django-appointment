@@ -53,7 +53,14 @@
 .djangoAppt_item-name {
     color: black;
     font-weight: bold;
-    font-size: 20px;
+    font-size: 22px;
+    margin-bottom: 10px;
+}
+
+.djangoAppt_item-name-reservation {
+    color: black;
+    font-weight: bold;
+    font-size: 18px;
     margin-bottom: 10px;
 }
 

@@ -159,6 +159,46 @@ body.on('click', '.btn-submit-appointment', function () {
     }
 });
 
+// body.on('click', '.btn-submit-appointment', function () {
+//     if (!selectedSlots.length || !selectedDateIso) {
+//         alert(selectDateAndTimeAlertTxt);
+//         return;
+//     }
+
+//     // Build an array of start_time / end_time objects
+//     const slotData = selectedSlots.map(startTime => {
+//         const formattedDate = new Date(selectedDateIso + "T" + startTime + ":00");
+//         const endTimeDate = new Date(formattedDate.getTime() + serviceDuration * 60000); // add duration
+//         const endTime = formatTime(endTimeDate);
+
+//         return {
+//             start_time: `${selectedDateIso} ${startTime}`, // already 24h format
+//             end_time: `${selectedDateIso} ${endTime}`
+//         };
+//     });
+
+//     console.log("Slots to submit:", slotData);
+
+//     const reasonForRescheduling = $('#reason_for_rescheduling').val();
+//     const form = $('.appointment-form');
+//     const formAction = rescheduledDate ? appointmentRescheduleURL : appointmentRequestSubmitURL;
+//     form.attr('action', formAction);
+
+//     // Remove old hidden inputs if they exist
+//     form.find('input[name="slots_data"]').remove();
+
+//     // Add the slots data as a hidden input
+//     form.append($('<input>', {
+//         type: 'hidden',
+//         name: 'slots_data',
+//         value: JSON.stringify(slotData)
+//     }));
+
+//     form.append($('<input>', {type: 'hidden', name: 'reason_for_rescheduling', value: reasonForRescheduling}));
+
+//     form.submit();
+// });
+
 $('input[name="staff_member"]').on('change', function () {
     staffId = $(this).val() || null;  // If staffId is an empty string, set it to null
     let currentDate = null
@@ -230,6 +270,8 @@ function formatTime(date) {
     const minutes = date.getMinutes();
     return (hours < 10 ? '0' + hours : hours) + ':' + (minutes < 10 ? '0' + minutes : minutes);
 }
+
+let selectedSlots = [];
 
 function getAvailableSlots(selectedDate, staffId = null) {
     // Update the slot list with the available slots for the selected date
@@ -341,18 +383,61 @@ function getAvailableSlots(selectedDate, staffId = null) {
                     if ($(this).hasClass('disabled')) {
                         return; // ignore clicks on unavailable slots
                     }
-                    // Remove the 'selected' class from all other appointment slots
-                    $('.djangoAppt_appointment-slot').removeClass('selected');
 
-                    // Add the 'selected' class to the clicked appointment slot
-                    $(this).addClass('selected');
+                    const slotText = $(this).text().trim();
 
-                    // Enable the submit button
-                    $('.btn-submit-appointment').removeAttr('disabled');
+                    // Toggle selection
+                    if (selectedSlots.includes(slotText)) {
+                        $(this).removeClass('selected');
+                        selectedSlots = selectedSlots.filter(s => s !== slotText);
+                    } else {
+                        $(this).addClass('selected');
+                        selectedSlots.push(slotText);
+                    }
 
-                    // Continue with the existing logic
-                    const selectedSlot = $(this).text();
-                    $('#service-datetime-chosen').text(data.date_chosen + ' ' + selectedSlot);
+                    console.log("Selected Slots:", selectedSlots);
+
+                    // Convert to 24h and add end_time
+                    const slotsData = selectedSlots.map(slot => {
+                        const startTime = convertTo24Hour(slot);
+                        const formattedDate = new Date(selectedDateIso + "T" + startTime + ":00");
+                        const endTimeDate = new Date(formattedDate.getTime() + serviceDuration * 60000);
+                        const endTime = formatTime(endTimeDate); // HH:MM
+                        return {
+                            start_time: startTime, 
+                            end_time: endTime
+                        };
+                    });
+                    
+
+                    $('#selected-slots-field').val(JSON.stringify(slotsData));
+                    
+                    // Enable/Disable submit button depending on selection
+                    if (slotsData.length > 0) {
+                        $('.btn-submit-appointment').removeAttr('disabled');
+                    } else {
+                        $('.btn-submit-appointment').attr('disabled', 'disabled');
+                    }
+
+                    // Show list to user
+                    $('#service-datetime-chosen').text(
+                        data.date_chosen + ' | ' + slotsData.map(slot => slot.start_time).join(', ')
+                    );
+
+                    // // Update form hidden field
+                    // $('#selected-slots-field').val(JSON.stringify(selectedSlots));
+                    // // Remove the 'selected' class from all other appointment slots
+                    // $('.djangoAppt_appointment-slot').removeClass('selected');
+
+                    // // Add the 'selected' class to the clicked appointment slot
+                    // $(this).addClass('selected');
+
+                    // // Enable the submit button
+                    // $('.btn-submit-appointment').removeAttr('disabled');
+
+                    // // Continue with the existing logic
+                    // const selectedSlot = $(this).text();
+                    // $('#service-datetime-chosen').text(data.date_chosen + ' ' + selectedSlot);
                 });
                 // slotList.off('click').on('click', '.djangoAppt_appointment-slot', function () {
                 //     if ($(this).hasClass('disabled')) {
