@@ -631,12 +631,12 @@ class Appointment(models.Model):
         indexes = [
             models.Index(fields=['client', '-created_at']),
         ]
-        constraints = [
-            models.CheckConstraint(
-                check=models.Q(amount_to_pay__gte=0),
-                name='positive_amount_to_pay'
-            )
-        ]
+        #constraints = [
+        #    models.CheckConstraint(
+        #        check=models.Q(amount_to_pay__gte=0),
+        #        name='positive_amount_to_pay'
+        #    )
+        #]
 
     def __str__(self):
         return f"{self.client} - " \
