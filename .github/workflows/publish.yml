@@ -91,7 +91,7 @@ jobs:
       - uses: actions/checkout@v5
 
       - name: Download distribution packages for release
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           name: python-package-distributions
           path: dist/
