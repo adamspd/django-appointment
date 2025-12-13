@@ -76,19 +76,19 @@ class GetThankYouMessageTests(BaseTest):
     def test_thank_you_no_payment(self):
         with patch('appointment.utils.email_ops.APPOINTMENT_PAYMENT_URL', None):
             message = get_thank_you_message(self.ar)
-            self.assertIn(thank_you_no_payment, message)
+            self.assertIn(str(thank_you_no_payment), message)
 
     def test_thank_you_payment_plus_down(self):
         with patch('appointment.utils.email_ops.APPOINTMENT_PAYMENT_URL', "http://payment.url"):
             self.ar.accepts_down_payment.return_value = True
             message = get_thank_you_message(self.ar)
-            self.assertIn(thank_you_payment_plus_down, message)
+            self.assertIn(str(thank_you_payment_plus_down), message)
 
     def test_thank_you_payment(self):
         with patch('appointment.utils.email_ops.APPOINTMENT_PAYMENT_URL', "http://payment.url"):
             self.ar.accepts_down_payment.return_value = False
             message = get_thank_you_message(self.ar)
-            self.assertIn(thank_you_payment, message)
+            self.assertIn(str(thank_you_payment), message)
 
 
 class SendVerificationEmailTests(BaseTest):
