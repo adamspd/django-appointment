@@ -134,7 +134,7 @@ APPOINTMENT_BUFFER_TIME = 0
 LANGUAGES = (
     ('en', _('English')),
     ('fr', _('French')),
-    # ('es', _('Spanish')), # uncomment to add Spanish
+    ('es', _('Spanish')),
 )
 
 # Email Configuration
