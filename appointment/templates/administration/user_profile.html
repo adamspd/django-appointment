@@ -32,7 +32,7 @@
                 <h2>{% trans 'Personal Information' %}</h2>
                 <!-- Display fields from PersonalInformationForm -->
                 <div class="section-content">
-                    <p><strong>{% trans 'First name' %}:</strong> {{ user.first_name|default:user.username }}</p>
+                    <p><strong>{% trans 'First name' %}:</strong> {{ user.first_name|default:"N/A" }}</p>
                     <p><strong>{% trans 'Last name' %}:</strong> {{ user.last_name|default:"N/A" }}</p>
                     <p><strong>{% trans 'Email' %}:</strong> {{ user.email|default:"N/A" }}</p>
                 </div>
