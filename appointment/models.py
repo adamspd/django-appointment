@@ -286,14 +286,32 @@ class StaffMember(models.Model):
         return self.work_on_saturday and self.work_on_sunday
 
     def get_staff_member_name(self):
-        name_options = [
-            getattr(self.user, 'get_full_name', lambda: '')(),
-            f"{self.user.first_name} {self.user.last_name}",
-            self.user.username,
-            self.user.email,
-            f"Staff Member {self.id}"
-        ]
-        return next((name.strip() for name in name_options if name.strip()), "Unknown")
+        from appointment.utils.db_helpers import username_in_user_model
+        # Try get_full_name method first
+        full_name = getattr(self.user, 'get_full_name', lambda: '')()
+        if full_name and full_name.strip():
+            return full_name.strip()
+
+        # Try first_name + last_name
+        first = getattr(self.user, 'first_name', '')
+        last = getattr(self.user, 'last_name', '')
+        combined = f"{first} {last}".strip()
+        if combined:
+            return combined
+
+        # Try username only if it exists in the user model
+        if username_in_user_model():
+            username = getattr(self.user, 'username', '')
+            if username and username.strip():
+                return username.strip()
+
+        # Try email
+        email = getattr(self.user, 'email', '')
+        if email and email.strip():
+            return email.strip()
+
+        # Fallback
+        return f"Staff Member {self.id}"
 
     def get_staff_member_first_name(self):
         return self.user.first_name
