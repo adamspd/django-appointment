@@ -16,7 +16,7 @@ jobs:
       publish_to_testpypi: ${{ steps.version_check.outputs.publish_to_testpypi }}
       version: ${{ steps.version_check.outputs.version }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -41,7 +41,7 @@ jobs:
     if: needs.prepare-and-check.outputs.publish_to_pypi == 'true' || needs.prepare-and-check.outputs.publish_to_testpypi == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -88,7 +88,7 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Download distribution packages for release
         uses: actions/download-artifact@v7
