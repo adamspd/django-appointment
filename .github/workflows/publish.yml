@@ -106,7 +106,7 @@ jobs:
 
       - name: Draft Release
         id: draft_release
-        uses: release-drafter/release-drafter@v6
+        uses: release-drafter/release-drafter@v7
         with:
           commitish: main
           tag: v${{ env.RELEASE_VERSION }}
