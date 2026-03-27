@@ -531,7 +531,7 @@ class UpdateAppointmentTestCase(BaseTest):
 
         self.assertEqual(response.status_code, 403)
         response_data = response.json()
-        self.assertEqual(response_data['message'], "You can only update your own appointments.")
+        self.assertEqual(response_data['message'], _("You can only update your own appointments."))
         other_staff_appointment.refresh_from_db()
         self.assertEqual(
             other_staff_appointment.client.email,
