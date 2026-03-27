@@ -532,6 +532,15 @@ class UpdateAppointmentTestCase(BaseTest):
         self.assertEqual(response.status_code, 403)
         response_data = response.json()
         self.assertEqual(response_data['message'], "You can only update your own appointments.")
+        other_staff_appointment.refresh_from_db()
+        self.assertEqual(
+            other_staff_appointment.client.email,
+            "tealc.kree@django-appointment.com",
+        )
+        self.assertEqual(
+            other_staff_appointment.appointment_request.staff_member.id,
+            self.staff_member2.id,
+        )
 
 
 class ServiceViewTestCase(BaseTest):
