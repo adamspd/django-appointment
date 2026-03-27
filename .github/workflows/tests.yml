@@ -4,9 +4,9 @@ on:
     branches-ignore:
       - 'main'
   workflow_dispatch:
-  pull_request_target:
-    types: [assigned, opened, synchronize, reopened]
-    branches-ignore:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
       - 'main'
 
 permissions:
