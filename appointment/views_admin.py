@@ -35,6 +35,7 @@ from appointment.utils.json_context import (
     json_response)
 from appointment.utils.permissions import check_extensive_permissions, check_permissions, \
     has_permission_to_delete_appointment
+from appointment.utils.template_helpers import get_custom_template
 
 
 ###############################################################
@@ -60,7 +61,8 @@ def get_user_appointments(request, response_type='html'):
     if not appointments and not StaffMember.objects.filter(
             user=request.user).exists() and not request.user.is_superuser:
         messages.error(request, _("User doesn't have a staff member instance. Please contact the administrator."))
-    return render(request, 'administration/staff_index.html', context)
+    template = get_custom_template('staff_index.html', 'administration/staff_index.html')
+    return render(request, template, context)
 
 
 @require_user_authenticated
@@ -70,14 +72,16 @@ def display_appointment(request, appointment_id):
 
     if error_message:
         context = get_generic_context(request=request)
-        return render(request, 'error_pages/404_not_found.html', context=context, status=status_code)
+        template = get_custom_template('404_not_found.html', 'error_pages/404_not_found.html')
+        return render(request, template, context=context, status=status_code)
     # If everything is okay, render the HTML template.
     extra_context = {
         'appointment': appointment,
         'page_title': page_title,
     }
     context = get_generic_context_with_extra(request=request, extra=extra_context)
-    return render(request, 'administration/display_appointment.html', context)
+    template = get_custom_template('display_appointment.html', 'administration/display_appointment.html')
+    return render(request, template, context)
 
 
 @require_user_authenticated
@@ -118,7 +122,8 @@ def update_day_off(request, day_off_id, staff_user_id=None, response_type='html'
                                  error_code=ErrorCode.DAY_OFF_NOT_FOUND)
         else:
             context = get_generic_context(request=request)
-            return render(request, 'error_pages/404_not_found.html', context=context, status=404)
+            template = get_custom_template('404_not_found.html', 'error_pages/404_not_found.html')
+            return render(request, template, context=context, status=404)
     staff_user_id = staff_user_id or request.user.pk
     if not check_extensive_permissions(staff_user_id, request.user, day_off):
         message = _("You can only update your own days off.")
@@ -167,7 +172,8 @@ def update_working_hours(request, working_hours_id, staff_user_id=None, response
                                  error_code=ErrorCode.WORKING_HOURS_NOT_FOUND)
         else:
             context = get_generic_context(request=request)
-            return render(request, 'error_pages/404_not_found.html', context=context)
+            template = get_custom_template('404_not_found.html', 'error_pages/404_not_found.html')
+            return render(request, template, context=context)
 
     staff_user_id = staff_user_id or request.user.pk
     if not check_extensive_permissions(staff_user_id, request.user, working_hours):
@@ -224,7 +230,8 @@ def add_or_update_staff_info(request, user_id=None):
         form = StaffAppointmentInformationForm(instance=staff_member)
 
     context = get_generic_context_with_extra(request=request, extra={'form': form})
-    return render(request, 'administration/manage_staff_member.html', context)
+    template = get_custom_template('manage_staff_member.html', 'administration/manage_staff_member.html')
+    return render(request, template, context)
 
 
 # TODO: Refactor this function, handle the different cases better.
@@ -373,7 +380,8 @@ def update_personal_info(request, staff_user_id=None):
     }, user=user)
 
     context = get_generic_context_with_extra(request=request, extra={'form': form, 'btn_text': _("Update")})
-    return render(request, 'administration/manage_staff_personal_info.html', context)
+    template = get_custom_template('manage_staff_personal_info.html', 'administration/manage_staff_personal_info.html')
+    return render(request, template, context)
 
 
 @require_user_authenticated
@@ -392,9 +400,11 @@ def email_change_verification_code(request):
             return redirect('appointment:user_profile')
         else:
             messages.error(request, _("The verification code provided is incorrect. Please try again."))
-            return render(request, 'administration/email_change_verification_code.html', context=context)
+            template = get_custom_template('email_change_verification_code.html', 'administration/email_change_verification_code.html')
+            return render(request, template, context=context)
 
-    return render(request, 'administration/email_change_verification_code.html', context=context)
+    template = get_custom_template('email_change_verification_code.html', 'administration/email_change_verification_code.html')
+    return render(request, template, context=context)
 
 
 ###############################################################
@@ -412,7 +422,8 @@ def add_staff_member_info(request):
         form = StaffMemberForm()
 
     context = get_generic_context_with_extra(request=request, extra={'form': form})
-    return render(request, 'administration/manage_staff_member.html', context)
+    template = get_custom_template('manage_staff_member.html', 'administration/manage_staff_member.html')
+    return render(request, template, context)
 
 
 @require_user_authenticated
@@ -428,7 +439,8 @@ def create_new_staff_member(request):
 
     form = PersonalInformationForm()
     context = get_generic_context_with_extra(request=request, extra={'form': form, 'btn_text': _("Create")})
-    return render(request, 'administration/manage_staff_personal_info.html', context=context)
+    template = get_custom_template('manage_staff_personal_info.html', 'administration/manage_staff_personal_info.html')
+    return render(request, template, context=context)
 
 
 @require_user_authenticated
@@ -481,7 +493,8 @@ def add_or_update_service(request, service_id=None, view=0):
         form = ServiceForm()
     extra_context['form'] = form
     context = get_generic_context_with_extra(request=request, extra=extra_context)
-    return render(request, 'administration/manage_service.html', context=context)
+    template = get_custom_template('manage_service.html', 'administration/manage_service.html')
+    return render(request, template, context=context)
 
 
 @require_user_authenticated
@@ -527,7 +540,8 @@ def get_service_list(request, response_type='html'):
             })
         return json_response("Successfully fetched services.", custom_data={'services': service_data}, safe=False)
     context = get_generic_context_with_extra(request=request, extra={'services': services})
-    return render(request, 'administration/service_list.html', context=context)
+    template = get_custom_template('service_list.html', 'administration/service_list.html')
+    return render(request, template, context=context)
 
 
 @require_user_authenticated
