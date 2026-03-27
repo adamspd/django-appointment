@@ -110,6 +110,16 @@ class AppointmentRequestAttributeValidation(BaseTest):
                 self.service1, self.staff_member1, date_=date.today(), start_time=time(10, 0), end_time=time(10, 0)
             )
 
+    def test_appointment_duration_less_than_one_minute(self):
+        """Test that an appointment request can have a duration less than a minute."""
+        service = self.create_service_(name="Sub-minute Service", duration=timedelta(seconds=30))
+        ar = self.create_appointment_request_(
+            service, self.staff_member1, start_time=time(10, 0, 0), end_time=time(10, 0, 30)
+        )
+        self.assertEqual(ar.start_time, time(10, 0, 0))
+        self.assertEqual(ar.end_time, time(10, 0, 30))
+        ar.full_clean()  # Should not raise any validation error
+
     def test_appointment_request_date_validations(self):
         """Validate that appointment requests cannot be in the past or have invalid durations."""
         ar = deepcopy(self.ar)
