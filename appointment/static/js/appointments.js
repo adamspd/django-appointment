@@ -207,7 +207,13 @@ function convertTo24Hour(time12h) {
 function formatTime(date) {
     const hours = date.getHours();
     const minutes = date.getMinutes();
-    return (hours < 10 ? '0' + hours : hours) + ':' + (minutes < 10 ? '0' + minutes : minutes);
+    const seconds = date.getSeconds();
+    
+    let timeString = (hours < 10 ? '0' + hours : hours) + ':' + (minutes < 10 ? '0' + minutes : minutes);
+    if (seconds > 0) {
+        timeString += ':' + (seconds < 10 ? '0' + seconds : seconds);
+    }
+    return timeString;
 }
 
 function getAvailableSlots(selectedDate, staffId = null) {
