@@ -76,6 +76,7 @@ and [here](https://github.com/adamspd/django-appointment/tree/main/docs/release_
    - Automated email reminders sent 24 hours before the appointment (requires Django Q).
    - ICS file attachment for calendar synchronization.
 7. Integration with Django Q for efficient task scheduling and email sending.
+8. **Custom Templates Support**: You can easily override the default HTML pages and email templates with your own custom designs. See [Custom Templates Documentation](https://github.com/adamspd/django-appointment/blob/main/CUSTOM_TEMPLATES.md) for full details.
 
 ## Key features introduced in previous versions.
 
