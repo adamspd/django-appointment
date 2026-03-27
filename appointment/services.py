@@ -32,7 +32,7 @@ from appointment.utils.db_helpers import (
 from appointment.utils.email_ops import send_reset_link_to_staff_member
 from appointment.utils.error_codes import ErrorCode
 from appointment.utils.json_context import convert_appointment_to_json, get_generic_context, json_response
-from appointment.utils.permissions import check_entity_ownership, has_permission_to_delete_appointment
+from appointment.utils.permissions import check_entity_ownership
 from appointment.utils.session import handle_email_change
 
 
@@ -616,7 +616,7 @@ def create_new_appointment(data, request):
 def update_existing_appointment(data, request):
     try:
         appt = Appointment.objects.get(id=data.get("appointment_id"))
-        if not has_permission_to_delete_appointment(request.user, appt):
+        if not check_entity_ownership(request.user, appt):
             return json_response(
                 _("You can only update your own appointments."),
                 status=403,
