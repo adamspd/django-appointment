@@ -502,6 +502,46 @@ class UpdateAppointmentTestCase(BaseTest):
         response_data = response.json()
         self.assertIn('message', response_data)
 
+    def test_staff_cannot_update_other_staff_appointment(self):
+        self.need_staff_login()
+        other_staff_appointment = self.create_appt_for_sm2()
+        self.staff_member2.services_offered.add(self.service2)
+
+        data = {
+            'isCreating': False,
+            'service_id': self.service2.pk,
+            'appointment_id': other_staff_appointment.id,
+            'client_name': 'Unauthorized Update',
+            'client_email': 'unauthorized@django-appointment.com',
+            'client_phone': '+19999999999',
+            'client_address': 'No Access St',
+            'want_reminder': 'false',
+            'additional_info': '',
+            'start_time': '15:00:26',
+            'staff_member': self.staff_member2.id,
+            'date': self.tomorrow.strftime('%Y-%m-%d'),
+        }
+        url = reverse('appointment:update_appt_min_info')
+        response = self.client.post(
+            url,
+            data=json.dumps(data),
+            content_type='application/json',
+            **{'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'},
+        )
+
+        self.assertEqual(response.status_code, 403)
+        response_data = response.json()
+        self.assertEqual(response_data['message'], _("You can only update your own appointments."))
+        other_staff_appointment.refresh_from_db()
+        self.assertEqual(
+            other_staff_appointment.client.email,
+            "tealc.kree@django-appointment.com",
+        )
+        self.assertEqual(
+            other_staff_appointment.appointment_request.staff_member.id,
+            self.staff_member2.id,
+        )
+
 
 class ServiceViewTestCase(BaseTest):
     @classmethod
