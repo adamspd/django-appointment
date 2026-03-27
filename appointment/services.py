@@ -616,6 +616,13 @@ def create_new_appointment(data, request):
 def update_existing_appointment(data, request):
     try:
         appt = Appointment.objects.get(id=data.get("appointment_id"))
+        if not check_entity_ownership(request.user, appt):
+            return json_response(
+                _("You can only update your own appointments."),
+                status=403,
+                success=False,
+                error_code=ErrorCode.NOT_AUTHORIZED,
+            )
         staff_id = data.get("staff_member")
         want_reminder = data.get("want_reminder") == 'true'
         appt = save_appointment(
