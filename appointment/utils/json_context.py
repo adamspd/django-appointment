@@ -14,6 +14,7 @@ from django.utils import translation
 from appointment.settings import APPOINTMENT_ADMIN_BASE_TEMPLATE, APPOINTMENT_BASE_TEMPLATE
 from appointment.utils.db_helpers import username_in_user_model
 from appointment.utils.error_codes import ErrorCode
+from appointment.utils.template_helpers import get_custom_template
 
 
 def convert_appointment_to_json(request, appointments: list) -> list:
@@ -83,4 +84,5 @@ def handle_unauthorized_response(request, message, response_type):
         'BASE_TEMPLATE': APPOINTMENT_BASE_TEMPLATE,
     }
     # set return code to 403
-    return render(request, 'error_pages/403_forbidden.html', context=context, status=403)
+    template = get_custom_template('403_forbidden.html', 'error_pages/403_forbidden.html')
+    return render(request, template, context=context, status=403)

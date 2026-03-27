@@ -15,6 +15,7 @@ from appointment.email_sender import notify_admin, send_email
 from appointment.logger_config import get_logger
 from appointment.models import Appointment, AppointmentRequest
 from appointment.settings import APPOINTMENT_CLEANUP_DAYS
+from appointment.utils.template_helpers import get_email_template
 
 logger = get_logger(__name__)
 
@@ -34,16 +35,17 @@ def send_email_reminder(to_email, first_name, reschedule_link, appointment_id):
         'reschedule_link': reschedule_link,
         'recipient_type': recipient_type,
     }
+    template_url = get_email_template('reminder_email.html', 'email_sender/reminder_email.html')
     send_email(
             recipient_list=[to_email], subject=_("Reminder: Upcoming Appointment"),
-            template_url='email_sender/reminder_email.html', context=email_context
+            template_url=template_url, context=email_context
     )
     # Notify the admin
     logger.info(f"Sending admin reminder also")
     email_context['recipient_type'] = 'admin'
     notify_admin(
             subject=_("Admin Reminder: Upcoming Appointment"),
-            template_url='email_sender/reminder_email.html', context=email_context
+            template_url=template_url, context=email_context
     )
 
 
