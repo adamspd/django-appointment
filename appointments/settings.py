@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "recurrence",
     "appointment.apps.AppointmentConfig",
 ]
 
@@ -64,7 +65,7 @@ ROOT_URLCONF = "appointments.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / 'appointment/templates'],
+        "DIRS": [BASE_DIR / 'templates', BASE_DIR / 'appointment/templates'],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
