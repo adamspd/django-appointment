@@ -6,3 +6,4 @@ setuptools==82.0.1
 requests~=2.33.1
 django-q2==1.9.0
 python-dotenv==1.2.2
+django-recurrence==1.14

@@ -9,3 +9,4 @@ python-dotenv==1.2.2
 colorama~=0.4.6
 django-q2==1.9.0
 icalendar~=7.0.3
+django-recurrence==1.14
