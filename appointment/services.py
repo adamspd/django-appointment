@@ -25,10 +25,10 @@ from appointment.utils.db_helpers import (
     calculate_staff_slots, check_day_off_for_staff, create_and_save_appointment, create_new_user,
     day_off_exists_for_date_range, exclude_booked_slots, exclude_pending_reschedules, get_all_appointments,
     get_all_staff_members,
-    get_appointment_by_id, get_appointments_for_date_and_time, get_staff_member_appointment_list,
-    get_staff_member_from_user_id_or_logged_in, get_times_from_config, get_user_by_email,
-    get_weekday_num_from_date, get_working_hours_for_staff_and_day, parse_name, update_appointment_reminder,
-    working_hours_exist)
+    get_appointment_by_id, get_appointments_for_date_and_time, get_config, get_staff_member_appointment_list,
+    get_staff_member_from_user_id_or_logged_in, get_staff_member_slot_gap_time, get_times_from_config,
+    get_user_by_email, get_weekday_num_from_date, get_working_hours_for_staff_and_day, parse_name,
+    update_appointment_reminder, working_hours_exist)
 from appointment.utils.email_ops import send_reset_link_to_staff_member
 from appointment.utils.error_codes import ErrorCode
 from appointment.utils.json_context import convert_appointment_to_json, get_generic_context, json_response
@@ -411,12 +411,16 @@ def get_available_slots(date, appointments):
     return [slot.strftime('%I:%M %p') for slot in slots]
 
 
-def get_available_slots_for_staff(date, staff_member, day_of_week: int):
+def get_available_slots_for_staff(date, staff_member, day_of_week: int, service=None):
     """Calculate the available time slots for a given date and a staff member.
 
     :param date: The date for which to calculate the available slots
     :param staff_member: The staff member for which to calculate the available slots
     :param day_of_week: The day of the week as an integer (0=Sunday, 6=Saturday).
+    :param service: Optional Service instance. When provided, the service's duration is used as the
+        effective slot-check window (subject to Config.default_to_service_duration and
+        Service.use_service_duration_as_slot), preventing overlaps for services longer than the
+        configured slot step.
     :return: A list of available time slots as strings in the format '%I:%M %p' like ['10:00 AM', '10:30 AM']
     """
     # Check if the provided date is a day off for the staff member
@@ -430,11 +434,27 @@ def get_available_slots_for_staff(date, staff_member, day_of_week: int):
         return []
 
     slot_duration = datetime.timedelta(minutes=staff_member.get_slot_duration())
+
+    # Determine whether to use the service's own duration as the overlap-check window
+    service_duration = None
+    if service is not None:
+        config = get_config()
+        use_service_dur = (
+            config.default_to_service_duration
+            if config is not None
+            else True
+        ) or service.use_service_duration_as_slot
+        if use_service_dur:
+            service_duration = service.duration
+
+    gap_time = get_staff_member_slot_gap_time(staff_member, date)
+
     slots = calculate_staff_slots(date, staff_member)
     slots = exclude_pending_reschedules(slots, staff_member, date)
     appointments = get_appointments_for_date_and_time(date, working_hours_dict['start_time'],
                                                       working_hours_dict['end_time'], staff_member)
-    return exclude_booked_slots(appointments, slots, slot_duration)
+    return exclude_booked_slots(appointments, slots, slot_duration,
+                                service_duration=service_duration, gap_time=gap_time or None)
 
 
 def get_finish_button_text(service) -> str:
