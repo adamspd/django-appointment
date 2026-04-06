@@ -678,6 +678,69 @@ class GetAvailableSlotsForStaffTests(BaseTest):
         tuesday_slots = get_available_slots_for_staff(self.next_tuesday, self.staff_member1, 2)
         self.assertEqual(tuesday_slots, [], "Tuesday should have no slots (staff doesn't work)")
 
+    def test_service_duration_prevents_overlap(self):
+        """Issue #261: a slot before a long appointment should be blocked when service_duration is used."""
+        # Create a 3-hr service and book a slot at 10:00-13:00
+        long_service = self.create_service_(
+            name="Long Session", duration=datetime.timedelta(hours=3), price=300
+        )
+        self.staff_member1.services_offered.add(long_service)
+        start_time = datetime.time(10, 0)
+        end_time = datetime.time(13, 0)
+        appt_request = self.create_appointment_request_(
+            service=long_service,
+            staff_member=self.staff_member1,
+            date_=self.next_wednesday,
+            start_time=start_time,
+            end_time=end_time,
+        )
+        self.create_appointment_(user=self.users['client1'], appointment_request=appt_request)
+
+        # Without service context: slot 9:00 (60-min window [9:00,10:00]) does NOT touch [10:00,13:00]
+        # because appointment_start(10:00) < slot_end(10:00) is False → slot 9:00 is available
+        slots_no_service = get_available_slots_for_staff(self.next_wednesday, self.staff_member1, 3)
+        slot_9_00 = datetime.datetime(
+            self.next_wednesday.year, self.next_wednesday.month, self.next_wednesday.day, 9, 0
+        )
+        self.assertIn(slot_9_00, slots_no_service)
+
+        # With service context (3-hr window): max(60min, 3hr)=3hr → 9:00+3hr=12:00 > 10:00 → blocked
+        slots_with_service = get_available_slots_for_staff(
+            self.next_wednesday, self.staff_member1, 3, service=long_service
+        )
+        self.assertNotIn(slot_9_00, slots_with_service)
+
+    def test_slot_gap_time_blocks_next_slot(self):
+        """Issue #57: a slot immediately after an appointment end is blocked when gap_time is set."""
+        start_time = datetime.time(9, 0)
+        end_time = datetime.time(10, 0)
+        appt_request = self.create_appointment_request_(
+            service=self.service1,
+            staff_member=self.staff_member1,
+            date_=self.next_wednesday,
+            start_time=start_time,
+            end_time=end_time,
+        )
+        self.create_appointment_(user=self.users['client1'], appointment_request=appt_request)
+
+        # Without gap_time: slot at 10:00 should be available
+        slots_no_gap = get_available_slots_for_staff(self.next_wednesday, self.staff_member1, 3)
+        slot_10_00 = datetime.datetime(
+            self.next_wednesday.year, self.next_wednesday.month, self.next_wednesday.day, 10, 0
+        )
+        self.assertIn(slot_10_00, slots_no_gap)
+
+        # Set a 60-min gap on the staff member (enough to block the next 60-min slot)
+        self.staff_member1.slot_gap_time = 60
+        self.staff_member1.save()
+
+        try:
+            slots_with_gap = get_available_slots_for_staff(self.next_wednesday, self.staff_member1, 3)
+            self.assertNotIn(slot_10_00, slots_with_gap)
+        finally:
+            self.staff_member1.slot_gap_time = None
+            self.staff_member1.save()
+
 
 class UpdatePersonalInfoServiceTest(BaseTest):
 

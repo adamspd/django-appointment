@@ -348,22 +348,33 @@ def create_payment_info_and_get_url(appointment):
     return payment_url
 
 
-def exclude_booked_slots(appointments, slots, slot_duration=None):
+def exclude_booked_slots(appointments, slots, slot_duration=None, service_duration=None, gap_time=None):
     """Exclude the booked slots from the given list of slots.
 
     :param appointments: The appointments to exclude.
     :param slots: The slots to exclude the appointments from.
-    :param slot_duration: The duration of each slot.
+    :param slot_duration: The duration of each slot used to determine how far ahead each slot reaches.
+    :param service_duration: The actual service duration (timedelta). When provided, the effective check
+        window is max(slot_duration, service_duration), preventing overlaps for services longer than the
+        configured slot step.
+    :param gap_time: Required rest time in minutes between appointments. When provided, a slot is
+        considered unavailable if it falls within gap_time minutes after an existing appointment ends.
     :return: The slots with the booked slots excluded.
     """
+    if service_duration is not None:
+        check_duration = max(slot_duration, service_duration)
+    else:
+        check_duration = slot_duration
+    gap_delta = datetime.timedelta(minutes=gap_time) if gap_time else datetime.timedelta(0)
+
     available_slots = []
     for slot in slots:
-        slot_end = slot + slot_duration
+        slot_end = slot + check_duration
         is_available = True
         for appointment in appointments:
             appointment_start_time = appointment.get_start_time()
             appointment_end_time = appointment.get_end_time()
-            if appointment_start_time < slot_end and slot < appointment_end_time:
+            if appointment_start_time < slot_end and slot < appointment_end_time + gap_delta:
                 is_available = False
                 break
         if is_available:
@@ -602,6 +613,23 @@ def get_staff_member_slot_duration(staff_member: StaffMember, date: datetime.dat
     _, _, slot_duration, _ = get_times_from_config(date)
     slot_minutes = slot_duration.total_seconds() / 60
     return staff_member.slot_duration or slot_minutes
+
+
+def get_staff_member_slot_gap_time(staff_member: StaffMember, date: datetime.date) -> float:
+    """Return the gap time in minutes between appointments for the given staff member.
+
+    Resolves in priority order: staff member's own slot_gap_time, then Config's slot_gap_time, then 0.
+
+    :param staff_member: The staff member to get the gap time for.
+    :param date: The date (unused directly, kept for API consistency with other helpers).
+    :return: Gap time in minutes (float).
+    """
+    if staff_member.slot_gap_time is not None:
+        return float(staff_member.slot_gap_time)
+    config = get_config()
+    if config and config.slot_gap_time is not None:
+        return float(config.slot_gap_time)
+    return 0.0
 
 
 def get_staff_member_start_time(staff_member: StaffMember, date: datetime.date) -> Optional[datetime.time]:

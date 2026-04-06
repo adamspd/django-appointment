@@ -537,6 +537,130 @@ class TestExcludeBookedSlots(BaseTest):
         self.assertEqual(result, expected)
 
 
+class TestExcludeBookedSlotsWithServiceDuration(BaseTest):
+    """Tests for exclude_booked_slots with service_duration and gap_time parameters (Issues #261 & #57)."""
+
+    def setUp(self):
+        super().setUp()
+        self.today = datetime.date.today()
+        # Create a long-duration service so we can make appointments spanning many hours
+        self.long_service = self.create_service_(
+            name="Long Test Service", duration=datetime.timedelta(hours=4), price=100
+        )
+        self.staff_member1.services_offered.add(self.long_service)
+        self.slot_duration = datetime.timedelta(minutes=30)
+        # Build a set of 30-min slots from 9:00 to 12:00
+        self.slots = [
+            datetime.datetime.combine(self.today, datetime.time(9, 0)),
+            datetime.datetime.combine(self.today, datetime.time(9, 30)),
+            datetime.datetime.combine(self.today, datetime.time(10, 0)),
+            datetime.datetime.combine(self.today, datetime.time(10, 30)),
+            datetime.datetime.combine(self.today, datetime.time(11, 0)),
+            datetime.datetime.combine(self.today, datetime.time(11, 30)),
+        ]
+
+    def _make_appointment(self, start_time, end_time, service=None):
+        """Helper to create an appointment with the given times.
+        Defaults to self.long_service so 3-hr appointments pass model validation.
+        Pass service=self.service1 explicitly for 1-hr appointments.
+        """
+        service = service or self.long_service
+        ar = self.create_appointment_request_(
+            service=service, staff_member=self.staff_member1,
+            date_=self.today, start_time=start_time, end_time=end_time
+        )
+        return self.create_appt_for_sm1(appointment_request=ar)
+
+    # --- Issue #261: service_duration ---
+
+    def test_service_duration_none_falls_back_to_slot_duration(self):
+        """Without service_duration, behaviour is identical to original."""
+        appt = self._make_appointment(datetime.time(9, 30), datetime.time(12, 30))
+        result = exclude_booked_slots([appt], self.slots, self.slot_duration, service_duration=None)
+        # slot 9:00 is NOT blocked (30-min window [9:00,9:30] does not intersect [9:30,12:30])
+        slot_9_00 = datetime.datetime.combine(self.today, datetime.time(9, 0))
+        self.assertIn(slot_9_00, result)
+
+    def test_service_duration_blocks_slot_before_appointment(self):
+        """With service_duration=3h, slot 9:00 should be blocked when a 3-hr appt starts at 9:30."""
+        appt = self._make_appointment(datetime.time(9, 30), datetime.time(12, 30))
+        service_duration = datetime.timedelta(hours=3)
+        result = exclude_booked_slots([appt], self.slots, self.slot_duration, service_duration=service_duration)
+        slot_9_00 = datetime.datetime.combine(self.today, datetime.time(9, 0))
+        self.assertNotIn(slot_9_00, result)
+
+    def test_service_duration_blocks_all_overlapping_slots(self):
+        """All slots whose 3-hr window overlaps the booked appointment are blocked."""
+        appt = self._make_appointment(datetime.time(9, 30), datetime.time(12, 30))
+        service_duration = datetime.timedelta(hours=3)
+        result = exclude_booked_slots([appt], self.slots, self.slot_duration, service_duration=service_duration)
+        # Slots 9:00 through 11:30 each have a 3-hr window that overlaps [9:30, 12:30]
+        blocked_times = [datetime.time(9, 0), datetime.time(9, 30), datetime.time(10, 0),
+                         datetime.time(10, 30), datetime.time(11, 0), datetime.time(11, 30)]
+        for t in blocked_times:
+            self.assertNotIn(datetime.datetime.combine(self.today, t), result)
+
+    def test_service_duration_shorter_than_slot_duration_uses_slot_duration(self):
+        """When service_duration < slot_duration, slot_duration is used (max behaviour)."""
+        appt = self._make_appointment(datetime.time(9, 30), datetime.time(9, 45), service=self.service1)
+        short_service = datetime.timedelta(minutes=10)
+        result = exclude_booked_slots([appt], self.slots, self.slot_duration, service_duration=short_service)
+        # 30-min check window: slot 9:00 → [9:00, 9:30] does NOT touch [9:30, 9:45] → available
+        slot_9_00 = datetime.datetime.combine(self.today, datetime.time(9, 0))
+        self.assertIn(slot_9_00, result)
+        # slot 9:30 → [9:30, 10:00] intersects [9:30, 9:45] → blocked
+        slot_9_30 = datetime.datetime.combine(self.today, datetime.time(9, 30))
+        self.assertNotIn(slot_9_30, result)
+
+    # --- Issue #57: gap_time ---
+
+    def test_gap_time_blocks_slot_immediately_after_appointment(self):
+        """A slot starting right after an appointment ends is blocked when gap_time > 0."""
+        appt = self._make_appointment(datetime.time(9, 0), datetime.time(10, 0), service=self.service1)
+        # Without gap_time, 10:00 should be available
+        result_no_gap = exclude_booked_slots([appt], self.slots, self.slot_duration, gap_time=None)
+        slot_10_00 = datetime.datetime.combine(self.today, datetime.time(10, 0))
+        self.assertIn(slot_10_00, result_no_gap)
+
+        # With 30-min gap_time, 10:00 slot falls inside the gap [10:00, 10:30) → blocked
+        result_with_gap = exclude_booked_slots([appt], self.slots, self.slot_duration, gap_time=30)
+        self.assertNotIn(slot_10_00, result_with_gap)
+
+    def test_gap_time_slot_after_gap_window_is_available(self):
+        """A slot starting after appointment_end + gap_time is available."""
+        appt = self._make_appointment(datetime.time(9, 0), datetime.time(10, 0), service=self.service1)
+        # 30-min gap → effective blocked range is [9:00, 10:30)
+        # slot 10:30 is at the boundary: slot < (10:00 + 30min) is False → available
+        result = exclude_booked_slots([appt], self.slots, self.slot_duration, gap_time=30)
+        slot_10_30 = datetime.datetime.combine(self.today, datetime.time(10, 30))
+        self.assertIn(slot_10_30, result)
+
+    def test_gap_time_zero_no_effect(self):
+        """gap_time=0 has no effect compared to gap_time=None."""
+        appt = self._make_appointment(datetime.time(9, 0), datetime.time(10, 0), service=self.service1)
+        result_none = exclude_booked_slots([appt], self.slots, self.slot_duration, gap_time=None)
+        result_zero = exclude_booked_slots([appt], self.slots, self.slot_duration, gap_time=0)
+        self.assertEqual(result_none, result_zero)
+
+    def test_combined_service_duration_and_gap_time(self):
+        """service_duration and gap_time can be used together."""
+        # 1-hr appointment at 10:00-11:00, 1-hr service_duration, 30-min gap
+        appt = self._make_appointment(datetime.time(10, 0), datetime.time(11, 0), service=self.service1)
+        service_duration = datetime.timedelta(hours=1)
+        # Effective: check_duration=1hr, gap=30min, so slot < 11:30 is blocked if slot+1hr > 10:00
+        # slot 9:30 → [9:30, 10:30] > 10:00 → blocked
+        # slot 10:00 → blocked (inside appointment)
+        # slot 10:30 → slot(10:30) < 11:30 and [10:30,11:30] > 10:00 → blocked
+        # slot 11:00 → slot(11:00) < 11:30 → blocked
+        # slot 11:30 → slot(11:30) not < 11:30 → available
+        result = exclude_booked_slots([appt], self.slots, self.slot_duration,
+                                      service_duration=service_duration, gap_time=30)
+        slot_11_30 = datetime.datetime.combine(self.today, datetime.time(11, 30))
+        self.assertIn(slot_11_30, result)
+        slot_10_30 = datetime.datetime.combine(self.today, datetime.time(10, 30))
+        self.assertNotIn(slot_10_30, result)
+
+
 class TestDayOffExistsForDateRange(BaseTest):
 
     def setUp(self):
