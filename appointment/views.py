@@ -103,7 +103,8 @@ def get_available_slots_ajax(request):
         custom_data['available_slots'] = []
         custom_data['date_iso'] = selected_date.isoformat()
         return json_response(message=message, custom_data=custom_data, success=False, error_code=ErrorCode.INVALID_DATE)
-    available_slots = get_available_slots_for_staff(selected_date, sm, weekday_num)
+    service = slot_form.cleaned_data.get('service_id')
+    available_slots = get_available_slots_for_staff(selected_date, sm, weekday_num, service=service)
 
     # Check if the selected_date is today and filter out past slots
     if selected_date == date.today():
@@ -537,7 +538,7 @@ def prepare_reschedule_appointment(request, id_request):
         'services_offered': ar.service}
     all_staff_members = StaffMember.objects.filter(**staff_filter_criteria)
     day_of_week = get_weekday_num_from_date(ar.date)
-    available_slots = get_available_slots_for_staff(ar.date, selected_sm, day_of_week)
+    available_slots = get_available_slots_for_staff(ar.date, selected_sm, day_of_week, service=service)
     page_title = _("Rescheduling appointment for {s}").format(s=service.name)
     page_description = _("Reschedule your appointment for {s} at {wn}.").format(s=service.name, wn=get_website_name())
     date_chosen = ar.date.strftime("%a, %B %d, %Y")
