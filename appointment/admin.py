@@ -17,9 +17,9 @@ from .models import (
 
 @admin.register(Service)
 class ServiceAdmin(admin.ModelAdmin):
-    list_display = ('name', 'duration', 'price', 'created_at', 'updated_at',)
+    list_display = ('name', 'duration', 'price', 'use_service_duration_as_slot', 'created_at', 'updated_at',)
     search_fields = ('name',)
-    list_filter = ('duration',)
+    list_filter = ('duration', 'use_service_duration_as_slot',)
 
 
 @admin.register(AppointmentRequest)
@@ -44,7 +44,8 @@ class EmailVerificationCodeAdmin(admin.ModelAdmin):
 @admin.register(Config)
 class ConfigAdmin(admin.ModelAdmin):
     list_display = (
-        'slot_duration', 'lead_time', 'finish_time', 'appointment_buffer_time', 'website_name', 'app_offered_by_label')
+        'slot_duration', 'lead_time', 'finish_time', 'appointment_buffer_time', 'website_name',
+        'app_offered_by_label', 'default_to_service_duration', 'slot_gap_time')
 
 
 # Define a custom ModelForm for StaffMember
@@ -61,7 +62,8 @@ class StaffMemberForm(forms.ModelForm):
 class StaffMemberAdmin(admin.ModelAdmin):
     form = StaffMemberForm
     list_display = (
-        'get_staff_member_name', 'get_slot_duration', 'lead_time', 'finish_time', 'work_on_saturday', 'work_on_sunday')
+        'get_staff_member_name', 'get_slot_duration', 'lead_time', 'finish_time', 'slot_gap_time',
+        'work_on_saturday', 'work_on_sunday')
     search_fields = ('user__email', 'user__first_name', 'user__last_name')
     list_filter = ('work_on_saturday', 'work_on_sunday', 'lead_time', 'finish_time')
 

@@ -107,6 +107,15 @@ class Service(models.Model):
         help_text=_("Indicates whether appointments for this service can be rescheduled."),
         verbose_name=_("Allow Rescheduling")
     )
+    use_service_duration_as_slot = models.BooleanField(
+        default=True,
+        verbose_name=_("Use Service Duration as Slot"),
+        help_text=_(
+            "If enabled, the service's actual duration is used when checking slot availability, "
+            "preventing overlaps for services longer than the default slot duration. "
+            "Only evaluated when 'Default to service duration' is disabled in Config."
+        )
+    )
 
     # meta data
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Created At'))
@@ -242,6 +251,12 @@ class StaffMember(models.Model):
                     "e.g: If you start working at 9:00 AM and the current time is 8:30 AM and you set it to 30 "
                     "minutes, the first available slot will be at 9:00 AM. If you set the appointment buffer time to "
                     "60 minutes, the first available slot will be at 9:30 AM.")
+    )
+    slot_gap_time = models.PositiveIntegerField(
+        null=True, blank=True,
+        verbose_name=_("Slot Gap Time"),
+        help_text=_("Required rest time in minutes between the end of one appointment and the start of the next. "
+                    "Overrides the global Config setting for this staff member.")
     )
     work_on_saturday = models.BooleanField(
         default=False,
@@ -851,6 +866,21 @@ class Config(models.Model):
         default=True,
         verbose_name=_("Allow Staff Change on Reschedule"),
         help_text=_("Allows clients to change the staff member when rescheduling an appointment.")
+    )
+    default_to_service_duration = models.BooleanField(
+        default=True,
+        verbose_name=_("Default to Service Duration"),
+        help_text=_(
+            "When enabled, all services automatically use their own duration when checking slot availability, "
+            "preventing overlaps for longer services. When disabled, each service's individual "
+            "'Use Service Duration as Slot' setting is respected instead."
+        )
+    )
+    slot_gap_time = models.PositiveIntegerField(
+        null=True, blank=True,
+        verbose_name=_("Slot Gap Time"),
+        help_text=_("Required rest time in minutes between the end of one appointment and the start of the next. "
+                    "Applies to all staff members unless overridden per staff member.")
     )
 
     # meta data
