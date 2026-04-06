@@ -629,11 +629,26 @@ class TestExcludeBookedSlotsWithServiceDuration(BaseTest):
     def test_gap_time_slot_after_gap_window_is_available(self):
         """A slot starting after appointment_end + gap_time is available."""
         appt = self._make_appointment(datetime.time(9, 0), datetime.time(10, 0), service=self.service1)
-        # 30-min gap → effective blocked range is [9:00, 10:30)
-        # slot 10:30 is at the boundary: slot < (10:00 + 30min) is False → available
+        # 30-min gap applied on both sides:
+        # gap-after: slot 10:00-10:30 is blocked (10:00 < 10:00+30min)
+        # slot 10:30: slot(10:30) < 10:30 is False → available
         result = exclude_booked_slots([appt], self.slots, self.slot_duration, gap_time=30)
         slot_10_30 = datetime.datetime.combine(self.today, datetime.time(10, 30))
         self.assertIn(slot_10_30, result)
+
+    def test_gap_time_blocks_slot_ending_within_gap_before_appointment(self):
+        """A slot whose end falls within the gap window before an appointment starts is blocked.
+        Covers the pre-appointment side of the gap (reviewer comment).
+        """
+        # Appointment starts at 10:30. slot_duration=30min, so slot 10:00→10:30 ends exactly at 10:30.
+        # With a 30-min gap: slot_end(10:30) + gap(30min) = 11:00 > appointment_start(10:30) → blocked.
+        appt = self._make_appointment(datetime.time(10, 30), datetime.time(11, 30), service=self.service1)
+        result = exclude_booked_slots([appt], self.slots, self.slot_duration, gap_time=30)
+        slot_10_00 = datetime.datetime.combine(self.today, datetime.time(10, 0))
+        self.assertNotIn(slot_10_00, result)
+        # slot 9:30 → slot_end 10:00 + gap 30min = 10:30; 10:30 < 10:30 is False → available
+        slot_9_30 = datetime.datetime.combine(self.today, datetime.time(9, 30))
+        self.assertIn(slot_9_30, result)
 
     def test_gap_time_zero_no_effect(self):
         """gap_time=0 has no effect compared to gap_time=None."""
@@ -644,21 +659,23 @@ class TestExcludeBookedSlotsWithServiceDuration(BaseTest):
 
     def test_combined_service_duration_and_gap_time(self):
         """service_duration and gap_time can be used together."""
-        # 1-hr appointment at 10:00-11:00, 1-hr service_duration, 30-min gap
+        # 1-hr appointment at 10:00-11:00, 1-hr service_duration, 30-min gap (both sides)
         appt = self._make_appointment(datetime.time(10, 0), datetime.time(11, 0), service=self.service1)
         service_duration = datetime.timedelta(hours=1)
-        # Effective: check_duration=1hr, gap=30min, so slot < 11:30 is blocked if slot+1hr > 10:00
-        # slot 9:30 → [9:30, 10:30] > 10:00 → blocked
-        # slot 10:00 → blocked (inside appointment)
-        # slot 10:30 → slot(10:30) < 11:30 and [10:30,11:30] > 10:00 → blocked
-        # slot 11:00 → slot(11:00) < 11:30 → blocked
-        # slot 11:30 → slot(11:30) not < 11:30 → available
+        # check_duration = max(30min, 1hr) = 1hr; gap = 30min
+        # blocked if: appointment_start(10:00) < slot_end+gap AND slot < appointment_end(11:00)+gap(11:30)
+        # slot 9:00 → slot_end=10:00; 10:00 < 10:30=True; 9:00 < 11:30=True → blocked (pre-gap)
+        # slot 9:30 → slot_end=10:30; 10:00 < 11:00=True; 9:30 < 11:30=True → blocked
+        # slot 10:00, 10:30, 11:00 → blocked (inside/near appointment)
+        # slot 11:30 → slot(11:30) < 11:30 is False → available
         result = exclude_booked_slots([appt], self.slots, self.slot_duration,
                                       service_duration=service_duration, gap_time=30)
         slot_11_30 = datetime.datetime.combine(self.today, datetime.time(11, 30))
         self.assertIn(slot_11_30, result)
         slot_10_30 = datetime.datetime.combine(self.today, datetime.time(10, 30))
         self.assertNotIn(slot_10_30, result)
+        slot_9_00 = datetime.datetime.combine(self.today, datetime.time(9, 0))
+        self.assertNotIn(slot_9_00, result)
 
 
 class TestDayOffExistsForDateRange(BaseTest):
