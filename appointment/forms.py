@@ -25,15 +25,14 @@ class SlotForm(forms.Form):
             error_messages={'invalid_choice': _('Staff member does not exist')}
     )
     service_id = forms.ModelChoiceField(
-            queryset=None,
+            queryset=Service.objects.none(),
             required=False,
             error_messages={'invalid_choice': _('Service does not exist')}
     )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        from appointment.models import Service as ServiceModel
-        self.fields['service_id'].queryset = ServiceModel.objects.all()
+        self.fields['service_id'].queryset = Service.objects.all()
 
 
 class AppointmentRequestForm(forms.ModelForm):

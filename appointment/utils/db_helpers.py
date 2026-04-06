@@ -357,8 +357,9 @@ def exclude_booked_slots(appointments, slots, slot_duration=None, service_durati
     :param service_duration: The actual service duration (timedelta). When provided, the effective check
         window is max(slot_duration, service_duration), preventing overlaps for services longer than the
         configured slot step.
-    :param gap_time: Required rest time in minutes between appointments. When provided, a slot is
-        considered unavailable if it falls within gap_time minutes after an existing appointment ends.
+    :param gap_time: Required rest time in minutes between appointments. Applied on both sides: a slot is
+        unavailable if it ends within gap_time minutes before an appointment starts, or if it starts
+        within gap_time minutes after an appointment ends.
     :return: The slots with the booked slots excluded.
     """
     if service_duration is not None:
@@ -374,7 +375,7 @@ def exclude_booked_slots(appointments, slots, slot_duration=None, service_durati
         for appointment in appointments:
             appointment_start_time = appointment.get_start_time()
             appointment_end_time = appointment.get_end_time()
-            if appointment_start_time < slot_end and slot < appointment_end_time + gap_delta:
+            if appointment_start_time < slot_end + gap_delta and slot < appointment_end_time + gap_delta:
                 is_available = False
                 break
         if is_available:
