@@ -8,5 +8,5 @@ requests~=2.34.0
 python-dotenv==1.2.2
 colorama~=0.4.6
 django-q2==1.10.0
-icalendar~=7.0.3
+icalendar~=7.1.0
 django-recurrence==1.14
