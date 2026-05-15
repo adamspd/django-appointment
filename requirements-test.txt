@@ -4,6 +4,6 @@ django-phonenumber-field==8.4.0
 babel==2.18.0
 setuptools==82.0.1
 requests~=2.34.0
-django-q2==1.9.0
+django-q2==1.10.0
 python-dotenv==1.2.2
 django-recurrence==1.14
