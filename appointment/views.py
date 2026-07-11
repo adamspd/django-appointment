@@ -356,7 +356,7 @@ def appointment_client_information(request, appointment_request_id, id_request):
                 return handle_existing_email(request, client_data, appointment_data, appointment_request_id, id_request)
 
             logger.info(f"Creating a new user: {client_data}")
-            _ = create_new_user(client_data)
+            unused = create_new_user(client_data)
             messages.success(request, _("An account was created for you."))
 
             # Create a new appointment
