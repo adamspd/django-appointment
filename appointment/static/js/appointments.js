@@ -13,6 +13,7 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
     initialDate: selectedDate,
     timeZone: timezone,
     locale: locale,
+    firstDay: (typeof firstday !== 'undefined') ? firstday : 0, //Set the first as Sunday by default or use the value in appointments.html
     headerToolbar: {
         left: 'title',
         right: 'prev,today,next',
