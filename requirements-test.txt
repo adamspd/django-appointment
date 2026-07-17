@@ -2,7 +2,7 @@ Pillow==12.2.0
 phonenumbers==9.0.30
 django-phonenumber-field==8.4.0
 babel==2.18.0
-setuptools==82.0.1
+setuptools==83.0.0
 requests~=2.34.2
 django-q2==1.10.0
 python-dotenv==1.2.2
