@@ -13,7 +13,7 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
     initialDate: selectedDate,
     timeZone: timezone,
     locale: locale,
-    firstDay: (typeof firstday !== 'undefined') ? firstday : 0, //Set the first as Sunday by default or use the value in appointments.html
+    firstDay: firstDayOfWeek, //Use locale format from django
     headerToolbar: {
         left: 'title',
         right: 'prev,today,next',
@@ -194,12 +194,16 @@ function convertTo24Hour(time12h) {
     const [time, modifier] = time12h.split(' ');
     let [hours, minutes] = time.split(':');
 
-    if (hours === '12') {
-        hours = '00';
-    }
+    //test if we need to convert
+    if (modifier !== undefined) {
+        //convert 12->24.
+        if (hours === '12') {
+            hours = '00';
+        }
 
-    if (modifier.toUpperCase() === 'PM') {
-        hours = parseInt(hours, 10) + 12;
+        if (modifier.toUpperCase() === 'PM') {
+            hours = parseInt(hours, 10) + 12;
+        }
     }
 
     return `${hours}:${minutes}`;
