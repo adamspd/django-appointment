@@ -462,6 +462,9 @@ class AppointmentRequest(models.Model):
 
     def get_service_price(self):
         return self.service.get_price()
+    
+    def get_service_price_text(self):
+        return self.service.get_price_text()
 
     def get_service_down_payment(self):
         return self.service.get_down_payment()

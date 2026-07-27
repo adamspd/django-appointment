@@ -14,6 +14,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _, gettext_lazy as _
+from django.utils.formats import localize
 
 from appointment.forms import PersonalInformationForm, ServiceForm, StaffDaysOffForm, StaffWorkingHoursForm
 from appointment.messages_ import appt_updated_successfully
@@ -235,10 +236,6 @@ def handle_working_hours_form(staff_member, day_of_week, start_time, end_time, a
     if not (staff_member and day_of_week and start_time and end_time):
         return json_response(_("Invalid data."), status=400, success=False, error_code=ErrorCode.INVALID_DATA)
 
-    # Convert start time and end time to 24-hour format
-    start_time = convert_12_hour_time_to_24_hour_time(start_time)
-    end_time = convert_12_hour_time_to_24_hour_time(end_time)
-
     # Ensure start time is before end time
     if start_time >= end_time:
         return json_response(_("Start time must be before end time."), status=400, success=False,
@@ -408,7 +405,7 @@ def get_available_slots(date, appointments):
     buffer_time = now + buff_time if date == now.date() else now
     slots = calculate_slots(start_time, end_time, buffer_time, slot_duration)
     slots = exclude_booked_slots(appointments, slots, slot_duration)
-    return [slot.strftime('%I:%M %p') for slot in slots]
+    return [localize(slot.time()) for slot in slots]
 
 
 def get_available_slots_for_staff(date, staff_member, day_of_week: int, service=None):
