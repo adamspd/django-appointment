@@ -46,7 +46,7 @@
                         <div class="input-group date" id="start-timepicker" data-target-input="nearest">
                             <input type="text" class="form-control datetimepicker-input" data-toggle="datetimepicker"
                                    data-target="#start-timepicker" name="{{ working_hours_form.start_time.name }}"
-                                   value="{{ working_hours_form.start_time.value|default:'09:00 AM' }}"
+                                   value="{{ working_hours_form.start_time.value|default:'09:00' }}"
                                    id="{{ working_hours_form.start_time.id_for_label }}">
                             <div class="input-group-append" data-toggle="datetimepicker"
                                  data-target="#start-timepicker">
@@ -60,7 +60,7 @@
                         <div class="input-group date" id="end-timepicker" data-target-input="nearest">
                             <input type="text" class="form-control datetimepicker-input" data-toggle="datetimepicker"
                                    data-target="#end-timepicker" name="{{ working_hours_form.end_time.name }}"
-                                   value="{{ working_hours_form.end_time.value|default:'05:00 PM' }}"
+                                   value="{{ working_hours_form.end_time.value|default:'17:00' }}"
                                    id="{{ working_hours_form.end_time.id_for_label }}">
                             <div class="input-group-append" data-toggle="datetimepicker" data-target="#end-timepicker">
                                 <div class="input-group-text"><i class="far fa-clock"></i></div>
@@ -106,8 +106,11 @@
             integrity="sha512-k6/Bkb8Fxf/c1Tkyl39yJwcOZ1P4cRrJu77p83zJjN2Z55prbFHxPs9vN7q3l3+tSMGPDdoH51AEU8Vgo1cgAA=="
             crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script type="text/javascript">
+        const errorTxt = "{% trans 'Error' %}";
         const addWorkingHoursUrl = $('#addWorkingHoursUrl').val();
         const updateWorkingHoursUrl = $('#updateWorkingHoursUrl').val();
+
+        const jscalendarOutputFormat = '{{ localized_formats.jscalendar_output }}';
 
         $(function () {
             const startTimeInput = $('#start-timepicker input');
@@ -115,35 +118,33 @@
             const startTimePicker = $('#start-timepicker');
             const endTimePicker = $('#end-timepicker');
 
-            const defaultStartTime = startTimeInput.val() ? moment(startTimeInput.val(), 'hh:mm A') : moment().hour(12).minute(0);
-            const defaultEndTime = endTimeInput.val() ? moment(endTimeInput.val(), 'hh:mm A') : moment().hour(13).minute(0);
+            const defaultStartTime = startTimeInput.val() ? moment(startTimeInput.val(), jscalendarOutputFormat) : moment().hour(12).minute(0);
+            const defaultEndTime = endTimeInput.val() ? moment(endTimeInput.val(), jscalendarOutputFormat) : moment().hour(13).minute(0);
 
             startTimePicker.datetimepicker({
-                format: 'hh:mm A',
+                format: jscalendarOutputFormat,
                 icons: {
                     time: 'far fa-clock'
                 },
-                pick12HourFormat: false,
                 pickSeconds: false,
                 defaultDate: defaultStartTime
             });
 
             endTimePicker.datetimepicker({
-                format: 'hh:mm A',
+                format: jscalendarOutputFormat,
                 icons: {
                     time: 'far fa-clock'
                 },
-                pick12HourFormat: false,
                 pickSeconds: false,
                 defaultDate: defaultEndTime
             });
 
             startTimePicker.on('change.datetimepicker', function (e) {
-                startTimeInput.val(e.date.format('hh:mm A'));
+                startTimeInput.val(e.date.format(jscalendarOutputFormat));
             });
 
             endTimePicker.on('change.datetimepicker', function (e) {
-                endTimeInput.val(e.date.format('hh:mm A'));
+                endTimeInput.val(e.date.format(jscalendarOutputFormat));
             });
         });
 
