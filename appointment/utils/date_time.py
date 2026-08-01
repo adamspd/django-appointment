@@ -9,7 +9,33 @@ Since: 2.0.0
 import datetime
 
 from django.utils import timezone
+from django.utils.formats import get_format
 from django.utils.translation import gettext_lazy as _, ngettext
+
+def jscalendar_output_format():
+    """Convert an localized timeformat to its js counterpart
+
+    :return: The js format converted from timeformat
+    """
+    localized_time_format = get_format("TIME_FORMAT")
+    # P     -> h:mm a
+    # f     -> h:mm
+    # H:i   -> HH:mm
+    # h:ia  -> hh:mma
+    # h:i a -> hh:mm a
+    # h:i A -> hh:mm A
+    # G:i   -> H:mm
+    # G.i   -> H.mm
+    # g:i A -> h.mm A
+    # g.i.a -> h.mm.a
+    # A g:i -> A h.mm
+    # H\xa0h\xa0i -> h cannot be sperator in js -> force HH:mm (fr_CA)
+
+    #h.mm a
+    #basic l10n
+    if any(time12hrspatterns in localized_time_format for time12hrspatterns in ["P","f","h:","g"]):
+        return "hh:mm A"
+    return "HH:mm"
 
 
 def combine_date_and_time(date, time) -> datetime.datetime:
@@ -21,6 +47,34 @@ def combine_date_and_time(date, time) -> datetime.datetime:
     """
     return datetime.datetime.combine(date, time)
 
+def convert_ap_str_time_to_12_hour_str_time(time_str: str) -> str:
+    """Convert a Associated Press 12-hour time to a 12-hour time format if needed
+    
+    :param time_str: The time str to convert.
+    :return: The converted time.
+    """
+    #handle 10 a.m./ 15:25 p.m. format (django TIME_FORMAT "P", locale en)
+    time_str = time_str.strip().upper()
+    if (time_str == "NOON"):
+        return "12:00 PM"
+    elif (time_str == "MIDNIGHT"):
+        return "12:00 AM"
+
+    time_str_modifier = time_str[-4:]
+    if (time_str_modifier == "A.M."):
+        if(time_str[2] == ":"):
+            #if xx:xx we match "%I:%M %p" format
+            time_str = f"{time_str[:-5]} AM"
+        else:
+            #else we add :00 for 10 a.m. -> 10:00 AM case
+            time_str = f"{time_str[:-5]}:00 AM"
+    elif (time_str_modifier == "P.M."):
+        if(time_str[2] == ":"):
+            time_str = f"{time_str[:-5]} PM"
+        else:
+            time_str = f"{time_str[:-5]}:00 PM"
+
+    return time_str
 
 def convert_12_hour_time_to_24_hour_time(time_to_convert) -> str:
     """Convert a 12-hour time to a 24-hour time.
@@ -99,12 +153,13 @@ def convert_minutes_in_human_readable_format(minutes: float) -> str:
     elif len(parts) == 3:
         return _("{days}, {hours} and {minutes}").format(days=parts[0], hours=parts[1], minutes=parts[2])
 
-
+# TODO if required add support for locale format using : get_format('DATE_INPUT_FORMAT')
+# but we have to discernate year first, month first or day first format properly
 def convert_str_to_date(date_str: str) -> datetime.date:
     """Convert a date string to a datetime date object.
 
     :param date_str: The date string.
-                     Supported formats include `%Y-%m-%d` (like "2023-12-31") and `%Y/%m/%d` (like "2023/12/31").
+                     Supported formats include `%Y-%m-%d` (like "2023-12-31"), `%Y/%m/%d` (like "2023/12/31") and `%Y.%m.%d` (like "2023.12.31").
     :return: The converted `datetime.date`'s object.
     """
     date_formats = ['%Y-%m-%d', '%Y/%m/%d', '%Y.%m.%d']
@@ -115,9 +170,9 @@ def convert_str_to_date(date_str: str) -> datetime.date:
         except ValueError:
             pass
 
-    raise ValueError(f"Invalid date format for '{date_str}'. Supported formats are YYYY-MM-DD and YYYY/MM/DD.")
+    raise ValueError(f"Invalid date format for '{date_str}'. Supported formats are `YYYY-MM-DD`, `YYYY/MM/DD` and `YYYY.MM.DD`.")
 
-
+# TODO if required add support for locale format using : get_format('TIME_INPUT_FORMAT')
 def convert_str_to_time(time_str: str) -> datetime.time:
     """Convert a string representation of time to a Python `time` object.
 
@@ -126,11 +181,13 @@ def convert_str_to_time(time_str: str) -> datetime.time:
     :param time_str: A string representation of time.
     :return: A Python `time` object.
     """
-    formats = ["%I:%M %p", "%H:%M:%S", "%H:%M"]
+    normalized_time = convert_ap_str_time_to_12_hour_str_time(time_str)
 
-    for fmt in formats:
+    time_formats = ["%I:%M %p", "%H:%M:%S", "%H:%M"]
+
+    for fmt in time_formats:
         try:
-            return datetime.datetime.strptime(time_str.strip().upper(), fmt).time()
+            return datetime.datetime.strptime(normalized_time, fmt).time()
         except ValueError:
             pass
 
