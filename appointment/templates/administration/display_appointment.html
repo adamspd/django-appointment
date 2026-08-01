@@ -39,11 +39,11 @@
                             </div>
                             <div class="detail-row">
                                 <span class="detail-label">{% trans 'Start time' %}</span>
-                                <span class="detail-value">{{ appointment.get_start_time|time:"g:i A" }}</span>
+                                <span class="detail-value">{{ appointment.get_start_time }}</span>
                             </div>
                             <div class="detail-row">
                                 <span class="detail-label">{% trans 'End time' %}</span>
-                                <span class="detail-value">{{ appointment.get_end_time|time:"g:i A" }}</span>
+                                <span class="detail-value">{{ appointment.get_end_time }}</span>
                             </div>
                         </div>
 
