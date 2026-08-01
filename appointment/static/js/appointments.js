@@ -98,20 +98,20 @@ body.on('click', '.djangoAppt_btn-request-next-slot', function () {
 })
 
 body.on('click', '.btn-submit-appointment', function () {
-    const selectedSlot = $('.djangoAppt_appointment-slot.selected').text();
-    const selectedDate = $('.djangoAppt_date_chosen').text();
+    const selectedSlot = $('.djangoAppt_appointment-slot.selected').data('timeslot');
+    const selectedDate = $('.djangoAppt_date_chosen');
     if (!selectedSlot || !selectedDate) {
         alert(selectDateAndTimeAlertTxt);
         return;
     }
 
     if (selectedSlot && selectedDateIso) {
-        const startTime = convertTo24Hour(selectedSlot);
         const date = selectedDateIso;
 
-        // Calculate end time using ISO date instead of localized date
-        const formattedDate = new Date(selectedDateIso + "T" + startTime + ":00");
-        const endTimeDate = new Date(formattedDate.getTime() + serviceDuration * 60000);
+        // startTimeDate is assumed in iso format.
+        const startTimeDate = new Date(selectedSlot);
+        const endTimeDate = new Date(startTimeDate.getTime() + serviceDuration * 60000);
+        const startTime = formatTime(startTimeDate);
         const endTime = formatTime(endTimeDate);
 
         const reasonForRescheduling = $('#reason_for_rescheduling').val();
@@ -188,25 +188,6 @@ function fetchNonWorkingDays(staffId, callback) {
 function getDateWithoutTime(dt) {
     dt.setHours(0, 0, 0, 0);
     return dt;
-}
-
-function convertTo24Hour(time12h) {
-    const [time, modifier] = time12h.split(' ');
-    let [hours, minutes] = time.split(':');
-
-    //test if we need to convert
-    if (modifier !== undefined) {
-        //convert 12->24.
-        if (hours === '12') {
-            hours = '00';
-        }
-
-        if (modifier.toUpperCase() === 'PM') {
-            hours = parseInt(hours, 10) + 12;
-        }
-    }
-
-    return `${hours}:${minutes}`;
 }
 
 function formatTime(date) {
@@ -307,7 +288,8 @@ function getAvailableSlots(selectedDate, staffId = null) {
                 $('.djangoAppt_btn-request-next-slot').remove();
                 const uniqueSlots = [...new Set(data.available_slots)]; // remove duplicates
                 for (let i = 0; i < uniqueSlots.length; i++) {
-                    slotList.append('<li class="djangoAppt_appointment-slot">' + uniqueSlots[i] + '</li>');
+                    //uniqueSlots en localized example [... ["2026-07-29T14:00:00", "2 p.m."] ...]
+                    slotList.append('<li class="djangoAppt_appointment-slot" data-timeslot="'+uniqueSlots[i][0]+'">' + uniqueSlots[i][1] + '</li>');
                 }
 
                 // Attach click event to the slots
@@ -322,8 +304,10 @@ function getAvailableSlots(selectedDate, staffId = null) {
                     $('.btn-submit-appointment').removeAttr('disabled');
 
                     // Continue with the existing logic
-                    const selectedSlot = $(this).text();
-                    $('#service-datetime-chosen').text(data.date_chosen + ' ' + selectedSlot);
+                    const selectedSlot = $(this);
+                    $('#service-datetime-chosen').text(data.date_chosen + ' ' + selectedSlot.text());
+                    // Pass isoformat datetime from selected timeslot
+                    $('#service-datetime-chosen').data('timeslot', selectedSlot.data("timeslot"));
                 });
             }
             // Update the date chosen
