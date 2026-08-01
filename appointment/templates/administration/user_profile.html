@@ -173,8 +173,8 @@
                         {% for working_hour in working_hours %}
                             <tr>
                                 <td>{{ working_hour.get_day_of_week_str }}</td>
-                                <td>{{ working_hour.start_time|time:"g:i A" }}</td>
-                                <td>{{ working_hour.end_time|time:"g:i A" }}</td>
+                                <td>{{ working_hour.start_time }}</td>
+                                <td>{{ working_hour.end_time }}</td>
                                 <td>
                                     <div class="buttons-container">
                                         {% if superuser %}

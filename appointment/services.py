@@ -20,7 +20,7 @@ from appointment.forms import PersonalInformationForm, ServiceForm, StaffDaysOff
 from appointment.messages_ import appt_updated_successfully
 from appointment.settings import APPOINTMENT_PAYMENT_URL
 from appointment.utils.date_time import (
-    convert_12_hour_time_to_24_hour_time, convert_str_to_date, convert_str_to_time, get_ar_end_time)
+    convert_str_to_date, convert_str_to_time, get_ar_end_time)
 from appointment.utils.db_helpers import (
     Appointment, AppointmentRequest, EmailVerificationCode, Service, StaffMember, WorkingHours, calculate_slots,
     calculate_staff_slots, check_day_off_for_staff, create_and_save_appointment, create_new_user,
@@ -397,7 +397,7 @@ def get_available_slots(date, appointments):
 
     :param date: The date for which to calculate the available slot
     :param appointments: A list of Appointment objects
-    :return: A list of available time slots as strings in the format '%I:%M %p' like ['10:00 AM', '10:30 AM']
+    :return: A list of available time slots as strings in a localized format
     """
 
     start_time, end_time, slot_duration, buff_time = get_times_from_config(date)
