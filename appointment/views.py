@@ -111,7 +111,8 @@ def get_available_slots_ajax(request):
         current_time = timezone.now().time()
         available_slots = [slot for slot in available_slots if slot.time() > current_time]
 
-    custom_data['available_slots'] = [localize(slot.time()) for slot in available_slots]
+    # Pass slots as array of [isoformat, localized_timeslot], ex (en locale) [..., ["2026-07-29T09:30:00", "9:30 p.m."], ...]
+    custom_data['available_slots'] = [[slot, localize(slot.time())] for slot in available_slots]
     if len(available_slots) == 0:
         custom_data['error'] = True
         custom_data['date_iso'] = selected_date.isoformat()
@@ -550,7 +551,7 @@ def prepare_reschedule_appointment(request, id_request):
         'all_staff_members': all_staff_members,
         'page_title': page_title,
         'page_description': page_description,
-        'available_slots': [localize(slot.time()) for slot in available_slots],
+        'available_slots': [slot.time() for slot in available_slots],
         'date_chosen': date_chosen,
         'locale': get_locale(),
         'timezoneTxt': get_current_timezone_name(),
