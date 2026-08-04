@@ -92,6 +92,12 @@
     border: 1px solid #fbd5d5;
 }
 
+.vcode-alert-info {
+    background-color: #fdfde8;
+    color: #999b1c;
+    border: 1px solid #f7f7d4;
+}
+
 .vcode-alert-success {
     background-color: #e6fffa;
     color: #046c4e;
