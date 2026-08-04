@@ -12,17 +12,18 @@ from django.utils.translation import gettext as _
 from phonenumber_field.phonenumber import PhoneNumber
 
 from appointment.logger_config import get_logger
-from appointment.utils.db_helpers import get_user_by_email
+from appointment.utils.db_helpers import get_user_by_email, create_new_user, get_user_model
 from appointment.utils.email_ops import send_verification_email
+
+CLIENT_MODEL = get_user_model()
 
 logger = get_logger(__name__)
 
-
-def handle_existing_email(request, client_data, appointment_data, appointment_request_id, id_request):
+def login_or_create_user_by_mail(request, client_data, appointment_data, appointment_request_id, id_request):
     """
-    Handle the case where the email already exists in the database.
+    Handle the case where an appointment request is submitted by an unauthenticated user.
 
-    Sends a verification email to the existing user and redirects the client to enter the verification code.
+    Sends a verification email to the provided email and redirects the client to enter the verification code.
 
     If the email is already in the session variables, clean the session variables for email, phone, want_reminder,
     address, and additional_info. Then, store the current email, phone, want_reminder, address, and additional_info
@@ -35,8 +36,18 @@ def handle_existing_email(request, client_data, appointment_data, appointment_re
     :param id_request: The unique ID for the appointment request.
     :return: The redirect response to enter the verification code.
     """
-    logger.info("Email already in database, saving info in session and redirecting to enter verification code")
-    user = get_user_by_email(client_data['email'])
+    is_email_in_db = CLIENT_MODEL.objects.filter(email__exact=client_data['email']).exists()
+    if is_email_in_db:
+        logger.info("Email already in database, saving info in session and redirecting to enter verification code")
+        user = get_user_by_email(client_data['email'])
+        message = _("Email '{email}' already exists. Please verify your email to Login to your account.").format(email=client_data['email'])
+        messages.info(request, message)
+
+    else:
+        logger.info("Email available, creating the new user and redirecting to enter verification code")
+        user = create_new_user(client_data)
+        messages.success(request, _("An account was created for you."))
+
     send_verification_email(user=user, email=client_data['email'])
 
     # clean the session variables
@@ -55,8 +66,6 @@ def handle_existing_email(request, client_data, appointment_data, appointment_re
 
     # request.session['BASE_TEMPLATE'] = get_generic_context(request, admin=False)['BASE_TEMPLATE']
     request.session.modified = True
-    message = _("Email '{email}' already exists. Login to your account.").format(email=client_data['email'])
-    messages.error(request, message)
     return redirect('appointment:enter_verification_code', appointment_request_id=appointment_request_id,
                     id_request=id_request)
 
@@ -73,6 +82,21 @@ def handle_email_change(request, user, email):
     request.session.modified = True
     return redirect('appointment:email_change_verification_code')
 
+def generate_initial_formdata_from_user(user) -> dict:
+    """
+        Generate a dict to be passed as initial value for a form
+
+        :param user: User model
+        :return: dict: with email and fullname.
+    """
+    if user.is_authenticated:
+        initial_data = {
+            'email': user.email,
+            'name': user.get_full_name() if hasattr(user, "get_full_name") else str(user) # Check is user model has get full name method or fallback
+        }
+    else:
+        initial_data = {}
+    return initial_data
 
 def get_appointment_data_from_session(request):
     """
