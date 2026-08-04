@@ -112,7 +112,7 @@
                                         <button type="submit" class="btn btn-dark btn-pay-down-payment"
                                                 name="payment_type"
                                                 value="down">
-                                            {% trans "Down Payment" %} (${{ ar.get_service_down_payment }})
+                                            {% trans "Down Payment" %} ({{ ar.get_service_down_payment_text }})
                                         </button>
                                     {% endif %}
                                 </div>

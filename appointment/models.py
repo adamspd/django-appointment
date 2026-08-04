@@ -469,6 +469,9 @@ class AppointmentRequest(models.Model):
     def get_service_down_payment(self):
         return self.service.get_down_payment()
 
+    def get_service_down_payment_text(self):
+        return self.service.get_down_payment_text()
+
     def get_service_image(self):
         return self.service.image
 
