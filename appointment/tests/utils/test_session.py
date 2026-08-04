@@ -10,7 +10,7 @@ from django.test.client import RequestFactory
 
 from appointment.tests.base.base_test import BaseTest
 from appointment.utils.session import (
-    get_appointment_data_from_session, handle_email_change, handle_existing_email
+    get_appointment_data_from_session, handle_email_change, login_or_create_user_by_mail
 )
 
 
@@ -47,7 +47,7 @@ class HandleExistingEmailTests(BaseTest):
 
     @mock.patch('appointment.utils.session.get_user_by_email')
     @mock.patch('appointment.utils.session.send_verification_email')
-    def test_handle_existing_email(self, mock_send_verification_email, mock_get_user_by_email):
+    def test_login_or_create_user_by_mail(self, mock_send_verification_email, mock_get_user_by_email):
         """Test if an existing email can be handled."""
         client_data = {
             'email': 'georges.s.hammond@django-appointment.com',
@@ -60,7 +60,7 @@ class HandleExistingEmailTests(BaseTest):
             'additional_info': 'Please bring a Zat gun.'
         }
 
-        response = handle_existing_email(self.request, client_data, appointment_data, self.ar.id, self.ar.id_request)
+        response = login_or_create_user_by_mail(self.request, client_data, appointment_data, self.ar.id, self.ar.id_request)
 
         # Assert session data
         session = self.request.session

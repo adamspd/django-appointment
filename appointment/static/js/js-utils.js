@@ -4,5 +4,5 @@ document.addEventListener('DOMContentLoaded', function () {
         messageElements.forEach(function (element) {
             element.style.display = 'none';
         });
-    }, 5000);
+    }, 10000);
 });
