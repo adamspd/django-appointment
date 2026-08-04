@@ -36,13 +36,15 @@
                     <hr class="second-part">
                     <div class="user-info-input">
                         <div class="user-info" id="user-info">
-                            <h1 class="description-title">{% trans "Tell us a bit about yourself" %}</h1>
+                            {% if not user.is_authenticated %}
                             <div class="already-have-account">
                                 <div>
                                     {% trans 'Already have an account?' %}
+                                    {# <a href="{{ login_url }}?next={{ request.path|urlencode }}">{% trans 'Log in' %}</a> {% trans 'for faster booking.' %} #}
                                     <a href="#">{% trans 'Log in' %}</a> {% trans 'for faster booking.' %}
                                 </div>
                             </div>
+                            {% endif %}
                             <div class="name-email">
                                 <label for="{{ form.name.id_for_label }}" class="name">{% trans "Full Name" %} *<br>
                                     {{ client_data_form.name }}
@@ -68,7 +70,7 @@
                                 </div>
                             </div>
                             <div class="address">
-                                <label for="{{ form.address.id_for_label }}">{% trans "City and State" %} * :<br>
+                                <label for="{{ form.address.id_for_label }}">{% trans "City and State" %} :<br>
                                     {{ form.address }}
                                 </label>
                             </div>
@@ -168,8 +170,19 @@
                 return emailRegex.test(email);
             }
 
-            // Disable the 'submit' buttons initially
-            submitButtons.forEach(button => button.disabled = true);
+            // Check if all required fields are filled
+            function areRequieredFiledsFilled() {
+                // Get all required fields
+                const requiredFields = Array.from(form.querySelectorAll('[required]'));
+                // Check if all required fields are filled AND email is valid (if present)
+                const allFieldsFilled = requiredFields.every(field => field.value.trim() !== '');
+                const emailValid = !emailField || emailField.value.trim() === '' || validateEmail(emailField.value.trim());
+
+                return allFieldsFilled && emailValid
+            }
+
+            // Initialise enbaled or disabled state of the submit button
+            submitButtons.forEach(button => button.disabled = !areRequieredFiledsFilled());
 
             // Listen for input events on the form
             form.addEventListener('input', function (event) {
@@ -193,15 +206,8 @@
                     }
                 }
 
-                // Get all required fields
-                const requiredFields = Array.from(form.querySelectorAll('[required]'));
-
-                // Check if all required fields are filled AND email is valid (if present)
-                const allFieldsFilled = requiredFields.every(field => field.value.trim() !== '');
-                const emailValid = !emailField || emailField.value.trim() === '' || validateEmail(emailField.value.trim());
-
-                // Enable or disable the 'submit' buttons based on whether all fields are filled and email is valid
-                submitButtons.forEach(button => button.disabled = !(allFieldsFilled && emailValid));
+                //Disable buttons (submits) if any required field is empty
+                submitButtons.forEach(button => button.disabled = !areRequieredFiledsFilled());
             });
 
             // Also validate on blur (when user leaves the field)

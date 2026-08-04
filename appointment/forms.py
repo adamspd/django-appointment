@@ -72,8 +72,7 @@ class AppointmentForm(forms.ModelForm):
                 {
                     'rows': 2,
                     'class': 'form-control',
-                    'placeholder': _('1234 Main St, City, State, Zip Code'),
-                    'required': 'true'
+                    'placeholder': _('1234 Main St, City, State, Zip Code')
                 })
         self.fields['additional_info'].widget.attrs.update(
                 {
