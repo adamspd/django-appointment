@@ -39,7 +39,7 @@ from appointment.utils.db_helpers import (
 from appointment.utils.email_ops import notify_admin_about_appointment, notify_admin_about_reschedule, \
     send_reschedule_confirmation_email, \
     send_thank_you_email
-from appointment.utils.session import get_appointment_data_from_session, handle_existing_email
+from appointment.utils.session import get_appointment_data_from_session, login_or_create_user_by_mail, generate_initial_formdata_from_user
 from appointment.utils.view_helpers import get_locale
 from .decorators import require_ajax
 from .email_sender.email_sender import has_required_email_settings
@@ -339,9 +339,8 @@ def appointment_client_information(request, appointment_request_id, id_request):
         return render(request, template, context=context)
 
     if request.method == 'POST':
+        client_data_form = ClientDataForm(request.POST, initial=generate_initial_formdata_from_user(request.user))
         appointment_form = AppointmentForm(request.POST)
-
-        client_data_form = ClientDataForm(request.POST)
 
         if appointment_form.is_valid() and client_data_form.is_valid():
             appointment_data = appointment_form.cleaned_data
@@ -350,22 +349,18 @@ def appointment_client_information(request, appointment_request_id, id_request):
             ar.payment_type = payment_type
             ar.save()
 
-            # Check if email is already in the database
-            is_email_in_db = CLIENT_MODEL.objects.filter(email__exact=client_data['email']).exists()
-            if is_email_in_db:
-                return handle_existing_email(request, client_data, appointment_data, appointment_request_id, id_request)
+            if request.user.is_authenticated:
+                # Create a new appointment
+                response = create_appointment(request, ar, client_data, appointment_data)
+                request.session.setdefault(f'appointment_submitted_{id_request}', True)
+                return response
 
-            logger.info(f"Creating a new user: {client_data}")
-            unused = create_new_user(client_data)
-            messages.success(request, _("An account was created for you."))
+            # else we need to check the email and eventually create the new user
+            return login_or_create_user_by_mail(request, client_data, appointment_data, appointment_request_id, id_request)
 
-            # Create a new appointment
-            response = create_appointment(request, ar, client_data, appointment_data)
-            request.session.setdefault(f'appointment_submitted_{id_request}', True)
-            return response
     else:
+        client_data_form = ClientDataForm(initial=generate_initial_formdata_from_user(request.user))
         appointment_form = AppointmentForm()
-        client_data_form = ClientDataForm()
 
     extra_context = {
         'ar': ar,
