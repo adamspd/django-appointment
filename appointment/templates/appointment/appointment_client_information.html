@@ -171,7 +171,7 @@
             }
 
             // Check if all required fields are filled
-            function areRequieredFiledsFilled() {
+            function areRequieredFieldsFilled() {
                 // Get all required fields
                 const requiredFields = Array.from(form.querySelectorAll('[required]'));
                 // Check if all required fields are filled AND email is valid (if present)
@@ -182,7 +182,7 @@
             }
 
             // Initialise enbaled or disabled state of the submit button
-            submitButtons.forEach(button => button.disabled = !areRequieredFiledsFilled());
+            submitButtons.forEach(button => button.disabled = !areRequieredFieldsFilled());
 
             // Listen for input events on the form
             form.addEventListener('input', function (event) {
@@ -207,7 +207,7 @@
                 }
 
                 //Disable buttons (submits) if any required field is empty
-                submitButtons.forEach(button => button.disabled = !areRequieredFiledsFilled());
+                submitButtons.forEach(button => button.disabled = !areRequieredFieldsFilled());
             });
 
             // Also validate on blur (when user leaves the field)
