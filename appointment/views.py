@@ -78,8 +78,7 @@ def get_available_slots_ajax(request):
 
     selected_date = slot_form.cleaned_data['selected_date']
     sm = slot_form.cleaned_data['staff_member']
-    current_lang = translation.get_language()
-    format_string = DATE_FORMATS.get(current_lang, "D, F j, Y")
+    format_string = DATE_FORMATS.get(get_locale(), "D, F j, Y")
     date_chosen = date_format(selected_date, format_string, use_l10n=True)
     custom_data = {
         'date_chosen': date_chosen,
@@ -231,8 +230,7 @@ def appointment_request(request, service_id=None, staff_member_id=None):
     #  approach is much easier for contributors than creating separate format files per language.
     #  Future contributors: add your language's preferred format in the DATE_FORMATS dictionary in utils.date_time.py
     #  file.
-    current_lang = translation.get_language()
-    format_string = DATE_FORMATS.get(current_lang, "D, F j, Y")
+    format_string = DATE_FORMATS.get(get_locale(), "D, F j, Y")
     date_chosen = date_format(date.today(), format_string, use_l10n=True)
     extra_context = {
         'service': service,
