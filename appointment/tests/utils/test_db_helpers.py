@@ -13,6 +13,7 @@ from django.test import TestCase, override_settings
 from django.test.client import RequestFactory
 from django.urls import reverse
 from django.utils import timezone
+from django.contrib.auth.models import AnonymousUser
 
 from appointment.logger_config import get_logger
 from appointment.models import Config, DayOff, PaymentInfo
@@ -194,6 +195,7 @@ class TestCreateAndSaveAppointment(BaseTest, TestCase):
         super().setUp()
         self.factory = RequestFactory()
         self.request = self.factory.get('/')
+        self.request.user = AnonymousUser()
         self.ar = self.create_appt_request_for_sm1()
 
     def test_create_and_save_appointment(self):

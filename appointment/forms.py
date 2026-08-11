@@ -85,6 +85,16 @@ class ClientDataForm(forms.Form):
     name = forms.CharField(max_length=50, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('John Doe')}))
     email = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': _('john.doe@example.com')}))
 
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if user and user.is_authenticated:
+            self.fields['name'].disabled = True
+            self.fields['name'].initial = user.get_full_name()
+            self.fields['email'].disabled = True
+            self.fields['email'].initial = user.email
+
+
 
 class PersonalInformationForm(forms.Form):
     # first_name, last_name, email
