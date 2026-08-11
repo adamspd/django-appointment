@@ -117,7 +117,7 @@ def create_and_save_appointment(ar, client_data: dict, appointment_data: dict, r
     :param request: The request object.
     :return: The newly created appointment.
     """
-    user = get_user_by_email(client_data['email'])
+    user = request.user if request.user.is_authenticated else get_user_by_email(client_data['email'])
     appointment = Appointment.objects.create(
             client=user, appointment_request=ar,
             **appointment_data

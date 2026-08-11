@@ -82,22 +82,6 @@ def handle_email_change(request, user, email):
     request.session.modified = True
     return redirect('appointment:email_change_verification_code')
 
-def generate_initial_formdata_from_user(user) -> dict:
-    """
-        Generate a dict to be passed as initial value for a form
-
-        :param user: User model
-        :return: dict: with email and fullname.
-    """
-    if user.is_authenticated:
-        initial_data = {
-            'email': user.email,
-            'name': user.get_full_name() if hasattr(user, "get_full_name") else str(user) # Check is user model has get full name method or fallback
-        }
-    else:
-        initial_data = {}
-    return initial_data
-
 def get_appointment_data_from_session(request):
     """
     Get the appointment data from the session variables.
