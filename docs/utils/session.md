@@ -18,8 +18,8 @@ This module offers utility functions to manage session-based operations related 
 
 ### Handling Email Operations:
 
-- **handle_existing_email(request, client_data, appointment_data, appointment_request_id, id_request)**:
-  - Manages the scenario when the email already exists in the database. This function sends a verification email to the existing user and redirects the client to enter the verification code.
+- **login_or_create_user_by_mail(request, client_data, appointment_data, appointment_request_id, id_request)**:
+  - Called when an unauthenticated user submit an appointment request. If the provided email is not the database, a new account is created. In both cases, a verification code email is sent and the client is redirected to the verification page.
 
 - **handle_email_change(request, user, email)**:
   - Manages email changes by sending a verification email to the new email and handling session data accordingly.
