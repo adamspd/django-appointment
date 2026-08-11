@@ -31,7 +31,7 @@ from appointment.models import (
 )
 from appointment.settings import check_q_cluster
 from appointment.utils.db_helpers import (
-    can_appointment_be_rescheduled, check_day_off_for_staff, create_and_save_appointment, create_new_user,
+    can_appointment_be_rescheduled, check_day_off_for_staff, create_and_save_appointment,
     create_payment_info_and_get_url, get_non_working_days_for_staff, get_user_by_email, get_user_model,
     get_website_name, get_weekday_num_from_date, is_working_day, staff_change_allowed_on_reschedule,
     username_in_user_model
@@ -39,7 +39,7 @@ from appointment.utils.db_helpers import (
 from appointment.utils.email_ops import notify_admin_about_appointment, notify_admin_about_reschedule, \
     send_reschedule_confirmation_email, \
     send_thank_you_email
-from appointment.utils.session import get_appointment_data_from_session, login_or_create_user_by_mail, generate_initial_formdata_from_user
+from appointment.utils.session import get_appointment_data_from_session, login_or_create_user_by_mail
 from appointment.utils.view_helpers import get_locale
 from .decorators import require_ajax
 from .email_sender.email_sender import has_required_email_settings
@@ -50,8 +50,6 @@ from .utils.date_time import DATE_FORMATS, convert_str_to_date
 from .utils.error_codes import ErrorCode
 from .utils.json_context import get_generic_context_with_extra, json_response
 from .utils.template_helpers import get_custom_template
-
-CLIENT_MODEL = get_user_model()
 
 logger = get_logger(__name__)
 
@@ -338,29 +336,24 @@ def appointment_client_information(request, appointment_request_id, id_request):
         template = get_custom_template('304_already_submitted.html', 'error_pages/304_already_submitted.html')
         return render(request, template, context=context)
 
-    if request.method == 'POST':
-        client_data_form = ClientDataForm(request.POST, initial=generate_initial_formdata_from_user(request.user))
-        appointment_form = AppointmentForm(request.POST)
+    client_data_form = ClientDataForm(request.POST or None, user = request.user)
+    appointment_form = AppointmentForm(request.POST or None)
 
-        if appointment_form.is_valid() and client_data_form.is_valid():
-            appointment_data = appointment_form.cleaned_data
-            client_data = client_data_form.cleaned_data
-            payment_type = request.POST.get('payment_type')
-            ar.payment_type = payment_type
-            ar.save()
+    if appointment_form.is_valid() and client_data_form.is_valid():
+        appointment_data = appointment_form.cleaned_data
+        client_data = client_data_form.cleaned_data
+        payment_type = request.POST.get('payment_type')
+        ar.payment_type = payment_type
+        ar.save()
 
-            if request.user.is_authenticated:
-                # Create a new appointment
-                response = create_appointment(request, ar, client_data, appointment_data)
-                request.session.setdefault(f'appointment_submitted_{id_request}', True)
-                return response
+        if request.user.is_authenticated:
+            # Create a new appointment
+            response = create_appointment(request, ar, client_data, appointment_data)
+            request.session.setdefault(f'appointment_submitted_{id_request}', True)
+            return response
 
-            # else we need to check the email and eventually create the new user
-            return login_or_create_user_by_mail(request, client_data, appointment_data, appointment_request_id, id_request)
-
-    else:
-        client_data_form = ClientDataForm(initial=generate_initial_formdata_from_user(request.user))
-        appointment_form = AppointmentForm()
+        # else we need to check the email and eventually create the new user
+        return login_or_create_user_by_mail(request, client_data, appointment_data, appointment_request_id, id_request)
 
     extra_context = {
         'ar': ar,
