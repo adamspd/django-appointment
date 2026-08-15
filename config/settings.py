@@ -139,7 +139,8 @@ LANGUAGES = (
 )
 
 # Email Configuration
-EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
+# Changed the email backend to console rather than smtp
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
 EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.example.com')
 EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
@@ -156,10 +157,12 @@ if EMAIL_USE_SSL:
     # Default SSL port if not specified is 465
     EMAIL_PORT = int(os.getenv('EMAIL_PORT', 465))
 
+# Changing the USE_DJANGO_Q_FOR_EMAILS default to False to avoid warning on local setup
+
 EMAIL_SUBJECT_PREFIX = os.getenv('EMAIL_SUBJECT_PREFIX', '')
 EMAIL_USE_LOCALTIME = os.getenv('EMAIL_USE_LOCALTIME', 'True').lower() == 'true'
 SERVER_EMAIL = os.getenv('SERVER_EMAIL', EMAIL_HOST_USER)
-USE_DJANGO_Q_FOR_EMAILS = os.getenv('USE_DJANGO_Q_FOR_EMAILS', 'True').lower() == 'true'
+USE_DJANGO_Q_FOR_EMAILS = os.getenv('USE_DJANGO_Q_FOR_EMAILS', 'False').lower() == 'true'
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
 
 # Little warning if EMAIL_HOST_USER or EMAIL_HOST_PASSWORD is not set
