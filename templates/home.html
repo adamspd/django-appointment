@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{{ salon.name }}</title>
+
+    <style>
+        :root {
+            --primary: {{ salon.primary_color }};
+            --secondary: {{ salon.secondary_color }};
+            --accent: {{ salon.accent_color }};
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: var(--secondary);
+            color: #222;
+        }
+
+        header {
+            background: var(--primary);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        main {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .services {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+        }
+
+        .service-card {
+            background: white;
+            padding: 1.25rem;
+            border-radius: 8px;
+        }
+
+        .service-card h2 {
+            margin-top: 0;
+        }
+
+        .book-button {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.7rem 1rem;
+            background: var(--accent);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>{{ salon.name }}</h1>
+    <p>{{ salon.tagline }}</p>
+</header>
+
+<main>
+    <h2>Choose a service</h2>
+
+    <div class="services">
+
+        {% for service in services %}
+            <div class="service-card">
+
+                <h2>{{ service.name }}</h2>
+
+                <p>{{ service.description }}</p>
+
+                <p>
+                    <strong>Duration:</strong>
+                    {{ service.get_duration }}
+                </p>
+
+                <p>
+                    <strong>Price:</strong>
+                    {{ service.get_price_text }}
+                </p>
+
+                <a
+                    class="book-button"
+                    href="{% url 'appointment:appointment_request' service.id %}"
+                >
+                    Book Appointment
+                </a>
+
+            </div>
+
+        {% empty %}
+
+            <p>No services are currently available.</p>
+
+        {% endfor %}
+
+    </div>
+</main>
+
+</body>
+</html>
