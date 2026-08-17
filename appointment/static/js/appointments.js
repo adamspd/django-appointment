@@ -99,10 +99,10 @@ body.on('click', '.djangoAppt_btn-request-next-slot', function () {
 
 body.on('click', '.btn-submit-appointment', function () {
     const selectedSlot = $('.djangoAppt_appointment-slot.selected').data('timeslot');
-    const selectedDate = $('.djangoAppt_date_chosen');
+    const selectedDate = $('.djangoAppt_date_chosen').text();
     if (!selectedSlot || !selectedDate) {
         alert(selectDateAndTimeAlertTxt);
-        return;
+        return false;
     }
 
     if (selectedSlot && selectedDateIso) {
