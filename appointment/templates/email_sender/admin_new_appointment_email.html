@@ -61,9 +61,9 @@
     <div class="appointment-details">
         <p><strong>{% translate 'Client Name' %}:</strong> {{ client_name }}</p>
         <p><strong>{% translate 'Service Requested' %}:</strong> {{ appointment.get_service_name }}</p>
-        <p><strong>{% translate 'Appointment Date' %}:</strong> {{ appointment.appointment_request.date }}</p>
-        <p><strong>{% translate 'Time' %}:</strong> {{ appointment.appointment_request.start_time }}
-            - {{ appointment.appointment_request.end_time }}</p>
+        <p><strong>{% translate 'Appointment Date' %}:</strong> {{ appointment.appointment_request.date|date("l, d F Y") }}</p>
+        <p><strong>{% translate 'Time' %}:</strong> {{ appointment.appointment_request.start_time|time }}
+            - {{ appointment.appointment_request.end_time|time }}</p>
         <p><strong>{% translate 'Contact Details' %}:</strong> {{ appointment.phone }} | {{ appointment.client.email }}
         </p>
         <p><strong>{% translate 'Additional Info' %}:</strong> {{ appointment.additional_info|default:"N/A" }}</p>

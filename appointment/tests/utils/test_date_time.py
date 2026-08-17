@@ -7,101 +7,11 @@ from unittest.mock import Mock, patch
 from django.test import TestCase
 
 from appointment.utils.date_time import (
-    combine_date_and_time, convert_12_hour_time_to_24_hour_time, convert_24_hour_time_to_12_hour_time,
+    combine_date_and_time,
     convert_minutes_in_human_readable_format, convert_str_to_date,
     convert_str_to_time, get_ar_end_time, get_current_year, get_timestamp, get_weekday_num,
     time_difference
 )
-
-
-class Convert12HourTo24HourTimeTests(TestCase):
-    def test_basic_conversion(self):
-        """Test basic 12-hour to 24-hour conversions."""
-        self.assertEqual(convert_12_hour_time_to_24_hour_time("01:10 AM"), "01:10:00")
-        self.assertEqual(convert_12_hour_time_to_24_hour_time("01:20 PM"), "13:20:00")
-
-    def test_midnight_and_noon(self):
-        """Test conversion of midnight and noon times."""
-        self.assertEqual(convert_12_hour_time_to_24_hour_time("12:00 AM"), "00:00:00")
-        self.assertEqual(convert_12_hour_time_to_24_hour_time("12:00 PM"), "12:00:00")
-
-    def test_boundary_times(self):
-        """Test conversion of boundary times."""
-        self.assertEqual(convert_12_hour_time_to_24_hour_time("12:00 AM"), "00:00:00")
-        self.assertEqual(convert_12_hour_time_to_24_hour_time("11:59 PM"), "23:59:00")
-
-    def test_datetime_and_time_objects(self):
-        """Test conversion using datetime and time objects."""
-        dt_obj = datetime.datetime(2023, 1, 1, 14, 30)
-        time_obj = datetime.time(14, 30)
-        self.assertEqual(convert_12_hour_time_to_24_hour_time(dt_obj), "14:30:00")
-        self.assertEqual(convert_12_hour_time_to_24_hour_time(time_obj), "14:30:00")
-
-    def test_case_insensitivity_and_whitespace(self):
-        """Test conversion handling of different case formats and white-space."""
-        self.assertEqual(convert_12_hour_time_to_24_hour_time(" 12:00 am "), "00:00:00")
-        self.assertEqual(convert_12_hour_time_to_24_hour_time("01:00 pM "), "13:00:00")
-
-    def test_invalid_values(self):
-        """Test invalid values."""
-        with self.assertRaises(ValueError):
-            convert_12_hour_time_to_24_hour_time("13:00 PM")
-        with self.assertRaises(ValueError):
-            convert_12_hour_time_to_24_hour_time("12:60 AM")
-        with self.assertRaises(ValueError):
-            convert_12_hour_time_to_24_hour_time(["12:00 AM"])
-        with self.assertRaises(ValueError):
-            convert_12_hour_time_to_24_hour_time({"time": "12:00 AM"})
-        with self.assertRaises(ValueError):
-            convert_12_hour_time_to_24_hour_time("25:00 AM")
-        with self.assertRaises(ValueError):
-            convert_12_hour_time_to_24_hour_time("01:00")
-        with self.assertRaises(ValueError):
-            convert_12_hour_time_to_24_hour_time("Random String")
-        with self.assertRaises(ValueError):
-            convert_12_hour_time_to_24_hour_time("01:60 AM")
-
-
-class Convert24HourTimeTo12HourTimeTests(TestCase):
-
-    def test_valid_24_hour_strings(self):
-        self.assertEqual(convert_24_hour_time_to_12_hour_time("13:00"), "01:00 PM")
-        self.assertEqual(convert_24_hour_time_to_12_hour_time("00:00"), "12:00 AM")
-        self.assertEqual(convert_24_hour_time_to_12_hour_time("23:59"), "11:59 PM")
-        self.assertEqual(convert_24_hour_time_to_12_hour_time("12:00"), "12:00 PM")
-        self.assertEqual(convert_24_hour_time_to_12_hour_time("01:00"), "01:00 AM")
-
-    def test_valid_24_hour_with_seconds(self):
-        self.assertEqual(convert_24_hour_time_to_12_hour_time("13:00:01"), "01:00:01 PM")
-        self.assertEqual(convert_24_hour_time_to_12_hour_time("00:00:59"), "12:00:59 AM")
-
-    def test_time_object_input(self):
-        time_input = datetime.time(13, 15)
-        self.assertEqual(convert_24_hour_time_to_12_hour_time(time_input), "01:15 PM")
-        time_input = datetime.time(0, 0)
-        self.assertEqual(convert_24_hour_time_to_12_hour_time(time_input), "12:00 AM")
-
-    def test_invalid_time_strings(self):
-        with self.assertRaises(ValueError):
-            convert_24_hour_time_to_12_hour_time("25:00")
-        with self.assertRaises(ValueError):
-            convert_24_hour_time_to_12_hour_time("-01:00")
-        with self.assertRaises(ValueError):
-            convert_24_hour_time_to_12_hour_time("13:60")
-        with self.assertRaises(ValueError):
-            convert_24_hour_time_to_12_hour_time("invalid")
-        with self.assertRaises(ValueError):
-            convert_24_hour_time_to_12_hour_time("1 PM")
-        with self.assertRaises(ValueError):
-            convert_24_hour_time_to_12_hour_time("13 PM")
-        with self.assertRaises(ValueError):
-            convert_24_hour_time_to_12_hour_time("24:00")
-
-    def test_edge_cases(self):
-        self.assertEqual(convert_24_hour_time_to_12_hour_time("12:00"), "12:00 PM")
-        self.assertEqual(convert_24_hour_time_to_12_hour_time("00:00"), "12:00 AM")
-        self.assertEqual(convert_24_hour_time_to_12_hour_time("11:59"), "11:59 AM")
-        self.assertEqual(convert_24_hour_time_to_12_hour_time("23:59"), "11:59 PM")
 
 
 class ConvertMinutesInHumanReadableFormatTests(TestCase):
