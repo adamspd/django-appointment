@@ -132,7 +132,7 @@
             </div>
             <div class="info-row">
                 <span class="info-label">{% translate 'Date' %}</span>
-                <span class="info-value">{{ appointment.appointment_request.date|date("l, d F Y") }}</span>
+                <span class="info-value">{{ appointment.appointment_request.date|date:"l, d F Y" }}</span>
             </div>
             <div class="info-row">
                 <span class="info-label">{% translate 'Time' %}</span>
