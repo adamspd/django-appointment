@@ -53,6 +53,9 @@
                                 <div class="input-group-text"><i class="far fa-clock"></i></div>
                             </div>
                         </div>
+                        <input type="hidden" name="{{ working_hours_form.start_time.name }}_raw"
+                            value="{{ working_hours_form.start_time.value }}"
+                            id="{{ working_hours_form.start_time.id_for_label }}_raw">
                     </div>
 
                     <div class="form-group">
@@ -66,6 +69,9 @@
                                 <div class="input-group-text"><i class="far fa-clock"></i></div>
                             </div>
                         </div>
+                        <input type="hidden" name="{{ working_hours_form.end_time.name }}_raw"
+                            value="{{ working_hours_form.end_time.value }}"
+                            id="{{ working_hours_form.end_time.id_for_label }}_raw">
                     </div>
 
                     <button type="submit" class="btn btn-primary">{{ button_text }}</button>
@@ -113,13 +119,17 @@
         const jscalendarOutputFormat = '{{ localized_formats.jscalendar_output }}';
 
         $(function () {
-            const startTimeInput = $('#start-timepicker input');
-            const endTimeInput = $('#end-timepicker input');
+            const startTimeInput = $('#{{ working_hours_form.start_time.id_for_label }}');
+            const startTimeInputRaw = $('#{{ working_hours_form.start_time.id_for_label }}_raw');
+            const endTimeInput = $('#{{ working_hours_form.end_time.id_for_label }}');
+            const endTimeInputRaw = $('#{{ working_hours_form.end_time.id_for_label }}_raw');
             const startTimePicker = $('#start-timepicker');
             const endTimePicker = $('#end-timepicker');
 
             const defaultStartTime = startTimeInput.val() ? moment(startTimeInput.val(), jscalendarOutputFormat) : moment().hour(12).minute(0);
             const defaultEndTime = endTimeInput.val() ? moment(endTimeInput.val(), jscalendarOutputFormat) : moment().hour(13).minute(0);
+            startTimeInputRaw.val(defaultStartTime.format("YYYY-MM-DDTHH:mm:ss"));
+            endTimeInputRaw.val(defaultStartTime.format("YYYY-MM-DDTHH:mm:ss"));
 
             startTimePicker.datetimepicker({
                 format: jscalendarOutputFormat,
@@ -141,10 +151,12 @@
 
             startTimePicker.on('change.datetimepicker', function (e) {
                 startTimeInput.val(e.date.format(jscalendarOutputFormat));
+                startTimeInputRaw.val(e.date.format("YYYY-MM-DDTHH:mm:ss"));
             });
 
             endTimePicker.on('change.datetimepicker', function (e) {
                 endTimeInput.val(e.date.format(jscalendarOutputFormat));
+                endTimeInputRaw.val(e.date.format("YYYY-MM-DDTHH:mm:ss"));
             });
         });
 
