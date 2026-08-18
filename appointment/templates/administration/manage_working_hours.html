@@ -46,7 +46,7 @@
                         <div class="input-group date" id="start-timepicker" data-target-input="nearest">
                             <input type="text" class="form-control datetimepicker-input" data-toggle="datetimepicker"
                                    data-target="#start-timepicker" name="{{ working_hours_form.start_time.name }}"
-                                   value="{{ working_hours_form.start_time.value|default:'09:00' }}"
+                                   value="{{ working_hours_form.start_time.value }}"
                                    id="{{ working_hours_form.start_time.id_for_label }}">
                             <div class="input-group-append" data-toggle="datetimepicker"
                                  data-target="#start-timepicker">
@@ -60,7 +60,7 @@
                         <div class="input-group date" id="end-timepicker" data-target-input="nearest">
                             <input type="text" class="form-control datetimepicker-input" data-toggle="datetimepicker"
                                    data-target="#end-timepicker" name="{{ working_hours_form.end_time.name }}"
-                                   value="{{ working_hours_form.end_time.value|default:'17:00' }}"
+                                   value="{{ working_hours_form.end_time.value }}"
                                    id="{{ working_hours_form.end_time.id_for_label }}">
                             <div class="input-group-append" data-toggle="datetimepicker" data-target="#end-timepicker">
                                 <div class="input-group-text"><i class="far fa-clock"></i></div>
