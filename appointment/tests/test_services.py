@@ -318,8 +318,10 @@ class HandleEntityManagementRequestTests(BaseTest):
         self.request.method = 'POST'
         self.request.POST = {
             'day_of_week': '2',
-            'start_time': time(8,0),
-            'end_time': time(12,0)
+            'start_time': localize(time(8,0)),
+            'start_time_raw': time(8,0).strftime("%Y-%m-%dT%H:%M:%S"),
+            'end_time': localize(time(12,0)),
+            'end_time_raw': time(12,0).strftime("%Y-%m-%dT%H:%M:%S"),
         }
         # Create a WorkingHours instance for self.staff_member1
         working_hours_instance = WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=1,
