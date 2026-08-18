@@ -192,8 +192,9 @@ def handle_entity_management_request(request, staff_member, entity_type, instanc
         return handle_day_off_form(day_off_form, staff_member)
     elif request.method == 'POST' and entity_type == 'working_hours':
         day_of_week = request.POST.get('day_of_week')
-        start_time = request.POST.get('start_time')
-        end_time = request.POST.get('end_time')
+        # get js string start and end times formatted as YYYY-MM-DDTHH:mm:ss and parse it.
+        start_time = datetime.datetime.strptime(request.POST.get('start_time_raw'), "%Y-%m-%dT%H:%M:%S")
+        end_time = datetime.datetime.strptime(request.POST.get('end_time_raw'), "%Y-%m-%dT%H:%M:%S")
 
         return handle_working_hours_form(staff_member, day_of_week, start_time, end_time, add, instance_id)
 
