@@ -112,27 +112,64 @@
             integrity="sha512-k6/Bkb8Fxf/c1Tkyl39yJwcOZ1P4cRrJu77p83zJjN2Z55prbFHxPs9vN7q3l3+tSMGPDdoH51AEU8Vgo1cgAA=="
             crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script type="text/javascript">
+        function ensureMomentLocale(distant_locale) {
+            distant_locale = distant_locale.toLowerCase();
+
+            //Ensure the locale need to be loaded
+            if (moment.locales().includes(distant_locale)) {
+                moment.locale(distant_locale);
+                return Promise.resolve();
+            }
+
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+
+                script.src =
+                    `https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.30.1/locale/${distant_locale}.js`;
+
+                script.onload = () => {
+                    moment.locale(distant_locale);
+                    resolve();
+                };
+
+                script.onerror = () => {
+                    reject(new Error(`Locale Moment.js inconnue : ${distant_locale}`));
+                };
+
+                document.head.appendChild(script);
+            });
+        }
+
         const errorTxt = "{% trans 'Error' %}";
         const addWorkingHoursUrl = $('#addWorkingHoursUrl').val();
         const updateWorkingHoursUrl = $('#updateWorkingHoursUrl').val();
 
-        const jscalendarOutputFormat = '{{ localized_formats.jscalendar_output }}';
+        const timepicker_display_format = '{{ localized_formats.js_timepicker_display_format }}';
+        const timepicker_locale = '{{ locale }}';
 
-        $(function () {
+        $(async function () {
+            try {
+                await ensureMomentLocale(timepicker_locale);
+            } catch (error) {
+                console.warn('Invalid locale for Moment.js :', error);
+                console.warn('Fallback to \'En\' locale.');
+                moment.locale('en');
+            }
+
             const startTimeInput = $('#{{ working_hours_form.start_time.id_for_label }}');
             const startTimeInputRaw = $('#{{ working_hours_form.start_time.id_for_label }}_raw');
             const endTimeInput = $('#{{ working_hours_form.end_time.id_for_label }}');
             const endTimeInputRaw = $('#{{ working_hours_form.end_time.id_for_label }}_raw');
             const startTimePicker = $('#start-timepicker');
             const endTimePicker = $('#end-timepicker');
-
-            const defaultStartTime = startTimeInput.val() ? moment(startTimeInput.val(), jscalendarOutputFormat) : moment().hour(12).minute(0);
-            const defaultEndTime = endTimeInput.val() ? moment(endTimeInput.val(), jscalendarOutputFormat) : moment().hour(13).minute(0);
+            const defaultStartTime = startTimeInput.val() ? moment(startTimeInput.val(), timepicker_display_format) : moment().hour(12).minute(0);
+            const defaultEndTime = endTimeInput.val() ? moment(endTimeInput.val(), timepicker_display_format) : moment().hour(13).minute(0);
             startTimeInputRaw.val(defaultStartTime.format("YYYY-MM-DDTHH:mm:ss"));
-            endTimeInputRaw.val(defaultStartTime.format("YYYY-MM-DDTHH:mm:ss"));
+            endTimeInputRaw.val(defaultEndTime.format("YYYY-MM-DDTHH:mm:ss"));
 
             startTimePicker.datetimepicker({
-                format: jscalendarOutputFormat,
+                locale: timepicker_locale,
+                format: timepicker_display_format,
                 icons: {
                     time: 'far fa-clock'
                 },
@@ -141,7 +178,8 @@
             });
 
             endTimePicker.datetimepicker({
-                format: jscalendarOutputFormat,
+                locale: timepicker_locale,
+                format: timepicker_display_format,
                 icons: {
                     time: 'far fa-clock'
                 },
@@ -150,12 +188,12 @@
             });
 
             startTimePicker.on('change.datetimepicker', function (e) {
-                startTimeInput.val(e.date.format(jscalendarOutputFormat));
+                startTimeInput.val(e.date.format(timepicker_display_format));
                 startTimeInputRaw.val(e.date.format("YYYY-MM-DDTHH:mm:ss"));
             });
 
             endTimePicker.on('change.datetimepicker', function (e) {
-                endTimeInput.val(e.date.format(jscalendarOutputFormat));
+                endTimeInput.val(e.date.format(timepicker_display_format));
                 endTimeInputRaw.val(e.date.format("YYYY-MM-DDTHH:mm:ss"));
             });
         });
