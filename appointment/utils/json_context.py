@@ -16,7 +16,7 @@ from appointment.settings import APPOINTMENT_ADMIN_BASE_TEMPLATE, APPOINTMENT_BA
 from appointment.utils.db_helpers import username_in_user_model
 from appointment.utils.error_codes import ErrorCode
 from appointment.utils.template_helpers import get_custom_template
-from appointment.utils.date_time import jscalendar_output_format
+from appointment.utils.date_time import js_timepicker_display_format
 
 
 def convert_appointment_to_json(request, appointments: list) -> list:
@@ -63,7 +63,7 @@ def get_generic_context(request, admin=True):
         "time_input" : get_format("TIME_INPUT_FORMATS"),
         "date_input" : get_format("DATE_INPUT_FORMATS"),
         "datetime_input" : get_format("DATETIME_INPUT_FORMATS"),
-        "jscalendar_output": jscalendar_output_format()
+        "js_timepicker_display_format": js_timepicker_display_format()
     }
     return {
         'BASE_TEMPLATE': APPOINTMENT_ADMIN_BASE_TEMPLATE if admin else APPOINTMENT_BASE_TEMPLATE,

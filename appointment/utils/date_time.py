@@ -12,12 +12,11 @@ from django.utils import timezone
 from django.utils.formats import get_format
 from django.utils.translation import gettext_lazy as _, ngettext
 
-def jscalendar_output_format():
-    """Convert an localized timeformat to its js counterpart
+def js_timepicker_display_format():
+    """Convert a localized time format to its Moment.js representation
 
     :return: The js format converted from timeformat
     """
-    localized_time_format = get_format("TIME_FORMAT")
     # P     -> h:mm a
     # f     -> h:mm
     # H:i   -> HH:mm
@@ -31,11 +30,40 @@ def jscalendar_output_format():
     # A g:i -> A h.mm
     # H\xa0h\xa0i -> h cannot be sperator in js -> force HH:mm (fr_CA)
 
-    #h.mm a
-    #basic l10n
-    if any(time12hrspatterns in localized_time_format for time12hrspatterns in ["P","f","h:","g"]):
-        return "hh:mm A"
-    return "HH:mm"
+    DJANGO_TO_MOMENTS = {
+        #"a": "a", no changes
+        #"A": "A",
+        "g": "h",
+        "G": "H",
+        "h": "hh",
+        "H": "HH",
+        "i": "mm",
+        "s": "ss", # unused for now
+    }
+
+    DJANGO_COMPOSITES = {
+        "P": "h:mm a",
+        "f": "h:mm",
+        #"c", datetime
+        #"r", datetime
+    }
+
+    localized_time_format = get_format("TIME_FORMAT")
+    print(localized_time_format)
+
+    # handle fr_CA
+    filtered_localized_time_format = localized_time_format.replace("\xa0h", ":").replace("\xa0", "")
+
+    result = []
+    for char in filtered_localized_time_format:
+        if char in DJANGO_COMPOSITES:
+            result.append(DJANGO_COMPOSITES[char])
+        elif char in DJANGO_TO_MOMENTS:
+            result.append(DJANGO_TO_MOMENTS[char])
+        else:
+            result.append(char)
+
+    return "".join(result)
 
 
 def combine_date_and_time(date, time) -> datetime.datetime:
@@ -62,62 +90,19 @@ def convert_ap_str_time_to_12_hour_str_time(time_str: str) -> str:
 
     time_str_modifier = time_str[-4:]
     if (time_str_modifier == "A.M."):
-        if(time_str[2] == ":"):
+        if ":" in time_str:
             #if xx:xx we match "%I:%M %p" format
             time_str = f"{time_str[:-5]} AM"
         else:
             #else we add :00 for 10 a.m. -> 10:00 AM case
             time_str = f"{time_str[:-5]}:00 AM"
     elif (time_str_modifier == "P.M."):
-        if(time_str[2] == ":"):
+        if ":" in time_str:
             time_str = f"{time_str[:-5]} PM"
         else:
             time_str = f"{time_str[:-5]}:00 PM"
 
     return time_str
-
-def convert_12_hour_time_to_24_hour_time(time_to_convert) -> str:
-    """Convert a 12-hour time to a 24-hour time.
-
-    :param time_to_convert: The time to convert.
-    :return: The converted time.
-    :raises ValueError: If the input time is not in the correct format or is invalid.
-    """
-    if isinstance(time_to_convert, (datetime.datetime, datetime.time)):
-        return time_to_convert.strftime('%H:%M:%S')
-    elif isinstance(time_to_convert, str):
-        try:
-            time_str = time_to_convert.strip().upper()
-            return datetime.datetime.strptime(time_str, '%I:%M %p').strftime('%H:%M:%S')
-        except ValueError:
-            raise ValueError(f"Invalid 12-hour time format: {time_to_convert}")
-    else:
-        raise ValueError(f"Unsupported data type for time conversion: {type(time_to_convert)}")
-
-
-def convert_24_hour_time_to_12_hour_time(time_to_convert) -> str:
-    """Convert a 24-hour time to a 12-hour time.
-
-    :param time_to_convert: The time to convert in 'HH:MM' or 'HH:MM:SS' format, or a datetime.time object.
-    :return: The converted time in 'HH:MM AM/PM' or 'HH:MM:SS AM/PM' format.
-    :raises ValueError: If the input time is not in the correct format or is invalid.
-    """
-    # Handle datetime.time object directly
-    if isinstance(time_to_convert, datetime.time):
-        return time_to_convert.strftime('%I:%M %p')
-
-    # Handle string input
-    for source_fmt, dest_fmt in zip(['%H:%M:%S', '%H:%M'], ['%I:%M:%S %p', '%I:%M %p']):
-        try:
-            # Parse the input string according to the 24-hour format
-            parsed_time = datetime.datetime.strptime(time_to_convert, source_fmt)
-            # Convert and return the time in 12-hour format
-            return parsed_time.strftime(dest_fmt)
-        except ValueError:
-            continue  # Try the next format if there was a parsing error
-
-    # If input was not datetime.time and did not match string formats, raise an error
-    raise ValueError(f"Invalid 24-hour time format: {time_to_convert}")
 
 
 def convert_minutes_in_human_readable_format(minutes: float) -> str:
