@@ -46,13 +46,16 @@
                         <div class="input-group date" id="start-timepicker" data-target-input="nearest">
                             <input type="text" class="form-control datetimepicker-input" data-toggle="datetimepicker"
                                    data-target="#start-timepicker" name="{{ working_hours_form.start_time.name }}"
-                                   value="{{ working_hours_form.start_time.value|default:'09:00 AM' }}"
+                                   value="{{ working_hours_form.start_time.value }}"
                                    id="{{ working_hours_form.start_time.id_for_label }}">
                             <div class="input-group-append" data-toggle="datetimepicker"
                                  data-target="#start-timepicker">
                                 <div class="input-group-text"><i class="far fa-clock"></i></div>
                             </div>
                         </div>
+                        <input type="hidden" name="{{ working_hours_form.start_time.name }}_raw"
+                            value="{{ working_hours_form.start_time.value }}"
+                            id="{{ working_hours_form.start_time.id_for_label }}_raw">
                     </div>
 
                     <div class="form-group">
@@ -60,12 +63,15 @@
                         <div class="input-group date" id="end-timepicker" data-target-input="nearest">
                             <input type="text" class="form-control datetimepicker-input" data-toggle="datetimepicker"
                                    data-target="#end-timepicker" name="{{ working_hours_form.end_time.name }}"
-                                   value="{{ working_hours_form.end_time.value|default:'05:00 PM' }}"
+                                   value="{{ working_hours_form.end_time.value }}"
                                    id="{{ working_hours_form.end_time.id_for_label }}">
                             <div class="input-group-append" data-toggle="datetimepicker" data-target="#end-timepicker">
                                 <div class="input-group-text"><i class="far fa-clock"></i></div>
                             </div>
                         </div>
+                        <input type="hidden" name="{{ working_hours_form.end_time.name }}_raw"
+                            value="{{ working_hours_form.end_time.value }}"
+                            id="{{ working_hours_form.end_time.id_for_label }}_raw">
                     </div>
 
                     <button type="submit" class="btn btn-primary">{{ button_text }}</button>
@@ -106,44 +112,89 @@
             integrity="sha512-k6/Bkb8Fxf/c1Tkyl39yJwcOZ1P4cRrJu77p83zJjN2Z55prbFHxPs9vN7q3l3+tSMGPDdoH51AEU8Vgo1cgAA=="
             crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script type="text/javascript">
+        function ensureMomentLocale(distant_locale) {
+            distant_locale = distant_locale.toLowerCase();
+
+            //Ensure the locale need to be loaded
+            if (moment.locales().includes(distant_locale)) {
+                moment.locale(distant_locale);
+                return Promise.resolve();
+            }
+
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+
+                script.src =
+                    `https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.30.1/locale/${distant_locale}.js`;
+
+                script.onload = () => {
+                    moment.locale(distant_locale);
+                    resolve();
+                };
+
+                script.onerror = () => {
+                    reject(new Error(`Locale Moment.js inconnue : ${distant_locale}`));
+                };
+
+                document.head.appendChild(script);
+            });
+        }
+
+        const errorTxt = "{% trans 'Error' %}";
         const addWorkingHoursUrl = $('#addWorkingHoursUrl').val();
         const updateWorkingHoursUrl = $('#updateWorkingHoursUrl').val();
 
-        $(function () {
-            const startTimeInput = $('#start-timepicker input');
-            const endTimeInput = $('#end-timepicker input');
+        const timepicker_display_format = '{{ localized_formats.js_timepicker_display_format }}';
+        const timepicker_locale = '{{ locale }}';
+
+        $(async function () {
+            try {
+                await ensureMomentLocale(timepicker_locale);
+            } catch (error) {
+                console.warn('Invalid locale for Moment.js :', error);
+                console.warn('Fallback to \'En\' locale.');
+                moment.locale('en');
+            }
+
+            const startTimeInput = $('#{{ working_hours_form.start_time.id_for_label }}');
+            const startTimeInputRaw = $('#{{ working_hours_form.start_time.id_for_label }}_raw');
+            const endTimeInput = $('#{{ working_hours_form.end_time.id_for_label }}');
+            const endTimeInputRaw = $('#{{ working_hours_form.end_time.id_for_label }}_raw');
             const startTimePicker = $('#start-timepicker');
             const endTimePicker = $('#end-timepicker');
-
-            const defaultStartTime = startTimeInput.val() ? moment(startTimeInput.val(), 'hh:mm A') : moment().hour(12).minute(0);
-            const defaultEndTime = endTimeInput.val() ? moment(endTimeInput.val(), 'hh:mm A') : moment().hour(13).minute(0);
+            const defaultStartTime = startTimeInput.val() ? moment(startTimeInput.val(), timepicker_display_format) : moment().hour(12).minute(0);
+            const defaultEndTime = endTimeInput.val() ? moment(endTimeInput.val(), timepicker_display_format) : moment().hour(13).minute(0);
+            startTimeInputRaw.val(defaultStartTime.format("YYYY-MM-DDTHH:mm:ss"));
+            endTimeInputRaw.val(defaultEndTime.format("YYYY-MM-DDTHH:mm:ss"));
 
             startTimePicker.datetimepicker({
-                format: 'hh:mm A',
+                locale: timepicker_locale,
+                format: timepicker_display_format,
                 icons: {
                     time: 'far fa-clock'
                 },
-                pick12HourFormat: false,
                 pickSeconds: false,
                 defaultDate: defaultStartTime
             });
 
             endTimePicker.datetimepicker({
-                format: 'hh:mm A',
+                locale: timepicker_locale,
+                format: timepicker_display_format,
                 icons: {
                     time: 'far fa-clock'
                 },
-                pick12HourFormat: false,
                 pickSeconds: false,
                 defaultDate: defaultEndTime
             });
 
             startTimePicker.on('change.datetimepicker', function (e) {
-                startTimeInput.val(e.date.format('hh:mm A'));
+                startTimeInput.val(e.date.format(timepicker_display_format));
+                startTimeInputRaw.val(e.date.format("YYYY-MM-DDTHH:mm:ss"));
             });
 
             endTimePicker.on('change.datetimepicker', function (e) {
-                endTimeInput.val(e.date.format('hh:mm A'));
+                endTimeInput.val(e.date.format(timepicker_display_format));
+                endTimeInputRaw.val(e.date.format("YYYY-MM-DDTHH:mm:ss"));
             });
         });
 

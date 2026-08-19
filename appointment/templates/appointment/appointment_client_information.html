@@ -103,7 +103,7 @@
                                 <div class="payment-details-title">{% trans "Payment Details" %}</div>
                                 <div class="total">
                                     <div>{% trans "Total" %}</div>
-                                    <div>${{ ar.get_service_price }}</div>
+                                    <div>{{ ar.get_service_price_text }}</div>
                                 </div>
                                 <div class="payment-options">
                                     <button type="submit" class="btn btn-dark btn-pay-full" name="payment_type"
@@ -114,7 +114,7 @@
                                         <button type="submit" class="btn btn-dark btn-pay-down-payment"
                                                 name="payment_type"
                                                 value="down">
-                                            {% trans "Down Payment" %} (${{ ar.get_service_down_payment }})
+                                            {% trans "Down Payment" %} ({{ ar.get_service_down_payment_text }})
                                         </button>
                                     {% endif %}
                                 </div>

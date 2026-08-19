@@ -17,7 +17,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone, translation
 from django.utils.encoding import force_str
-from django.utils.formats import date_format
+from django.utils.formats import date_format, localize, get_format
 from django.utils.http import urlsafe_base64_decode
 from django.utils.timezone import get_current_timezone_name
 from django.utils.translation import gettext as _
@@ -76,8 +76,7 @@ def get_available_slots_ajax(request):
 
     selected_date = slot_form.cleaned_data['selected_date']
     sm = slot_form.cleaned_data['staff_member']
-    current_lang = translation.get_language()
-    format_string = DATE_FORMATS.get(current_lang, "D, F j, Y")
+    format_string = DATE_FORMATS.get(get_locale(), "D, F j, Y")
     date_chosen = date_format(selected_date, format_string, use_l10n=True)
     custom_data = {
         'date_chosen': date_chosen,
@@ -109,7 +108,8 @@ def get_available_slots_ajax(request):
         current_time = timezone.now().time()
         available_slots = [slot for slot in available_slots if slot.time() > current_time]
 
-    custom_data['available_slots'] = [slot.strftime('%I:%M %p') for slot in available_slots]
+    # Pass slots as array of [isoformat, localized_timeslot], ex (en locale) [..., ["2026-07-29T09:30:00", "9:30 p.m."], ...]
+    custom_data['available_slots'] = [[slot, localize(slot.time())] for slot in available_slots]
     if len(available_slots) == 0:
         custom_data['error'] = True
         custom_data['date_iso'] = selected_date.isoformat()
@@ -228,8 +228,7 @@ def appointment_request(request, service_id=None, staff_member_id=None):
     #  approach is much easier for contributors than creating separate format files per language.
     #  Future contributors: add your language's preferred format in the DATE_FORMATS dictionary in utils.date_time.py
     #  file.
-    current_lang = translation.get_language()
-    format_string = DATE_FORMATS.get(current_lang, "D, F j, Y")
+    format_string = DATE_FORMATS.get(get_locale(), "D, F j, Y")
     date_chosen = date_format(date.today(), format_string, use_l10n=True)
     extra_context = {
         'service': service,
@@ -241,6 +240,7 @@ def appointment_request(request, service_id=None, staff_member_id=None):
         'date_chosen': date_chosen,
         'locale': get_locale(),
         'timezoneTxt': get_current_timezone_name(),
+        'first_day_of_week': get_format("FIRST_DAY_OF_WEEK"),
         'label': label
     }
     context = get_generic_context_with_extra(request, extra_context, admin=False)
@@ -537,10 +537,11 @@ def prepare_reschedule_appointment(request, id_request):
         'all_staff_members': all_staff_members,
         'page_title': page_title,
         'page_description': page_description,
-        'available_slots': [slot.strftime('%I:%M %p') for slot in available_slots],
+        'available_slots': [slot.time() for slot in available_slots],
         'date_chosen': date_chosen,
         'locale': get_locale(),
         'timezoneTxt': get_current_timezone_name(),
+        'first_day_of_week': get_format("FIRST_DAY_OF_WEEK"),
         'label': label,
         'rescheduled_date': ar.date.strftime("%Y-%m-%d"),
         'page_header': page_title,

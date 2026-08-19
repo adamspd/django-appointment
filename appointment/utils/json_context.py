@@ -10,11 +10,13 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils import translation
+from django.utils.formats import get_format
 
 from appointment.settings import APPOINTMENT_ADMIN_BASE_TEMPLATE, APPOINTMENT_BASE_TEMPLATE
 from appointment.utils.db_helpers import username_in_user_model
 from appointment.utils.error_codes import ErrorCode
 from appointment.utils.template_helpers import get_custom_template
+from appointment.utils.date_time import js_timepicker_display_format
 
 
 def convert_appointment_to_json(request, appointments: list) -> list:
@@ -57,11 +59,18 @@ def get_generic_context(request, admin=True):
     current_lang = translation.get_language() or 'en'
     # FullCalendar expects 'fr' not 'fr-FR'
     locale = current_lang.split('-')[0] if '-' in current_lang else current_lang
+    localized_formats = {
+        "time_input" : get_format("TIME_INPUT_FORMATS"),
+        "date_input" : get_format("DATE_INPUT_FORMATS"),
+        "datetime_input" : get_format("DATETIME_INPUT_FORMATS"),
+        "js_timepicker_display_format": js_timepicker_display_format()
+    }
     return {
         'BASE_TEMPLATE': APPOINTMENT_ADMIN_BASE_TEMPLATE if admin else APPOINTMENT_BASE_TEMPLATE,
         'user': request.user,
         'is_superuser': request.user.is_superuser,
-        'locale': locale
+        'locale': locale,
+        'localized_formats': localized_formats
     }
 
 

@@ -61,13 +61,13 @@
 
         <p>
             <b>{% trans "Original Appointment:" %}</b><br>
-            {% trans "Date" %}: {{ old_date }}<br>
-            {% trans "Time" %}: {{ old_start_time }} {% trans ' to ' %} {{ old_end_time }}
+            {% trans "Date" %}: {{ old_date|date:"l, d F Y" }}<br>
+            {% trans "Time" %}: {{ old_start_time|time }} {% trans ' to ' %} {{ old_end_time|time }}
         </p>
         <p>
             <b>{% trans "Rescheduled Appointment:" %}</b><br>
-            {% trans "Date" %}: {{ reschedule_date }}<br>
-            {% trans "Time" %}: {{ start_time }} {% trans ' to ' %} {{ end_time }}
+            {% trans "Date" %}: {{ reschedule_date|date:"l, d F Y" }}<br>
+            {% trans "Time" %}: {{ start_time|time }} {% trans ' to ' %} {{ end_time|time }}
         </p>
 
         {% if is_confirmation %}
