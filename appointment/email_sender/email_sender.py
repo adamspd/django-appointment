@@ -55,19 +55,19 @@ def has_required_email_settings():
     return True
 
 
-def render_email_template(template_url, context):
+def render_email_template(template_url, context, request = None):
     if template_url:
-        return loader.render_to_string(template_url, context)
+        return loader.render_to_string(template_url, context, request = request)
     return ""
 
 
 def send_email(recipient_list, subject: str, template_url: str = None, context: dict = None, from_email=None,
-               message: str = None, attachments=None):
+               message: str = None, attachments=None, request=None):
     if not has_required_email_settings():
         return
 
     from_email = from_email or APP_DEFAULT_FROM_EMAIL
-    html_message = render_email_template(template_url, context)
+    html_message = render_email_template(template_url, context, request)
 
     if get_use_django_q_for_emails() and check_q_cluster() and DJANGO_Q_AVAILABLE:
         # Pass only the necessary data to construct the email

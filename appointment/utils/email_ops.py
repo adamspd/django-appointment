@@ -261,7 +261,7 @@ def notify_admin_about_appointment(appointment, client_name: str):
     logger.info(f"Notifications sent for appointment {appointment.id}")
 
 
-def send_verification_email(user, email: str):
+def send_verification_email(user, email: str, request = None):
     """
     Send an email with a verification code to the user for email verification.
 
@@ -269,6 +269,7 @@ def send_verification_email(user, email: str):
 
     :param user: The user to verify the email address.
     :param email: The email address of the user.
+    :param request: (optional) Without the request, send_email cannot render the email template with custom context_processors.
     :return: None
     """
     code = EmailVerificationCode.generate_code(user=user)
@@ -287,7 +288,8 @@ def send_verification_email(user, email: str):
                     recipient_list=[email],
                     subject=_("Email Verification"),
                     template_url=template_path,
-                    context=email_context
+                    context=email_context,
+                    request=request
             )
         else:
             raise TemplateDoesNotExist("verification.html")
