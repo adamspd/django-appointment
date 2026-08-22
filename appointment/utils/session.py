@@ -48,7 +48,7 @@ def login_or_create_user_by_mail(request, client_data, appointment_data, appoint
         user = create_new_user(client_data)
         messages.success(request, _("An account was created for you."))
 
-    send_verification_email(user=user, email=client_data['email'])
+    send_verification_email(user=user, email=client_data['email'], request=request)
 
     # clean the session variables
     session_keys = ['email', 'phone', 'want_reminder', 'address', 'additional_info']
@@ -71,7 +71,7 @@ def login_or_create_user_by_mail(request, client_data, appointment_data, appoint
 
 
 def handle_email_change(request, user, email):
-    send_verification_email(user=user, email=email)
+    send_verification_email(user=user, email=email, request=request)
     # clean the session variables
     session_keys = ['email', 'old_email']
     for key in session_keys:
