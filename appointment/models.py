@@ -370,6 +370,9 @@ class StaffMember(models.Model):
     def get_days_off(self):
         return DayOff.objects.filter(staff_member=self)
 
+    def get_unavailabilities(self):
+        return Unavailability.objects.filter(staff_member=self)
+
     def get_working_hours(self):
         return self.workinghours_set.all()
 
@@ -1137,8 +1140,9 @@ class DayOff(models.Model):
 class Unavailability(models.Model):
     staff_member = models.ForeignKey(StaffMember, on_delete=models.CASCADE, verbose_name=_("Staff Member"))
     description = models.CharField(max_length=255, blank=True, null=True, verbose_name=_("Description"))
-    start_datetime = models.DateField(verbose_name=_("Start Datetime"))
-    end_datetime = models.DateField(verbose_name=_("End Datetime"))
+    date = models.DateField(verbose_name=_("Date"))
+    start_time = models.TimeField(verbose_name=_("Start Time"))
+    end_time = models.TimeField(verbose_name=_("End Time"))
     # meta data
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=_("Updated At"))
@@ -1146,15 +1150,23 @@ class Unavailability(models.Model):
     class Meta:
         verbose_name = _("Unavailability")
         verbose_name_plural = _("Unavailabilities")
-        ordering = ['-start_datetime']
+        ordering = ['-date']
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(start_time__lt=models.F('end_time')),
+                name='unavailability_start_time_before_end_time'
+            )
+        ]
 
     def __str__(self):
-        return f"{self.start_datetime} to {self.end_datetime} - {self.description if self.description else 'Unavailability'}"
+        return f"{self.start_time} to {self.end_time} - {self.description if self.description else 'Unavailability'}"
 
     def clean(self):
-        if self.start_datetime is not None and self.end_datetime is not None:
-            if self.start_datetime >= self.end_date:
+        if self.date is not None and self.start_time is not None and self.end_time is not None:
+            if self.start_time >= self.end_time:
                 raise ValidationError(_("Start datetime must be before end datetime"))
+            if self.date < datetime.datetime.today():
+                raise ValidationError(_("Cannot create unavailabilities for past dates"))
 
     def is_owner(self, user_id):
             return self.staff_member.user.id == user_id
@@ -1178,7 +1190,7 @@ class WorkingHours(models.Model):
         constraints = [
             models.CheckConstraint(
                 check=models.Q(start_time__lt=models.F('end_time')),
-                name='start_time_before_end_time'
+                name='working_hours_start_time_before_end_time'
             )
         ]
 

@@ -28,7 +28,7 @@ def js_timepicker_display_format():
     # g:i A -> h.mm A
     # g.i.a -> h.mm.a
     # A g:i -> A h.mm
-    # H\xa0h\xa0i -> h cannot be sperator in js -> force HH:mm (fr_CA)
+    # H\xa0h\xa0i -> h cannot be separator in js -> force HH:mm (fr_CA)
 
     DJANGO_TO_MOMENTS = {
         #"a": "a", no changes
@@ -49,7 +49,6 @@ def js_timepicker_display_format():
     }
 
     localized_time_format = get_format("TIME_FORMAT")
-    print(localized_time_format)
 
     # handle fr_CA
     filtered_localized_time_format = localized_time_format.replace("\xa0h", ":").replace("\xa0", "")
@@ -62,6 +61,44 @@ def js_timepicker_display_format():
             result.append(DJANGO_TO_MOMENTS[char])
         else:
             result.append(char)
+
+    return "".join(result)
+
+def js_datepicker_display_format():
+    """Convert a localized date format to its Moment.js representation
+    
+    :return: The js format converted from dateformat
+    """
+
+    DJANGO_TO_MOMENT = {
+        "d": "DD",
+        "j": "D",
+        "D": "ddd",
+        "l": "dddd",
+        "m": "MM",
+        "n": "M",
+        "M": "MMM",
+        "N": "MMM",
+        "F": "MMMM",
+        "E": "MMMM",  # No direct Moment.js equivalent.
+        "y": "YY",
+        "Y": "YYYY",
+    }
+
+    localized_date_format = get_format("DATE_FORMAT")
+
+    result = []
+    escaped = False
+
+    for char in localized_date_format:
+        if escaped:
+            # Django uses "\" to escape literal characters.
+            result.append(char)
+            escaped = False
+        elif char == "\\":
+            escaped = True
+        else:
+            result.append(DJANGO_TO_MOMENT.get(char, char))
 
     return "".join(result)
 

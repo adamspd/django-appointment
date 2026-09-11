@@ -14,11 +14,11 @@ from appointment.views import (
     get_non_working_days_ajax, prepare_reschedule_appointment, reschedule_appointment_submit, set_passwd
 )
 from appointment.views_admin import (
-    add_day_off, add_or_update_service, add_or_update_staff_info, add_staff_member_info, add_working_hours,
-    create_new_staff_member, delete_appointment, delete_appointment_ajax, delete_day_off, delete_service,
+    add_day_off, add_unavailability, add_or_update_service, add_or_update_staff_info, add_staff_member_info, add_working_hours,
+    create_new_staff_member, delete_appointment, delete_appointment_ajax, delete_day_off, delete_unavailability, delete_service,
     delete_working_hours, display_appointment, email_change_verification_code, fetch_service_list_for_staff,
     fetch_staff_list, get_service_list, get_user_appointments, is_user_staff_admin, make_superuser_staff_member,
-    remove_staff_member, remove_superuser_staff_member, update_appt_date_time, update_appt_min_info, update_day_off,
+    remove_staff_member, remove_superuser_staff_member, update_appt_date_time, update_appt_min_info, update_day_off, update_unavailability,
     update_personal_info, update_working_hours, user_profile, validate_appointment_date
 )
 
@@ -58,13 +58,23 @@ admin_urlpatterns = [
     path('update-user-info/', update_personal_info, name='update_user_info'),
 
     # add, update, delete day off with staff_user_id
-    path('add-day-off/<int:staff_user_id>/', add_day_off, name='add_day_off'),
+    path('add-day-off/<int:staff_user_id>/', add_day_off, name='add_day_off_id'),
     path('update-day-off/<int:day_off_id>/<int:staff_user_id>/', update_day_off, name='update_day_off_id'),
     path('delete-day-off/<int:day_off_id>/<int:staff_user_id>/', delete_day_off, name='delete_day_off_id'),
 
     # add, update, delete day off without staff_user_id
     path('update-day-off/<int:day_off_id>/', update_day_off, name='update_day_off'),
     path('delete-day-off/<int:day_off_id>/', delete_day_off, name='delete_day_off'),
+
+    # add, update, delete unavailability with staff_user_id
+    path('add-unavailability/<int:staff_user_id>/', add_unavailability, name='add_unavailability_id'),
+    path('update-unavailability/<int:unavailability_id>/<int:staff_user_id>/', update_unavailability, name='update_unavailability_id'),
+    path('delete-unavailability/<int:unavailability_id>/<int:staff_user_id>/', delete_unavailability, name='delete_unavailability_id'),
+
+    # add, update, delete unavailability without staff_user_id
+    #path('add-working-hours/', add_unavailability, name='add_unavailability'),
+    path('update-unavailability/<int:unavailability_id>/', update_unavailability, name='update_unavailability'),
+    path('delete-unavailability/<int:unavailability_id>/', delete_unavailability, name='delete_unavailability'),
 
     # add, update, delete working hours with staff_user_id
     path('update-working-hours/<int:working_hours_id>/<int:staff_user_id>/', update_working_hours,
