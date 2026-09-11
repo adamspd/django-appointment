@@ -86,7 +86,7 @@
             <!-- Days Off Information Section -->
             <section class="profile-section">
                 <h2>{% trans 'Days Off' %}</h2>
-                <a href="{% url 'appointment:add_day_off' staff_user_id=user.id %}"
+                <a href="{% url 'appointment:add_day_off_id' staff_user_id=user.id %}"
                    class="section-content-button modify-btn button-color-green">
                     <i class="fas fa-add"></i>
                 </a>
@@ -152,7 +152,7 @@
             <!-- Unavailability Information Section -->
             <section class="profile-section">
                 <h2>{% trans 'Unavailabilities' %}</h2>
-                <a href="{% url 'appointment:add_unavailability' staff_user_id=user.id %}"
+                <a href="{% url 'appointment:add_unavailability_id' staff_user_id=user.id %}"
                    class="section-content-button modify-btn button-color-green">
                     <i class="fas fa-add"></i>
                 </a>
@@ -163,8 +163,9 @@
                     <table>
                         <thead>
                         <tr>
-                            <th>{% trans 'Start datetime' %}</th>
-                            <th>{% trans 'End datetime' %}</th>
+                            <th>{% trans 'Date' %}</th>
+                            <th>{% trans 'Start time' %}</th>
+                            <th>{% trans 'End time' %}</th>
                             <th>{% trans 'Description' %}</th>
                             <th>{% trans 'Action' %}</th>
                         </tr>
@@ -172,8 +173,9 @@
                         <tbody>
                         {% for unavailability in unavailabilities %}
                             <tr>
-                                <td>{{ unavailability.start_datetime }}</td>
-                                <td>{{ unavailability.end_datetime }}</td>
+                                <td>{{ unavailability.date }}</td>
+                                <td>{{ unavailability.start_time }}</td>
+                                <td>{{ unavailability.end_time }}</td>
                                 <td>{{ unavailability.description }}</td>
                                 <td>
                                     <div class="buttons-container">
@@ -207,7 +209,7 @@
                             </tr>
                         {% empty %}
                             <tr>
-                                <td colspan="4">{% trans 'No unavailabilities have been set' %}.</td>
+                                <td colspan="5">{% trans 'No unavailabilities have been set' %}.</td>
                             </tr>
                         {% endfor %}
                         </tbody>
