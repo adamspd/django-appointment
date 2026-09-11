@@ -46,6 +46,7 @@ Appointment = apps.get_model('appointment', 'Appointment')
 AppointmentRequest = apps.get_model('appointment', 'AppointmentRequest')
 WorkingHours = apps.get_model('appointment', 'WorkingHours')
 DayOff = apps.get_model('appointment', 'DayOff')
+Unavailability = apps.get_model('appointment', 'Unavailability')
 PaymentInfo = apps.get_model('appointment', 'PaymentInfo')
 StaffMember = apps.get_model('appointment', 'StaffMember')
 Config = apps.get_model('appointment', 'Config')
@@ -545,6 +546,18 @@ def get_day_off_by_id(day_off_id):
     try:
         return DayOff.objects.get(pk=day_off_id)
     except DayOff.DoesNotExist:
+        return None
+
+
+def get_unavailability_by_id(unavailability_id):
+    """Get a unavailability by its ID.
+
+    :param unavailability_id: The unavailability ID
+    :return: Unavailability, the unavailability with the specified ID or None if no unavailability with the specified ID exists.
+    """
+    try:
+        return Unavailability.objects.get(pk=unavailability_id)
+    except Unavailability.DoesNotExist:
         return None
 
 

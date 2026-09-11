@@ -16,7 +16,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _, gettext_lazy as _
 from django.utils.formats import localize
 
-from appointment.forms import PersonalInformationForm, ServiceForm, StaffDaysOffForm, StaffWorkingHoursForm
+from appointment.forms import PersonalInformationForm, ServiceForm, StaffDaysOffForm, StaffUnavailabilityForm, StaffWorkingHoursForm
 from appointment.messages_ import appt_updated_successfully
 from appointment.settings import APPOINTMENT_PAYMENT_URL
 from appointment.utils.date_time import (
@@ -149,7 +149,7 @@ def prepare_user_profile_data(user, staff_user_id):
 
 
 ###############################################################
-# handler for adding, updating, and deleting day off and working hours
+# handler for adding, updating, and deleting day off, unavailability and working hours
 
 def handle_entity_management_request(request, staff_member, entity_type, instance=None, staff_user_id=None,
                                      instance_id=None, add=True):
@@ -157,7 +157,7 @@ def handle_entity_management_request(request, staff_member, entity_type, instanc
 
     :param request: The request object.
     :param staff_member: The staff member instance.
-    :param entity_type: The type of entity to add or update, either 'day_off' or 'working_hours'.
+    :param entity_type: The type of entity to add or update, 'day_off', 'unavailability' or 'working_hours'.
     :param instance: The instance of the entity to update.
     :param staff_user_id: The staff user id.
     :param instance_id: The id of the instance to update.
@@ -171,11 +171,15 @@ def handle_entity_management_request(request, staff_member, entity_type, instanc
     button_text = _('Update') if instance else _('Add')
     if entity_type == 'day_off':
         form = StaffDaysOffForm(instance=instance)
-        context = get_working_hours_and_days_off_context(request, button_text, 'day_off_form', form)
+        context = get_entity_management_context(request, button_text, 'day_off_form', form)
         template = 'administration/manage_day_off.html'
+    elif entity_type == 'unavailability':
+        form = StaffUnavailabilityForm(instance=instance)
+        context = get_entity_management_context(request, button_text, 'unavailability_form', form)
+        template = 'administration/manage_unavailability.html'
     else:
         form = StaffWorkingHoursForm(instance=instance)
-        context = get_working_hours_and_days_off_context(request, button_text, 'working_hours_form', form,
+        context = get_entity_management_context(request, button_text, 'working_hours_form', form,
                                                          staff_user_id, instance,
                                                          instance_id)
         template = 'administration/manage_working_hours.html'
@@ -190,6 +194,10 @@ def handle_entity_management_request(request, staff_member, entity_type, instanc
                                  error_code=ErrorCode.DAY_OFF_CONFLICT)
 
         return handle_day_off_form(day_off_form, staff_member)
+    elif request.method == 'POST' and entity_type == 'unavailability':
+        unavailability_form = StaffUnavailabilityForm(request.POST, instance=instance)
+    
+        return handle_unavailability_form(unavailability_form, staff_member)
     elif request.method == 'POST' and entity_type == 'working_hours':
         day_of_week = request.POST.get('day_of_week')
         # get js string start and end times formatted as YYYY-MM-DDTHH:mm:ss and parse it.
@@ -219,6 +227,27 @@ def handle_day_off_form(day_off_form, staff_member):
     else:
         message = "Invalid data:"
         message += get_error_message_in_form(form=day_off_form)
+        return json_response(message, status=400, success=False, error_code=ErrorCode.INVALID_DATA)
+
+
+def handle_unavailability_form(unavailability_form, staff_member):
+    """Handle the day off form.
+
+    :param unavailability_form: The unvailability form instance.
+    :param staff_member: The staff member instance.
+    :return: A JsonResponse instance.
+    """
+    if unavailability_form.is_valid():
+        unavailability = unavailability_form.save(commit=False)
+        unavailability.staff_member = staff_member
+        unavailability.save()
+        redirect_url = reverse('appointment:user_profile',
+                               kwargs={'staff_user_id': staff_member.user_id}) if staff_member else reverse(
+            'appointment:user_profile')
+        return json_response(_("Unavailability saved successfully."), custom_data={'redirect_url': redirect_url})
+    else:
+        message = "Invalid data:"
+        message += get_error_message_in_form(form=unavailability_form)
         return json_response(message, status=400, success=False, error_code=ErrorCode.INVALID_DATA)
 
 
@@ -273,12 +302,12 @@ def handle_working_hours_form(staff_member, day_of_week, start_time, end_time, a
     return json_response(_("Working hours saved successfully."), custom_data={'redirect_url': redirect_url})
 
 
-def get_working_hours_and_days_off_context(request, btn_txt, form_name, form, user_id=None, instance=None, wh_id=None):
-    """Get the context for the working hours and days off forms.
+def get_entity_management_context(request, btn_txt, form_name, form, user_id=None, instance=None, wh_id=None):
+    """Get the context for the working hours, unavailabilities and days off forms.
 
     :param request: The request object.
     :param btn_txt: The text to display on the submit button.
-    :param form_name: The name of the form which depends on if it's a working hours or days off form.
+    :param form_name: The name of the form which depends on its entity type.
     :param form: The form instance itself.
     :param user_id: The staff user id.
     :param instance: The working hour form instance.

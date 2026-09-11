@@ -1134,6 +1134,31 @@ class DayOff(models.Model):
     def is_owner(self, user_id):
         return self.staff_member.user.id == user_id
 
+class Unavailability(models.Model):
+    staff_member = models.ForeignKey(StaffMember, on_delete=models.CASCADE, verbose_name=_("Staff Member"))
+    description = models.CharField(max_length=255, blank=True, null=True, verbose_name=_("Description"))
+    start_datetime = models.DateField(verbose_name=_("Start Datetime"))
+    end_datetime = models.DateField(verbose_name=_("End Datetime"))
+    # meta data
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_("Updated At"))
+
+    class Meta:
+        verbose_name = _("Unavailability")
+        verbose_name_plural = _("Unavailabilities")
+        ordering = ['-start_datetime']
+
+    def __str__(self):
+        return f"{self.start_datetime} to {self.end_datetime} - {self.description if self.description else 'Unavailability'}"
+
+    def clean(self):
+        if self.start_datetime is not None and self.end_datetime is not None:
+            if self.start_datetime >= self.end_date:
+                raise ValidationError(_("Start datetime must be before end datetime"))
+
+    def is_owner(self, user_id):
+            return self.staff_member.user.id == user_id
+
 
 class WorkingHours(models.Model):
     staff_member = models.ForeignKey(StaffMember, on_delete=models.CASCADE, verbose_name=_("Staff Member"))
