@@ -15,6 +15,7 @@ class ErrorCode(Enum):
     APPOINTMENT_NOT_FOUND = auto()
     DAY_OFF_CONFLICT = auto()
     DAY_OFF_NOT_FOUND = auto()
+    UNAVAILABILITY_NOT_FOUND = auto()
     INVALID_DATA = auto()
     INVALID_DATE = auto()
     NOT_AUTHORIZED = auto()
