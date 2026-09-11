@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block customCSS %}
-    <link rel="stylesheet" type="text/css" href="{% static 'css/app_admin/working_hours.css' %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/app_admin/unavailabilities.css' %}"/>
     <!-- additional CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
           integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
@@ -19,14 +19,15 @@
 
 {% block body %}
     <section class="content content-wrapper">
-        <div class="working-hours-form-wrapper">
-            <div class="wh-form-content">
-                <h2>{% trans "Manage Working Hours" %}</h2>
-                <form method="post" action="" id="workingHoursForm"
-                      data-action="{% if entity_instance %}update{% else %}create{% endif %}"
-                      data-working-hours-id="
-                          {% if entity_instance %}{{ entity_instance.id }}{% else %}0{% endif %}"
-                      data-staff-user-id="{% if staff_user_id %}{{ staff_user_id }}{% else %}0{% endif %}">
+        <div class="unvailabilities-form-wrapper">
+            <div class="do-form-content">
+                <h2>{% trans "Manage Unavailabilities" %}</h2>
+
+                <form method="post" action="" id="unavailabilityForm"
+                    data-action="{% if entity_instance %}update{% else %}create{% endif %}"
+                    data-unavailability-id="
+                        {% if entity_instance %}{{ entity_instance.id }}{% else %}0{% endif %}"
+                    data-staff-user-id="{% if staff_user_id %}{{ staff_user_id }}{% else %}0{% endif %}">
                     {% csrf_token %}
 
                     {% if error_message %}
@@ -37,63 +38,90 @@
                         </script>
                     {% endif %}
                     <!-- Staff Member -->
-                    {% if working_hours_form.staff_member %}
+                    {% if unavailability_form.staff_member %}
                         <div class="form-group">
-                            <label for="{{ working_hours_form.staff_member.id_for_label }}">{% trans 'Staff Member' %}:</label>
-                            {{ working_hours_form.staff_member }}
+                            <label for="{{ unavailability_form.staff_member.id_for_label }}">{% trans 'Staff Member' %}:</label>
+                            {{ unavailability_form.staff_member }}
                         </div>
                     {% endif %}
 
+                    <!-- Date Display -->
                     <div class="form-group">
-                        <label for="{{ working_hours_form.day_of_week.id_for_label }}">{% trans 'Day of Week' %}:</label>
-                        {{ working_hours_form.day_of_week }}
+                        <label for="{{ unavailability_form.date.id_for_label }}_display">{% trans 'Date' %}:</label>
+                        <div class="input-group date" id="datepicker" data-target-input="nearest">
+                            <input type="text" class="form-control datetimepicker-input" data-toggle="datetimepicker"
+                                    data-target="#datepicker" name="{{ unavailability_form.date.name }}"
+                                    value="{{ unavailability_form.date.value }}"
+                                    id="{{ unavailability_form.date.id_for_label }}">
+                            <div class="input-group-append" data-toggle="datetimepicker"
+                                    data-target="#datepicker">
+                                <div class="input-group-text"><i class="far fa-calendar"></i></div>
+                            </div>
+                        </div>
+                        <!-- Actual value to be submitted -->
+                        <input type="hidden" name="{{ unavailability_form.date.name }}_raw"
+                            value="{{ unavailability_form.date.value }}"
+                            id="{{ unavailability_form.date.id_for_label }}_raw">
                     </div>
 
+                    <!-- Start Datetime Display -->
                     <div class="form-group">
-                        <label for="{{ working_hours_form.start_time.id_for_label }}">{% trans 'Start time' %}:</label>
+                        <label for="{{ unavailability_form.start_time.id_for_label }}_display">{% trans 'Start time' %}:</label>
                         <div class="input-group date" id="start-timepicker" data-target-input="nearest">
                             <input type="text" class="form-control datetimepicker-input" data-toggle="datetimepicker"
-                                   data-target="#start-timepicker" name="{{ working_hours_form.start_time.name }}"
-                                   value="{{ working_hours_form.start_time.value }}"
-                                   id="{{ working_hours_form.start_time.id_for_label }}">
+                                    data-target="#start-timepicker" name="{{ unavailability_form.start_time.name }}"
+                                    value="{{ unavailability_form.start_time.value }}"
+                                    id="{{ unavailability_form.start_time.id_for_label }}">
                             <div class="input-group-append" data-toggle="datetimepicker"
-                                 data-target="#start-timepicker">
+                                    data-target="#start-timepicker">
                                 <div class="input-group-text"><i class="far fa-clock"></i></div>
                             </div>
                         </div>
-                        <input type="hidden" name="{{ working_hours_form.start_time.name }}_raw"
-                            value="{{ working_hours_form.start_time.value }}"
-                            id="{{ working_hours_form.start_time.id_for_label }}_raw">
+                        <!-- Actual value to be submitted -->
+                        <input type="hidden" name="{{ unavailability_form.start_time.name }}_raw"
+                            value="{{ unavailability_form.start_time.value }}"
+                            id="{{ unavailability_form.start_time.id_for_label }}_raw">
                     </div>
 
+                    <!-- End Datetime Display -->
                     <div class="form-group">
-                        <label for="{{ working_hours_form.end_time.id_for_label }}">{% trans 'End time' %}:</label>
+                        <label for="{{ unavailability_form.end_time.id_for_label }}_display">{% trans 'End time' %}:</label>
                         <div class="input-group date" id="end-timepicker" data-target-input="nearest">
                             <input type="text" class="form-control datetimepicker-input" data-toggle="datetimepicker"
-                                   data-target="#end-timepicker" name="{{ working_hours_form.end_time.name }}"
-                                   value="{{ working_hours_form.end_time.value }}"
-                                   id="{{ working_hours_form.end_time.id_for_label }}">
-                            <div class="input-group-append" data-toggle="datetimepicker" data-target="#end-timepicker">
+                                    data-target="#end-timepicker" name="{{ unavailability_form.end_time.name }}"
+                                    value="{{ unavailability_form.end_time.value }}"
+                                    id="{{ unavailability_form.end_time.id_for_label }}">
+                            <div class="input-group-append" data-toggle="datetimepicker"
+                                    data-target="#end-timepicker">
                                 <div class="input-group-text"><i class="far fa-clock"></i></div>
                             </div>
                         </div>
-                        <input type="hidden" name="{{ working_hours_form.end_time.name }}_raw"
-                            value="{{ working_hours_form.end_time.value }}"
-                            id="{{ working_hours_form.end_time.id_for_label }}_raw">
+                        <!-- Actual value to be submitted -->
+                        <input type="hidden" name="{{ unavailability_form.end_time.name }}_raw"
+                            value="{{ unavailability_form.end_time.value }}"
+                            id="{{ unavailability_form.end_time.id_for_label }}_raw">
                     </div>
 
-                    <button type="submit" class="btn btn-primary">{{ button_text }}</button>
-                    <input type="hidden" id="addWorkingHoursUrl"
-                           value="{% url 'appointment:add_working_hours_id' staff_user_id|default:user.id %}">
-                    <input type="hidden" id="updateWorkingHoursUrl"
-                           value="{% url 'appointment:update_working_hours_id' entity_id|default:0 staff_user_id|default:user.id %}">
+
+                    <div class="form-group">
+                        <label for="{{ unavailability_form.description.id_for_label }}">{% trans 'Description' %}:</label>
+                        <input type="text" id="{{ unavailability_form.description.id_for_label }}"
+                               name="{{ unavailability_form.description.name }}" value="{{ unavailability_form.description.value }}">
+                    </div>
+
+
+                    <button type="submit" class="btn btn-primary">{% trans "Submit" %}</button>
+                    <input type="hidden" id="addUnavailabilityUrl"
+                           value="{% url 'appointment:add_unavailability_id' staff_user_id|default:user.id %}">
+                    <input type="hidden" id="updateUnavailabilityUrl"
+                           value="{% url 'appointment:update_unavailability_id' entity_id|default:0 staff_user_id|default:user.id %}">
 
                 </form>
                 <div class="messages" style="margin: 20px 0">
                     {% if messages %}
                         {% for message in messages %}
-                        <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
-                            role="alert">{{ message }}</div>
+                            <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
+                                role="alert">{{ message }}</div>
                         {% endfor %}
                     {% endif %}
                 </div>
@@ -102,6 +130,7 @@
         </div>
     </section>
 {% endblock %}
+
 {% block customJS %}
     <!-- JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
@@ -149,9 +178,10 @@
         }
 
         const errorTxt = "{% trans 'Error' %}";
-        const addWorkingHoursUrl = $('#addWorkingHoursUrl').val();
-        const updateWorkingHoursUrl = $('#updateWorkingHoursUrl').val();
+        const addUnavailabilityUrl = $('#addUnavailabilityUrl').val();
+        const updateUnavailabilityUrl = $('#updateUnavailabilityUrl').val();
 
+        const datepicker_display_format = '{{ localized_formats.js_datepicker_display_format }}';
         const timepicker_display_format = '{{ localized_formats.js_timepicker_display_format }}';
         const timepicker_locale = '{{ locale }}';
 
@@ -164,16 +194,30 @@
                 moment.locale('en');
             }
 
-            const startTimeInput = $('#{{ working_hours_form.start_time.id_for_label }}');
-            const startTimeInputRaw = $('#{{ working_hours_form.start_time.id_for_label }}_raw');
-            const endTimeInput = $('#{{ working_hours_form.end_time.id_for_label }}');
-            const endTimeInputRaw = $('#{{ working_hours_form.end_time.id_for_label }}_raw');
+            const dateInput = $('#{{ unavailability_form.date.id_for_label }}');
+            const dateInputRaw = $('#{{ unavailability_form.date.id_for_label }}_raw');
+            const startTimeInput = $('#{{ unavailability_form.start_time.id_for_label }}');
+            const startTimeInputRaw = $('#{{ unavailability_form.start_time.id_for_label }}_raw');
+            const endTimeInput = $('#{{ unavailability_form.end_time.id_for_label }}');
+            const endTimeInputRaw = $('#{{ unavailability_form.end_time.id_for_label }}_raw');
+            const datePicker = $('#datepicker');
             const startTimePicker = $('#start-timepicker');
             const endTimePicker = $('#end-timepicker');
+            const defaultDate = dateInput.val() ? moment(dateInput.val(), datepicker_display_format) : moment().hour(0).minute(0);
             const defaultStartTime = startTimeInput.val() ? moment(startTimeInput.val(), timepicker_display_format) : moment().hour(12).minute(0);
             const defaultEndTime = endTimeInput.val() ? moment(endTimeInput.val(), timepicker_display_format) : moment().hour(13).minute(0);
-            startTimeInputRaw.val(defaultStartTime.format("YYYY-MM-DDTHH:mm:ss"));
-            endTimeInputRaw.val(defaultEndTime.format("YYYY-MM-DDTHH:mm:ss"));
+            dateInputRaw.val(defaultDate.format("YYYY-MM-DD"));
+            startTimeInputRaw.val(defaultStartTime.format("HH:mm:ss"));
+            endTimeInputRaw.val(defaultEndTime.format("HH:mm:ss"));
+
+            datePicker.datetimepicker({
+                locale: timepicker_locale,
+                format: datepicker_display_format,
+                icons: {
+                    date: 'far fa-calendar'
+                },
+                defaultDate: defaultDate
+            });
 
             startTimePicker.datetimepicker({
                 locale: timepicker_locale,
@@ -195,18 +239,23 @@
                 defaultDate: defaultEndTime
             });
 
+            datePicker.on('change.datetimepicker', function (e) {
+                dateInput.val(e.date.format(timepicker_display_format));
+                dateInputRaw.val(e.date.format("YYYY-MM-DD"));
+            });
+
             startTimePicker.on('change.datetimepicker', function (e) {
                 startTimeInput.val(e.date.format(timepicker_display_format));
-                startTimeInputRaw.val(e.date.format("YYYY-MM-DDTHH:mm:ss"));
+                startTimeInputRaw.val(e.date.format("HH:mm:ss"));
             });
 
             endTimePicker.on('change.datetimepicker', function (e) {
                 endTimeInput.val(e.date.format(timepicker_display_format));
-                endTimeInputRaw.val(e.date.format("YYYY-MM-DDTHH:mm:ss"));
+                endTimeInputRaw.val(e.date.format("HH:mm:ss"));
             });
         });
 
-        $(document).on('submit', '#workingHoursForm', function (e) {
+        $(document).on('submit', '#unavailabilityForm', function (e) {
             e.preventDefault();
 
             const form = $(this);
@@ -214,9 +263,9 @@
             let postUrl = '';
 
             if (action === 'create') {
-                postUrl = addWorkingHoursUrl;
+                postUrl = addUnavailabilityUrl;
             } else if (action === 'update') {
-                postUrl = updateWorkingHoursUrl;
+                postUrl = updateUnavailabilityUrl;
             }
 
             $.ajax({
@@ -238,5 +287,5 @@
     </script>
     <script src="{% static 'js/modal/error_modal.js' %}"></script>
     <script src="{% static 'js/js-utils.js' %}"></script>
-{% endblock %}
 
+{% endblock %}

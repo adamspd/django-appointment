@@ -704,7 +704,7 @@ class AppointmentDisplayViewTestCase(BaseTest):
 class DayOffViewsTestCase(BaseTest):
     def setUp(self):
         super().setUp()
-        self.url_add_day_off = reverse('appointment:add_day_off', args=[self.staff_member1.user_id])
+        self.url_add_day_off = reverse('appointment:add_day_off_id', args=[self.staff_member1.user_id])
         self.other_staff_member = self.staff_member2
         self.day_off = DayOff.objects.create(staff_member=self.staff_member1,
                                              start_date=date.today() + timedelta(days=1),
@@ -721,7 +721,7 @@ class DayOffViewsTestCase(BaseTest):
         # Log in as superuser
         self.need_superuser_login()
         other_staff_user_id = self.other_staff_member.user.pk
-        response = self.client.post(reverse('appointment:add_day_off', args=[other_staff_user_id]),
+        response = self.client.post(reverse('appointment:add_day_off_id', args=[other_staff_user_id]),
                                     data={'start_date': '2023-01-02', 'end_date': '2050-01-01',
                                           'description': 'Admin adding for staff'})
         self.assertEqual(response.status_code, 200)  # Assuming superuser can add for others
@@ -736,7 +736,7 @@ class DayOffViewsTestCase(BaseTest):
         # Log in as a regular user
         self.need_normal_login()
         unauthorized_staff_user_id = self.other_staff_member.user.pk
-        response = self.client.post(reverse('appointment:add_day_off', args=[unauthorized_staff_user_id]),
+        response = self.client.post(reverse('appointment:add_day_off_id', args=[unauthorized_staff_user_id]),
                                     data={'start_date': '2050-01-01', 'end_date': '2050-01-01',
                                           'description': 'Trying to add for others'})
         self.assertNotEqual(response.status_code, 200)  # Expect redirection or error due to unauthorized action
