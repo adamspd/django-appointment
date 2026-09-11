@@ -22,7 +22,7 @@ from appointment.settings import APPOINTMENT_PAYMENT_URL
 from appointment.utils.date_time import (
     convert_str_to_date, convert_str_to_time, get_ar_end_time)
 from appointment.utils.db_helpers import (
-    Appointment, AppointmentRequest, EmailVerificationCode, Service, StaffMember, WorkingHours, calculate_slots,
+    Appointment, AppointmentRequest, EmailVerificationCode, Service, StaffMember, Unavailability, WorkingHours, calculate_slots,
     calculate_staff_slots, check_day_off_for_staff, create_and_save_appointment, create_new_user,
     day_off_exists_for_date_range, exclude_booked_slots, exclude_pending_reschedules, get_all_appointments,
     get_all_staff_members,
@@ -138,6 +138,7 @@ def prepare_user_profile_data(user, staff_user_id):
             'user': staff_member.user if staff_member else user,
             'staff_member': staff_member,
             'days_off': staff_member.get_days_off().order_by('start_date') if staff_member else [],
+            'unavailabilities': staff_member.get_unavailabilities().order_by('date') if staff_member else [],
             'working_hours': staff_member.get_working_hours() if staff_member else [],
             'services_offered': staff_member.get_services_offered() if staff_member else [],
             'staff_member_not_found': not bool(staff_member),
@@ -175,7 +176,9 @@ def handle_entity_management_request(request, staff_member, entity_type, instanc
         template = 'administration/manage_day_off.html'
     elif entity_type == 'unavailability':
         form = StaffUnavailabilityForm(instance=instance)
-        context = get_entity_management_context(request, button_text, 'unavailability_form', form)
+        context = get_entity_management_context(request, button_text, 'unavailability_form', form,
+                                                         staff_user_id, instance,
+                                                         instance_id)
         template = 'administration/manage_unavailability.html'
     else:
         form = StaffWorkingHoursForm(instance=instance)
@@ -195,9 +198,12 @@ def handle_entity_management_request(request, staff_member, entity_type, instanc
 
         return handle_day_off_form(day_off_form, staff_member)
     elif request.method == 'POST' and entity_type == 'unavailability':
-        unavailability_form = StaffUnavailabilityForm(request.POST, instance=instance)
+        date = datetime.datetime.strptime(request.POST.get('date_raw'), "%Y-%m-%d")
+        start_time = datetime.datetime.strptime(request.POST.get('start_time_raw'), "%H:%M:%S")
+        end_time = datetime.datetime.strptime(request.POST.get('end_time_raw'), "%H:%M:%S")
+        description = request.POST.get('description')
     
-        return handle_unavailability_form(unavailability_form, staff_member)
+        return handle_unavailability_form(staff_member, date, start_time, end_time, description, add, instance_id)
     elif request.method == 'POST' and entity_type == 'working_hours':
         day_of_week = request.POST.get('day_of_week')
         # get js string start and end times formatted as YYYY-MM-DDTHH:mm:ss and parse it.
@@ -230,25 +236,54 @@ def handle_day_off_form(day_off_form, staff_member):
         return json_response(message, status=400, success=False, error_code=ErrorCode.INVALID_DATA)
 
 
-def handle_unavailability_form(unavailability_form, staff_member):
-    """Handle the day off form.
+def handle_unavailability_form(staff_member, date, start_time, end_time, description, add, unav_id=None):
+    """Handle the unavailability form.
 
-    :param unavailability_form: The unvailability form instance.
     :param staff_member: The staff member instance.
+    :param date: The date of the unavailability.
+    :param start_time: The start time.
+    :param end_time: The end time.
+    :param description: The description.
+    :param add: If True, add a new unavailability instance. Otherwise, update an existing one.
+    :param unav_id: The unavailability id.
     :return: A JsonResponse instance.
     """
-    if unavailability_form.is_valid():
-        unavailability = unavailability_form.save(commit=False)
-        unavailability.staff_member = staff_member
-        unavailability.save()
-        redirect_url = reverse('appointment:user_profile',
-                               kwargs={'staff_user_id': staff_member.user_id}) if staff_member else reverse(
-            'appointment:user_profile')
-        return json_response(_("Unavailability saved successfully."), custom_data={'redirect_url': redirect_url})
+    # Validate inputs
+    if not (staff_member and date and start_time and end_time):
+        return json_response(_("Invalid data."), status=400, success=False, error_code=ErrorCode.INVALID_DATA)
+
+    # Ensure start time is before end time
+    if start_time >= end_time:
+        return json_response(_("Start time must be before end time."), status=400, success=False,
+                                error_code=ErrorCode.INVALID_DATA)
+
+    if add:
+        # Create new unavailability
+        unavailability = Unavailability(staff_member=staff_member, date=date, start_time=start_time, end_time=end_time, description=description)
     else:
-        message = "Invalid data:"
-        message += get_error_message_in_form(form=unavailability_form)
-        return json_response(message, status=400, success=False, error_code=ErrorCode.INVALID_DATA)
+        # Ensure working_hours_id is provided
+        if not unav_id:
+            return json_response(_("Invalid or no unavailability id provided."), status=400, success=False,
+                                    error_code=ErrorCode.INVALID_DATA)
+
+        # Get the working hours instance to update
+        try:
+            unavailability = Unavailability.objects.get(pk=unav_id)
+            unavailability.date = date
+            unavailability.start_time = start_time
+            unavailability.end_time = end_time
+            unavailability.description = description
+        except Unavailability.DoesNotExist:
+            return json_response(_("Unavailability does not exist."), status=400, success=False,
+                                    error_code=ErrorCode.UNAVAILABILITY_NOT_FOUND)
+
+        # Save working hours
+    unavailability.save()
+
+    # Return success with redirect URL
+    redirect_url = reverse('appointment:user_profile', kwargs={'staff_user_id': staff_member.user.id}) \
+        if staff_member.user.id else reverse('appointment:user_profile')
+    return json_response(_("Working hours saved successfully."), custom_data={'redirect_url': redirect_url})
 
 
 def handle_working_hours_form(staff_member, day_of_week, start_time, end_time, add, wh_id=None):
@@ -302,7 +337,7 @@ def handle_working_hours_form(staff_member, day_of_week, start_time, end_time, a
     return json_response(_("Working hours saved successfully."), custom_data={'redirect_url': redirect_url})
 
 
-def get_entity_management_context(request, btn_txt, form_name, form, user_id=None, instance=None, wh_id=None):
+def get_entity_management_context(request, btn_txt, form_name, form, user_id=None, entity_instance=None, entity_id=None):
     """Get the context for the working hours, unavailabilities and days off forms.
 
     :param request: The request object.
@@ -323,13 +358,13 @@ def get_entity_management_context(request, btn_txt, form_name, form, user_id=Non
         context.update({
             'staff_user_id': user_id,
         })
-    if instance:
+    if entity_instance:
         context.update({
-            'working_hours_instance': instance,
+            'entity_instance': entity_instance,
         })
-    if wh_id:
+    if entity_id:
         context.update({
-            'working_hours_id': wh_id,
+            'entity_id': entity_id,
         })
     return context
 

@@ -77,9 +77,9 @@ class DayOffAdmin(admin.ModelAdmin):
 
 @admin.register(Unavailability)
 class UnavailabilityAdmin(admin.ModelAdmin):
-    list_display = ('staff_member', 'start_datetime', 'end_datetime', 'description')
+    list_display = ('staff_member', 'date', 'start_time', 'end_time', 'description')
     search_fields = ('description',)
-    list_filter = ('start_datetime', 'end_datetime')
+    list_filter = ('date', 'start_time', 'end_time')
 
 
 @admin.register(WorkingHours)
