@@ -12,7 +12,7 @@ from phonenumber_field.formfields import SplitPhoneNumberField
 from datetime import time
 
 from .models import (
-    Appointment, AppointmentRequest, AppointmentRescheduleHistory, DayOff, Service, StaffMember,
+    Appointment, AppointmentRequest, AppointmentRescheduleHistory, DayOff, Unavailability, Service, StaffMember,
     WorkingHours
 )
 from .utils.db_helpers import get_user_model
@@ -197,6 +197,19 @@ class StaffDaysOffForm(forms.ModelForm):
         widgets = {
             'start_date': forms.DateInput(attrs={'class': 'datepicker'}),
             'end_date': forms.DateInput(attrs={'class': 'datepicker'}),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        return cleaned_data
+
+class StaffUnavailabilityForm(forms.ModelForm):
+    class Meta:
+        model = Unavailability
+        fields = ['start_datetime', 'end_datetime', 'description']
+        widgets = {
+            'start_datetime': forms.DateTimeInput(attrs={'class': 'datetimepicker'}),
+            'end_datetime': forms.DateTimeInput(attrs={'class': 'datetimepicker'}),
         }
 
     def clean(self):
