@@ -261,12 +261,12 @@ def handle_unavailability_form(staff_member, date, start_time, end_time, descrip
         # Create new unavailability
         unavailability = Unavailability(staff_member=staff_member, date=date, start_time=start_time, end_time=end_time, description=description)
     else:
-        # Ensure working_hours_id is provided
+        # Ensure unavailability_id is provided
         if not unav_id:
             return json_response(_("Invalid or no unavailability id provided."), status=400, success=False,
                                     error_code=ErrorCode.INVALID_DATA)
 
-        # Get the working hours instance to update
+        # Get the unavailability instance to update
         try:
             unavailability = Unavailability.objects.get(pk=unav_id)
             unavailability.date = date
@@ -277,13 +277,13 @@ def handle_unavailability_form(staff_member, date, start_time, end_time, descrip
             return json_response(_("Unavailability does not exist."), status=400, success=False,
                                     error_code=ErrorCode.UNAVAILABILITY_NOT_FOUND)
 
-        # Save working hours
+        # Save unavailability
     unavailability.save()
 
     # Return success with redirect URL
     redirect_url = reverse('appointment:user_profile', kwargs={'staff_user_id': staff_member.user.id}) \
         if staff_member.user.id else reverse('appointment:user_profile')
-    return json_response(_("Working hours saved successfully."), custom_data={'redirect_url': redirect_url})
+    return json_response(_("Unavailability saved successfully."), custom_data={'redirect_url': redirect_url})
 
 
 def handle_working_hours_form(staff_member, day_of_week, start_time, end_time, add, wh_id=None):
