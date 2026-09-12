@@ -136,34 +136,27 @@ def get_next_available_date_ajax(request, service_id):
         staff_member = get_object_or_404(StaffMember, pk=staff_id)
         service = get_object_or_404(Service, pk=service_id)
 
-        # Fetch the days off for the staff
-        days_off = DayOff.objects.filter(staff_member=staff_member).filter(
-                Q(start_date__lte=date.today(), end_date__gte=date.today()) |
-                Q(start_date__gte=date.today())
-        )
-
         current_date = date.today()
         next_available_date = None
         day_offset = 0
-
-        while next_available_date is None:
+        max_offset = 90
+        while next_available_date is None and day_offset < max_offset:
             potential_date = current_date + timedelta(days=day_offset)
-
-            # Check if the potential date is a day off for the staff
-            is_day_off = any([day_off.start_date <= potential_date <= day_off.end_date for day_off in days_off])
-            # Check if the potential date is a working day for the staff
             weekday_num = get_weekday_num_from_date(potential_date)
-            is_working_day_ = is_working_day(staff_member=staff_member, day=weekday_num)
-
-            if not is_day_off and is_working_day_:
-                x, available_slots = get_appointments_and_slots(potential_date, service)
-                if available_slots:
-                    next_available_date = potential_date
+            available_slots = get_available_slots_for_staff(potential_date, staff_member, weekday_num, service=service)
+            if available_slots:
+                next_available_date = potential_date
 
             day_offset += 1
-        message = _('Successfully retrieved next available date')
-        data = {'next_available_date': next_available_date.isoformat()}
-        return json_response(message=message, custom_data=data, success=True)
+
+        if next_available_date:
+            message = _('Successfully retrieved next available date')
+            data = {'next_available_date': next_available_date.isoformat()}
+            return json_response(message=message, custom_data=data, success=True)
+        else:
+            data = {'error': True}
+            message = _('No availability in the next 90 days for this staff member')
+            return json_response(message=message, custom_data=data, success=False, error_code=ErrorCode.NEXT_AVAILABILITY_NOT_FOUND)
     else:
         data = {'error': True}
         message = _('No staff member selected')
@@ -211,11 +204,13 @@ def appointment_request(request, service_id=None, staff_member_id=None):
         # If only one staff member for a service, choose them by default and fetch their slots.
         if all_staff_members.count() == 1:
             staff_member = all_staff_members.first()
+            #TODO unavailabilities
             x, available_slots = get_appointments_and_slots(date.today(), service)
 
     # If a specific staff member is selected, fetch their slots.
     if staff_member_id:
         staff_member = get_object_or_404(StaffMember, pk=staff_member_id)
+        #TODO unavailabilities
         y, available_slots = get_appointments_and_slots(date.today(), service)
 
     page_title = f"{service.name} - {get_website_name()}"
