@@ -110,7 +110,7 @@
                     </div>
 
 
-                    <button type="submit" class="btn btn-primary">{% trans "Submit" %}</button>
+                    <button type="submit" class="btn btn-primary">{{ button_text }}</button>
                     <input type="hidden" id="addUnavailabilityUrl"
                            value="{% url 'appointment:add_unavailability_id' staff_user_id|default:user.id %}">
                     <input type="hidden" id="updateUnavailabilityUrl"
