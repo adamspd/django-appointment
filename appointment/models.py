@@ -373,6 +373,9 @@ class StaffMember(models.Model):
     def get_unavailabilities(self):
         return Unavailability.objects.filter(staff_member=self)
 
+    def get_unavailabilities_for_date(self, date):
+        return Unavailability.objects.filter(staff_member=self, date=date)
+
     def get_working_hours(self):
         return self.workinghours_set.all()
 

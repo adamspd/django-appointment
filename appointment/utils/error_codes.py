@@ -19,6 +19,7 @@ class ErrorCode(Enum):
     INVALID_DATA = auto()
     INVALID_DATE = auto()
     NOT_AUTHORIZED = auto()
+    NEXT_AVAILABILITY_NOT_FOUND = auto()
     PAST_DATE = auto()
     STAFF_ID_REQUIRED = auto()
     WORKING_HOURS_NOT_FOUND = auto()
