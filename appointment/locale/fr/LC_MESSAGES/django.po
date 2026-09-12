@@ -387,7 +387,7 @@ msgstr "Temps de repos entre deux créneaux horaires"
 msgid ""
 "Required rest time in minutes between the end of one appointment and the "
 "start of the next. Overrides the global Config setting for this staff member."
-msgstr ""
+msgstr "Temps incompressible de repos et préparation entre deux rendez-vous. Prioritaire sur la configuration générale pour ce membre du personnel."
 
 #: .\appointment\models.py:263
 msgid "Work on Saturday"
