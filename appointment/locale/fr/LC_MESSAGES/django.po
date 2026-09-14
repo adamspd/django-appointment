@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: django-appointment 3.9.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-12 10:24+0200\n"
+"POT-Creation-Date: 2026-09-14 17:42+0200\n"
 "PO-Revision-Date: 2025-08-13 13:19+0200\n"
 "Last-Translator: Adams Pierre David <django-appt@adamspierredavid.com>\n"
 "Language-Team: French <django-appt@adamspierredavid.com>\n"
@@ -140,7 +140,7 @@ msgstr ""
 
 #: .\appointment\messages_.py:24 .\appointment\tests\test_views.py:945
 #: .\appointment\tests\test_views.py:956 .\appointment\tests\test_views.py:966
-#: .\appointment\views.py:502
+#: .\appointment\views.py:498
 msgid "The password reset link is invalid or has expired."
 msgstr "Le lien de réinitialisation du mot de passe est invalide ou a expiré."
 
@@ -191,8 +191,8 @@ msgstr "Samedi"
 msgid "Name"
 msgstr "Nom"
 
-#: .\appointment\models.py:68 .\appointment\models.py:1118
-#: .\appointment\models.py:1142
+#: .\appointment\models.py:68 .\appointment\models.py:1121
+#: .\appointment\models.py:1145
 #: .\appointment\templates\administration\manage_day_off.html:63
 #: .\appointment\templates\administration\manage_unavailability.html:107
 #: .\appointment\templates\administration\user_profile.html:102
@@ -205,7 +205,7 @@ msgstr ""
 #: .\appointment\templates\administration\service_list.html:29
 #: .\appointment\templates\administration\user_profile.html:301
 #: .\appointment\templates\appointment\default_thank_you.html:23
-#: .\appointment\views.py:438
+#: .\appointment\views.py:434
 msgid "Duration"
 msgstr "Durée"
 
@@ -261,29 +261,29 @@ msgid ""
 msgstr ""
 
 #: .\appointment\models.py:121 .\appointment\models.py:273
-#: .\appointment\models.py:422 .\appointment\models.py:548
-#: .\appointment\models.py:640 .\appointment\models.py:896
-#: .\appointment\models.py:944 .\appointment\models.py:999
-#: .\appointment\models.py:1051 .\appointment\models.py:1121
-#: .\appointment\models.py:1147 .\appointment\models.py:1182
+#: .\appointment\models.py:425 .\appointment\models.py:551
+#: .\appointment\models.py:643 .\appointment\models.py:899
+#: .\appointment\models.py:947 .\appointment\models.py:1002
+#: .\appointment\models.py:1054 .\appointment\models.py:1124
+#: .\appointment\models.py:1150 .\appointment\models.py:1200
 msgid "Created At"
 msgstr "Créé le"
 
 #: .\appointment\models.py:122 .\appointment\models.py:274
-#: .\appointment\models.py:423 .\appointment\models.py:553
-#: .\appointment\models.py:641 .\appointment\models.py:897
-#: .\appointment\models.py:945 .\appointment\models.py:1000
-#: .\appointment\models.py:1052 .\appointment\models.py:1122
-#: .\appointment\models.py:1148 .\appointment\models.py:1183
+#: .\appointment\models.py:426 .\appointment\models.py:556
+#: .\appointment\models.py:644 .\appointment\models.py:900
+#: .\appointment\models.py:948 .\appointment\models.py:1003
+#: .\appointment\models.py:1055 .\appointment\models.py:1125
+#: .\appointment\models.py:1151 .\appointment\models.py:1201
 msgid "Updated At"
 msgstr "Mis à jour le"
 
-#: .\appointment\models.py:125 .\appointment\models.py:406
+#: .\appointment\models.py:125 .\appointment\models.py:409
 #: .\appointment\templates\administration\display_appointment.html:54
 #: .\appointment\templates\administration\display_appointment.html:57
 #: .\appointment\templates\appointment\default_thank_you.html:20
 #: .\appointment\templates\email_sender\reminder_email.html:130
-#: .\appointment\views.py:435
+#: .\appointment\views.py:431
 msgid "Service"
 msgstr ""
 
@@ -319,12 +319,12 @@ msgid_plural "%(count)d seconds"
 msgstr[0] "%(count)d seconde"
 msgstr[1] "%(count)d secondes"
 
-#: .\appointment\models.py:198 .\appointment\models.py:749
+#: .\appointment\models.py:198 .\appointment\models.py:752
 msgid "Free"
 msgstr "Gratuit"
 
-#: .\appointment\models.py:226 .\appointment\models.py:991
-#: .\appointment\models.py:1039
+#: .\appointment\models.py:226 .\appointment\models.py:994
+#: .\appointment\models.py:1042
 msgid "User"
 msgstr "Utilisateur"
 
@@ -336,15 +336,15 @@ msgstr "Service proposé"
 msgid "Services that this staff member provides."
 msgstr "Les services que ce membre du personnel propose."
 
-#: .\appointment\models.py:234 .\appointment\models.py:839
+#: .\appointment\models.py:234 .\appointment\models.py:842
 msgid "Slot Duration"
 msgstr "Durée du créneau"
 
-#: .\appointment\models.py:235 .\appointment\models.py:840
+#: .\appointment\models.py:235 .\appointment\models.py:843
 msgid "Minimum time for an appointment in minutes, recommended 30."
 msgstr "Temps minimum pour un rendez-vous en minutes, recommandé 30."
 
-#: .\appointment\models.py:239 .\appointment\models.py:844
+#: .\appointment\models.py:239 .\appointment\models.py:847
 msgid "Lead Time"
 msgstr "Heure de début"
 
@@ -352,7 +352,7 @@ msgstr "Heure de début"
 msgid "Time when the staff member starts working."
 msgstr "L'heure à laquelle le membre du personnel commence à travailler."
 
-#: .\appointment\models.py:244 .\appointment\models.py:849
+#: .\appointment\models.py:244 .\appointment\models.py:852
 msgid "Finish Time"
 msgstr "Heure de fin"
 
@@ -360,7 +360,7 @@ msgstr "Heure de fin"
 msgid "Time when the staff member stops working."
 msgstr "L'heure à laquelle le membre du personnel arrête de travailler."
 
-#: .\appointment\models.py:249 .\appointment\models.py:854
+#: .\appointment\models.py:249 .\appointment\models.py:857
 msgid "Appointment Buffer Time"
 msgstr "Temps tampon de rendez-vous"
 
@@ -379,7 +379,7 @@ msgstr ""
 "temps tampon de rendez-vous à 60 minutes, le premier créneau disponible sera "
 "à 9h30."
 
-#: .\appointment\models.py:257 .\appointment\models.py:890
+#: .\appointment\models.py:257 .\appointment\models.py:893
 msgid "Slot Gap Time"
 msgstr "Temps de repos entre deux créneaux horaires"
 
@@ -387,7 +387,9 @@ msgstr "Temps de repos entre deux créneaux horaires"
 msgid ""
 "Required rest time in minutes between the end of one appointment and the "
 "start of the next. Overrides the global Config setting for this staff member."
-msgstr "Temps incompressible de repos et préparation entre deux rendez-vous. Prioritaire sur la configuration générale pour ce membre du personnel."
+msgstr ""
+"Temps incompressible de repos et préparation entre deux rendez-vous. "
+"Prioritaire sur la configuration générale pour ce membre du personnel."
 
 #: .\appointment\models.py:263
 msgid "Work on Saturday"
@@ -405,9 +407,9 @@ msgstr "Travail le dimanche"
 msgid "Indicates whether this staff member works on Sundays."
 msgstr "Indique si ce membre du personnel travaille le dimanche."
 
-#: .\appointment\models.py:277 .\appointment\models.py:407
-#: .\appointment\models.py:528 .\appointment\models.py:1115
-#: .\appointment\models.py:1141 .\appointment\models.py:1176
+#: .\appointment\models.py:277 .\appointment\models.py:410
+#: .\appointment\models.py:531 .\appointment\models.py:1118
+#: .\appointment\models.py:1144 .\appointment\models.py:1194
 #: .\appointment\templates\administration\manage_day_off.html:32
 #: .\appointment\templates\administration\manage_unavailability.html:43
 #: .\appointment\templates\administration\manage_working_hours.html:42
@@ -430,8 +432,8 @@ msgstr "Samedi et Dimanche"
 msgid "None"
 msgstr "Rien"
 
-#: .\appointment\models.py:397 .\appointment\models.py:515
-#: .\appointment\models.py:1143
+#: .\appointment\models.py:400 .\appointment\models.py:518
+#: .\appointment\models.py:1146
 #: .\appointment\templates\administration\display_appointment.html:37
 #: .\appointment\templates\administration\manage_unavailability.html:50
 #: .\appointment\templates\administration\user_profile.html:166
@@ -441,197 +443,197 @@ msgstr "Rien"
 msgid "Date"
 msgstr ""
 
-#: .\appointment\models.py:397
+#: .\appointment\models.py:400
 msgid "The date of the appointment request."
 msgstr "Date de la demande de rendez-vous."
 
-#: .\appointment\models.py:399 .\appointment\models.py:519
-#: .\appointment\models.py:1144 .\appointment\models.py:1178
+#: .\appointment\models.py:402 .\appointment\models.py:522
+#: .\appointment\models.py:1147 .\appointment\models.py:1196
 msgid "Start Time"
 msgstr "Heure de début"
 
-#: .\appointment\models.py:400
+#: .\appointment\models.py:403
 msgid "The start time of the appointment request."
 msgstr "L'heure de début de la demande de rendez-vous."
 
-#: .\appointment\models.py:403 .\appointment\models.py:523
-#: .\appointment\models.py:1145 .\appointment\models.py:1179
+#: .\appointment\models.py:406 .\appointment\models.py:526
+#: .\appointment\models.py:1148 .\appointment\models.py:1197
 msgid "End Time"
 msgstr "Heure de fin"
 
-#: .\appointment\models.py:404
+#: .\appointment\models.py:407
 msgid "The end time of the appointment request."
 msgstr "L'heure de fin de la demande de rendez-vous."
 
-#: .\appointment\models.py:412
+#: .\appointment\models.py:415
 msgid "Payment Type"
 msgstr "Type de paiement"
 
-#: .\appointment\models.py:414 .\appointment\models.py:543
-#: .\appointment\models.py:637
+#: .\appointment\models.py:417 .\appointment\models.py:546
+#: .\appointment\models.py:640
 msgid "Request ID"
 msgstr "ID de la demande"
 
-#: .\appointment\models.py:417
+#: .\appointment\models.py:420
 msgid "Reschedule Attempts"
 msgstr "Tentatives de reprogrammation"
 
-#: .\appointment\models.py:418
+#: .\appointment\models.py:421
 msgid "Number of times this appointment has been rescheduled."
 msgstr "Nombre de fois que ce rendez-vous a été reprogrammé."
 
-#: .\appointment\models.py:426 .\appointment\models.py:511
-#: .\appointment\models.py:603
+#: .\appointment\models.py:429 .\appointment\models.py:514
+#: .\appointment\models.py:606
 msgid "Appointment Request"
 msgstr "Demande de rendez-vous"
 
-#: .\appointment\models.py:427
+#: .\appointment\models.py:430
 msgid "Appointment Requests"
 msgstr "Demandes de rendez-vous"
 
-#: .\appointment\models.py:440
+#: .\appointment\models.py:443
 msgid "Start time must be before end time"
 msgstr "L'heure de début doit être avant l'heure de fin"
 
-#: .\appointment\models.py:442 .\appointment\models.py:454
+#: .\appointment\models.py:445 .\appointment\models.py:457
 msgid "Start time and end time cannot be the same"
 msgstr "L'heure de début et l'heure de fin ne peuvent pas être les mêmes"
 
-#: .\appointment\models.py:446 .\appointment\models.py:457
-#: .\appointment\models.py:571
+#: .\appointment\models.py:449 .\appointment\models.py:460
+#: .\appointment\models.py:574
 msgid "Date cannot be in the past"
 msgstr "La date ne peut pas être dans le passé"
 
-#: .\appointment\models.py:460
+#: .\appointment\models.py:463
 msgid "Duration cannot exceed the service duration"
 msgstr "La durée ne peut pas dépasser la durée du service"
 
-#: .\appointment\models.py:512
+#: .\appointment\models.py:515
 msgid "The appointment request made by a client."
 msgstr "La demande de rendez-vous faite par un client."
 
-#: .\appointment\models.py:516
+#: .\appointment\models.py:519
 msgid "The previous date of the appointment before it was rescheduled."
 msgstr "La date précédente du rendez-vous avant qu'il ne soit reprogrammé."
 
-#: .\appointment\models.py:520
+#: .\appointment\models.py:523
 msgid "The previous start time of the appointment before it was rescheduled."
 msgstr ""
 "L'heure de début précédente du rendez-vous avant qu'il ne soit reprogrammé."
 
-#: .\appointment\models.py:524
+#: .\appointment\models.py:527
 msgid "The previous end time of the appointment before it was rescheduled."
 msgstr ""
 "L'heure de fin précédente du rendez-vous avant qu'il ne soit reprogrammé."
 
-#: .\appointment\models.py:529
+#: .\appointment\models.py:532
 msgid "The previous staff member of the appointment before it was rescheduled."
 msgstr ""
 "L'ancien membre du personnel du rendez-vous avant qu'il ne soit reprogrammé."
 
-#: .\appointment\models.py:533
+#: .\appointment\models.py:536
 msgid "Reason for Rescheduling"
 msgstr "Raison du Report"
 
-#: .\appointment\models.py:534
+#: .\appointment\models.py:537
 msgid "Reason for the appointment reschedule."
 msgstr "Raison de la reprogrammation du rendez-vous."
 
-#: .\appointment\models.py:538
+#: .\appointment\models.py:541
 msgid "Pending"
 msgstr "En attente"
 
-#: .\appointment\models.py:538
+#: .\appointment\models.py:541
 msgid "Confirmed"
 msgstr "Confirmé"
 
-#: .\appointment\models.py:540
+#: .\appointment\models.py:543
 msgid "Reschedule Status"
 msgstr "Statut du report"
 
-#: .\appointment\models.py:541
+#: .\appointment\models.py:544
 msgid "Indicates the status of the reschedule action."
 msgstr "Indique le statut de l'action de reprogrammation."
 
-#: .\appointment\models.py:549
+#: .\appointment\models.py:552
 msgid "The date and time the reschedule was recorded."
 msgstr "La date et l'heure à laquelle la reprogrammation a été enregistrée."
 
-#: .\appointment\models.py:554
+#: .\appointment\models.py:557
 msgid "The date and time the reschedule was confirmed."
 msgstr "La date et l'heure à laquelle la reprogrammation a été confirmée."
 
-#: .\appointment\models.py:558
+#: .\appointment\models.py:561
 msgid "Appointment Reschedule History"
 msgstr "Historique de reprogrammation de rendez-vous"
 
-#: .\appointment\models.py:559
+#: .\appointment\models.py:562
 msgid "Appointment Reschedule Histories"
 msgstr "Historiques de reprogrammation de rendez-vous"
 
-#: .\appointment\models.py:575
+#: .\appointment\models.py:578
 msgid "The date is not valid"
 msgstr "La date n'est pas valide"
 
-#: .\appointment\models.py:597
+#: .\appointment\models.py:600
 #: .\appointment\templates\administration\display_appointment.html:69
 msgid "Client"
 msgstr ""
 
-#: .\appointment\models.py:598
+#: .\appointment\models.py:601
 msgid "The user who made the appointment request."
 msgstr "L'utilisateur qui a fait la demande de rendez-vous."
 
-#: .\appointment\models.py:604
+#: .\appointment\models.py:607
 msgid "The appointment request made by the client."
 msgstr "La demande de rendez-vous faite par le client."
 
-#: .\appointment\models.py:606
+#: .\appointment\models.py:609
 #: .\appointment\templates\administration\staff_index.html:374
 msgid "Phone Number"
 msgstr "Numéro de téléphone"
 
-#: .\appointment\models.py:611
+#: .\appointment\models.py:614
 msgid "Address"
 msgstr "Adresse"
 
-#: .\appointment\models.py:612
+#: .\appointment\models.py:615
 msgid "Does not have to be specific, just the city and the state"
 msgstr "Peut ne pas forcément être spécifique, juste la ville et l'état"
 
-#: .\appointment\models.py:616
+#: .\appointment\models.py:619
 msgid "Want Reminder"
 msgstr "Rappel souhaité"
 
-#: .\appointment\models.py:617
+#: .\appointment\models.py:620
 msgid "Indicates whether the client wants a reminder for the appointment."
 msgstr "Indique si le client souhaite un rappel pour le rendez-vous."
 
-#: .\appointment\models.py:621
+#: .\appointment\models.py:624
 #: .\appointment\templates\email_sender\admin_new_appointment_email.html:69
 msgid "Additional Info"
 msgstr "Informations supplémentaires"
 
-#: .\appointment\models.py:622
+#: .\appointment\models.py:625
 msgid ""
 "Any additional information the client wants to provide for the appointment."
 msgstr ""
 "Toute information supplémentaire que le client souhaite fournir pour le "
 "rendez-vous."
 
-#: .\appointment\models.py:626
+#: .\appointment\models.py:629
 msgid "Paid"
 msgstr "Payé"
 
-#: .\appointment\models.py:627
+#: .\appointment\models.py:630
 msgid "Indicates whether the appointment has been paid for."
 msgstr "Indique si le rendez-vous a été payé."
 
-#: .\appointment\models.py:633
+#: .\appointment\models.py:636
 msgid "Amount to Pay"
 msgstr "Montant à payer"
 
-#: .\appointment\models.py:634
+#: .\appointment\models.py:637
 msgid ""
 "The amount to be paid for the appointment. If 0, it means the appointment is "
 "free or already paid."
@@ -639,29 +641,29 @@ msgstr ""
 "Le montant à payer pour le rendez-vous. Si 0, cela signifie que le rendez-"
 "vous est gratuit ou déjà payé."
 
-#: .\appointment\models.py:644 .\appointment\models.py:941
+#: .\appointment\models.py:647 .\appointment\models.py:944
 msgid "Appointment"
 msgstr "Rendez-vous"
 
-#: .\appointment\models.py:645
+#: .\appointment\models.py:648
 msgid "Appointments"
 msgstr "Rendez-vous"
 
-#: .\appointment\models.py:738 .\appointment\models.py:756
+#: .\appointment\models.py:741 .\appointment\models.py:759
 msgid "Yes"
 msgstr "Oui"
 
-#: .\appointment\models.py:738 .\appointment\models.py:756
+#: .\appointment\models.py:741 .\appointment\models.py:759
 #: .\appointment\tests\models\test_appointment.py:62
 msgid "No"
 msgstr "Non"
 
-#: .\appointment\models.py:781
+#: .\appointment\models.py:784
 #, python-brace-format
 msgid "{staff_member} does not work on this day."
 msgstr "{staff_member} ne travaille pas ce jour-là."
 
-#: .\appointment\models.py:786
+#: .\appointment\models.py:789
 #, python-brace-format
 msgid ""
 "The appointment start time is outside of {staff_member}'s working hours."
@@ -669,25 +671,25 @@ msgstr ""
 "L'heure de début du rendez-vous est en dehors des heures de travail de "
 "{staff_member}."
 
-#: .\appointment\models.py:797
+#: .\appointment\models.py:800
 #, python-brace-format
 msgid "{staff_member} already has an appointment at this time."
 msgstr "{staff_member} a déjà un rendez-vous à cette heure."
 
-#: .\appointment\models.py:803
+#: .\appointment\models.py:806
 #, python-brace-format
 msgid "{staff_member} has a day off on this date."
 msgstr "{staff_member} a un jour de congé à cette date."
 
-#: .\appointment\models.py:845
+#: .\appointment\models.py:848
 msgid "Time when we start working."
 msgstr "L'heure à laquelle nous commençons à travailler."
 
-#: .\appointment\models.py:850
+#: .\appointment\models.py:853
 msgid "Time when we stop working."
 msgstr "L'heure à laquelle nous arrêtons de travailler."
 
-#: .\appointment\models.py:855
+#: .\appointment\models.py:858
 msgid ""
 "Time between now and the first available slot for the current day (doesn't "
 "affect tomorrow)."
@@ -695,32 +697,32 @@ msgstr ""
 "Temps entre maintenant et le premier créneau disponible pour le jour en "
 "cours (n'affecte pas le lendemain)"
 
-#: .\appointment\models.py:860
+#: .\appointment\models.py:863
 msgid "Website Name"
 msgstr "Nom du Site Web"
 
-#: .\appointment\models.py:861
+#: .\appointment\models.py:864
 msgid "Name of your website."
 msgstr "Nom de votre site web."
 
-#: .\appointment\models.py:865 .\appointment\views.py:205
-#: .\appointment\views.py:523
+#: .\appointment\models.py:868 .\appointment\views.py:199
+#: .\appointment\views.py:519
 msgid "Offered by"
 msgstr "Offert par"
 
-#: .\appointment\models.py:866
+#: .\appointment\models.py:869
 msgid "`Offered by` Label"
 msgstr "Étiquette `Offert par`"
 
-#: .\appointment\models.py:867
+#: .\appointment\models.py:870
 msgid "Label for `Offered by` on the appointment page"
 msgstr "Étiquette pour `Offert par` sur la page de rendez-vous"
 
-#: .\appointment\models.py:871
+#: .\appointment\models.py:874
 msgid "Default Reschedule Limit"
 msgstr "Limite de reprogrammation par défaut"
 
-#: .\appointment\models.py:872
+#: .\appointment\models.py:875
 msgid ""
 "Default maximum number of times an appointment can be rescheduled across all "
 "services."
@@ -728,23 +730,23 @@ msgstr ""
 "Nombre maximum par défaut de fois qu'un rendez-vous peut être reprogrammé "
 "pour tous les services."
 
-#: .\appointment\models.py:876
+#: .\appointment\models.py:879
 msgid "Allow Staff Change on Reschedule"
 msgstr ""
 "Permettre le changement de membre du personnel lors de la reprogrammation"
 
-#: .\appointment\models.py:877
+#: .\appointment\models.py:880
 msgid ""
 "Allows clients to change the staff member when rescheduling an appointment."
 msgstr ""
 "Permet aux clients de changer le membre du personnel lors de la "
 "reprogrammation du rendez-vous."
 
-#: .\appointment\models.py:881
+#: .\appointment\models.py:884
 msgid "Default to Service Duration"
 msgstr ""
 
-#: .\appointment\models.py:883
+#: .\appointment\models.py:886
 msgid ""
 "When enabled, all services automatically use their own duration when "
 "checking slot availability, preventing overlaps for longer services. When "
@@ -752,142 +754,142 @@ msgid ""
 "is respected instead."
 msgstr ""
 
-#: .\appointment\models.py:891
+#: .\appointment\models.py:894
 msgid ""
 "Required rest time in minutes between the end of one appointment and the "
 "start of the next. Applies to all staff members unless overridden per staff "
 "member."
 msgstr ""
 
-#: .\appointment\models.py:900
+#: .\appointment\models.py:903
 msgid "Config"
 msgstr ""
 
-#: .\appointment\models.py:901
+#: .\appointment\models.py:904
 msgid "Configs"
 msgstr ""
 
-#: .\appointment\models.py:906
+#: .\appointment\models.py:909
 msgid "You can only create one Config object"
 msgstr "Vous ne pouvez créer qu'un seul objet Config"
 
-#: .\appointment\models.py:909
+#: .\appointment\models.py:912
 msgid "Lead time must be before finish time"
 msgstr "L'heure de début doit être antérieur à l'heure de fin."
 
-#: .\appointment\models.py:911
+#: .\appointment\models.py:914
 msgid "Appointment buffer time cannot be negative"
 msgstr "Le temps de pause entre deux rendez-vous ne peut pas être négatif."
 
-#: .\appointment\models.py:913
+#: .\appointment\models.py:916
 msgid "Slot duration must be greater than 0"
 msgstr "La durée du créneau doit être supérieure à 0."
 
-#: .\appointment\models.py:948
+#: .\appointment\models.py:951
 msgid "Payment Info"
 msgstr "Infos de paiement"
 
-#: .\appointment\models.py:949
+#: .\appointment\models.py:952
 msgid "Payment Infos"
 msgstr "Détails du paiement"
 
-#: .\appointment\models.py:994
+#: .\appointment\models.py:997
 msgid "Verification Code"
 msgstr "Code de vérification"
 
-#: .\appointment\models.py:995
+#: .\appointment\models.py:998
 msgid "The verification code sent to the user's email."
 msgstr "Le code de vérification envoyé à l'email de l'utilisateur."
 
-#: .\appointment\models.py:1003
+#: .\appointment\models.py:1006
 msgid "Email Verification Code"
 msgstr "Email de vérification du code"
 
-#: .\appointment\models.py:1004
+#: .\appointment\models.py:1007
 msgid "Email Verification Codes"
 msgstr "Emails de vérification du code"
 
-#: .\appointment\models.py:1031
+#: .\appointment\models.py:1034
 msgid "Active"
 msgstr "Action"
 
-#: .\appointment\models.py:1032
+#: .\appointment\models.py:1035
 msgid "Verified"
 msgstr "Vérifié"
 
-#: .\appointment\models.py:1033
+#: .\appointment\models.py:1036
 msgid "Invalidated"
 msgstr "Invalidé"
 
-#: .\appointment\models.py:1041
+#: .\appointment\models.py:1044
 msgid "Token"
 msgstr "Jeton"
 
-#: .\appointment\models.py:1042
+#: .\appointment\models.py:1045
 msgid "Expires At"
 msgstr "Expire le"
 
-#: .\appointment\models.py:1047
+#: .\appointment\models.py:1050
 msgid "Status"
 msgstr "Statut"
 
-#: .\appointment\models.py:1055
+#: .\appointment\models.py:1058
 msgid "Password Reset Token"
 msgstr "Jeton de réinitialisation du mot de passe"
 
-#: .\appointment\models.py:1056
+#: .\appointment\models.py:1059
 msgid "Password Reset Tokens"
 msgstr "Jetons de réinitialisation du mot de passe"
 
-#: .\appointment\models.py:1116
+#: .\appointment\models.py:1119
 msgid "Start Date"
 msgstr "Date de début"
 
-#: .\appointment\models.py:1117
+#: .\appointment\models.py:1120
 msgid "End Date"
 msgstr "Date de fin"
 
-#: .\appointment\models.py:1125
+#: .\appointment\models.py:1128
 msgid "Day Off"
 msgstr "Jour de congé"
 
-#: .\appointment\models.py:1126
+#: .\appointment\models.py:1129
 #: .\appointment\templates\administration\user_profile.html:88
 msgid "Days Off"
 msgstr "Jours de congé"
 
-#: .\appointment\models.py:1135
+#: .\appointment\models.py:1138
 msgid "Start date must be before end date"
 msgstr "La date de début doit être antérieure à la date de fin."
 
-#: .\appointment\models.py:1151
+#: .\appointment\models.py:1154
 msgid "Unavailability"
 msgstr "Indisponibilité"
 
-#: .\appointment\models.py:1152
+#: .\appointment\models.py:1155
 #: .\appointment\templates\administration\user_profile.html:154
 msgid "Unavailabilities"
 msgstr "Indisponibilités"
 
-#: .\appointment\models.py:1167
+#: .\appointment\models.py:1170
 msgid "Start datetime must be before end datetime"
 msgstr ""
 "La date et l'heure de début doit être antérieure à la date et l'heure de fin."
 
-#: .\appointment\models.py:1169
+#: .\appointment\models.py:1172
 msgid "Cannot create unavailabilities for past dates"
 msgstr "Il n'est pas permis de créer une indisponibilité dans le passé."
 
-#: .\appointment\models.py:1177
+#: .\appointment\models.py:1195
 #: .\appointment\templates\administration\manage_working_hours.html:48
 msgid "Day of Week"
 msgstr "Jour de la semaine"
 
-#: .\appointment\models.py:1186
+#: .\appointment\models.py:1204
 msgid "Working Hour"
 msgstr "Heures de travail"
 
-#: .\appointment\models.py:1187
+#: .\appointment\models.py:1205
 #: .\appointment\templates\administration\user_profile.html:222
 msgid "Working Hours"
 msgstr "Heures de travail"
@@ -1000,34 +1002,34 @@ msgstr "Les heures de travail n'existent pas."
 msgid "Working hours saved successfully."
 msgstr "Heures de travail enregistrées avec succès."
 
-#: .\appointment\services.py:530 .\appointment\tests\test_services.py:1002
+#: .\appointment\services.py:534 .\appointment\tests\test_services.py:1002
 msgid "Pay Now"
 msgstr "Payer maintenant"
 
-#: .\appointment\services.py:531
+#: .\appointment\services.py:535
 #: .\appointment\templates\appointment\appointment_client_information.html:125
 #: .\appointment\templates\appointment\appointment_client_information.html:131
 #: .\appointment\tests\test_services.py:997
 msgid "Finish"
 msgstr "Terminer"
 
-#: .\appointment\services.py:567 .\appointment\tests\test_services.py:789
+#: .\appointment\services.py:572 .\appointment\tests\test_services.py:789
 msgid "Empty fields are not allowed."
 msgstr "Les champs vides ne sont pas autorisés."
 
-#: .\appointment\services.py:575 .\appointment\tests\test_services.py:782
+#: .\appointment\services.py:580 .\appointment\tests\test_services.py:782
 msgid "User not found."
 msgstr "Utilisateur non trouvé."
 
-#: .\appointment\services.py:609
+#: .\appointment\services.py:614
 msgid "A user with this email already exists."
 msgstr "Un utilisateur avec cet email existe déjà."
 
-#: .\appointment\services.py:637
+#: .\appointment\services.py:642
 msgid "Service saved successfully."
 msgstr "Service enregistré avec succès."
 
-#: .\appointment\services.py:703 .\appointment\tests\test_views.py:534
+#: .\appointment\services.py:708 .\appointment\tests\test_views.py:534
 msgid "You can only update your own appointments."
 msgstr "Vous ne pouvez mettre à jour que vos propres rendez-vous."
 
@@ -1136,7 +1138,6 @@ msgstr ""
 
 #: .\appointment\templates\administration\email_change_verification_code.html:25
 #: .\appointment\templates\administration\manage_day_off.html:69
-#: .\appointment\templates\administration\manage_unavailability.html:113
 #: .\appointment\templates\appointment\enter_verification_code.html:24
 #: .\appointment\templates\modal\event_details_modal.html:27
 msgid "Submit"
@@ -1190,7 +1191,7 @@ msgstr "Gestion des indisponibilités"
 #: .\appointment\templates\administration\manage_unavailability.html:180
 #: .\appointment\templates\administration\manage_working_hours.html:151
 #: .\appointment\templates\administration\staff_index.html:330
-#: .\appointment\templates\modal\error_modal.html:7 .\appointment\views.py:463
+#: .\appointment\templates\modal\error_modal.html:7 .\appointment\views.py:459
 msgid "Error"
 msgstr "Erreur"
 
@@ -1392,9 +1393,8 @@ msgstr ""
 "réservent pas ces jours-là."
 
 #: .\appointment\templates\administration\user_profile.html:125
-#: .\appointment\templates\administration\user_profile.html:259
-msgid "Are you sure you want to delete this working hours?"
-msgstr "Êtes-vous sûr de vouloir supprimer ces heures de travail ?"
+msgid "Are you sure you want to delete this day off?"
+msgstr "Êtes-vous sûr de vouloir supprimer ce jour de congé ?"
 
 #: .\appointment\templates\administration\user_profile.html:144
 msgid "No days off have been set"
@@ -1404,7 +1404,10 @@ msgstr "Aucun jour de congé n'a été défini"
 msgid ""
 "Unavailabilities are periods when you're not available on a specific day. "
 "Use them to block time slots you don't want to make available."
-msgstr "Les indisponibilités sont des intervalles de temps durant lesquelles vous êtes indisponible pour un jour en particulier. Elles servent principalement à bloquer un ou plusieurs créneaux horaire à votre convenance."
+msgstr ""
+"Les indisponibilités sont des intervalles de temps durant lesquelles vous "
+"êtes indisponible pour un jour en particulier. Elles servent principalement "
+"à bloquer un ou plusieurs créneaux horaire à votre convenance."
 
 #: .\appointment\templates\administration\user_profile.html:193
 msgid "Are you sure you want to delete this unavailability?"
@@ -1421,6 +1424,10 @@ msgid ""
 msgstr ""
 "Remarque : Si vous êtes un membre du personnel, vos heures de travail seront "
 "utilisées pour déterminer quand vous êtes disponible pour les rendez-vous."
+
+#: .\appointment\templates\administration\user_profile.html:259
+msgid "Are you sure you want to delete this working hours?"
+msgstr "Êtes-vous sûr de vouloir supprimer ces heures de travail ?"
 
 #: .\appointment\templates\administration\user_profile.html:278
 msgid "No working hours have been set"
@@ -1596,12 +1603,12 @@ msgstr ""
 
 #: .\appointment\templates\appointment\default_thank_you.html:21
 #: .\appointment\templates\email_sender\admin_new_appointment_email.html:64
-#: .\appointment\views.py:436
+#: .\appointment\views.py:432
 msgid "Appointment Date"
 msgstr "Date du rendez-vous"
 
 #: .\appointment\templates\appointment\default_thank_you.html:22
-#: .\appointment\views.py:437
+#: .\appointment\views.py:433
 msgid "Appointment Time"
 msgstr "Heure du rendez-vous"
 
@@ -1994,8 +2001,8 @@ msgstr "Modifier"
 msgid "Service matching query does not exist"
 msgstr "Le service correspondant à la requête n'existe pas"
 
-#: .\appointment\tests\test_views.py:162 .\appointment\views.py:385
-#: .\appointment\views.py:409
+#: .\appointment\tests\test_views.py:162 .\appointment\views.py:381
+#: .\appointment\views.py:405
 msgid "Invalid verification code."
 msgstr "Code de vérification invalide."
 
@@ -2028,21 +2035,21 @@ msgstr "Aucun service proposé par ce membre du personnel."
 msgid "Service deleted successfully!"
 msgstr "Service supprimé avec succès!"
 
-#: .\appointment\tests\test_views.py:928 .\appointment\views.py:484
+#: .\appointment\tests\test_views.py:928 .\appointment\views.py:480
 msgid "Password reset successfully."
 msgstr "Réinitialisation du mot de passe réussie."
 
-#: .\appointment\tests\test_views.py:989 .\appointment\views.py:169
-#: .\appointment\views.py:179
+#: .\appointment\tests\test_views.py:989 .\appointment\views.py:163
+#: .\appointment\views.py:173
 msgid "No staff member selected"
 msgstr "Aucun membre du personnel sélectionné"
 
-#: .\appointment\tests\test_views.py:1000 .\appointment\views.py:176
+#: .\appointment\tests\test_views.py:1000 .\appointment\views.py:170
 msgid "Successfully retrieved non-working days"
 msgstr "Récupération réussie des jours non travaillés"
 
-#: .\appointment\tests\test_views.py:1155 .\appointment\views.py:279
-#: .\appointment\views.py:589
+#: .\appointment\tests\test_views.py:1155 .\appointment\views.py:275
+#: .\appointment\views.py:585
 msgid ""
 "There was an error in your submission. Please check the form and try again."
 msgstr ""
@@ -2191,73 +2198,77 @@ msgstr "Jour de congé. Veuillez sélectionner une autre date!"
 #, python-brace-format
 msgid "Not a working day for {staff_member}. Please select another date!"
 msgstr ""
-"Pas un jour de travail pour {staff_member}. Veuillez sélectionner une autre "
+"{staff_member} ne travaille pas ce jour-là. Veuillez sélectionner une autre "
 "date!"
 
-#: .\appointment\views.py:116
+#: .\appointment\views.py:117
 msgid "No availability"
-msgstr "Aucune disponibilité"
+msgstr "Jour complet."
 
-#: .\appointment\views.py:164
+#: .\appointment\views.py:154
 msgid "Successfully retrieved next available date"
 msgstr "Récupération réussie de la prochaine date disponible"
 
-#: .\appointment\views.py:222
+#: .\appointment\views.py:159
+msgid "No availability in the next 90 days for this staff member"
+msgstr "Aucune disponibilité durant les 3 prochains mois."
+
+#: .\appointment\views.py:218
 #, python-brace-format
 msgid "Book an appointment for {s} at {wn}."
 msgstr "Réserver un rendez-vous pour {s} à {wn}."
 
-#: .\appointment\views.py:265
+#: .\appointment\views.py:261
 msgid "Selected staff member does not exist."
-msgstr "Le membre du personnel sélectionné n'existe pas."
+msgstr "Le membre du personnel sélectionné n'existe pas ou plus."
 
-#: .\appointment\views.py:382
+#: .\appointment\views.py:378
 msgid "Email verified successfully."
 msgstr "Email vérifié avec succès."
 
-#: .\appointment\views.py:441
+#: .\appointment\views.py:437
 msgid "Email address"
 msgstr "Adresse e-mail"
 
-#: .\appointment\views.py:444
+#: .\appointment\views.py:440
 msgid "Username"
 msgstr "Nom d'utilisateur"
 
-#: .\appointment\views.py:465
+#: .\appointment\views.py:461
 msgid "Please try resetting your password again or contact support for help."
 msgstr ""
 "Veuillez essayer de réinitialiser votre mot de passe à nouveau ou contacter "
 "le support pour obtenir de l'aide."
 
-#: .\appointment\views.py:489
+#: .\appointment\views.py:485
 msgid "Password Reset Successful"
 msgstr "Réinitialisation du mot de passe réussie"
 
-#: .\appointment\views.py:491
+#: .\appointment\views.py:487
 msgid "You can now use your new password to log in."
 msgstr ""
 "Vous pouvez maintenant utiliser votre nouveau mot de passe pour vous "
 "connecter."
 
-#: .\appointment\views.py:530
+#: .\appointment\views.py:526
 #, python-brace-format
 msgid "Rescheduling appointment for {s}"
 msgstr "Report de rendez-vous pour {s}"
 
-#: .\appointment\views.py:531
+#: .\appointment\views.py:527
 #, python-brace-format
 msgid "Reschedule your appointment for {s} at {wn}."
 msgstr "Reportez votre rendez-vous pour {s} à {wn}."
 
-#: .\appointment\views.py:581 .\appointment\views.py:630
+#: .\appointment\views.py:577 .\appointment\views.py:626
 msgid "Appointment rescheduled successfully"
 msgstr "Rendez-vous reporté avec succès"
 
-#: .\appointment\views.py:600
+#: .\appointment\views.py:596
 msgid "O-o-oh! This link is no longer valid."
 msgstr "O-o-oh ! Ce lien n'est plus valide."
 
-#: .\appointment\views.py:601
+#: .\appointment\views.py:597
 msgid "O-o-oh! Can't find the pending reschedule request."
 msgstr "O-o-oh ! Impossible de trouver la demande de report en attente."
 
