@@ -87,6 +87,7 @@ def get_available_slots_ajax(request):
     if days_off_exist:
         message = _("Day off. Please select another date!")
         custom_data['available_slots'] = []
+        custom_data['no_availability'] = True
         custom_data['date_iso'] = selected_date.isoformat()
         return json_response(message=message, custom_data=custom_data, success=False, error_code=ErrorCode.INVALID_DATE)
     # if selected_date is not a working day for the staff, return an empty list of slots and 'message' is Day Off
@@ -98,6 +99,7 @@ def get_available_slots_ajax(request):
         message = _("Not a working day for {staff_member}. Please select another date!").format(
                 staff_member=sm.get_staff_member_first_name())
         custom_data['available_slots'] = []
+        custom_data['no_availability'] = True
         custom_data['date_iso'] = selected_date.isoformat()
         return json_response(message=message, custom_data=custom_data, success=False, error_code=ErrorCode.INVALID_DATE)
     service = slot_form.cleaned_data.get('service_id')
@@ -113,6 +115,7 @@ def get_available_slots_ajax(request):
     if len(available_slots) == 0:
         custom_data['error'] = True
         custom_data['date_iso'] = selected_date.isoformat()
+        custom_data['no_availability'] = True
         message = _('No availability')
         return json_response(message=message, custom_data=custom_data, success=False, error_code=ErrorCode.INVALID_DATE)
     custom_data['error'] = False

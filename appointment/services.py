@@ -24,9 +24,9 @@ from appointment.utils.date_time import (
 from appointment.utils.db_helpers import (
     Appointment, AppointmentRequest, EmailVerificationCode, Service, StaffMember, Unavailability, WorkingHours, calculate_slots,
     calculate_staff_slots, check_day_off_for_staff, create_and_save_appointment, create_new_user,
-    day_off_exists_for_date_range, exclude_booked_slots, exclude_pending_reschedules, get_all_appointments,
+    day_off_exists_for_date_range, exclude_unavailable_slots, exclude_pending_reschedules, get_all_appointments,
     get_all_staff_members,
-    get_appointment_by_id, get_appointments_for_date_and_time, get_config, get_staff_member_appointment_list,
+    get_appointment_by_id, get_appointments_for_date_and_time, get_unavailabilities_for_date_and_time, get_config, get_staff_member_appointment_list,
     get_staff_member_from_user_id_or_logged_in, get_staff_member_slot_gap_time, get_times_from_config,
     get_user_by_email, get_weekday_num_from_date, get_working_hours_for_staff_and_day, parse_name,
     update_appointment_reminder, working_hours_exist)
@@ -457,11 +457,12 @@ def save_appt_date_time(appt_start_time, appt_date, appt_id, request):
     return appt
 
 
-def get_available_slots(date, appointments):
+def get_available_slots(date, appointments, unavailabilities=None):
     """Calculate the available time slots for a given date and a list of appointments.
 
     :param date: The date for which to calculate the available slot
     :param appointments: A list of Appointment objects
+    :param unavailabilities: A list of Unavailability objects
     :return: A list of available time slots as strings in a localized format
     """
 
@@ -469,7 +470,8 @@ def get_available_slots(date, appointments):
     now = timezone.now()
     buffer_time = now + buff_time if date == now.date() else now
     slots = calculate_slots(start_time, end_time, buffer_time, slot_duration)
-    slots = exclude_booked_slots(appointments, slots, slot_duration)
+    #TODO_unavailabilities ?
+    slots = exclude_unavailable_slots(slots, appointments=appointments, slot_duration=slot_duration)
     return [localize(slot.time()) for slot in slots]
 
 
@@ -515,7 +517,9 @@ def get_available_slots_for_staff(date, staff_member, day_of_week: int, service=
     slots = exclude_pending_reschedules(slots, staff_member, date)
     appointments = get_appointments_for_date_and_time(date, working_hours_dict['start_time'],
                                                       working_hours_dict['end_time'], staff_member)
-    return exclude_booked_slots(appointments, slots, slot_duration,
+    unavailabilities = get_unavailabilities_for_date_and_time(date, working_hours_dict['start_time'],
+                                                      working_hours_dict['end_time'], staff_member)
+    return exclude_unavailable_slots(slots, appointments=appointments, unavailabilities=unavailabilities, slot_duration=slot_duration,
                                 service_duration=service_duration, gap_time=gap_time or None)
 
 
@@ -531,7 +535,7 @@ def get_finish_button_text(service) -> str:
     return _("Finish")
 
 
-def get_appointments_and_slots(date_, service=None):
+def get_appointments_and_slots(date_, service=None, unavailabilities=None):
     """
     Get appointments and available slots for a given date and service.
 
@@ -540,6 +544,7 @@ def get_appointments_and_slots(date_, service=None):
 
     :param date_: datetime.date, the date for which to retrieve appointments and available slots
     :param service: Service, the service for which to retrieve appointments
+    :param unavailabilities: List, a list of Unavailability Objects
     :return: tuple, a tuple containing two elements:
         - A queryset of appointments for the given date and service (if provided).
         - A list of available time slots on the given date, excluding booked appointments.
@@ -549,7 +554,7 @@ def get_appointments_and_slots(date_, service=None):
                                                   appointment_request__date=date_)
     else:
         appointments = Appointment.objects.filter(appointment_request__date=date_)
-    available_slots = get_available_slots(date_, appointments)
+    available_slots = get_available_slots(date_, appointments, unavailabilities)
     return appointments, available_slots
 
 

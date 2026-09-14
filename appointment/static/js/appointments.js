@@ -37,27 +37,10 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
     },
     selectable: true,
     dateClick: function (info) {
-        const day = info.date.getDay();  // Get the day of the week (0 for Sunday, 6 for Saturday)
-        if (nonWorkingDays.includes(day)) {
-            return;
-        }
-
-        // If there's a previously selected cell, remove the class
-        if (previouslySelectedCell) {
-            previouslySelectedCell.classList.remove('selected-cell');
-        }
-
-        // Add the class to the currently clicked cell
-        info.dayEl.classList.add('selected-cell');
-
-        // Store the currently clicked cell
-        previouslySelectedCell = info.dayEl;
-
-        selectedDate = info.dateStr;
-        getAvailableSlots(info.dateStr, staffId);
+        selectDate(info.date, info.dayEl);
     },
     datesSet: function (info) {
-        highlightSelectedDate();
+        highlightSelectedDate(info.dayEl);
     },
     selectAllow: function (info) {
         const day = info.start.getDay();  // Get the day of the week (0 for Sunday, 6 for Saturday)
@@ -82,14 +65,51 @@ $(document).ready(function () {
     getAvailableSlots(currentDate, staffId);
 });
 
-function highlightSelectedDate() {
-    setTimeout(function () {
-        const dateCell = document.querySelector(`.fc-daygrid-day[data-date='${selectedDate}']`);
-        if (dateCell) {
-            dateCell.classList.add('selected-cell');
-            previouslySelectedCell = dateCell;
-        }
-    }, 10);
+/*  Handle logic of selected cell, when a date is selected, and fetch available slots
+    date : the selected date
+    dayEl : the day element in the calendar
+*/
+function selectDate(date, dayEl = null) {
+    const day = date.getDay();
+
+    if (nonWorkingDays.includes(day)) {
+        return;
+    }
+
+    if (previouslySelectedCell) {
+        previouslySelectedCell.classList.remove('selected-cell');
+    }
+
+    if (dayEl) {
+        dayEl.classList.add('selected-cell');
+        previouslySelectedCell = dayEl;
+    }
+
+    selectedDate = moment(date).format('YYYY-MM-DD');
+    getAvailableSlots(selectedDate, staffId);
+}
+
+//  Handle highlighting current selected day
+function highlightSelectedDate(dayEl) {
+    if (dayEl) {
+        dayEl.classList.add('selected-cell');
+        previouslySelectedCell = dayEl;
+    }
+}
+
+/*  Allow to progammatically select another date.
+    Used if redirect is enabled in ajax request availableSlotsAjaxURL @dateToJump if. */
+function jumpToDate(dateStr) {
+    calendar.gotoDate(dateStr);
+
+    const dayEl = document.querySelector(
+        `.fc-daygrid-day[data-date="${dateStr}"]`
+    );
+
+    const date = new Date(dateStr + 'T00:00:00');
+
+    selectDate(date, dayEl);
+    highlightSelectedDate(dayEl);
 }
 
 body.on('click', '.djangoAppt_btn-request-next-slot', function () {
@@ -273,8 +293,8 @@ function getAvailableSlots(selectedDate, staffId = null) {
                     if (errorMessageContainer.find('.djangoAppt_no-availability-text').length === 0) {
                         errorMessageContainer.append(`<p class="djangoAppt_no-availability-text">${data.message}</p>`);
                     }
-                    // Check if the returned message is 'No availability'
-                    if (data.message.toLowerCase() === 'no availability') {
+                    // Check if there is no available slots
+                    if (data.no_availability) {
                         if (slotContainer.find('.djangoAppt_btn-request-next-slot').length === 0) {
                             slotContainer.append(`<button class="btn btn-danger djangoAppt_btn-request-next-slot" data-service-id="${serviceId}">` + requestNonAvailableSlotBtnTxt + `</button>`);
                         }
@@ -337,6 +357,7 @@ function requestNextAvailableSlot(serviceId) {
         success: function (data) {
             // If there's an error, just log it and return
             let nextAvailableDateResponse = null;
+            let dateToJump = null;
             let formattedDate = null;
             if (data.error) {
                 nextAvailableDateResponse = data.message;
@@ -344,6 +365,7 @@ function requestNextAvailableSlot(serviceId) {
                 // Set the date in the calendar to the next available date
                 nextAvailableDateResponse = data.next_available_date;
                 const selectedDateObj = moment.tz(nextAvailableDateResponse, timezone);
+                dateToJump = selectedDateObj;
                 const nextAvailableDate = selectedDateObj.toDate()
                 formattedDate = new Intl.DateTimeFormat(locale, {
                     year: 'numeric',
@@ -368,6 +390,12 @@ function requestNextAvailableSlot(serviceId) {
                 const nextDateText = `<p class="djangoAppt_next-available-date">${nextAvailableDateText}</p>`;
                 $('.djangoAppt_btn-request-next-slot').after(nextDateText);
             }
+
+            // Make the calendar select to next available date.
+            // if(dateToJump) {
+            //     //console.log('Jump to next available day : date :', dateToJump)
+            //     jumpToDate(dateToJump.format('YYYY-MM-DD'))
+            // }
         }
     });
 }
