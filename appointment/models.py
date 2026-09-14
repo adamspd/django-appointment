@@ -1171,6 +1171,21 @@ class Unavailability(models.Model):
             if self.date < datetime.datetime.today():
                 raise ValidationError(_("Cannot create unavailabilities for past dates"))
 
+    def get_date(self):
+        return self.date
+
+    def get_start_time(self):
+        return self.start_time
+
+    def get_end_time(self):
+            return self.end_time
+
+    def get_start_datetime(self):
+        return datetime.datetime.combine(self.get_date(), self.get_start_time())
+
+    def get_end_datetime(self):
+        return datetime.datetime.combine(self.get_date(), self.get_end_time())
+
     def is_owner(self, user_id):
             return self.staff_member.user.id == user_id
 
