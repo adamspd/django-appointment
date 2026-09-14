@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: django-appointment 3.9.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-14 17:42+0200\n"
+"POT-Creation-Date: 2026-09-14 22:23+0200\n"
 "PO-Revision-Date: 2025-08-13 13:19+0200\n"
 "Last-Translator: Adams Pierre David <django-appt@adamspierredavid.com>\n"
 "Language-Team: French <django-appt@adamspierredavid.com>\n"
@@ -140,7 +140,7 @@ msgstr ""
 
 #: .\appointment\messages_.py:24 .\appointment\tests\test_views.py:945
 #: .\appointment\tests\test_views.py:956 .\appointment\tests\test_views.py:966
-#: .\appointment\views.py:498
+#: .\appointment\views.py:500
 msgid "The password reset link is invalid or has expired."
 msgstr "Le lien de réinitialisation du mot de passe est invalide ou a expiré."
 
@@ -205,7 +205,7 @@ msgstr ""
 #: .\appointment\templates\administration\service_list.html:29
 #: .\appointment\templates\administration\user_profile.html:301
 #: .\appointment\templates\appointment\default_thank_you.html:23
-#: .\appointment\views.py:434
+#: .\appointment\views.py:436
 msgid "Duration"
 msgstr "Durée"
 
@@ -283,7 +283,7 @@ msgstr "Mis à jour le"
 #: .\appointment\templates\administration\display_appointment.html:57
 #: .\appointment\templates\appointment\default_thank_you.html:20
 #: .\appointment\templates\email_sender\reminder_email.html:130
-#: .\appointment\views.py:431
+#: .\appointment\views.py:433
 msgid "Service"
 msgstr ""
 
@@ -705,8 +705,8 @@ msgstr "Nom du Site Web"
 msgid "Name of your website."
 msgstr "Nom de votre site web."
 
-#: .\appointment\models.py:868 .\appointment\views.py:199
-#: .\appointment\views.py:519
+#: .\appointment\models.py:868 .\appointment\views.py:201
+#: .\appointment\views.py:521
 msgid "Offered by"
 msgstr "Offert par"
 
@@ -894,12 +894,12 @@ msgstr "Heures de travail"
 msgid "Working Hours"
 msgstr "Heures de travail"
 
-#: .\appointment\services.py:69 .\appointment\tests\test_services.py:164
+#: .\appointment\services.py:69 .\appointment\tests\test_services.py:165
 #: .\appointment\views_admin.py:402
 msgid "Appointment does not exist."
 msgstr "Le rendez-vous n'existe pas."
 
-#: .\appointment\services.py:73 .\appointment\tests\test_services.py:172
+#: .\appointment\services.py:73 .\appointment\tests\test_services.py:173
 msgid "You are not authorized to view this appointment."
 msgstr "Vous n'êtes pas autorisé à consulter ce rendez-vous."
 
@@ -1002,34 +1002,34 @@ msgstr "Les heures de travail n'existent pas."
 msgid "Working hours saved successfully."
 msgstr "Heures de travail enregistrées avec succès."
 
-#: .\appointment\services.py:534 .\appointment\tests\test_services.py:1002
+#: .\appointment\services.py:533 .\appointment\tests\test_services.py:1068
 msgid "Pay Now"
 msgstr "Payer maintenant"
 
-#: .\appointment\services.py:535
+#: .\appointment\services.py:534
 #: .\appointment\templates\appointment\appointment_client_information.html:125
 #: .\appointment\templates\appointment\appointment_client_information.html:131
-#: .\appointment\tests\test_services.py:997
+#: .\appointment\tests\test_services.py:1063
 msgid "Finish"
 msgstr "Terminer"
 
-#: .\appointment\services.py:572 .\appointment\tests\test_services.py:789
+#: .\appointment\services.py:571 .\appointment\tests\test_services.py:855
 msgid "Empty fields are not allowed."
 msgstr "Les champs vides ne sont pas autorisés."
 
-#: .\appointment\services.py:580 .\appointment\tests\test_services.py:782
+#: .\appointment\services.py:579 .\appointment\tests\test_services.py:848
 msgid "User not found."
 msgstr "Utilisateur non trouvé."
 
-#: .\appointment\services.py:614
+#: .\appointment\services.py:613
 msgid "A user with this email already exists."
 msgstr "Un utilisateur avec cet email existe déjà."
 
-#: .\appointment\services.py:642
+#: .\appointment\services.py:641
 msgid "Service saved successfully."
 msgstr "Service enregistré avec succès."
 
-#: .\appointment\services.py:708 .\appointment\tests\test_views.py:534
+#: .\appointment\services.py:707 .\appointment\tests\test_views.py:534
 msgid "You can only update your own appointments."
 msgstr "Vous ne pouvez mettre à jour que vos propres rendez-vous."
 
@@ -1157,6 +1157,14 @@ msgstr "Date de début"
 msgid "End date"
 msgstr "Date de fin"
 
+#: .\appointment\templates\administration\manage_day_off.html:102
+#: .\appointment\templates\administration\manage_unavailability.html:180
+#: .\appointment\templates\administration\manage_working_hours.html:151
+#: .\appointment\templates\administration\staff_index.html:330
+#: .\appointment\templates\modal\error_modal.html:7 .\appointment\views.py:461
+msgid "Error"
+msgstr "Erreur"
+
 #: .\appointment\templates\administration\manage_staff_member.html:13
 msgid "Staff Appointment Information"
 msgstr "Informations sur les rendez-vous du personnel"
@@ -1187,13 +1195,6 @@ msgstr "Informations personnelles du personnel"
 #: .\appointment\templates\administration\manage_unavailability.html:24
 msgid "Manage Unavailabilities"
 msgstr "Gestion des indisponibilités"
-
-#: .\appointment\templates\administration\manage_unavailability.html:180
-#: .\appointment\templates\administration\manage_working_hours.html:151
-#: .\appointment\templates\administration\staff_index.html:330
-#: .\appointment\templates\modal\error_modal.html:7 .\appointment\views.py:459
-msgid "Error"
-msgstr "Erreur"
 
 #: .\appointment\templates\administration\manage_working_hours.html:24
 msgid "Manage Working Hours"
@@ -1603,12 +1604,12 @@ msgstr ""
 
 #: .\appointment\templates\appointment\default_thank_you.html:21
 #: .\appointment\templates\email_sender\admin_new_appointment_email.html:64
-#: .\appointment\views.py:432
+#: .\appointment\views.py:434
 msgid "Appointment Date"
 msgstr "Date du rendez-vous"
 
 #: .\appointment\templates\appointment\default_thank_you.html:22
-#: .\appointment\views.py:433
+#: .\appointment\views.py:435
 msgid "Appointment Time"
 msgstr "Heure du rendez-vous"
 
@@ -1997,12 +1998,12 @@ msgstr "Annuler"
 msgid "Edit"
 msgstr "Modifier"
 
-#: .\appointment\tests\test_services.py:989
+#: .\appointment\tests\test_services.py:1055
 msgid "Service matching query does not exist"
 msgstr "Le service correspondant à la requête n'existe pas"
 
-#: .\appointment\tests\test_views.py:162 .\appointment\views.py:381
-#: .\appointment\views.py:405
+#: .\appointment\tests\test_views.py:162 .\appointment\views.py:383
+#: .\appointment\views.py:407
 msgid "Invalid verification code."
 msgstr "Code de vérification invalide."
 
@@ -2035,21 +2036,21 @@ msgstr "Aucun service proposé par ce membre du personnel."
 msgid "Service deleted successfully!"
 msgstr "Service supprimé avec succès!"
 
-#: .\appointment\tests\test_views.py:928 .\appointment\views.py:480
+#: .\appointment\tests\test_views.py:928 .\appointment\views.py:482
 msgid "Password reset successfully."
 msgstr "Réinitialisation du mot de passe réussie."
 
-#: .\appointment\tests\test_views.py:989 .\appointment\views.py:163
-#: .\appointment\views.py:173
+#: .\appointment\tests\test_views.py:989 .\appointment\views.py:165
+#: .\appointment\views.py:175
 msgid "No staff member selected"
 msgstr "Aucun membre du personnel sélectionné"
 
-#: .\appointment\tests\test_views.py:1000 .\appointment\views.py:170
+#: .\appointment\tests\test_views.py:1000 .\appointment\views.py:172
 msgid "Successfully retrieved non-working days"
 msgstr "Récupération réussie des jours non travaillés"
 
-#: .\appointment\tests\test_views.py:1155 .\appointment\views.py:275
-#: .\appointment\views.py:585
+#: .\appointment\tests\test_views.py:1155 .\appointment\views.py:277
+#: .\appointment\views.py:587
 msgid ""
 "There was an error in your submission. Please check the form and try again."
 msgstr ""
@@ -2194,81 +2195,81 @@ msgstr "Un compte a été créé pour vous."
 msgid "Day off. Please select another date!"
 msgstr "Jour de congé. Veuillez sélectionner une autre date!"
 
-#: .\appointment\views.py:98
+#: .\appointment\views.py:99
 #, python-brace-format
 msgid "Not a working day for {staff_member}. Please select another date!"
 msgstr ""
 "{staff_member} ne travaille pas ce jour-là. Veuillez sélectionner une autre "
 "date!"
 
-#: .\appointment\views.py:117
+#: .\appointment\views.py:119
 msgid "No availability"
 msgstr "Jour complet."
 
-#: .\appointment\views.py:154
+#: .\appointment\views.py:156
 msgid "Successfully retrieved next available date"
 msgstr "Récupération réussie de la prochaine date disponible"
 
-#: .\appointment\views.py:159
+#: .\appointment\views.py:161
 msgid "No availability in the next 90 days for this staff member"
 msgstr "Aucune disponibilité durant les 3 prochains mois."
 
-#: .\appointment\views.py:218
+#: .\appointment\views.py:220
 #, python-brace-format
 msgid "Book an appointment for {s} at {wn}."
 msgstr "Réserver un rendez-vous pour {s} à {wn}."
 
-#: .\appointment\views.py:261
+#: .\appointment\views.py:263
 msgid "Selected staff member does not exist."
 msgstr "Le membre du personnel sélectionné n'existe pas ou plus."
 
-#: .\appointment\views.py:378
+#: .\appointment\views.py:380
 msgid "Email verified successfully."
 msgstr "Email vérifié avec succès."
 
-#: .\appointment\views.py:437
+#: .\appointment\views.py:439
 msgid "Email address"
 msgstr "Adresse e-mail"
 
-#: .\appointment\views.py:440
+#: .\appointment\views.py:442
 msgid "Username"
 msgstr "Nom d'utilisateur"
 
-#: .\appointment\views.py:461
+#: .\appointment\views.py:463
 msgid "Please try resetting your password again or contact support for help."
 msgstr ""
 "Veuillez essayer de réinitialiser votre mot de passe à nouveau ou contacter "
 "le support pour obtenir de l'aide."
 
-#: .\appointment\views.py:485
+#: .\appointment\views.py:487
 msgid "Password Reset Successful"
 msgstr "Réinitialisation du mot de passe réussie"
 
-#: .\appointment\views.py:487
+#: .\appointment\views.py:489
 msgid "You can now use your new password to log in."
 msgstr ""
 "Vous pouvez maintenant utiliser votre nouveau mot de passe pour vous "
 "connecter."
 
-#: .\appointment\views.py:526
+#: .\appointment\views.py:528
 #, python-brace-format
 msgid "Rescheduling appointment for {s}"
 msgstr "Report de rendez-vous pour {s}"
 
-#: .\appointment\views.py:527
+#: .\appointment\views.py:529
 #, python-brace-format
 msgid "Reschedule your appointment for {s} at {wn}."
 msgstr "Reportez votre rendez-vous pour {s} à {wn}."
 
-#: .\appointment\views.py:577 .\appointment\views.py:626
+#: .\appointment\views.py:579 .\appointment\views.py:628
 msgid "Appointment rescheduled successfully"
 msgstr "Rendez-vous reporté avec succès"
 
-#: .\appointment\views.py:596
+#: .\appointment\views.py:598
 msgid "O-o-oh! This link is no longer valid."
 msgstr "O-o-oh ! Ce lien n'est plus valide."
 
-#: .\appointment\views.py:597
+#: .\appointment\views.py:599
 msgid "O-o-oh! Can't find the pending reschedule request."
 msgstr "O-o-oh ! Impossible de trouver la demande de report en attente."
 
