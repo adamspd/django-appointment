@@ -457,7 +457,7 @@ def save_appt_date_time(appt_start_time, appt_date, appt_id, request):
     return appt
 
 
-def get_available_slots(date, appointments, unavailabilities=None):
+def get_available_slots(date, appointments, unavailabilities=[]):
     """Calculate the available time slots for a given date and a list of appointments.
 
     :param date: The date for which to calculate the available slot
@@ -470,8 +470,7 @@ def get_available_slots(date, appointments, unavailabilities=None):
     now = timezone.now()
     buffer_time = now + buff_time if date == now.date() else now
     slots = calculate_slots(start_time, end_time, buffer_time, slot_duration)
-    #TODO_unavailabilities ?
-    slots = exclude_unavailable_slots(slots, appointments=appointments, slot_duration=slot_duration)
+    slots = exclude_unavailable_slots(slots, appointments=appointments, unavailabilities=unavailabilities, slot_duration=slot_duration)
     return [localize(slot.time()) for slot in slots]
 
 
@@ -535,7 +534,7 @@ def get_finish_button_text(service) -> str:
     return _("Finish")
 
 
-def get_appointments_and_slots(date_, service=None, unavailabilities=None):
+def get_appointments_and_slots(date_, service=None, unavailabilities=[]):
     """
     Get appointments and available slots for a given date and service.
 

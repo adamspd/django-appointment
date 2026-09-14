@@ -362,7 +362,7 @@ def create_payment_info_and_get_url(appointment):
     return payment_url
 
 
-def exclude_unavailable_slots(slots, appointments=None, unavailabilities=None, slot_duration=None, service_duration=None, gap_time=None):
+def exclude_unavailable_slots(slots, appointments=[], unavailabilities=[], slot_duration=None, service_duration=None, gap_time=None):
     """Exclude the booked slots from the given list of slots.
 
     :param slots: The slots to exclude the appointments from.
