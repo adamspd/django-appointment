@@ -1,12 +1,12 @@
 Django==5.2.16
 Pillow==12.3.0
-phonenumbers==9.0.37
+phonenumbers==9.0.39
 django-phonenumber-field==8.5.0
 babel==2.18.0
 setuptools==84.0.0
 requests~=2.34.2
 python-dotenv==1.2.2
 colorama~=0.4.6
-django-q2==1.10.0
-icalendar~=7.2.2
+django-q2==1.11.1
+icalendar~=7.3.0
 django-recurrence==1.14
