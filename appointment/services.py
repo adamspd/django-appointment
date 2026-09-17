@@ -512,7 +512,7 @@ def get_available_slots_for_staff(date, staff_member, day_of_week: int, service=
 
     gap_time = get_staff_member_slot_gap_time(staff_member, date)
 
-    slots = calculate_staff_slots(date, staff_member)
+    slots = calculate_staff_slots(date, staff_member, service_duration)
     slots = exclude_pending_reschedules(slots, staff_member, date)
     appointments = get_appointments_for_date_and_time(date, working_hours_dict['start_time'],
                                                       working_hours_dict['end_time'], staff_member)
