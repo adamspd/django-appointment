@@ -55,9 +55,9 @@ def has_required_email_settings():
     return True
 
 
-def render_email_template(template_url, context, request = None):
+def render_email_template(template_url, context, request=None):
     if template_url:
-        return loader.render_to_string(template_url, context, request = request)
+        return loader.render_to_string(template_url, context, request=request)
     return ""
 
 
@@ -189,7 +189,8 @@ def schedule_email_sending(
         send_at: Optional[datetime] = None,
         name: Optional[str] = None,
         repeat: Optional[str] = None,
-        repeat_until: Optional[datetime] = None
+        repeat_until: Optional[datetime] = None,
+        request=None
 ) -> Tuple[bool, str]:
     if not has_required_email_settings():
         return False, "Email settings are not configured."
@@ -218,7 +219,7 @@ def schedule_email_sending(
         return success, message
 
     from_email = from_email or APP_DEFAULT_FROM_EMAIL
-    html_message = render_email_template(template_url, context)
+    html_message = render_email_template(template_url, context, request)
 
     schedule_type = getattr(Schedule, validated_repeat or 'ONCE')
 
@@ -236,11 +237,11 @@ def schedule_email_sending(
 
 
 def notify_admin(subject: str, template_url: str = None, context: dict = None, message: str = None,
-                 recipient_email: str = None, attachments=None):
+                 recipient_email: str = None, attachments=None, request=None):
     if not has_required_email_settings():
         return
 
-    html_message = render_email_template(template_url, context)
+    html_message = render_email_template(template_url, context, request)
 
     recipients = [recipient_email] if recipient_email else [email for name, email in settings.ADMINS]
 
