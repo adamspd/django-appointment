@@ -261,7 +261,7 @@ def notify_admin_about_appointment(appointment, client_name: str):
     logger.info(f"Notifications sent for appointment {appointment.id}")
 
 
-def send_verification_email(user, email: str, request = None):
+def send_verification_email(user, email: str, request=None):
     """
     Send an email with a verification code to the user for email verification.
 
