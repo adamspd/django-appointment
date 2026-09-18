@@ -11,7 +11,7 @@ from django.core.cache import cache
 from django.test import Client, override_settings
 from django.test.client import RequestFactory
 from django.utils import timezone
-from django.utils.translation import gettext as _, gettext_lazy as _
+from django.utils.translation import gettext as _
 
 from appointment.forms import StaffDaysOffForm
 from appointment.services import (
