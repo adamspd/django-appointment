@@ -54,50 +54,57 @@ EmailVerificationCode = apps.get_model('appointment', 'EmailVerificationCode')
 AppointmentRescheduleHistory = apps.get_model('appointment', 'AppointmentRescheduleHistory')
 
 
-def calculate_slots(start_time, end_time, buffer_time, slot_duration):
+def calculate_slots(start_time, end_time, buffer_time, slot_duration, service_duration = None):
     """Calculate the available slots between the given start and end times using the given buffer time and slot duration
 
     :param start_time: The start time.
     :param end_time: The end time.
     :param buffer_time: The buffer time.
     :param slot_duration: The duration of each slot.
+    :param service_duration: The service duration.
     :return: A list of available slots.
     """
     slots = []
+
     buffer_time = buffer_time.replace(tzinfo=None)
-    while start_time + slot_duration <= end_time:
+    if service_duration:
+        # Subtract the service duration from end_time to prevent slots from extending past closing time.
+        end_time -= max(slot_duration, service_duration)
+    else:
+        # (do not propose end_time as valid slot)
+        end_time -= slot_duration
+
+    while start_time <= end_time:
         if start_time >= buffer_time:
             slots.append(start_time)
         start_time += slot_duration
     return slots
 
 
-def calculate_staff_slots(date, staff_member):
+def calculate_staff_slots(date, staff_member, service_duration = None):
     """Calculate the available slots for the given staff member on the given date.
 
     :param date: The date to calculate the slots for.
     :param staff_member: The staff member to calculate the slots for.
+    :param service_duration: The duration of the service used to generate available time slots.
     :return: A list of available slots.
     """
-    # Convert the times to datetime objects
     weekday_num = get_weekday_num_from_date(date)
     if not is_working_day(staff_member, weekday_num):
         return []
-    staff_member_start_time = get_staff_member_start_time(staff_member, date)
-    start_time = datetime.datetime.combine(date, staff_member_start_time)
+
+    start_time = datetime.datetime.combine(date, get_staff_member_start_time(staff_member, date))
     end_time = datetime.datetime.combine(date, get_staff_member_end_time(staff_member, date))
 
-    # Convert the buffer duration in minutes to a timedelta object
-    buffer_duration_minutes = get_staff_member_buffer_time(staff_member, date)
-    buffer_duration = datetime.timedelta(minutes=buffer_duration_minutes)
-    buffer_time_init = datetime.datetime.combine(date, staff_member_start_time)
-    buffer_time = buffer_time_init + buffer_duration
+    # Rolling window: no appointment may start before now + buffer, whatever the day.
+    # Working hours are naive local wall-clock times, so compare against local time.
+    buffer_duration = datetime.timedelta(minutes=get_staff_member_buffer_time(staff_member, date))
+    earliest_start = timezone.localtime().replace(tzinfo=None) + buffer_duration
+    buffer_time = max(start_time, earliest_start)
 
-    # Convert slot duration to a timedelta object
-    slot_duration_minutes = get_staff_member_slot_duration(staff_member, date)
-    slot_duration = datetime.timedelta(minutes=slot_duration_minutes)
+    slot_duration = datetime.timedelta(minutes=get_staff_member_slot_duration(staff_member, date))
 
-    return calculate_slots(start_time, end_time, buffer_time, slot_duration)
+    return calculate_slots(start_time, end_time, buffer_time, slot_duration, service_duration)
 
 
 def check_day_off_for_staff(staff_member, date) -> bool:
@@ -576,9 +583,12 @@ def get_weekday_num_from_date(date: datetime.date = None) -> int:
 
 def get_staff_member_buffer_time(staff_member: StaffMember, date: datetime.date) -> float:
     """Return the buffer time for the given staff member on the given date."""
+    # fetch staff buffer time first and fallback to global if needed
+    if staff_member.appointment_buffer_time is not None:
+        return float(staff_member.appointment_buffer_time)
+
     _, _, _, buff_time = get_times_from_config(date)
-    buffer_minutes = buff_time.total_seconds() / 60
-    return staff_member.appointment_buffer_time or buffer_minutes
+    return buff_time.total_seconds() / 60
 
 
 def get_staff_member_by_user_id(user_id):
