@@ -1,4 +1,4 @@
-# Django Appointment 📦: `json_and_context_ops.py`
+# `json_and_context_ops.py`
 
 This module provides utility functions to handle JSON operations and context-related operations for the Django
 appointment system.
