@@ -122,42 +122,103 @@ class TestCalculateStaffSlots(BaseTest):
         super().setUp()
         self.slot_duration = datetime.timedelta(minutes=30)
         # Not working today but tomorrow
-        self.date_not_working = datetime.date.today()
-        self.working_date = datetime.date.today() + datetime.timedelta(days=3)
-        weekday_num = get_weekday_num_from_date(self.working_date)
-        self.wh = WorkingHours.objects.create(
+        self.date_not_working = datetime.date(2026, 9, 18)
+        self.working_date1 = self.date_not_working + datetime.timedelta(days=1)
+        self.working_date2 = self.date_not_working + datetime.timedelta(days=2)
+        weekday_num1 = get_weekday_num_from_date(self.working_date1)
+        weekday_num2 = get_weekday_num_from_date(self.working_date2)
+        self.wh1 = WorkingHours.objects.create(
                 staff_member=self.staff_member1,
-                day_of_week=weekday_num,
+                day_of_week=weekday_num1,
                 start_time=datetime.time(9, 0),
                 end_time=datetime.time(17, 0)
         )
-        self.staff_member1.appointment_buffer_time = 25.0
+        self.wh2 = WorkingHours.objects.create(
+                staff_member=self.staff_member1,
+                day_of_week=weekday_num2,
+                start_time=datetime.time(9, 0),
+                end_time=datetime.time(17, 0)
+        )
+        self.staff_member1.appointment_buffer_time = 2880 # 48h buffer time
 
     @override_settings(DEBUG=True)
     def tearDown(self):
-        self.wh.delete()
+        self.wh1.delete()
+        self.wh2.delete()
         if Config.objects.exists():
             Config.objects.all().delete()
         cache.clear()
         super().tearDown()
 
-    def test_calculate_slots_on_working_day_without_appointments(self):
-        slots = calculate_staff_slots(self.working_date, self.staff_member1)
-        # Slot duration is 30 minutes, so 8 working hours minus 25-minute buffer, divided by slot duration
-        expected_number_of_slots = int((8 * 60 - 25) / 30)
+    def test_calculate_slots_on_working_day_within_buffer_time(self):
+        slots = calculate_staff_slots(self.working_date1, self.staff_member1)
+        # Buffertime is 48 Hours
+        # We are checking for "tomorrow" so only 24h in the future. We should not have any slot available.
+        self.assertEqual(len(slots), 0)
+
+    @patch("appointment.utils.db_helpers.timezone.localtime")
+    def test_calculate_slots_on_working_day_without_appointments(self, mock_localtime):
+        """Test that buffer time works beyond the first day """
+        mock_localtime.return_value = datetime.datetime(2026, 9, 18, 9, 0) # set localtime 2026-9-18 @ 9:00 AM
+
+        self.staff_member1.appointment_buffer_time += 25.0 # we add 25min as buffer to test if the first slot is removed as expected
+        slots = calculate_staff_slots(self.working_date2, self.staff_member1) # checking slot for 2026-9-20
+        # First slot is excluded due to 25min buffer time.
+        expected_slots = [
+            datetime.time(9, 30),
+            datetime.time(10, 0),
+            datetime.time(10, 30),
+            datetime.time(11, 0),
+            datetime.time(11, 30),
+            datetime.time(12, 0),
+            datetime.time(12, 30),
+            datetime.time(13, 0),
+            datetime.time(13, 30),
+            datetime.time(14, 0),
+            datetime.time(14, 30),
+            datetime.time(15, 0),
+            datetime.time(15, 30),
+            datetime.time(16, 0),
+            datetime.time(16, 30),
+        ]
+        self.assertEqual([slot.time() for slot in slots], expected_slots)
         # 15 slots should be available instead of 16 because of the 25-minute buffer
-        self.assertEqual(len(slots), expected_number_of_slots)
+
+    @patch("appointment.utils.db_helpers.timezone.localtime")
+    def test_calculate_slots_on_working_day_without_appointments_with_service_duration(self, mock_localtime):
+        """Test that buffer time and service duration works together"""
+        mock_localtime.return_value = datetime.datetime(2026, 9, 18, 9, 0) # set localtime 2026-9-18 @ 9:00 AM
+
+        self.staff_member1.appointment_buffer_time += 25.0 # we add 25 min as buffer to test if the first slot is removed as expected
+        service_duration = datetime.timedelta(minutes=90) # we had a service of 1h30.
+        slots = calculate_staff_slots(self.working_date2, self.staff_member1, service_duration) # checking slot for 2026-9-20
+        # First slot is excluded due to 25 min buffer time, and last slot is 3:30 PM because of the 90 min service duration and end working time 5 PM
+        expected_slots = [
+            datetime.time(9, 30),
+            datetime.time(10, 0),
+            datetime.time(10, 30),
+            datetime.time(11, 0),
+            datetime.time(11, 30),
+            datetime.time(12, 0),
+            datetime.time(12, 30),
+            datetime.time(13, 0),
+            datetime.time(13, 30),
+            datetime.time(14, 0),
+            datetime.time(14, 30),
+            datetime.time(15, 0),
+            datetime.time(15, 30),
+        ]
+        self.assertEqual([slot.time() for slot in slots], expected_slots)
 
         # Asserting the first slot starts at 9:30 AM because of the 25-minute buffer
         self.assertEqual(slots[0].time(), datetime.time(9, 30))
 
-        # Asserting the last slot starts before the end time minus slot duration (16:30)
-        self.assertTrue((datetime.datetime.combine(self.working_date, slots[-1].time()) +
-                         self.slot_duration).time() <= datetime.time(17, 0))
+        # Asserting the last slot starts at 3:30 PM because of the 90 min service duration and end working time 5 PM
+        self.assertEqual(slots[-1].time(),datetime.time(15, 30))
 
     def test_calculate_slots_on_non_working_day(self):
         """Test that no slots are returned on a day the staff member is not working."""
-        slots = calculate_staff_slots(self.date_not_working, self.staff_member1)
+        slots = calculate_staff_slots(self.date_not_working, self.staff_member1, )
         self.assertEqual(slots, [])
 
 
