@@ -8,8 +8,14 @@ After completing the initial setup steps - making migrations, migrating, running
 
 ### Adding a Service
 
-Your first step is to add a service. Navigate to the admin page and add a service at:
-https://mysuperwebsite.com/app-admin/add-service/
+Your first step is to add a service. Navigate to the admin page and add a service at
+`/app-admin/add-service/`, under the prefix you mounted the package on. With the
+`path('appointment/', include('appointment.urls'))` used in the
+[installation guide](getting-started.md#installation), that is:
+
+```
+https://mysuperwebsite.com/appointment/app-admin/add-service/
+```
 
 ![Creating Service](screenshots/creating_service.png)
 
