@@ -7,6 +7,7 @@ Since: 2.0.0
 """
 
 import datetime
+import warnings
 
 from django.utils import timezone
 from django.utils.formats import get_format
@@ -74,6 +75,72 @@ def combine_date_and_time(date, time) -> datetime.datetime:
     :return: A datetime object.
     """
     return datetime.datetime.combine(date, time)
+
+
+def convert_12_hour_time_to_24_hour_time(time_to_convert) -> str:
+    """Convert a 12-hour time to a 24-hour time.
+
+    .. deprecated:: 3.11.0
+        Times are now formatted through Django's localization framework.
+        This helper is no longer used internally and will be removed in 4.0.0.
+
+    :param time_to_convert: The time to convert.
+    :return: The converted time.
+    :raises ValueError: If the input time is not in the correct format or is invalid.
+    """
+    warnings.warn(
+        "convert_12_hour_time_to_24_hour_time() is deprecated and will be removed in 4.0.0. "
+        "Use Django's localization instead (django.utils.formats.time_format, or the "
+        "`time` template filter).",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    if isinstance(time_to_convert, (datetime.datetime, datetime.time)):
+        return time_to_convert.strftime('%H:%M:%S')
+    elif isinstance(time_to_convert, str):
+        try:
+            time_str = time_to_convert.strip().upper()
+            return datetime.datetime.strptime(time_str, '%I:%M %p').strftime('%H:%M:%S')
+        except ValueError:
+            raise ValueError(f"Invalid 12-hour time format: {time_to_convert}")
+    else:
+        raise ValueError(f"Unsupported data type for time conversion: {type(time_to_convert)}")
+
+
+def convert_24_hour_time_to_12_hour_time(time_to_convert) -> str:
+    """Convert a 24-hour time to a 12-hour time.
+
+    .. deprecated:: 3.11.0
+        Times are now formatted through Django's localization framework.
+        This helper is no longer used internally and will be removed in 4.0.0.
+
+    :param time_to_convert: The time to convert in 'HH:MM' or 'HH:MM:SS' format, or a datetime.time object.
+    :return: The converted time in 'HH:MM AM/PM' or 'HH:MM:SS AM/PM' format.
+    :raises ValueError: If the input time is not in the correct format or is invalid.
+    """
+    warnings.warn(
+        "convert_24_hour_time_to_12_hour_time() is deprecated and will be removed in 4.0.0. "
+        "Use Django's localization instead (django.utils.formats.time_format, or the "
+        "`time` template filter).",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    # Handle datetime.time object directly
+    if isinstance(time_to_convert, datetime.time):
+        return time_to_convert.strftime('%I:%M %p')
+
+    # Handle string input
+    for source_fmt, dest_fmt in zip(['%H:%M:%S', '%H:%M'], ['%I:%M:%S %p', '%I:%M %p']):
+        try:
+            # Parse the input string according to the 24-hour format
+            parsed_time = datetime.datetime.strptime(time_to_convert, source_fmt)
+            # Convert and return the time in 12-hour format
+            return parsed_time.strftime(dest_fmt)
+        except ValueError:
+            continue  # Try the next format if there was a parsing error
+
+    # If input was not datetime.time and did not match string formats, raise an error
+    raise ValueError(f"Invalid 24-hour time format: {time_to_convert}")
 
 
 def convert_ap_str_time_to_12_hour_str_time(time_str: str) -> str:
