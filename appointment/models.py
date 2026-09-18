@@ -21,6 +21,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _, ngettext
 from phonenumber_field.modelfields import PhoneNumberField
 
+from appointment.compat import check_constraint
 from appointment.utils.date_time import convert_minutes_in_human_readable_format, get_timestamp, get_weekday_num, \
     time_difference
 from appointment.utils.view_helpers import generate_random_id, get_locale
@@ -639,8 +640,8 @@ class Appointment(models.Model):
             models.Index(fields=['client', '-created_at']),
         ]
         constraints = [
-            models.CheckConstraint(
-                check=models.Q(amount_to_pay__gte=0),
+            check_constraint(
+                condition=models.Q(amount_to_pay__gte=0),
                 name='positive_amount_to_pay'
             )
         ]
@@ -1145,8 +1146,8 @@ class WorkingHours(models.Model):
         ordering = ['day_of_week', 'start_time']
         unique_together = ['staff_member', 'day_of_week']
         constraints = [
-            models.CheckConstraint(
-                check=models.Q(start_time__lt=models.F('end_time')),
+            check_constraint(
+                condition=models.Q(start_time__lt=models.F('end_time')),
                 name='start_time_before_end_time'
             )
         ]
