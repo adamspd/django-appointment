@@ -18,6 +18,10 @@ system.
 
 ## Time Conversion:
 
+- **convert_12_hour_time_to_24_hour_time**: Convert a 12-hour time format to a 24-hour time format. *Deprecated since
+  3.11.0, removed in 4.0.0 — times are now formatted through Django's localization framework.*
+- **convert_24_hour_time_to_12_hour_time**: Convert a 24-hour time format to a 12-hour time format. *Deprecated since
+  3.11.0, removed in 4.0.0 — times are now formatted through Django's localization framework.*
 - **convert_minutes_in_human_readable_format**: Convert minutes to a human-readable format.
 - **convert_str_to_date**: Convert a string representation of a date to a Python `date` object.
 - **convert_str_to_time**: Convert a string representation of time to a Python `time` object.
