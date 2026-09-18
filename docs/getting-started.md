@@ -57,8 +57,13 @@ Django-Appointment is a flexible Django app for managing appointment scheduling.
       'bulk': 10,
       'orm': 'default',
    }
+
+   # Optional: also send every other email through the cluster, not just the reminders.
    USE_DJANGO_Q_FOR_EMAILS = True
    ```
+
+   Reminders only need `django_q` installed and a running cluster. `USE_DJANGO_Q_FOR_EMAILS` is separate: it moves
+   the confirmation, verification and reschedule emails off the request cycle too.
 
 For more configuration options, refer to [the configuration reference](configuration.md).
 

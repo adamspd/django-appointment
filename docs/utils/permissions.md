@@ -1,4 +1,4 @@
-# `permissions_handler.py`
+# `permissions.py`
 
 This module provides utility functions to handle user permissions and ownership checks for the Django appointment system.
 
@@ -28,3 +28,6 @@ This module provides utility functions to handle user permissions and ownership 
 
 - **check_permissions(staff_user_id, user)**:
   - Determines if a user has permissions to add based on the provided staff_user_id.
+
+- **has_permission_to_delete_appointment(user, appointment)**:
+  - Determines if a user may delete an appointment: superusers may delete any, staff members only their own.

@@ -5,17 +5,19 @@ to schedule an appointment for a service.
 
 ## Model Structure
 
-The application has nine (9) models:
+The application has eleven (11) models:
 
 1. [Service](models.md#service)
-2. [StaffMember](models.md#staffmember) 🆕
+2. [StaffMember](models.md#staffmember)
 3. [AppointmentRequest](models.md#appointmentrequest)
-4. [Appointment](models.md#appointment)
-5. [Config](models.md#config)
-6. [PaymentInfo](models.md#paymentinfo)
-7. [EmailVerificationCode](models.md#emailverificationcode)
-8. [DayOff](models.md#dayoff) 🆕
-9. [WorkingHours](models.md#workinghours) 🆕
+4. [AppointmentRescheduleHistory](models.md#appointmentreschedulehistory)
+5. [Appointment](models.md#appointment)
+6. [Config](models.md#config)
+7. [PaymentInfo](models.md#paymentinfo)
+8. [EmailVerificationCode](models.md#emailverificationcode)
+9. [PasswordResetToken](models.md#passwordresettoken)
+10. [DayOff](models.md#dayoff)
+11. [WorkingHours](models.md#workinghours)
 
 ## Service
 
@@ -24,7 +26,7 @@ image representing the service.
 It also handles the currency and down payment information.
 [More details here](models.md#service).
 
-## StaffMember 🆕
+## StaffMember
 
 This model is linked to a user and represents a staff member who offers services. It contains information about the
 services offered, working hours, and availability on weekends.
@@ -40,6 +42,14 @@ The appointment request is used to create the appointment. An appointment is con
 that, and since we don't want to overload the appointment model, we use the appointment request to store all
 the information about the appointment.
 [More details here](models.md#appointmentrequest).
+
+## Appointment Reschedule History
+
+Records each time a client asks to move an appointment. It keeps the date, time and staff member the appointment had
+*before* the change, along with the reason given and whether the reschedule is still `pending` or has been
+`confirmed`. This is what lets the confirmation email show "from" and "to" times, and what enforces the per-service
+reschedule limit.
+[More details here](models.md#appointmentreschedulehistory).
 
 ## Appointment
 
@@ -70,15 +80,21 @@ in the database.
 Or when the user wants to change their email address.
 The model includes a class method to generate a new verification code for a user.
 
-## DayOff 🆕
+## PasswordResetToken
+
+A single-use, expiring token that lets a newly created client — or a newly created staff member — set their password
+from a link sent by email. Creating a new token invalidates the user's previous ones, so only the latest link works.
+[More details here](models.md#passwordresettoken).
+
+## DayOff
 
 The DayOff model is used to represent a day off for a staff member.
-It includes the date and the staff member associated with the day off.
+It includes the start date, the end date, an optional description, and the staff member associated with the day off.
 
-## WorkingHours 🆕
+## WorkingHours
 
-The WorkingHours model is used to represent the working hours for a staff member.
-It includes the start and end times, and the staff member associated with the working hours.
+The WorkingHours model is used to represent the working hours for a staff member on a given day of the week.
+It includes the day of the week, the start and end times, and the staff member associated with the working hours.
 
 ---
 

@@ -77,6 +77,9 @@ and [here](https://github.com/adamspd/django-appointment/tree/main/docs/release_
    - ICS file attachment for calendar synchronization.
 7. Integration with Django Q for efficient task scheduling and email sending.
 8. **Custom Templates Support**: You can easily override the default HTML pages and email templates with your own custom designs. See [Custom Templates Documentation](https://github.com/adamspd/django-appointment/blob/main/CUSTOM_TEMPLATES.md) for full details.
+9. Slot availability that accounts for the real duration of a service, plus a configurable rest time between
+   appointments (globally or per staff member).
+10. Automatic cleanup of abandoned appointment requests, with a `cleanup_appointment_requests` management command.
 
 ## Key features introduced in previous versions.
 
@@ -85,8 +88,9 @@ and [here](https://github.com/adamspd/django-appointment/tree/main/docs/release_
 
 ## Added Features and Bug Fixes in version 3.x.x
 
-See the [release notes](https://github.com/adamspd/django-appointment/releases/tag/v3.8.0).
-For older version,
+See the [release notes for the current 3.10 series](https://django-appt-doc.adamspierredavid.com/release_notes/latest/),
+or the [GitHub releases page](https://github.com/adamspd/django-appointment/releases).
+For older versions,
 see their [release notes](https://github.com/adamspd/django-appointment/tree/main/docs/release_notes).
 
 ## Quick Start 🚀
@@ -283,11 +287,12 @@ Django-Appointment includes built-in support for multiple languages with localiz
 
 **Currently supported languages:**
 - English (en) - Default
-- French (fr) - Complete translation
+- French (fr) - Maintained by the project
+- Spanish (es) - Contributed by @alexandermamaniy (maintainers welcome!)
 
 **Features:**
-- 🗣️ UI translations for 2 languages (more welcome!)
-- 📅 Localized date formats for 35+ languages
+- 🗣️ UI translations for 3 languages (more welcome!)
+- 📅 Localized date formats for 35+ (39 to be exact as of Sept 2026) languages
 - 🌐 Automatic language detection
 - 📝 RTL language support
 
@@ -296,7 +301,7 @@ Django-Appointment includes built-in support for multiple languages with localiz
 # settings.py
 USE_I18N = True
 USE_L10N = True
-LANGUAGES = [('en', 'English'), ('fr', 'French')]
+LANGUAGES = [('en', 'English'), ('fr', 'French'), ('es', 'Spanish')]
 ```
 
 **Want to add your language or translate database content?**
