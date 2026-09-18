@@ -21,7 +21,7 @@ from django.utils import timezone
 from appointment.logger_config import get_logger
 from appointment.settings import (
     APPOINTMENT_BUFFER_TIME, APPOINTMENT_FINISH_TIME, APPOINTMENT_LEAD_TIME, APPOINTMENT_PAYMENT_URL,
-    APPOINTMENT_SLOT_DURATION, APPOINTMENT_WEBSITE_NAME
+    APPOINTMENT_SLOT_DURATION, APPOINTMENT_WEBSITE_NAME, CONFIG_CACHE_KEY
 )
 from appointment.utils.date_time import combine_date_and_time, get_weekday_num
 
@@ -535,11 +535,12 @@ def get_appointments_for_date_and_time(date, start_time, end_time, staff_member)
 
 def get_config():
     """Returns the configuration object from the database or the cache."""
-    config = cache.get('config')
+    config = cache.get(CONFIG_CACHE_KEY)
     if not config:
         config = Config.objects.first()
-        # Cache the configuration for 1 hour (3600 seconds)
-        cache.set('config', config, 3600)
+        # Cache the configuration for 1 hour (3600 seconds); it is invalidated on
+        # save and delete by the receiver in models.py.
+        cache.set(CONFIG_CACHE_KEY, config, 3600)
     return config
 
 
