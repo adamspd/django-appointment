@@ -106,7 +106,7 @@ def get_available_slots_ajax(request):
 
     # Check if the selected_date is today and filter out past slots
     if selected_date == date.today():
-        current_time = timezone.now().time()
+        current_time = timezone.localtime().time()
         available_slots = [slot for slot in available_slots if slot.time() > current_time]
 
     custom_data['available_slots'] = [slot.strftime('%I:%M %p') for slot in available_slots]
