@@ -17,7 +17,7 @@ from django.contrib.auth.models import AnonymousUser
 
 from appointment.logger_config import get_logger
 from appointment.models import Config, DayOff, PaymentInfo
-from appointment.settings import check_q_cluster
+from appointment.settings import CONFIG_CACHE_KEY, check_q_cluster
 from appointment.tests.base.base_test import BaseTest
 from appointment.tests.mixins.base_mixin import ConfigMixin
 from appointment.utils.db_helpers import (
@@ -948,13 +948,33 @@ class TestGetConfig(TestCase):
     def test_config_in_cache(self):
         """Test when there's a Config object in the cache."""
         db_config = Config.objects.create(finish_time='17:00:00')
-        cache.set('config', db_config)
+        cache.set(CONFIG_CACHE_KEY, db_config)
 
-        # Clear the database to ensure it won't be accessed
+        # Served from the cache: the database is not queried at all. Emptying the
+        # table to prove that no longer works, as deleting now clears the cache too.
+        with self.assertNumQueries(0):
+            config = get_config()
+        self.assertEqual(config, db_config)
+
+    def test_saving_config_invalidates_the_cache(self):
+        """An edit must be visible at once, not when the hour-long entry expires."""
+        Config.objects.create(finish_time='17:00:00', slot_duration=30)
+        self.assertEqual(get_config().slot_duration, 30)
+
+        config = Config.objects.first()
+        config.slot_duration = 45
+        config.save()
+
+        self.assertEqual(get_config().slot_duration, 45)
+
+    def test_deleting_config_invalidates_the_cache(self):
+        """Deleting the Config must not leave the old one being served."""
+        Config.objects.create(finish_time='17:00:00', slot_duration=30)
+        self.assertIsNotNone(get_config())
+
         Config.objects.all().delete()
 
-        config = get_config()
-        self.assertEqual(config, db_config)
+        self.assertIsNone(get_config())
 
 
 class TestGetDayOffById(BaseTest):  # Assuming you have a BaseTest class with some initial setups

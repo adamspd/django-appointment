@@ -13,15 +13,19 @@ import uuid
 
 from babel.numbers import get_currency_symbol
 from django.conf import settings
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxLengthValidator, MinLengthValidator, MinValueValidator
 from django.db import models
+from django.db.models.signals import post_delete, post_save
+from django.dispatch import receiver
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _, ngettext
 from phonenumber_field.modelfields import PhoneNumberField
 
 from appointment.compat import check_constraint
+from appointment.settings import CONFIG_CACHE_KEY
 from appointment.utils.date_time import convert_minutes_in_human_readable_format, get_timestamp, get_weekday_num, \
     time_difference
 from appointment.utils.view_helpers import generate_random_id, get_locale
@@ -920,6 +924,17 @@ class Config(models.Model):
     def __str__(self):
         return f"Config {self.pk}: slot_duration={self.slot_duration}, lead_time={self.lead_time}, " \
                f"finish_time={self.finish_time}"
+
+
+@receiver(post_save, sender=Config)
+@receiver(post_delete, sender=Config)
+def invalidate_config_cache(sender, **kwargs):
+    """Drop the cached configuration whenever it changes.
+
+    Readers cache the Config for an hour, so without this an edit made in the admin
+    would not reach the booking pages until the entry expired on its own.
+    """
+    cache.delete(CONFIG_CACHE_KEY)
 
 
 class PaymentInfo(models.Model):
