@@ -11,23 +11,23 @@ After completing the initial setup steps - making migrations, migrating, running
 Your first step is to add a service. Navigate to the admin page and add a service at:
 https://mysuperwebsite.com/app-admin/add-service/
 
-![Creating Service](https://github.com/adamspd/django-appointment/blob/main/docs/screenshots/creating_service.png?raw=true)
+![Creating Service](screenshots/creating_service.png)
 
 ### Attempting to Create an Appointment
 
 If you attempt to create an appointment request now, it's still not possible as there are no staff members yet:
 
-![Appointment Request without Staff Member](https://github.com/adamspd/django-appointment/blob/main/docs/screenshots/appointment_request_w_sm.png?raw=true)
+![Appointment Request without Staff Member](screenshots/appointment_request_w_sm.png)
 
 Similarly, if you check the list of appointments, it will be empty and you'll get a warning:
 
-![Appointment List without Staff Member](https://github.com/adamspd/django-appointment/blob/main/docs/screenshots/appointment_list_admin.png?raw=true)
+![Appointment List without Staff Member](screenshots/appointment_list_admin.png)
 
 ### Adding a Staff Member
 
 To add a staff member, visit:
 
-![Staff Member List](https://github.com/adamspd/django-appointment/blob/main/docs/screenshots/staff_member_list.png?raw=true)
+![Staff Member List](screenshots/staff_member_list.png)
 
 You can either add a new staff member or assign yourself as a staff member, especially if you are a superuser. In this example, I will demonstrate using the `Staff me` button.
 
@@ -35,11 +35,11 @@ You can either add a new staff member or assign yourself as a staff member, espe
 
 Once you have created a staff member profile, you need to specify the services you offer. After doing so, your initial profile page will look something like this:
 
-![Initial Profile](https://github.com/adamspd/django-appointment/blob/main/docs/screenshots/initial_profile.png?raw=true)
+![Initial Profile](screenshots/initial_profile.png)
 
 To edit your appointment information, such as the services you offer, click on the edit icon next to `Appointment Information`:
 
-![Profile Edit](https://github.com/adamspd/django-appointment/blob/main/docs/screenshots/adding_service_to_profile.png?raw=true)
+![Profile Edit](screenshots/adding_service_to_profile.png)
 
 After selecting the services you offer, you may leave other fields blank if desired, and then click `Save`.
 
@@ -47,23 +47,23 @@ Additionally, select the days you wish to work by clicking the `add icon` next t
 
 Your updated profile should look like this:
 
-![Profile after Editing](https://github.com/adamspd/django-appointment/blob/main/docs/screenshots/profile_after_editing.png?raw=true)
+![Profile after Editing](screenshots/profile_after_editing.png)
 
 ### Client's Perspective: Creating Appointments
 
 Now, users can start creating appointments. The interface for clients would appear as follows:
 
-![Appointment Request with Staff Member](https://github.com/adamspd/django-appointment/blob/main/docs/screenshots/before_creating_appt_request.png?raw=true)
+![Appointment Request with Staff Member](screenshots/before_creating_appt_request.png)
 
 Notice that only Saturdays and Sundays are selectable, with the only staff member (you) selected by default.
 
 Let's create an appointment request for Saturday, January 13th, 2024, at 3:00 PM:
 
-![Creating Appointment Request](https://github.com/adamspd/django-appointment/blob/main/docs/screenshots/creating_appt_request.png?raw=true)
+![Creating Appointment Request](screenshots/creating_appt_request.png)
 
 Next, add your personal information:
 
-![Adding Personal Information](https://github.com/adamspd/django-appointment/blob/main/docs/screenshots/adding_client_information.png?raw=true)
+![Adding Personal Information](screenshots/adding_client_information.png)
 
 ### Payment Options
 
@@ -75,7 +75,7 @@ Upon completion, an account is created for the user, and an email is sent with a
 
 As an admin, you can now view the newly created appointment in your staff member appointment list:
 
-![Admin Appointments](https://github.com/adamspd/django-appointment/blob/main/docs/screenshots/admin_appointments.png?raw=true)
+![Admin Appointments](screenshots/admin_appointments.png)
 
 In the admin interface, you have various options to manage appointments, such as editing, adding new appointments, deleting, or rescheduling them by dragging and dropping.
 

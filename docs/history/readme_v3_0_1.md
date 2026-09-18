@@ -13,7 +13,7 @@
 
 ⚠️ **IMPORTANT**: If upgrading from a version before 2.x.x, please note significant database changes were introduced in
 Version 2.0.0 introduces significant database changes. Please read
-the [migration guide](https://github.com/adamspd/django-appointment/tree/main/docs/migration_guides/v2_1_0.md) before
+the [migration guide](../migration_guides/v2_1_0.md) before
 updating. No database changes were introduced in version 3.0.1.
 
 Django-Appointment is a Django app engineered for managing appointment scheduling with ease and flexibility. It enables
@@ -22,12 +22,12 @@ provided. This app proficiently manages conflicts and availability for appointme
 experience.
 
 For a detailed walkthrough and live example of the system, please refer to 
-[this tutorial](https://github.com/adamspd/django-appointment/tree/main/docs/explanation.md).
+[this tutorial](../tutorial.md).
 
 Detailed documentation can be found in
-the [docs' directory](https://github.com/adamspd/django-appointment/tree/main/docs/README.md).
+the [docs' directory](../project-structure.md).
 For changes and migration information, please refer to the [release
-notes](https://github.com/adamspd/django-appointment/tree/main/docs/release_notes/latest.md).
+notes](../release_notes/latest.md).
 
 ## Features ✨
 
@@ -41,7 +41,7 @@ notes](https://github.com/adamspd/django-appointment/tree/main/docs/release_note
 ## Key features introduced in previous versions.
 
 - For more information, please refer to
-  this [documentation](https://github.com/adamspd/django-appointment/tree/main/docs/history/readme_v2_1_1.md).
+  this [documentation](readme_v2_1_1.md).
 
 ## Added Features in version 3.0.1
 
@@ -66,19 +66,19 @@ functionality and user experience:
 
 9. **Bug Fixes (#48)**
 
-See more at the [release notes](https://github.com/adamspd/django-appointment/tree/main/docs/release_notes/latest.md).
+See more at the [release notes](../release_notes/latest.md).
 
 These updates collectively contribute to the robustness and versatility of the Django Appointment package, aligning with
 our commitment to providing a high-quality and user-friendly appointment management solution.
 
 ### Bug Fixes 🆕
 
-See the [release notes](https://github.com/adamspd/django-appointment/tree/main/docs/release_notes/latest.md)
+See the [release notes](../release_notes/latest.md)
 for more information.
 
 ### Breaking Changes in version 3.0.1:
 
-See the [release notes](https://github.com/adamspd/django-appointment/tree/main/docs/release_notes/latest.md) for more
+See the [release notes](../release_notes/latest.md) for more
   information.
 
 ## Quick Start 🚀

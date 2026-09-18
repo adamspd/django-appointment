@@ -1,4 +1,4 @@
-# Django Appointment 📦: `error_codes.py`
+# `error_codes.py`
 
 This module defines a set of error codes used across the Django appointment system for better error handling and
 reporting.

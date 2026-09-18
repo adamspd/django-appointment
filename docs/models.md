@@ -1,27 +1,14 @@
-- [Django Appointment System]()
-    * [Models](#models)
-        + [Service](#service)
-        + [StaffMember](#staffmember)
-        + [AppointmentRequest](#appointmentrequest)
-        + [Appointment](#appointment)
-        + [Config](#config)
-        + [PaymentInfo](#paymentinfo)
-        + [EmailVerificationCode](#emailverificationcode)
-        + [DayOff](#dayoff)
-        + [WorkingHours](#workinghours)
+# Models
 
-# Django Appointment 📦
+!!! Note
+    All the models have a `created_at` and `updated_at` field. These fields are automatically updated when the
+    model is created or updated. They are not editable by the user.
 
-## Models
-
-> **Notes** ⚠️ : All the models have a `created_at` and `updated_at` field. These fields are automatically updated when the
-> model is created or updated. They are not editable by the user.
-
-### Service
+## Service
 
 The `Service` model encapsulates a service provided by the appointment system.
 
-#### Fields:
+### Service Fields:
 
 - `name` (CharField): The name of the service.
 - `description` (TextField): Description of the service.
@@ -32,7 +19,7 @@ The `Service` model encapsulates a service provided by the appointment system.
 - `currency` (CharField): Currency for the price.
 - `background_color` (CharField): Background color for the service presentation.
 
-#### Methods:
+### Service Methods:
 
 - `to_dict`: Returns a dictionary representation of the service.
 - `get_duration_parts`: Returns the duration of the service as a tuple of days, hours, minutes, and seconds.
@@ -46,13 +33,13 @@ The `Service` model encapsulates a service provided by the appointment system.
 - `is_a_paid_service`: Returns whether the service is paid (true of false).
 - `accepts_down_payment`: Returns whether the service accepts a down payment (true of false).
 
-### StaffMember
+## StaffMember
 
 The `StaffMember` model represents a staff member in the appointment system. A staff member is a user that offers
 one or more services in the one defined by the admin. He can't edit/add/delete services but can choose which one he
 offers. He can update his profile, change his working hours or add vacation days (days off).
 
-#### Fields:
+### StaffMember Fields:
 
 - `user` (OneToOneField): Related User model instance, will be granted Django's staff status.
 - `services_offered` (ManyToManyField): Services offered by the staff member.
@@ -63,7 +50,7 @@ offers. He can update his profile, change his working hours or add vacation days
 - `work_on_saturday` (BooleanField): Whether the staff member works on Saturday.
 - `work_on_sunday` (BooleanField): Whether the staff member works on Sunday.
 
-#### Methods:
+### StaffMember Methods:
 
 - `get_slot_duration`: Returns the slot duration.
 - `get_slot_duration_text`: Returns the slot duration in a human-readable format.
@@ -83,19 +70,19 @@ offers. He can update his profile, change his working hours or add vacation days
 - `update_upon_working_hours_deletion`: Updates the weekend working status upon deletion of working hours.
 - `is_working_day`: Returns whether a given day is a working day (true or false).
 
-### AppointmentRequest
+## AppointmentRequest
 
 The `AppointmentRequest` model represents an appointment request made by a client. It is not yet an appointment, and it
 is not associated with the client. It is created when the client chooses a service, staff member, and date/time for the
 appointment (See screenshot below).
 
-![Choosing staff member and date/time for appointment](https://github.com/adamspd/django-appointment/blob/main/docs/screenshots/appointment_request.png?raw=true)
+![Choosing staff member and date/time for appointment](screenshots/appointment_request.png)
 
 It will be linked to an appointment when the client enters their information. We make sure that the start time is before
 the end time and on save, we generate an `id_request` if none exists, make sure that the appointment request date is
 not in the past.
 
-#### Fields:
+### AppointmentRequest Fields:
 
 - `date` (DateField): The date of the appointment request.
 - `start_time` (TimeField): The starting time of the appointment.
@@ -105,7 +92,7 @@ not in the past.
 - `payment_type` (CharField): The type of payment for the appointment (e.g., 'full').
 - `id_request` (CharField): An ID for the appointment request.
 
-#### Methods:
+### AppointmentRequest Methods:
 
 - `get_service_name`: Returns the name of the service.
 - `get_service_price`: Returns the price of the service.
@@ -117,12 +104,12 @@ not in the past.
 - `is_a_paid_service`: Returns whether the service is paid.
 - `accepts_down_payment`: Returns whether the service accepts a down payment.
 
-### Appointment
+## Appointment
 
 The `Appointment` model represents an appointment made by a client. It is created when the client confirms the
 appointment request.
 
-#### Fields:
+### Appointment Fields:
 
 - `client` (ForeignKey): The client who made the appointment, linking to the User model.
 - `appointment_request` (OneToOneField): The appointment request that was confirmed.
@@ -134,7 +121,7 @@ appointment request.
 - `amount_to_pay` (DecimalField): The amount to be paid for the appointment.
 - `id_request` (CharField): An ID for the appointment.
 
-#### Methods:
+### Appointment Methods:
 
 - `get_client_name`: Returns the full name of the client.
 - `get_date`: Returns the date of the appointment.
@@ -164,12 +151,12 @@ appointment request.
 - `is_owner`: Returns whether the given user is the owner of the appointment.
 - `to_dict`: Returns a dictionary representation of the appointment.
 
-### Config
+## Config
 
 The `Config` model represents configuration settings for the appointment system. There can only be one `Config` object
 in the database. If you want to change the settings, you must edit the existing `Config` object.
 
-#### Fields:
+### Config Fields:
 
 - `slot_duration` (PositiveIntegerField): Minimum time for an appointment in minutes.
 - `lead_time` (TimeField): The time when work starts.
@@ -180,24 +167,24 @@ in the database. If you want to change the settings, you must edit the existing 
 - `app_offered_by_label` (CharField): Label `offered by` on appointment's page. Can be anything you want
   i.e.: `choose photographer` or `choose dentist` etc... (See screenshot below).
 
-![app_offered_by_label](https://github.com/adamspd/django-appointment/blob/main/docs/screenshots/offered_by.png?raw=true)
+![app_offered_by_label](screenshots/offered_by.png)
 
-#### Methods:
+### Config Methods:
 
 - `delete`: Overrides the default delete method to prevent deletion of the `Config` object once created.
 - `get_instance`: Class method that returns the single instance of the `Config` object or creates one if it doesn't
   exist.
 
-### PaymentInfo
+## PaymentInfo
 
 The `PaymentInfo` model represents payment information for an appointment.
 
-#### Fields:
+### PaymentInfo Fields:
 
 - `appointment` (ForeignKey): The appointment for which the payment information is associated, linking to
   the `Appointment` model.
 
-#### Methods:
+### PaymentInfo Methods:
 
 - `get_id_request`: Returns the ID of the associated appointment.
 - `get_amount_to_pay`: Returns the amount to be paid for the associated appointment.
@@ -208,54 +195,54 @@ The `PaymentInfo` model represents payment information for an appointment.
 - `get_user_name`: Returns the first name of the client who made the appointment.
 - `get_user_email`: Returns the email of the client who made the appointment.
 
-### EmailVerificationCode
+## EmailVerificationCode
 
 The `EmailVerificationCode` model represents an email verification code for a user when the email already exists in the
 database or when a user wants to change email addresses.
 
-#### Fields:
+### EmailVerificationCode Fields:
 
 - `user` (ForeignKey): The user associated with the verification code, linking to the User model.
 - `code` (CharField): The verification code itself.
 
-#### Methods:
+### EmailVerificationCode Methods:
 
 - `generate_code`: Class method that generates a unique code comprised of uppercase letters and digits. It then
   associates this code with the provided user and saves it in the database. This method returns the generated code.
 - `check_code`: Compares the provided code with the stored code for the user and returns a boolean indicating if they
   match.
 
-### DayOff
+## DayOff
 
-The `DayOff` model represents a day off for a staff member. It has to be set for both holidays and vacations. If not, 
+The `DayOff` model represents a day off for a staff member. It has to be set for both holidays and vacations. If not,
 clients will be able to book appointments on those days. `start_date` and `end_date` are checked to make sure that the
 start date is before the end date.
 
-#### Fields:
+### DayOff Fields:
 
 - `staff_member` (ForeignKey): The staff member who has the day off, linking to the `StaffMember` model.
 - `start_date` (DateField): The start date of the day off.
 - `end_date` (DateField): The end date of the day off.
 - `description` (CharField): A brief description or reason for the day off.
 
-#### Methods:
+### DayOff Methods:
 
 - `is_owner`: Returns a boolean indicating if the given user ID matches the user ID of the staff member associated with
   the day off.
 
-### WorkingHours
+## WorkingHours
 
-The `WorkingHours` model represents the working hours for a staff member on a specific day of the week. 
+The `WorkingHours` model represents the working hours for a staff member on a specific day of the week.
 `start_time` is checked to make sure that it is before `end_time`.
 
-#### Fields:
+### WorkingHours Fields:
 
 - `staff_member` (ForeignKey): The staff member associated with the working hours, linking to the `StaffMember` model.
 - `day_of_week` (PositiveIntegerField): The day of the week, with choices defined by `DAYS_OF_WEEK`.
 - `start_time` (TimeField): The start time of the working hours.
 - `end_time` (TimeField): The end time of the working hours.
 
-#### Methods:
+### WorkingHours Methods:
 
 - `get_start_time`: Returns the start time of the working hours.
 - `get_end_time`: Returns the end time of the working hours.
@@ -263,7 +250,6 @@ The `WorkingHours` model represents the working hours for a staff member on a sp
 - `is_owner`: Returns a boolean indicating if the given user ID matches the user ID of the staff member associated with
   the working hours.
 
-#### Meta:
+## Meta:
 
 - `unique_together`: Ensures that each combination of `staff_member` and `day_of_week` is unique.
-

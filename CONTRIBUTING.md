@@ -52,6 +52,34 @@ People *love* thorough bug reports.
 * 4 spaces for indentation rather than tabs
 * You can try running `python -m flake8` for style unification
 
+## Contributing to the documentation
+
+The documentation lives in this repository and is built with
+[MkDocs](https://www.mkdocs.org/) and [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/).
+Pages are in [`docs/`](https://github.com/adamspd/django-appointment/tree/main/docs), and the navigation is defined in `mkdocs.yml`.
+
+To preview your changes locally:
+
+```bash
+pip install -r requirements-docs.txt
+mkdocs serve
+```
+
+Then open <http://127.0.0.1:8000/>. The site rebuilds as you save.
+
+Before opening a pull request, make sure the site still builds cleanly:
+
+```bash
+mkdocs build --strict
+```
+
+`--strict` turns broken internal links into errors, and it is what CI runs.
+
+A few pages (the custom templates guide, the internationalization guide, the compatibility
+matrix, this file, and others) are not written twice: they are pulled straight from the
+Markdown files at the repository root using snippets, so edit the root file and the site
+follows. Pushing to `main` publishes the site automatically.
+
 ## License
 
 By contributing, you agree that your contributions will be licensed under

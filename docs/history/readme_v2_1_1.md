@@ -2,19 +2,19 @@
 
 ⚠️ **IMPORTANT**: If upgrading from a version before 2.0.0, please note significant database changes were introduced in
 Version 2.0.0 introduces significant database changes. Please read
-the [migration guide](https://github.com/adamspd/django-appointment/tree/main/docs/migration_guides/latest.md) before
+the [migration guide](../migration_guides/latest.md) before
 updating.
 
 Detailed documentation can be found in
-the [docs' directory](https://github.com/adamspd/django-appointment/tree/main/docs/README.md).
+the [docs' directory](../project-structure.md).
 For changes and migration information, please refer to the [release
-notes](https://github.com/adamspd/django-appointment/tree/main/docs/release_notes/v2_1_1.md).
+notes](../release_notes/v2_1_1.md).
 
 ## Added Features in version 2.0.0
 
 - **Database Changes ⚠️**: Significant modifications to the database schema. Before updating, ensure you follow the
   migration steps outlined in
-  the [migration guide](https://github.com/adamspd/django-appointment/tree/main/docs/migration_guides/v2_1_0.md).
+  the [migration guide](../migration_guides/v2_1_0.md).
 
 1. Introduced a staff feature allowing staff members in a team or system to manage their own appointments.
 2. Implemented an admin feature panel enabling staff members and superusers (admins) to manage the system.
@@ -30,10 +30,10 @@ notes](https://github.com/adamspd/django-appointment/tree/main/docs/release_note
 
 ### New Features 🆕
 
-See the [release notes](https://github.com/adamspd/django-appointment/tree/main/docs/release_notes/v2_1_1.md#Updates)
+See the [release notes](../release_notes/v2_1_1.md#updates)
 for more information.
 
 ### Fixes 🆕
 
-See the [release notes](https://github.com/adamspd/django-appointment/tree/main/docs/release_notes/v2_1_1.md#Bug-Fixes)
+See the [release notes](../release_notes/v2_1_1.md#bug-fixes)
 for more information.
