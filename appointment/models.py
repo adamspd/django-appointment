@@ -1156,8 +1156,8 @@ class Unavailability(models.Model):
         verbose_name_plural = _("Unavailabilities")
         ordering = ['-date']
         constraints = [
-            models.CheckConstraint(
-                check=models.Q(start_time__lt=models.F('end_time')),
+            check_constraint(
+                condition=models.Q(start_time__lt=models.F('end_time')),
                 name='unavailability_start_time_before_end_time'
             )
         ]
