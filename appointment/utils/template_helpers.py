@@ -54,7 +54,7 @@ def get_custom_template(template_name, default_template):
 
     :param template_name: Fixed name the user must use (e.g., 'password_reset.html'), or an
                           iterable of accepted names tried in order.
-    :param default_template: Our default template path
+    :param default_template: Our default "template path"
     :return: Template path to use
     """
     # Get user's custom directory from settings (default: 'custom')
@@ -68,7 +68,7 @@ def get_email_template(template_name, default_template):
 
     :param template_name: Fixed name the user must use (e.g., 'password_reset.html'), or an
                           iterable of accepted names tried in order.
-    :param default_template: Our default email template path
+    :param default_template: Our default email 'template path'
     :return: Template path to use
     """
     # Get user's custom email directory from settings (default: 'emails')
