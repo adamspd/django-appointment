@@ -106,7 +106,8 @@ def cleanup_old_appointment_requests():
         
         if count > 0:
             # Delete the old unassociated appointment requests
-            deleted_count, _ = old_unassociated_requests.delete()
+            # not `_`: this module imports gettext as _ (issue #455)
+            deleted_count = old_unassociated_requests.delete()[0]
             logger.info(
                 f"Cleaned up {deleted_count} old unassociated AppointmentRequest(s) "
                 f"older than {APPOINTMENT_CLEANUP_DAYS} days"
