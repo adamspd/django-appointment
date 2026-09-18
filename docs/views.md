@@ -1,25 +1,6 @@
-- [Django Appointment]() 
-  * [Views](#views)
-    + [get_available_slots_ajax](#get-available-slots-ajax)
-    + [get_next_available_date_ajax](#get-next-available-date-ajax)
-    + [appointment_request](#appointment-request)
-    + [appointment_request_submit](#appointment-request-submit)
-    + [redirect_to_payment_or_thank_you_page](#redirect-to-payment-or-thank-you-page)
-    + [create_appointment](#create-appointment)
-    + [get_client_data_from_post](#get-client-data-from-post)
-    + [get_appointment_data_from_post_request](#get-appointment-data-from-post-request)
-    + [create_user_and_notify_admin](#create-user-and-send-email)
-    + [appointment_client_information](#appointment-client-information)
-    + [verify_user_and_login](#verify-user-and-login)
-    + [enter_verification_code](#enter-verification-code)
-    + [default_thank_you](#default-thank-you)
+# Views
 
-
-# Django Appointment 📦
-
-## Views
-
-### get available slots ajax
+## get available slots ajax
 This view function handles AJAX requests to get available slots for a selected date.
 
 #### Args:
@@ -28,7 +9,7 @@ This view function handles AJAX requests to get available slots for a selected d
 #### Returns:
 - `django.http.JsonResponse`: A JSON response containing available slots, selected date, an error flag, and an optional error message.
 
-### get next available date ajax
+## get next available date ajax
 This view function handles AJAX requests to get the next available date for a service.
 
 #### Args:
@@ -38,7 +19,7 @@ This view function handles AJAX requests to get the next available date for a se
 #### Returns:
 - `django.http.JsonResponse`: A JSON response containing the next available date.
 
-### appointment request
+## appointment request
 This view function handles requests to book an appointment for a service.
 
 #### Args:
@@ -48,7 +29,7 @@ This view function handles requests to book an appointment for a service.
 #### Returns:
 - `django.http.HttpResponse`: The rendered HTML page.
 
-### appointment request submit
+## appointment request submit
 This view function handles the submission of the appointment request form.
 
 #### Args:
@@ -57,7 +38,7 @@ This view function handles the submission of the appointment request form.
 #### Returns:
 - `django.http.HttpResponse`: The rendered HTML page.
 
-### redirect to payment or thank you page
+## redirect to payment or thank you page
 This function redirects to the payment page or the thank you page based on the configuration.
 
 #### Args:
@@ -66,7 +47,7 @@ This function redirects to the payment page or the thank you page based on the c
 #### Returns:
 - `django.http.HttpResponseRedirect`: The redirect response.
 
-### create appointment
+## create appointment
 This function creates a new appointment and redirects to the payment page or the thank you page.
 
 #### Args:
@@ -78,7 +59,7 @@ This function creates a new appointment and redirects to the payment page or the
 #### Returns:
 - `django.http.HttpResponseRedirect`: The redirect response.
 
-### get client data from post
+## get client data from post
 This function retrieves client data from the POST request.
 
 #### Args:
@@ -87,7 +68,7 @@ This function retrieves client data from the POST request.
 #### Returns:
 - `dict`: The client data.
 
-### get appointment data from post request
+## get appointment data from post request
 This function retrieves appointment data from the POST request.
 
 #### Args:
@@ -96,7 +77,7 @@ This function retrieves appointment data from the POST request.
 #### Returns:
 - `dict`: The appointment data.
 
-### create user and send email
+## create user and send email
 This function creates a new user, sends a thank you email, and notifies the admin.
 
 #### Args:
@@ -108,7 +89,7 @@ This function creates a new user, sends a thank you email, and notifies the admi
 #### Returns:
 - `django.contrib.auth.models.User`: The newly created user.
 
-### appointment client information
+## appointment client information
 This view function handles client information submission for an appointment.
 
 #### Args:
@@ -119,7 +100,7 @@ This view function handles client information submission for an appointment.
 #### Returns:
 - `django.http.HttpResponse`: The rendered HTML page.
 
-### verify user and login
+## verify user and login
 This function verifies the user's email and logs the user in.
 
 #### Args:
@@ -130,7 +111,7 @@ This function verifies the user's email and logs the user in.
 #### Returns:
 - `bool`: True if the user is verified and logged in, False otherwise.
 
-### enter verification code
+## enter verification code
 This view function handles the submission of the email verification code.
 
 #### Args:
@@ -141,7 +122,7 @@ This view function handles the submission of the email verification code.
 #### Returns:
 - `django.http.HttpResponse`: The rendered HTML page.
 
-### default thank you
+## default thank you
 This view function handles the default thank you page.
 
 #### Args:

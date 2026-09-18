@@ -1,4 +1,4 @@
-# Django Appointment 📦: `db_helpers.py`
+# `db_helpers.py`
 
 This module contains various utility functions to assist in the database operations related to the Django appointment
 system.
