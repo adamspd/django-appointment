@@ -318,8 +318,11 @@ def send_reschedule_confirmation_email(request, reschedule_history, appointment_
         'company': get_website_name(),
     }
 
-    # User must name their template 'reschedule_confirmation_email.html' in their email directory
-    template_path = get_email_template('reschedule_confirmation_email.html', 'email_sender/reschedule_email.html')
+    # User may name their template 'reschedule_confirmation_email.html' or 'reschedule.html'
+    template_path = get_email_template(
+            ('reschedule_confirmation_email.html', 'reschedule.html'),
+            'email_sender/reschedule_email.html'
+    )
     subject = _("Confirm Your Appointment Rescheduling")
 
     send_email(
@@ -359,8 +362,11 @@ def notify_admin_about_reschedule(reschedule_history, appointment_request, clien
     subject = _("Reschedule Request for ") + client_name
     staff_member = appointment_request.staff_member
 
-    # User must name their template 'notify_admin_about_reschedule_email.html' in their email directory
-    template_path = get_email_template('notify_admin_about_reschedule_email.html', 'email_sender/reschedule_email.html')
+    # User may name their template 'notify_admin_about_reschedule_email.html' or 'reschedule_admin.html'
+    template_path = get_email_template(
+            ('notify_admin_about_reschedule_email.html', 'reschedule_admin.html'),
+            'email_sender/reschedule_email.html'
+    )
 
     # Notifying admin
     notify_admin(subject=subject, template_url=template_path, context=email_context,

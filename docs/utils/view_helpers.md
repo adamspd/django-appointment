@@ -1,4 +1,4 @@
-# `views_utils.py`
+# `view_helpers.py`
 
 This module provides utility functions to support the Django views in the appointment system.
 
