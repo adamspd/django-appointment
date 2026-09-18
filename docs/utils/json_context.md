@@ -1,4 +1,4 @@
-# `json_and_context_ops.py`
+# `json_context.py`
 
 This module provides utility functions to handle JSON operations and context-related operations for the Django
 appointment system.
@@ -29,7 +29,7 @@ appointment system.
 ### Context Operations:
 
 - **get_generic_context(request, admin=True)**:
-    - Retrieves the generic context for the admin pages.
+    - Retrieves the generic context for the admin pages: `BASE_TEMPLATE`, `user`, `is_superuser` and `locale`.
 
 - **get_generic_context_with_extra(request, extra, admin=True)**:
     - Retrieves the generic context for the admin pages with additional context information.

@@ -4,9 +4,18 @@ Django-Appointment includes built-in internationalization support with localized
 
 ## Built-in Language Support 🗣️
 
-Django-Appointment currently includes translations for:
-- **English** (en) - Default
-- **French** (fr) - Complete translation
+Django-Appointment currently ships UI translations for:
+
+| Language          | Code | Status                                                                |
+|-------------------|------|-----------------------------------------------------------------------|
+| English           | `en` | Default — the source strings                                          |
+| French            | `fr` | Maintained by the project                                             |
+| Spanish           | `es` | Contributed by @alexandermamaniy, **not actively maintained**         |
+
+> **Spanish needs a maintainer.** The Spanish catalogue was contributed by @alexandermamaniy and is not kept up to
+> date as the package changes, so newer strings may still show in English. It is shipped because a mostly-translated
+> UI beats none at all. If you speak Spanish and would like to take it over, that would be very welcome — see
+> [Contributing Translations](#contributing-translations) below, and please do open a PR.
 
 ## Quick Setup
 
@@ -25,6 +34,7 @@ USE_TZ = True         # Enable timezone support
 LANGUAGES = [
     ('en', 'English'),
     ('fr', 'French'),
+    ('es', 'Spanish'),
     # Add more languages as needed
 ]
 
@@ -74,7 +84,7 @@ Django-Appointment automatically formats dates according to the user's language:
 - **German**: "Do, 14. August 2025"
 - **Spanish**: "jue, 14 de agosto de 2025"
 
-The package includes date format patterns for 35+ languages. No additional configuration needed!
+The package includes date format patterns for 39 languages. No additional configuration needed!
 
 ## Contributing Translations 🤝
 
@@ -88,7 +98,7 @@ Want to add support for your language? We'd love your help!
    python manage.py makemessages -l [language_code]
    # Example: python manage.py makemessages -l es
    ```
-3. **Translate the strings** in `locale/[language_code]/LC_MESSAGES/django.po`
+3. **Translate the strings** in `appointment/locale/[language_code]/LC_MESSAGES/django.po`
 4. **Add date format** to `appointment/utils/date_time.py` in the `DATE_FORMATS` dictionary
 5. **Test your translations**:
    ```bash
@@ -191,6 +201,11 @@ The package correctly handles plural forms for time durations:
 
 Currently includes date format patterns for:
 
-Arabic, Bengali, Bulgarian, Chinese, Czech, Danish, Dutch, English, Estonian, Finnish, French, German, Greek, Hebrew, Hindi, Croatian, Hungarian, Indonesian, Italian, Japanese, Korean, Latvian, Lithuanian, Malay, Norwegian, Polish, Portuguese, Romanian, Russian, Slovak, Slovenian, Serbian, Spanish, Swedish, Thai, Turkish, Ukrainian, Vietnamese
+Arabic, Bengali, Bulgarian, Chinese, Croatian, Czech, Danish, Dutch, English, Estonian, Finnish, French, German, Greek, Hebrew, Hindi, Hungarian, Indonesian, Italian, Japanese, Korean, Latvian, Lithuanian, Malay, Norwegian, Persian, Polish, Portuguese, Romanian, Russian, Serbian, Slovak, Slovenian, Spanish, Swedish, Thai, Turkish, Ukrainian, Vietnamese
+
+That is 39 languages, defined in the `DATE_FORMATS` dictionary in
+[`appointment/utils/date_time.py`](https://github.com/adamspd/django-appointment/blob/main/appointment/utils/date_time.py).
+A date format is independent of the UI translation: adding an entry there localises how dates are displayed even
+when no `.po` catalogue exists for that language.
 
 Missing your language? Please contribute!
