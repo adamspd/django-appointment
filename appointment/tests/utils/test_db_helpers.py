@@ -36,19 +36,17 @@ from appointment.utils.db_helpers import (
 
 logger = get_logger(__name__)
 
-# Check if django-q is installed in settings
-DJANGO_Q_AVAILABLE = 'django_q' in settings.INSTALLED_APPS
+# django-q is only usable when it is both installed as a dependency and listed in INSTALLED_APPS
+DJANGO_Q_AVAILABLE = False
+Schedule = None
 
-# Check if django-q is installed as a dependency
-try:
-    from django_q.models import Schedule
-    from django_q.tasks import schedule
+if 'django_q' in settings.INSTALLED_APPS:
+    try:
+        from django_q.models import Schedule
 
-    DJANGO_Q_AVAILABLE = True
-except ImportError:
-    DJANGO_Q_AVAILABLE = False
-    Schedule = None
-    schedule = None
+        DJANGO_Q_AVAILABLE = True
+    except ImportError:
+        pass
 
 
 @skip("Django-Q is not available")
