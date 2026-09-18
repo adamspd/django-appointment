@@ -13,7 +13,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.translation import gettext as _, gettext_lazy as _
+from django.utils.translation import gettext as _
 
 from appointment.forms import PersonalInformationForm, ServiceForm, StaffDaysOffForm, StaffWorkingHoursForm
 from appointment.messages_ import appt_updated_successfully
