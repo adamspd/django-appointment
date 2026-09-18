@@ -20,14 +20,14 @@ from appointment.decorators import (
     require_ajax, require_staff_or_superuser, require_superuser, require_user_authenticated)
 from appointment.forms import PersonalInformationForm, ServiceForm, StaffAppointmentInformationForm, StaffMemberForm
 from appointment.messages_ import appt_updated_successfully
-from appointment.models import Appointment, DayOff, StaffMember, WorkingHours
+from appointment.models import Appointment, DayOff, Unavailability, StaffMember, WorkingHours
 from appointment.services import (
     create_new_appointment, create_staff_member_service, email_change_verification_service,
     fetch_user_appointments, handle_entity_management_request, handle_service_management_request,
     prepare_appointment_display_data, prepare_user_profile_data, save_appt_date_time, update_existing_appointment,
     update_personal_info_service)
 from appointment.utils.db_helpers import (
-    Service, get_day_off_by_id, get_staff_member_by_user_id, get_user_model,
+    Service, get_day_off_by_id, get_unavailability_by_id, get_staff_member_by_user_id, get_user_model,
     get_working_hours_by_id)
 from appointment.utils.error_codes import ErrorCode
 from appointment.utils.json_context import (
@@ -109,6 +109,7 @@ def add_day_off(request, staff_user_id=None, response_type='html'):
 
     staff_user_id = staff_user_id if staff_user_id else request.user.pk
     staff_member = get_staff_member_by_user_id(user_id=staff_user_id)
+    print("add_unavailability", request, staff_member, staff_user_id, 'day_off')
     return handle_entity_management_request(request, staff_member, entity_type='day_off')
 
 
@@ -140,6 +141,59 @@ def delete_day_off(request, day_off_id, staff_user_id=None):
         message = _("You can only delete your own days off.")
         return handle_unauthorized_response(request, message, 'html')
     day_off.delete()
+    if staff_user_id:
+        return redirect('appointment:user_profile', staff_user_id=staff_user_id)
+    return redirect('appointment:user_profile')
+
+
+###############################################################
+
+
+@require_user_authenticated
+@require_staff_or_superuser
+def add_unavailability(request, staff_user_id=None, response_type='html'):
+    staff_user_id = staff_user_id or request.user.pk
+    if not check_permissions(staff_user_id, request.user):
+        message = _("You can only add your own unavailabilities.")
+        print(f"Is staff {request.user.is_staff} ? or superuser: {request.user.is_superuser} ?")
+        return handle_unauthorized_response(request, message, response_type)
+
+    staff_user_id = staff_user_id if staff_user_id else request.user.pk
+    staff_member = get_staff_member_by_user_id(user_id=staff_user_id)
+    return handle_entity_management_request(request=request, staff_member=staff_member, staff_user_id=staff_user_id,
+                                            entity_type='unavailability')
+
+
+@require_user_authenticated
+@require_staff_or_superuser
+def update_unavailability(request, unavailability_id, staff_user_id=None, response_type='html'):
+    unavailability = get_unavailability_by_id(unavailability_id)
+    if not unavailability:
+        if response_type == 'json':
+            return json_response("Unavailability does not exist.", status=404, success=False,
+                                 error_code=ErrorCode.UNAVAILABILITY_NOT_FOUND)
+        else:
+            context = get_generic_context(request=request)
+            template = get_custom_template('404_not_found.html', 'error_pages/404_not_found.html')
+            return render(request, template, context=context, status=404)
+    staff_user_id = staff_user_id or request.user.pk
+    if not check_extensive_permissions(staff_user_id, request.user, unavailability):
+        message = _("You can only update your own unavailabilities.")
+        return handle_unauthorized_response(request, message, response_type)
+    staff_member = get_staff_member_by_user_id(user_id=staff_user_id)
+    return handle_entity_management_request(request=request, staff_member=staff_member, add=False,
+                                            instance_id=unavailability_id, staff_user_id=staff_user_id,
+                                            entity_type='unavailability', instance=unavailability)
+
+
+@require_user_authenticated
+@require_staff_or_superuser
+def delete_unavailability(request, unavailability_id, staff_user_id=None):
+    unavailability = get_object_or_404(Unavailability, pk=unavailability_id)
+    if not check_extensive_permissions(staff_user_id, request.user, unavailability):
+        message = _("You can only delete your own unavailabilities.")
+        return handle_unauthorized_response(request, message, 'html')
+    unavailability.delete()
     if staff_user_id:
         return redirect('appointment:user_profile', staff_user_id=staff_user_id)
     return redirect('appointment:user_profile')

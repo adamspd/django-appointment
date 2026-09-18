@@ -18,7 +18,6 @@ system.
 
 ## Time Conversion:
 
-- **convert_12_hour_time_to_24_hour_time**: Convert a 12-hour time format to a 24-hour time format.
 - **convert_minutes_in_human_readable_format**: Convert minutes to a human-readable format.
 - **convert_str_to_date**: Convert a string representation of a date to a Python `date` object.
 - **convert_str_to_time**: Convert a string representation of time to a Python `time` object.

@@ -46,6 +46,7 @@ Appointment = apps.get_model('appointment', 'Appointment')
 AppointmentRequest = apps.get_model('appointment', 'AppointmentRequest')
 WorkingHours = apps.get_model('appointment', 'WorkingHours')
 DayOff = apps.get_model('appointment', 'DayOff')
+Unavailability = apps.get_model('appointment', 'Unavailability')
 PaymentInfo = apps.get_model('appointment', 'PaymentInfo')
 StaffMember = apps.get_model('appointment', 'StaffMember')
 Config = apps.get_model('appointment', 'Config')
@@ -54,29 +55,41 @@ EmailVerificationCode = apps.get_model('appointment', 'EmailVerificationCode')
 AppointmentRescheduleHistory = apps.get_model('appointment', 'AppointmentRescheduleHistory')
 
 
-def calculate_slots(start_time, end_time, buffer_time, slot_duration):
+def calculate_slots(start_time, end_time, buffer_time, slot_duration, service_duration = None):
     """Calculate the available slots between the given start and end times using the given buffer time and slot duration
 
     :param start_time: The start time.
     :param end_time: The end time.
     :param buffer_time: The buffer time.
     :param slot_duration: The duration of each slot.
+    :param service_duration: The service duration.
     :return: A list of available slots.
     """
     slots = []
+
     buffer_time = buffer_time.replace(tzinfo=None)
-    while start_time + slot_duration <= end_time:
+    print("calculate_slots:end_time:service_duration",service_duration)
+    if service_duration:
+        # Subtract the service duration from end_time to prevent slots from extending past closing time.
+        end_time -= service_duration
+    else:
+        # (do not propose end_time as valid slot)
+        end_time -= slot_duration
+    print("calculate_slots:end_time:fixed",end_time)
+
+    while start_time <= end_time:
         if start_time >= buffer_time:
             slots.append(start_time)
         start_time += slot_duration
     return slots
 
 
-def calculate_staff_slots(date, staff_member):
+def calculate_staff_slots(date, staff_member, service_duration = None):
     """Calculate the available slots for the given staff member on the given date.
 
     :param date: The date to calculate the slots for.
     :param staff_member: The staff member to calculate the slots for.
+    :param service_duration: The duration of the service used to generate available time slots.
     :return: A list of available slots.
     """
     # Convert the times to datetime objects
@@ -84,20 +97,38 @@ def calculate_staff_slots(date, staff_member):
     if not is_working_day(staff_member, weekday_num):
         return []
     staff_member_start_time = get_staff_member_start_time(staff_member, date)
+
     start_time = datetime.datetime.combine(date, staff_member_start_time)
     end_time = datetime.datetime.combine(date, get_staff_member_end_time(staff_member, date))
 
-    # Convert the buffer duration in minutes to a timedelta object
-    buffer_duration_minutes = get_staff_member_buffer_time(staff_member, date)
-    buffer_duration = datetime.timedelta(minutes=buffer_duration_minutes)
-    buffer_time_init = datetime.datetime.combine(date, staff_member_start_time)
-    buffer_time = buffer_time_init + buffer_duration
+    #check if we have to handle buffer time
+    #TODO find better condition in case of extreme TZ
+    if date == timezone.now().date():
+        # Convert the buffer duration in minutes to a timedelta object
+        buffer_duration_minutes = get_staff_member_buffer_time(staff_member, date)
+        buffer_duration = datetime.timedelta(minutes=buffer_duration_minutes)
+
+        current_tz = timezone.get_current_timezone() or datetime.UTC
+        buffer_time_init = datetime.datetime.combine(date, staff_member_start_time, current_tz)
+
+        if(timezone.localtime() + buffer_duration < buffer_time_init):
+            #no buffer needed if we have buffer time before staff start.
+            buffer_time = start_time
+        else:
+            # update buffer during the day
+            if buffer_time_init < timezone.localtime():
+                buffer_time_init = timezone.localtime()
+            buffer_time = buffer_time_init + buffer_duration
+
+    else:
+        # buffer_time only apply to current day
+        buffer_time = start_time
 
     # Convert slot duration to a timedelta object
     slot_duration_minutes = get_staff_member_slot_duration(staff_member, date)
     slot_duration = datetime.timedelta(minutes=slot_duration_minutes)
 
-    return calculate_slots(start_time, end_time, buffer_time, slot_duration)
+    return calculate_slots(start_time, end_time, buffer_time, slot_duration, service_duration)
 
 
 def check_day_off_for_staff(staff_member, date) -> bool:
@@ -348,11 +379,12 @@ def create_payment_info_and_get_url(appointment):
     return payment_url
 
 
-def exclude_booked_slots(appointments, slots, slot_duration=None, service_duration=None, gap_time=None):
+def exclude_unavailable_slots(slots, appointments=[], unavailabilities=[], slot_duration=None, service_duration=None, gap_time=None):
     """Exclude the booked slots from the given list of slots.
 
-    :param appointments: The appointments to exclude.
     :param slots: The slots to exclude the appointments from.
+    :param appointments: The appointments to exclude.
+    :param unavailabilities: The unavailabilites sets for this day.
     :param slot_duration: The duration of each slot used to determine how far ahead each slot reaches.
     :param service_duration: The actual service duration (timedelta). When provided, the effective check
         window is max(slot_duration, service_duration), preventing overlaps for services longer than the
@@ -376,6 +408,12 @@ def exclude_booked_slots(appointments, slots, slot_duration=None, service_durati
             appointment_start_time = appointment.get_start_time()
             appointment_end_time = appointment.get_end_time()
             if appointment_start_time < slot_end + gap_delta and slot < appointment_end_time + gap_delta:
+                is_available = False
+                break
+        for unavailability in unavailabilities:
+            unavailability_start_time = unavailability.get_start_datetime()
+            unavailability_end_time = unavailability.get_end_datetime()
+            if unavailability_start_time < slot_end + gap_delta and slot < unavailability_end_time + gap_delta:
                 is_available = False
                 break
         if is_available:
@@ -526,6 +564,23 @@ def get_appointments_for_date_and_time(date, start_time, end_time, staff_member)
     )
 
 
+def get_unavailabilities_for_date_and_time(date, start_time, end_time, staff_member):
+    """Returns all unavailabilities that overlap with the specified date and time range.
+
+    :param date: The date to filter unavailabilities on.
+    :param start_time: The starting time to filter unavailabilities on.
+    :param end_time: The ending time to filter unavailabilities on.
+    :param staff_member: The staff member to filter unavailabilities on.
+
+    :return: QuerySet, all unavailabilities that overlap with the specified date and time range
+    """
+    return Unavailability.objects.filter(date=date,
+        start_time__lte=end_time,
+        end_time__gte=start_time,
+        staff_member=staff_member
+    )
+
+
 def get_config():
     """Returns the configuration object from the database or the cache."""
     config = cache.get('config')
@@ -545,6 +600,18 @@ def get_day_off_by_id(day_off_id):
     try:
         return DayOff.objects.get(pk=day_off_id)
     except DayOff.DoesNotExist:
+        return None
+
+
+def get_unavailability_by_id(unavailability_id):
+    """Get a unavailability by its ID.
+
+    :param unavailability_id: The unavailability ID
+    :return: Unavailability, the unavailability with the specified ID or None if no unavailability with the specified ID exists.
+    """
+    try:
+        return Unavailability.objects.get(pk=unavailability_id)
+    except Unavailability.DoesNotExist:
         return None
 
 
@@ -576,9 +643,19 @@ def get_weekday_num_from_date(date: datetime.date = None) -> int:
 
 def get_staff_member_buffer_time(staff_member: StaffMember, date: datetime.date) -> float:
     """Return the buffer time for the given staff member on the given date."""
-    _, _, _, buff_time = get_times_from_config(date)
-    buffer_minutes = buff_time.total_seconds() / 60
-    return staff_member.appointment_buffer_time or buffer_minutes
+    now = timezone.localtime()
+    if date == now.date():
+        # fetch staff buffer time first and fallback to global if needed
+        if staff_member.appointment_buffer_time is not None:
+            buff_time = datetime.timedelta(minutes=staff_member.appointment_buffer_time)
+        else:
+            #fallback to global configs
+            _, _, _, buff_time = get_times_from_config(date)
+        buffer_minutes = buff_time.total_seconds() / 60
+    else:
+        # appointment_buffer_time only applies to the current day.
+        return 0
+    return buffer_minutes
 
 
 def get_staff_member_by_user_id(user_id):

@@ -14,18 +14,19 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _, gettext_lazy as _
+from django.utils.formats import localize
 
-from appointment.forms import PersonalInformationForm, ServiceForm, StaffDaysOffForm, StaffWorkingHoursForm
+from appointment.forms import PersonalInformationForm, ServiceForm, StaffDaysOffForm, StaffUnavailabilityForm, StaffWorkingHoursForm
 from appointment.messages_ import appt_updated_successfully
 from appointment.settings import APPOINTMENT_PAYMENT_URL
 from appointment.utils.date_time import (
-    convert_12_hour_time_to_24_hour_time, convert_str_to_date, convert_str_to_time, get_ar_end_time)
+    convert_str_to_date, convert_str_to_time, get_ar_end_time)
 from appointment.utils.db_helpers import (
-    Appointment, AppointmentRequest, EmailVerificationCode, Service, StaffMember, WorkingHours, calculate_slots,
+    Appointment, AppointmentRequest, EmailVerificationCode, Service, StaffMember, Unavailability, WorkingHours, calculate_slots,
     calculate_staff_slots, check_day_off_for_staff, create_and_save_appointment, create_new_user,
-    day_off_exists_for_date_range, exclude_booked_slots, exclude_pending_reschedules, get_all_appointments,
+    day_off_exists_for_date_range, exclude_unavailable_slots, exclude_pending_reschedules, get_all_appointments,
     get_all_staff_members,
-    get_appointment_by_id, get_appointments_for_date_and_time, get_config, get_staff_member_appointment_list,
+    get_appointment_by_id, get_appointments_for_date_and_time, get_unavailabilities_for_date_and_time, get_config, get_staff_member_appointment_list,
     get_staff_member_from_user_id_or_logged_in, get_staff_member_slot_gap_time, get_times_from_config,
     get_user_by_email, get_weekday_num_from_date, get_working_hours_for_staff_and_day, parse_name,
     update_appointment_reminder, working_hours_exist)
@@ -137,6 +138,7 @@ def prepare_user_profile_data(user, staff_user_id):
             'user': staff_member.user if staff_member else user,
             'staff_member': staff_member,
             'days_off': staff_member.get_days_off().order_by('start_date') if staff_member else [],
+            'unavailabilities': staff_member.get_unavailabilities().order_by('date') if staff_member else [],
             'working_hours': staff_member.get_working_hours() if staff_member else [],
             'services_offered': staff_member.get_services_offered() if staff_member else [],
             'staff_member_not_found': not bool(staff_member),
@@ -148,7 +150,7 @@ def prepare_user_profile_data(user, staff_user_id):
 
 
 ###############################################################
-# handler for adding, updating, and deleting day off and working hours
+# handler for adding, updating, and deleting day off, unavailability and working hours
 
 def handle_entity_management_request(request, staff_member, entity_type, instance=None, staff_user_id=None,
                                      instance_id=None, add=True):
@@ -156,7 +158,7 @@ def handle_entity_management_request(request, staff_member, entity_type, instanc
 
     :param request: The request object.
     :param staff_member: The staff member instance.
-    :param entity_type: The type of entity to add or update, either 'day_off' or 'working_hours'.
+    :param entity_type: The type of entity to add or update, 'day_off', 'unavailability' or 'working_hours'.
     :param instance: The instance of the entity to update.
     :param staff_user_id: The staff user id.
     :param instance_id: The id of the instance to update.
@@ -170,11 +172,17 @@ def handle_entity_management_request(request, staff_member, entity_type, instanc
     button_text = _('Update') if instance else _('Add')
     if entity_type == 'day_off':
         form = StaffDaysOffForm(instance=instance)
-        context = get_working_hours_and_days_off_context(request, button_text, 'day_off_form', form)
+        context = get_entity_management_context(request, button_text, 'day_off_form', form)
         template = 'administration/manage_day_off.html'
+    elif entity_type == 'unavailability':
+        form = StaffUnavailabilityForm(instance=instance)
+        context = get_entity_management_context(request, button_text, 'unavailability_form', form,
+                                                         staff_user_id, instance,
+                                                         instance_id)
+        template = 'administration/manage_unavailability.html'
     else:
         form = StaffWorkingHoursForm(instance=instance)
-        context = get_working_hours_and_days_off_context(request, button_text, 'working_hours_form', form,
+        context = get_entity_management_context(request, button_text, 'working_hours_form', form,
                                                          staff_user_id, instance,
                                                          instance_id)
         template = 'administration/manage_working_hours.html'
@@ -189,10 +197,18 @@ def handle_entity_management_request(request, staff_member, entity_type, instanc
                                  error_code=ErrorCode.DAY_OFF_CONFLICT)
 
         return handle_day_off_form(day_off_form, staff_member)
+    elif request.method == 'POST' and entity_type == 'unavailability':
+        date = datetime.datetime.strptime(request.POST.get('date_raw'), "%Y-%m-%d")
+        start_time = datetime.datetime.strptime(request.POST.get('start_time_raw'), "%H:%M:%S")
+        end_time = datetime.datetime.strptime(request.POST.get('end_time_raw'), "%H:%M:%S")
+        description = request.POST.get('description')
+    
+        return handle_unavailability_form(staff_member, date, start_time, end_time, description, add, instance_id)
     elif request.method == 'POST' and entity_type == 'working_hours':
         day_of_week = request.POST.get('day_of_week')
-        start_time = request.POST.get('start_time')
-        end_time = request.POST.get('end_time')
+        # get js string start and end times formatted as YYYY-MM-DDTHH:mm:ss and parse it.
+        start_time = datetime.datetime.strptime(request.POST.get('start_time_raw'), "%Y-%m-%dT%H:%M:%S")
+        end_time = datetime.datetime.strptime(request.POST.get('end_time_raw'), "%Y-%m-%dT%H:%M:%S")
 
         return handle_working_hours_form(staff_member, day_of_week, start_time, end_time, add, instance_id)
 
@@ -220,6 +236,56 @@ def handle_day_off_form(day_off_form, staff_member):
         return json_response(message, status=400, success=False, error_code=ErrorCode.INVALID_DATA)
 
 
+def handle_unavailability_form(staff_member, date, start_time, end_time, description, add, unav_id=None):
+    """Handle the unavailability form.
+
+    :param staff_member: The staff member instance.
+    :param date: The date of the unavailability.
+    :param start_time: The start time.
+    :param end_time: The end time.
+    :param description: The description.
+    :param add: If True, add a new unavailability instance. Otherwise, update an existing one.
+    :param unav_id: The unavailability id.
+    :return: A JsonResponse instance.
+    """
+    # Validate inputs
+    if not (staff_member and date and start_time and end_time):
+        return json_response(_("Invalid data."), status=400, success=False, error_code=ErrorCode.INVALID_DATA)
+
+    # Ensure start time is before end time
+    if start_time >= end_time:
+        return json_response(_("Start time must be before end time."), status=400, success=False,
+                                error_code=ErrorCode.INVALID_DATA)
+
+    if add:
+        # Create new unavailability
+        unavailability = Unavailability(staff_member=staff_member, date=date, start_time=start_time, end_time=end_time, description=description)
+    else:
+        # Ensure unavailability_id is provided
+        if not unav_id:
+            return json_response(_("Invalid or no unavailability id provided."), status=400, success=False,
+                                    error_code=ErrorCode.INVALID_DATA)
+
+        # Get the unavailability instance to update
+        try:
+            unavailability = Unavailability.objects.get(pk=unav_id)
+            unavailability.date = date
+            unavailability.start_time = start_time
+            unavailability.end_time = end_time
+            unavailability.description = description
+        except Unavailability.DoesNotExist:
+            return json_response(_("Unavailability does not exist."), status=400, success=False,
+                                    error_code=ErrorCode.UNAVAILABILITY_NOT_FOUND)
+
+        # Save unavailability
+    unavailability.save()
+
+    # Return success with redirect URL
+    redirect_url = reverse('appointment:user_profile', kwargs={'staff_user_id': staff_member.user.id}) \
+        if staff_member.user.id else reverse('appointment:user_profile')
+    return json_response(_("Unavailability saved successfully."), custom_data={'redirect_url': redirect_url})
+
+
 def handle_working_hours_form(staff_member, day_of_week, start_time, end_time, add, wh_id=None):
     """Handle the working hours form.
 
@@ -234,10 +300,6 @@ def handle_working_hours_form(staff_member, day_of_week, start_time, end_time, a
     # Validate inputs
     if not (staff_member and day_of_week and start_time and end_time):
         return json_response(_("Invalid data."), status=400, success=False, error_code=ErrorCode.INVALID_DATA)
-
-    # Convert start time and end time to 24-hour format
-    start_time = convert_12_hour_time_to_24_hour_time(start_time)
-    end_time = convert_12_hour_time_to_24_hour_time(end_time)
 
     # Ensure start time is before end time
     if start_time >= end_time:
@@ -275,12 +337,12 @@ def handle_working_hours_form(staff_member, day_of_week, start_time, end_time, a
     return json_response(_("Working hours saved successfully."), custom_data={'redirect_url': redirect_url})
 
 
-def get_working_hours_and_days_off_context(request, btn_txt, form_name, form, user_id=None, instance=None, wh_id=None):
-    """Get the context for the working hours and days off forms.
+def get_entity_management_context(request, btn_txt, form_name, form, user_id=None, entity_instance=None, entity_id=None):
+    """Get the context for the working hours, unavailabilities and days off forms.
 
     :param request: The request object.
     :param btn_txt: The text to display on the submit button.
-    :param form_name: The name of the form which depends on if it's a working hours or days off form.
+    :param form_name: The name of the form which depends on its entity type.
     :param form: The form instance itself.
     :param user_id: The staff user id.
     :param instance: The working hour form instance.
@@ -296,13 +358,13 @@ def get_working_hours_and_days_off_context(request, btn_txt, form_name, form, us
         context.update({
             'staff_user_id': user_id,
         })
-    if instance:
+    if entity_instance:
         context.update({
-            'working_hours_instance': instance,
+            'entity_instance': entity_instance,
         })
-    if wh_id:
+    if entity_id:
         context.update({
-            'working_hours_id': wh_id,
+            'entity_id': entity_id,
         })
     return context
 
@@ -395,20 +457,21 @@ def save_appt_date_time(appt_start_time, appt_date, appt_id, request):
     return appt
 
 
-def get_available_slots(date, appointments):
+def get_available_slots(date, appointments, unavailabilities=[]):
     """Calculate the available time slots for a given date and a list of appointments.
 
     :param date: The date for which to calculate the available slot
     :param appointments: A list of Appointment objects
-    :return: A list of available time slots as strings in the format '%I:%M %p' like ['10:00 AM', '10:30 AM']
+    :param unavailabilities: A list of Unavailability objects
+    :return: A list of available time slots as strings in a localized format
     """
 
     start_time, end_time, slot_duration, buff_time = get_times_from_config(date)
     now = timezone.now()
     buffer_time = now + buff_time if date == now.date() else now
     slots = calculate_slots(start_time, end_time, buffer_time, slot_duration)
-    slots = exclude_booked_slots(appointments, slots, slot_duration)
-    return [slot.strftime('%I:%M %p') for slot in slots]
+    slots = exclude_unavailable_slots(slots, appointments=appointments, unavailabilities=unavailabilities, slot_duration=slot_duration)
+    return [localize(slot.time()) for slot in slots]
 
 
 def get_available_slots_for_staff(date, staff_member, day_of_week: int, service=None):
@@ -449,11 +512,13 @@ def get_available_slots_for_staff(date, staff_member, day_of_week: int, service=
 
     gap_time = get_staff_member_slot_gap_time(staff_member, date)
 
-    slots = calculate_staff_slots(date, staff_member)
+    slots = calculate_staff_slots(date, staff_member, service_duration)
     slots = exclude_pending_reschedules(slots, staff_member, date)
     appointments = get_appointments_for_date_and_time(date, working_hours_dict['start_time'],
                                                       working_hours_dict['end_time'], staff_member)
-    return exclude_booked_slots(appointments, slots, slot_duration,
+    unavailabilities = get_unavailabilities_for_date_and_time(date, working_hours_dict['start_time'],
+                                                      working_hours_dict['end_time'], staff_member)
+    return exclude_unavailable_slots(slots, appointments=appointments, unavailabilities=unavailabilities, slot_duration=slot_duration,
                                 service_duration=service_duration, gap_time=gap_time or None)
 
 
@@ -469,7 +534,7 @@ def get_finish_button_text(service) -> str:
     return _("Finish")
 
 
-def get_appointments_and_slots(date_, service=None):
+def get_appointments_and_slots(date_, service=None, unavailabilities=[]):
     """
     Get appointments and available slots for a given date and service.
 
@@ -478,6 +543,7 @@ def get_appointments_and_slots(date_, service=None):
 
     :param date_: datetime.date, the date for which to retrieve appointments and available slots
     :param service: Service, the service for which to retrieve appointments
+    :param unavailabilities: List, a list of Unavailability Objects
     :return: tuple, a tuple containing two elements:
         - A queryset of appointments for the given date and service (if provided).
         - A list of available time slots on the given date, excluding booked appointments.
@@ -487,7 +553,7 @@ def get_appointments_and_slots(date_, service=None):
                                                   appointment_request__date=date_)
     else:
         appointments = Appointment.objects.filter(appointment_request__date=date_)
-    available_slots = get_available_slots(date_, appointments)
+    available_slots = get_available_slots(date_, appointments, unavailabilities)
     return appointments, available_slots
 
 

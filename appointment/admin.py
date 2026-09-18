@@ -10,7 +10,7 @@ from django import forms
 from django.contrib import admin
 
 from .models import (
-    Appointment, AppointmentRequest, AppointmentRescheduleHistory, Config, DayOff, EmailVerificationCode,
+    Appointment, AppointmentRequest, AppointmentRescheduleHistory, Config, DayOff, Unavailability, EmailVerificationCode,
     PasswordResetToken, Service, StaffMember, WorkingHours
 )
 
@@ -73,6 +73,13 @@ class DayOffAdmin(admin.ModelAdmin):
     list_display = ('staff_member', 'start_date', 'end_date', 'description')
     search_fields = ('description',)
     list_filter = ('start_date', 'end_date')
+
+
+@admin.register(Unavailability)
+class UnavailabilityAdmin(admin.ModelAdmin):
+    list_display = ('staff_member', 'date', 'start_time', 'end_time', 'description')
+    search_fields = ('description',)
+    list_filter = ('date', 'start_time', 'end_time')
 
 
 @admin.register(WorkingHours)

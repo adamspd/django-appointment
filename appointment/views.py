@@ -17,7 +17,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone, translation
 from django.utils.encoding import force_str
-from django.utils.formats import date_format
+from django.utils.formats import date_format, localize, get_format
 from django.utils.http import urlsafe_base64_decode
 from django.utils.timezone import get_current_timezone_name
 from django.utils.translation import gettext as _
@@ -76,8 +76,7 @@ def get_available_slots_ajax(request):
 
     selected_date = slot_form.cleaned_data['selected_date']
     sm = slot_form.cleaned_data['staff_member']
-    current_lang = translation.get_language()
-    format_string = DATE_FORMATS.get(current_lang, "D, F j, Y")
+    format_string = DATE_FORMATS.get(get_locale(), "D, F j, Y")
     date_chosen = date_format(selected_date, format_string, use_l10n=True)
     custom_data = {
         'date_chosen': date_chosen,
@@ -88,6 +87,7 @@ def get_available_slots_ajax(request):
     if days_off_exist:
         message = _("Day off. Please select another date!")
         custom_data['available_slots'] = []
+        custom_data['no_availability'] = True
         custom_data['date_iso'] = selected_date.isoformat()
         return json_response(message=message, custom_data=custom_data, success=False, error_code=ErrorCode.INVALID_DATE)
     # if selected_date is not a working day for the staff, return an empty list of slots and 'message' is Day Off
@@ -99,6 +99,7 @@ def get_available_slots_ajax(request):
         message = _("Not a working day for {staff_member}. Please select another date!").format(
                 staff_member=sm.get_staff_member_first_name())
         custom_data['available_slots'] = []
+        custom_data['no_availability'] = True
         custom_data['date_iso'] = selected_date.isoformat()
         return json_response(message=message, custom_data=custom_data, success=False, error_code=ErrorCode.INVALID_DATE)
     service = slot_form.cleaned_data.get('service_id')
@@ -109,10 +110,12 @@ def get_available_slots_ajax(request):
         current_time = timezone.now().time()
         available_slots = [slot for slot in available_slots if slot.time() > current_time]
 
-    custom_data['available_slots'] = [slot.strftime('%I:%M %p') for slot in available_slots]
+    # Pass slots as array of [isoformat, localized_timeslot], ex (en locale) [..., ["2026-07-29T09:30:00", "9:30 p.m."], ...]
+    custom_data['available_slots'] = [[slot, localize(slot.time())] for slot in available_slots]
     if len(available_slots) == 0:
         custom_data['error'] = True
         custom_data['date_iso'] = selected_date.isoformat()
+        custom_data['no_availability'] = True
         message = _('No availability')
         return json_response(message=message, custom_data=custom_data, success=False, error_code=ErrorCode.INVALID_DATE)
     custom_data['error'] = False
@@ -136,34 +139,27 @@ def get_next_available_date_ajax(request, service_id):
         staff_member = get_object_or_404(StaffMember, pk=staff_id)
         service = get_object_or_404(Service, pk=service_id)
 
-        # Fetch the days off for the staff
-        days_off = DayOff.objects.filter(staff_member=staff_member).filter(
-                Q(start_date__lte=date.today(), end_date__gte=date.today()) |
-                Q(start_date__gte=date.today())
-        )
-
         current_date = date.today()
         next_available_date = None
         day_offset = 0
-
-        while next_available_date is None:
+        max_offset = 90
+        while next_available_date is None and day_offset < max_offset:
             potential_date = current_date + timedelta(days=day_offset)
-
-            # Check if the potential date is a day off for the staff
-            is_day_off = any([day_off.start_date <= potential_date <= day_off.end_date for day_off in days_off])
-            # Check if the potential date is a working day for the staff
             weekday_num = get_weekday_num_from_date(potential_date)
-            is_working_day_ = is_working_day(staff_member=staff_member, day=weekday_num)
-
-            if not is_day_off and is_working_day_:
-                x, available_slots = get_appointments_and_slots(potential_date, service)
-                if available_slots:
-                    next_available_date = potential_date
+            available_slots = get_available_slots_for_staff(potential_date, staff_member, weekday_num, service=service)
+            if available_slots:
+                next_available_date = potential_date
 
             day_offset += 1
-        message = _('Successfully retrieved next available date')
-        data = {'next_available_date': next_available_date.isoformat()}
-        return json_response(message=message, custom_data=data, success=True)
+
+        if next_available_date:
+            message = _('Successfully retrieved next available date')
+            data = {'next_available_date': next_available_date.isoformat()}
+            return json_response(message=message, custom_data=data, success=True)
+        else:
+            data = {'error': True}
+            message = _('No availability in the next 90 days for this staff member')
+            return json_response(message=message, custom_data=data, success=False, error_code=ErrorCode.NEXT_AVAILABILITY_NOT_FOUND)
     else:
         data = {'error': True}
         message = _('No staff member selected')
@@ -211,11 +207,13 @@ def appointment_request(request, service_id=None, staff_member_id=None):
         # If only one staff member for a service, choose them by default and fetch their slots.
         if all_staff_members.count() == 1:
             staff_member = all_staff_members.first()
+            #TODO unavailabilities
             x, available_slots = get_appointments_and_slots(date.today(), service)
 
     # If a specific staff member is selected, fetch their slots.
     if staff_member_id:
         staff_member = get_object_or_404(StaffMember, pk=staff_member_id)
+        #TODO unavailabilities
         y, available_slots = get_appointments_and_slots(date.today(), service)
 
     page_title = f"{service.name} - {get_website_name()}"
@@ -228,8 +226,7 @@ def appointment_request(request, service_id=None, staff_member_id=None):
     #  approach is much easier for contributors than creating separate format files per language.
     #  Future contributors: add your language's preferred format in the DATE_FORMATS dictionary in utils.date_time.py
     #  file.
-    current_lang = translation.get_language()
-    format_string = DATE_FORMATS.get(current_lang, "D, F j, Y")
+    format_string = DATE_FORMATS.get(get_locale(), "D, F j, Y")
     date_chosen = date_format(date.today(), format_string, use_l10n=True)
     extra_context = {
         'service': service,
@@ -241,6 +238,7 @@ def appointment_request(request, service_id=None, staff_member_id=None):
         'date_chosen': date_chosen,
         'locale': get_locale(),
         'timezoneTxt': get_current_timezone_name(),
+        'first_day_of_week': get_format("FIRST_DAY_OF_WEEK"),
         'label': label
     }
     context = get_generic_context_with_extra(request, extra_context, admin=False)
@@ -537,10 +535,11 @@ def prepare_reschedule_appointment(request, id_request):
         'all_staff_members': all_staff_members,
         'page_title': page_title,
         'page_description': page_description,
-        'available_slots': [slot.strftime('%I:%M %p') for slot in available_slots],
+        'available_slots': [slot.time() for slot in available_slots],
         'date_chosen': date_chosen,
         'locale': get_locale(),
         'timezoneTxt': get_current_timezone_name(),
+        'first_day_of_week': get_format("FIRST_DAY_OF_WEEK"),
         'label': label,
         'rescheduled_date': ar.date.strftime("%Y-%m-%d"),
         'page_header': page_title,
