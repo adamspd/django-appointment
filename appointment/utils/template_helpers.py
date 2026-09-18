@@ -31,16 +31,16 @@ def _first_usable_template(directory, template_names, default_template):
             return custom_template_path
         except TemplateDoesNotExist:
             continue
-        except TemplateSyntaxError as e:
+        except TemplateSyntaxError:
             logger.warning(
-                    f"Custom template '{custom_template_path}' could not be loaded ({e}). "
-                    f"Falling back to '{default_template}'."
+                    "Custom template override could not be compiled due to syntax error. "
+                    "Falling back to default template."
             )
             continue
-        except Exception as e:  # noqa: BLE001 - a broken override must never break the response
+        except Exception:  # noqa: BLE001 - a broken override must never break the response
             logger.error(
-                    f"Unexpected error loading custom template '{custom_template_path}': {e}. "
-                    f"Falling back to '{default_template}'.",
+                    "Unexpected error loading custom template override. "
+                    "Falling back to default template.",
                     exc_info=True
             )
             continue
