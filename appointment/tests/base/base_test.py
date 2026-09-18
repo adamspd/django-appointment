@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+from django.core.cache import cache
 from django.test import TestCase
 
 from appointment.models import Appointment, AppointmentRequest, Service, StaffMember
@@ -30,6 +31,12 @@ class BaseTest(TestCase, UserMixin, StaffMemberMixin, ServiceMixin, AppointmentR
         'superuser': {"first_name": "Jack", "last_name": "O'Neill", "email": "jack-oneill@django-appointment.com",
                       "username": "jack.o.neill"},
     }
+
+    def setUp(self):
+        super().setUp()
+        # A Config cached by an earlier test class outlives the rollback of its own
+        # row, so every test starts from a clean cache rather than inheriting one.
+        cache.clear()
 
     @classmethod
     def setUpTestData(cls):
