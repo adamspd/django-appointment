@@ -118,9 +118,6 @@ class TestCalculateStaffSlots(BaseTest):
 
     def setUp(self):
         super().setUp()
-        # A Config cached by an earlier test class outlives its transaction rollback,
-        # and would silently replace the 30-minute grid these tests expect.
-        cache.clear()
         self.slot_duration = datetime.timedelta(minutes=30)
         # Anchored on the current day so these tests never go stale, and pinned to a
         # fixed hour so they do not depend on what time of day the suite runs.
