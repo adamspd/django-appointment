@@ -113,6 +113,52 @@ Want to add support for your language? We'd love your help!
 - Test date formats with real examples
 - Include gender-neutral language where possible
 
+## `gettext` or `gettext_lazy`? 🕐
+
+Both mark a string for translation. They differ in **when** the translation happens, and
+picking the wrong one is a quiet bug rather than a loud one.
+
+| | Translates | Use it for |
+|---|---|---|
+| `gettext` | Immediately, when the line runs | Code that runs while answering a request |
+| `gettext_lazy` | Later, when the string is displayed | Code that runs once, at import time |
+
+The question to ask is: **does this line run at startup, or while answering somebody's
+request?** Startup means there is no visitor yet, so there is no language to translate
+into; `gettext` there would freeze whatever language happened to be active when Django
+started. That is what `gettext_lazy` is for.
+
+```python
+# At import time -> lazy. There is no request yet.
+class Appointment(models.Model):
+    status = models.CharField(verbose_name=_("Status"))   # gettext_lazy
+
+# While handling a request -> plain. The language is already known.
+def save_appointment(request):
+    messages.success(request, _("Appointment saved"))     # gettext
+```
+
+In this project that works out as:
+
+- **`gettext_lazy`** — `models.py`, `forms.py`, `utils/validators.py`, `messages_.py`
+  (field labels, form labels, validator messages, module-level constants)
+- **`gettext`** — `views.py`, `views_admin.py`, `services.py`, `utils/session.py`,
+  `utils/email_ops.py`, `tasks.py` (everything built per request)
+
+**Never import both under the same name.** The second one silently wins, so the file
+claims one behaviour and has the other:
+
+```python
+# Wrong: every _() below is lazy, whatever the first import suggests
+from django.utils.translation import gettext as _, gettext_lazy as _
+```
+
+One more thing worth knowing: `gettext_lazy` does not return a string, it returns a
+placeholder that becomes one when displayed. Django handles that nearly everywhere, but
+it can surprise code that expects real text — JSON serialisation, concatenation, or
+anything writing straight to the database. When in doubt in request-time code, prefer
+plain `gettext`.
+
 ## Advanced: Translating Database Content 🗃️
 
 For translating service names, descriptions, and other database content, you can use third-party packages:
