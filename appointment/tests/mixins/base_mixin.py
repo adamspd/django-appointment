@@ -54,10 +54,11 @@ class AppointmentRequestMixin:
         pass
 
     @classmethod
-    def create_appointment_request_(cls, service, staff_member, date_=date.today(), start_time=time(9, 0),
+    def create_appointment_request_(cls, service, staff_member, date_=None, start_time=time(9, 0),
                                     end_time=time(10, 0)):
+        # date.today() as a default would be frozen at import time, not per call.
         return AppointmentRequest.objects.create(
-                date=date_,
+                date=date_ if date_ is not None else date.today(),
                 start_time=start_time,
                 end_time=end_time,
                 service=service,
