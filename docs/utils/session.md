@@ -1,4 +1,4 @@
-# Django Appointment 📦: `session_operations.py`
+# `session_operations.py`
 
 This module offers utility functions to manage session-based operations related to appointments in the Django appointment system.
 

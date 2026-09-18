@@ -1,7 +1,3 @@
-Based on the provided code and the desired README format, here is a proposed README for the package:
-
----
-
 # Utility functions and methods
 
 - [date and time operations](utils/date_time.md)

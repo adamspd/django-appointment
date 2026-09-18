@@ -1,0 +1,128 @@
+site_name: Django Appointment
+site_description: A flexible, customizable appointment scheduling package for Django.
+site_url: https://django-appt-doc.adamspierredavid.com/
+repo_url: https://github.com/adamspd/django-appointment
+repo_name: adamspd/django-appointment
+edit_uri: edit/main/docs/
+copyright: Licensed under the Apache License 2.0
+
+theme:
+  name: material
+  logo: images/logo.png
+  favicon: images/favicon.ico
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: black
+      accent: black
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      accent: white
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    # Left-hand sidebar navigation (no horizontal tab bar).
+    - navigation.sections
+    - navigation.expand
+    - navigation.indexes
+    - navigation.top
+    - navigation.tracking
+    - search.suggest
+    - search.highlight
+    - content.tabs.link
+    - content.code.annotate
+    - content.code.copy
+    - content.action.edit
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      toc_depth: 3
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets:
+      # Lets pages pull in the .md files that live at the repository root
+      # (README.md, CUSTOM_TEMPLATES.md, INTERNATIONALIZATION.md, ...) so those
+      # files stay the single source of truth.
+      base_path:
+        - .
+        - docs
+      check_paths: true
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.mark
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+plugins:
+  - search
+
+nav:
+  - Home: index.md
+  - Getting started:
+      - Installation and setup: getting-started.md
+      - Tutorial with screenshots: tutorial.md
+      - Configuration: configuration.md
+      - Email and Django Q: email-and-django-q.md
+      - Docker: docker.md
+  - Features:
+      - Client-side features: client-side-features.md
+      - Staff member and admin features: staff-member-features.md
+      - Custom templates: custom-templates.md
+      - Internationalization: internationalization.md
+      - Payment URL configuration: payment_url_configuration.md
+  - Reference:
+      - Project structure: project-structure.md
+      - Models: models.md
+      - Views: views.md
+      - Admin views: admin_views.md
+      - Utilities:
+          - Overview: utils.md
+          - Date and time: utils/date_time.md
+          - Database helpers: utils/db_helpers.md
+          - Email operations: utils/email_ops.md
+          - Error codes: utils/error_codes.md
+          - JSON and context: utils/json_context.md
+          - Permissions: utils/permissions.md
+          - Sessions: utils/session.md
+          - View helpers: utils/view_helpers.md
+      - Compatibility matrix: compatibility.md
+  - Releases:
+      - Release notes:
+          - Latest: release_notes/latest.md
+          - Version 3.0.0: release_notes/v3_0_0.md
+          - Version 2.1.1: release_notes/v2_1_1.md
+      - Migration guides:
+          - Latest: migration_guides/latest.md
+          - Version 2.1.0: migration_guides/v2_1_0.md
+      - Older documentation:
+          - Version 3.0.1: history/readme_v3_0_1.md
+          - Version 2.1.1: history/readme_v2_1_1.md
+  - Project:
+      - Contributing: contributing.md
+      - Code of conduct: code-of-conduct.md
+      - Security policy: security.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/adamspd/django-appointment
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/django-appointment/

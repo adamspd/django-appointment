@@ -1,4 +1,4 @@
-# Django Appointment 📦: `email_operations.py`
+# `email_operations.py`
 
 This module provides functions to handle email-related operations in the Django appointment system.
 

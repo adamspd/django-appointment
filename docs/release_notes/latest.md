@@ -52,7 +52,7 @@ ensures a smoother experience for both staff members and superusers.
 - Version 3.0.0 introduced dynamic appointment management, user interface enhancements, dynamic label customization,
   updated documentation, library updates, and more.
 - For a complete list of features and updates in the previous version, refer
-  to [release notes for version 3.0.0](https://github.com/adamspd/django-appointment/tree/main/docs/release_notes/v3_0_0.md).
+  to [release notes for version 3.0.0](v3_0_0.md).
 
 ## Getting Started 🚀
 

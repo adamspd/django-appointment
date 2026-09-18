@@ -1,8 +1,6 @@
-# Django Appointment 📦
+# Admin Views 👩‍💼
 
-## Admin Views 👩‍💼
-
-### Overview 🔍
+## Overview 🔍
 
 The Django Appointment System's admin module comes packed with a set of views designed to manage appointments, staff
 members, services, and more. Both superusers and staff members have unique access rights to ensure data integrity and
@@ -11,7 +9,7 @@ confidentiality.
 
 ---
 
-### 🚨 Important Note 🚨
+## 🚨 Important Note 🚨
 
 When extending the base template in your admin custom templates, ensure that you've included
 the `{% block customMetaTag %}` inside the `<head>` section of your `BASE_TEMPLATE`. This block contains crucial meta
@@ -34,7 +32,7 @@ Failure to include this block might result in errors during asynchronous operati
 
 ---
 
-### __🛠 Detailed Functionality 🔧__
+## __🛠 Detailed Functionality 🔧__
 
 #### **Calendar & Appointments**:
 
@@ -214,7 +212,7 @@ Failure to include this block might result in errors during asynchronous operati
     - **Description**: This endpoint provides an AJAX way to delete appointments.
     - **Methods**: POST
 
-### Note on updating personal info
+## Note on updating personal info
 
 When a staff member or superuser updates their personal information, and the email of the staff member changes, the
 email will be verified again. This is to ensure that a user cannot change another staff member's email without

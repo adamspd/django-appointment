@@ -1,4 +1,4 @@
-# Django Appointment 📦: `permissions_handler.py`
+# `permissions_handler.py`
 
 This module provides utility functions to handle user permissions and ownership checks for the Django appointment system.
 

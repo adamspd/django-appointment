@@ -59,7 +59,7 @@ For a detailed walkthrough and live example of the system, please refer to
 [this tutorial](https://github.com/adamspd/django-appointment/tree/main/docs/explanation.md).
 
 Detailed documentation can be found in
-the [docs' directory](https://github.com/adamspd/django-appointment/tree/main/docs/README.md).
+the [documentation site](https://django-appt-doc.adamspierredavid.com/).
 For changes and migration information, please refer to the release
 notes [here](https://github.com/adamspd/django-appointment/releases)
 and [here](https://github.com/adamspd/django-appointment/tree/main/docs/release_notes).
@@ -173,6 +173,7 @@ see their [release notes](https://github.com/adamspd/django-appointment/tree/mai
 
 ## Email and Django Q Configuration 📧
 
+<!-- --8<-- [start:email-and-q] -->
 ### Email Configuration 📧
 
 Proper email configuration is crucial for the sending email and for the appointment reminder functionality.
@@ -234,7 +235,7 @@ This feature is optional but recommended for better performance and user experie
 
 > **Note:** If you choose not to use Django Q, email reminders will not be sent, but the rest of the application will
 > function normally.
-
+<!-- --8<-- [end:email-and-q] -->
 
 ## Template Configuration 📝
 
@@ -272,7 +273,7 @@ See an example of a base.html template [here](https://github.com/adamspd/django-
 
 1. In your Django project's `settings.py`, you can override the default values for the appointment scheduler.
    More information regarding available configurations can be found in
-   the [documentation](https://github.com/adamspd/django-appointment/tree/main/docs/README.md#configuration).
+   the [documentation](https://django-appt-doc.adamspierredavid.com/configuration/).
 2. Modify these values as needed for your application, and the app will adapt to the new settings.
 3. For further customization, you can extend the provided models, views, and templates or create your own.
 
@@ -303,6 +304,7 @@ LANGUAGES = [('en', 'English'), ('fr', 'French')]
 
 ## Docker Support 🐳
 
+<!-- --8<-- [start:docker] -->
 Django-Appointment now supports Docker, making it easier to set up, develop, and test.
 
 ### Getting Started with Docker for Development or Local Testing
@@ -403,7 +405,7 @@ Here's how you can set it up:
 
 6. **Access the Application**: Once the containers are running, you can access the application at `localhost:8000`. The
    Django admin interface is available at `localhost:8000/admin`. And from there, add the necessary configurations.
-   [Follow this documentation](https://github.com/adamspd/django-appointment/blob/main/docs/explanation.md).
+   [Follow this documentation](https://django-appt-doc.adamspierredavid.com/tutorial/).
 7. **Shut Down the Containers**: When you're finished, you can shut down the containers with the following command:
 
    ```bash
@@ -414,6 +416,7 @@ Here's how you can set it up:
    > **Note:** I used the default database settings for the Docker container.
    > If you want to use a different database, you can modify the Dockerfile and docker-compose.yml files to use your
    > preferred database.
+<!-- --8<-- [end:docker] -->
 
 ## Compatibility Matrix 📊
 

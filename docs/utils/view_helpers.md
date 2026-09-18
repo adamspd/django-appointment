@@ -1,4 +1,4 @@
-# Django Appointment 📦: `views_utils.py`
+# `views_utils.py`
 
 This module provides utility functions to support the Django views in the appointment system.
 
@@ -9,7 +9,6 @@ This module provides utility functions to support the Django views in the appoin
     - [Locale Operations](#locale-operations)
     - [Request Type Checks](#request-type-checks)
     - [Random ID Generation](#random-id-generation)
-    - [Timezone Operations](#timezone-operations)
 
 ## Module Metadata:
 

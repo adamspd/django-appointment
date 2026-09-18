@@ -1,4 +1,4 @@
-# Django Appointment 📦: `date_time_ops.py`
+# `date_time_ops.py`
 
 This module contains various utility functions to assist in date and time-related operations in the Django appointment
 system.
