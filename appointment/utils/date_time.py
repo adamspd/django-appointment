@@ -12,6 +12,7 @@ from django.utils import timezone
 from django.utils.formats import get_format
 from django.utils.translation import gettext_lazy as _, ngettext
 
+
 def js_timepicker_display_format():
     """Convert a localized time format to its Moment.js representation
 
@@ -49,7 +50,6 @@ def js_timepicker_display_format():
     }
 
     localized_time_format = get_format("TIME_FORMAT")
-    print(localized_time_format)
 
     # handle fr_CA
     filtered_localized_time_format = localized_time_format.replace("\xa0h", ":").replace("\xa0", "")
@@ -74,6 +74,7 @@ def combine_date_and_time(date, time) -> datetime.datetime:
     :return: A datetime object.
     """
     return datetime.datetime.combine(date, time)
+
 
 def convert_ap_str_time_to_12_hour_str_time(time_str: str) -> str:
     """Convert a Associated Press 12-hour time to a 12-hour time format if needed
@@ -140,6 +141,8 @@ def convert_minutes_in_human_readable_format(minutes: float) -> str:
 
 # TODO if required add support for locale format using : get_format('DATE_INPUT_FORMAT')
 # but we have to discernate year first, month first or day first format properly
+
+
 def convert_str_to_date(date_str: str) -> datetime.date:
     """Convert a date string to a datetime date object.
 
@@ -158,6 +161,8 @@ def convert_str_to_date(date_str: str) -> datetime.date:
     raise ValueError(f"Invalid date format for '{date_str}'. Supported formats are `YYYY-MM-DD`, `YYYY/MM/DD` and `YYYY.MM.DD`.")
 
 # TODO if required add support for locale format using : get_format('TIME_INPUT_FORMAT')
+
+
 def convert_str_to_time(time_str: str) -> datetime.time:
     """Convert a string representation of time to a Python `time` object.
 
