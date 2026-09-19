@@ -11,7 +11,7 @@ import warnings
 
 from django.utils import timezone
 from django.utils.formats import get_format
-from django.utils.translation import gettext_lazy as _, ngettext
+from django.utils.translation import gettext as _, ngettext
 
 
 def js_timepicker_display_format():
