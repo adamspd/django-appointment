@@ -143,7 +143,7 @@ In this project that works out as:
 - **`gettext_lazy`** — `models.py`, `forms.py`, `utils/validators.py`, `messages_.py`
   (field labels, form labels, validator messages, module-level constants)
 - **`gettext`** — `views.py`, `views_admin.py`, `services.py`, `utils/session.py`,
-  `utils/email_ops.py`, `tasks.py` (everything built per request)
+  `utils/email_ops.py`, `utils/date_time.py`, `tasks.py` (everything built per request)
 
 **Never import both under the same name.** The second one silently wins, so the file
 claims one behaviour and has the other:
