@@ -495,6 +495,14 @@ class StaffChangeAllowedOnRescheduleTests(TestCase):
         # Call the function and assert that staff change is not allowed
         self.assertFalse(staff_change_allowed_on_reschedule())
 
+    def test_staff_change_without_config(self):
+        """No Config row is a supported state; rescheduling must not 500 on it."""
+        Config.objects.all().delete()
+        cache.clear()
+
+        # falls back to the field's default rather than dereferencing None
+        self.assertTrue(staff_change_allowed_on_reschedule())
+
 
 class CancelExistingReminderTest(BaseTest):
     def test_cancel_existing_reminder(self):
