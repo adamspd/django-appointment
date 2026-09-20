@@ -250,7 +250,13 @@ def can_appointment_be_rescheduled(appointment_request):
 
 
 def staff_change_allowed_on_reschedule():
-    return Config.objects.first().allow_staff_change_on_reschedule
+    """Return whether clients may pick another staff member when rescheduling.
+
+    Falls back to the field's default when no Config row exists, which is a
+    supported state: the reschedule page must not depend on one being created.
+    """
+    config = Config.objects.first()
+    return config.allow_staff_change_on_reschedule if config else True
 
 
 def generate_unique_username_from_email(email: str) -> str:
