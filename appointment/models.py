@@ -1205,7 +1205,7 @@ class Unavailability(models.Model):
         if self.date is not None and self.start_time is not None and self.end_time is not None:
             if self.start_time >= self.end_time:
                 raise ValidationError(_("Start datetime must be before end datetime"))
-            if self.date < datetime.datetime.today():
+            if self.date < datetime.date.today():
                 raise ValidationError(_("Cannot create unavailabilities for past dates"))
 
     def get_date(self):
