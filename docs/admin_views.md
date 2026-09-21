@@ -183,6 +183,38 @@ anyone's.
       superusers can delete any day off.
     - **Methods**: GET · **Access**: staff or superuser
 
+#### **Unavailability Management**:
+
+An [`Unavailability`](models.md#unavailability) blocks a time range on a single day, leaving the rest of that day
+bookable — use a day off to remove whole days instead. Slots overlapping one are dropped from the booking page.
+
+- **Add an Unavailability**:
+    - **Endpoint**: `app-admin/add-unavailability/<int:staff_user_id>/`
+    - **Description**: Adds an unavailability for the given staff member. Staff members can only add their own, while
+      superusers can add for any user. There is no variant of this URL without `staff_user_id`.
+    - **Methods**: GET (display form), POST (submit form) · **Access**: staff or superuser
+
+- **Update an Unavailability**:
+    - **Endpoint**: `app-admin/update-unavailability/<int:unavailability_id>/` and
+      `app-admin/update-unavailability/<int:unavailability_id>/<int:staff_user_id>/`
+    - **Description**: Modifies an existing unavailability. Staff members can only update their own, while superusers
+      can update anyone's. An unknown `unavailability_id` renders the `404` page.
+    - **Methods**: GET (display form with pre-filled data), POST (submit updated data) · **Access**: staff or superuser
+
+- **Delete an Unavailability**:
+    - **Endpoint**: `app-admin/delete-unavailability/<int:unavailability_id>/` and
+      `app-admin/delete-unavailability/<int:unavailability_id>/<int:staff_user_id>/`
+    - **Description**: Removes an unavailability. Staff members can only delete their own, while superusers can delete
+      any.
+    - **Methods**: GET · **Access**: staff or superuser
+
+!!! note "What the add and update forms post"
+    Both submit the date and times as pre-formatted hidden fields alongside the localized ones the user sees:
+    `date_raw` (`YYYY-MM-DD`), `start_time_raw` and `end_time_raw` (`HH:MM:SS`), plus `description`. The view parses
+    those raw values, so a replacement form must keep them. The start-before-end check is done by the view, which
+    answers a rejected submission with a `400` JSON response carrying the `INVALID_DATA`
+    [error code](utils/error_codes.md).
+
 #### **Working Hours Management**:
 
 - **Add New Working Hours**:

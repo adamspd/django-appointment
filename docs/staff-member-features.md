@@ -24,8 +24,13 @@ Staff members have access to a personalized dashboard with the following capabil
    - On mobile: Tap a day and select "New Event."
      ![New Appointment Mobile](images/sm_new_appointment_mobile.png)
 
+7. **Block Part of a Day**: Record an *unavailability* — a start and end time on a single date, with an optional
+   reason — to take a lunch break, a meeting or an errand out of the bookable slots without losing the whole day.
+   Days off remain the way to remove entire days.
+
 !!! Note
-    Staff members can only view and manage their own appointments. They cannot create appointments for other staff members.
+    Staff members can only view and manage their own appointments, days off and unavailabilities. They cannot create
+    appointments for other staff members.
 
 ## Admin Features
 
@@ -50,7 +55,11 @@ Administrators have full control over the appointment system, including all staf
 6. **Days Off Management**:
    Add days off for any staff member, modify existing days off, remove days off, view days off for all staff members
 
-7. **System Configuration**:
+7. **Unavailability Management**:
+   Add unavailabilities for any staff member, modify them, remove them, and see them listed on each staff member's
+   profile
+
+8. **System Configuration**:
    Adjust global settings for the appointment system, manage payment integrations and options, set up email notifications and reminders
 
 These comprehensive admin features allow for complete control and customization of the appointment system, ensuring it can be tailored to the specific needs of any business or organization.

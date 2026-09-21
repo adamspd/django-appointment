@@ -44,7 +44,8 @@ The `Service` model encapsulates a service provided by the appointment system.
 
 The `StaffMember` model represents a staff member in the appointment system. A staff member is a user that offers
 one or more services in the one defined by the admin. He can't edit/add/delete services but can choose which one he
-offers. He can update his profile, change his working hours or add vacation days (days off).
+offers. He can update his profile, change his working hours, add vacation days (days off), or block part of a single
+day ([unavailabilities](#unavailability)).
 
 ### StaffMember Fields:
 
@@ -79,6 +80,8 @@ offers. He can update his profile, change his working hours or add vacation days
 - `get_appointment_buffer_time`: Returns the appointment buffer time.
 - `get_appointment_buffer_time_text`: Returns the appointment buffer time in a human-readable format.
 - `get_days_off`: Returns the days off for the staff member.
+- `get_unavailabilities`: Returns every [`Unavailability`](#unavailability) recorded for the staff member.
+- `get_unavailabilities_for_date`: Returns the staff member's unavailabilities on one given date.
 - `get_working_hours`: Returns the working hours for the staff member.
 - `update_upon_working_hours_deletion`: Updates the weekend working status upon deletion of working hours.
 - `is_working_day`: Returns whether a given day is a working day (true or false).
@@ -325,6 +328,73 @@ start date is before the end date.
 
 - `is_owner`: Returns a boolean indicating if the given user ID matches the user ID of the staff member associated with
   the day off.
+
+## Unavailability
+
+The `Unavailability` model blocks **part of a single day** for a staff member — a lunch break, a meeting, a hospital
+appointment. It is the short-range counterpart to [`DayOff`](#dayoff): a day off removes whole days from the
+calendar, an unavailability removes a time range from one day while the rest of that day stays bookable.
+
+Unavailabilities are checked when the booking page builds its list of slots, so a client never sees a slot that
+overlaps one. See [How unavailabilities affect booking](#how-unavailabilities-affect-booking) below.
+
+There is no restriction against overlapping entries, and none against an unavailability that falls outside the staff
+member's working hours — such an entry simply has nothing to block.
+
+### Unavailability Fields:
+
+- `staff_member` (ForeignKey): The staff member who is unavailable, linking to the `StaffMember` model. Deleting the
+  staff member deletes their unavailabilities.
+- `description` (CharField): An optional description or reason, shown in the admin list and on the staff member's
+  profile page.
+- `date` (DateField): The day the unavailability falls on. A single entry never spans more than one day — use two
+  entries, or a [`DayOff`](#dayoff), for that.
+- `start_time` (TimeField): The time the staff member becomes unavailable.
+- `end_time` (TimeField): The time the staff member becomes available again.
+
+### Unavailability Methods:
+
+- `get_date`: Returns the date of the unavailability.
+- `get_start_time`: Returns the start time.
+- `get_end_time`: Returns the end time.
+- `get_start_datetime`: Returns `date` and `start_time` combined into a single `datetime`.
+- `get_end_datetime`: Returns `date` and `end_time` combined into a single `datetime`.
+- `is_owner`: Returns whether the given user ID matches the user ID of the staff member the unavailability belongs to.
+- `clean`: Validates that the start time is before the end time, and that the date is not in the past. See the note
+  below on when it actually runs.
+
+### Meta:
+
+- `ordering`: Most recent date first.
+- `constraints`: A database check constraint, `unavailability_start_time_before_end_time`, enforces
+  `start_time < end_time` at the database level. It is built through
+  [`appointment/compat.py`](https://github.com/adamspd/django-appointment/blob/main/appointment/compat.py) so it
+  works across the whole supported Django range, where the `CheckConstraint` keyword changed name.
+
+!!! note "`clean()` does not run on the administration path"
+    Unlike [`DayOff`](#dayoff), which is saved through a `ModelForm` and therefore validated on every submit, the
+    add and update pages build an `Unavailability` directly and call `save()`. `clean()` is never reached, so the
+    rule it carries about past dates is not enforced there — the view performs its own start-before-end check
+    instead, and the database constraint above backs that one up.
+
+    `clean()` does run wherever `full_clean()` is called: the Django admin's add and change forms, a `ModelForm` of
+    your own, or your own explicit call. If you create unavailabilities from your own code and want the past-date
+    rule applied, call `full_clean()` rather than `save()` alone.
+
+### How unavailabilities affect booking
+
+When the slot picker asks for a staff member's availability on a date, the package:
+
+1. builds the day's candidate slots from that staff member's working hours, slot duration and buffer time;
+2. loads the unavailabilities overlapping those working hours with
+   [`get_unavailabilities_for_date_and_time`](utils/db_helpers.md#unavailabilities-working-hours-and-days-off);
+3. drops every candidate slot that overlaps one, using the same
+   [`exclude_unavailable_slots`](utils/db_helpers.md#slot-calculations) pass that removes slots taken by existing
+   appointments.
+
+A slot is considered to overlap when the unavailability starts before the slot's effective end and the slot starts
+before the unavailability ends — so a slot only partly covered is removed too. The effective end accounts for the
+service's real duration, and `slot_gap_time` is applied on both sides, exactly as it is for booked appointments.
 
 ## WorkingHours
 
