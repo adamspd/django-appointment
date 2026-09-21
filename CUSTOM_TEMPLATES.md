@@ -80,8 +80,13 @@ You only create the files you actually want to override — everything else keep
 
 These are the HTML pages users see in their browser.
 
-Every page below also receives the generic context: `BASE_TEMPLATE`, `user`, `is_superuser` and `locale`. Only the
-page-specific variables are listed.
+Every page below also receives the generic context: `BASE_TEMPLATE`, `user`, `is_superuser`, `locale` and
+`localized_formats`. Only the page-specific variables are listed.
+
+`localized_formats` is what the date and time pickers are configured from — it holds Django's `TIME_INPUT_FORMATS`,
+`DATE_INPUT_FORMATS` and `DATETIME_INPUT_FORMATS` for the active locale, plus `js_timepicker_display_format` and
+`js_datepicker_display_format`, the Moment.js equivalents. Keep using it in any template of yours that renders a
+picker, or the widget will fall back to a format the server may not parse back.
 
 #### Booking flow
 
