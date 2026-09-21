@@ -42,8 +42,13 @@ Everything below is relative to wherever you mounted the package's URLconf, plus
 So with `path('appointment/', include('appointment.urls'))`, the appointment calendar is at
 `/appointment/app-admin/appointments/` and the slot lookup is at `/appointment/ajax/available_slots/`.
 
-Two access levels are used throughout: **staff or superuser** (any user with a `StaffMember` record, plus
-superusers) and **superuser only**.
+Two access levels are used throughout: **staff or superuser** and **superuser only**.
+
+The first is Django's own `is_staff` flag, or `is_superuser`. Creating a [`StaffMember`](models.md#staffmember) sets
+`is_staff` on that user, so every staff member qualifies — but so does any other Django staff user you have created
+yourself, whether or not they have a `StaffMember` record. Views that act on a specific staff member's data narrow
+this further with an ownership check: a staff member may only touch their own rows, while a superuser may touch
+anyone's.
 
 ## __🛠 Detailed Functionality 🔧__
 
