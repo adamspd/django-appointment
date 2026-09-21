@@ -362,6 +362,10 @@ def create_payment_info_and_get_url(appointment):
 
     return payment_url
 
+def exclude_booked_slots(appointments, slots, slot_duration=None):
+    warnings.warn("'exclude_booked_slots' is now deprecated and will be replaced by 'exclude_unavailable_slots' in the next version", DeprecationWarning)
+    return exclude_unavailable_slots(slots, appointments=appointments, unavailabilities=None, slot_duration=slot_duration, service_duration=None, gap_time=None)
+
 def exclude_unavailable_slots(slots, appointments=None, unavailabilities=None, slot_duration=None, service_duration=None, gap_time=None):
     """Exclude the booked slots from the given list of slots.
 
