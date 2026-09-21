@@ -48,7 +48,10 @@ offers. He can update his profile, change his working hours or add vacation days
 
 ### StaffMember Fields:
 
-- `user` (OneToOneField): Related User model instance, will be granted Django's staff status.
+- `user` (OneToOneField): Related User model instance. Creating a `StaffMember` grants that user Django's `is_staff`
+  flag — that is what the [administration views](admin_views.md) check — however the record was created: the
+  staff-member form, the Django admin, or a fixture. Superusers are left untouched, since they already pass those
+  checks through `is_superuser`.
 - `services_offered` (ManyToManyField): Services offered by the staff member.
 - `slot_duration` (PositiveIntegerField): Minimum time for an appointment in minutes.
 - `lead_time` (TimeField): Time when the staff member starts working.
