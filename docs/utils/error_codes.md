@@ -24,6 +24,8 @@ reporting.
 - **INVALID_DATA**: Denotes that the provided data is invalid.
 - **INVALID_DATE**: Indicates that the provided date is invalid.
 - **NOT_AUTHORIZED**: Denotes that the user is not authorized to perform the requested action.
+- **NEXT_AVAILABILITY_NOT_FOUND**: Indicates that a staff member has no free slot for the service within the 90 days
+  the next-available-date lookup searches.
 - **PAST_DATE**: Indicates that the provided date is in the past.
 - **STAFF_ID_REQUIRED**: Denotes that a staff ID is required but was not provided.
 - **WORKING_HOURS_NOT_FOUND**: Indicates that the specified working hours entry was not found.
