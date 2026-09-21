@@ -188,4 +188,5 @@ admin and the staff member. The link is only valid for **5 minutes** after the r
 - `id_request` (str): The unique ID of the reschedule history entry.
 
 #### Returns:
-- `django.http.HttpResponse`: The rendered HTML page, or a `404` page when the link is stale or already used.
+- `django.http.HttpResponseRedirect`: A redirect to the thank-you page for the moved appointment. A stale or
+  already-used link renders the `404` page instead, with a `404` status.
