@@ -127,9 +127,14 @@ picker, or the widget will fall back to a format the server may not parse back.
 | `manage_service.html`                 | Add, edit, or view a service                       | `form`, `btn_text`, `page_title`, `service` (view mode only) | `administration/manage_service.html`       |
 | `service_list.html`                   | List of all services                               | `services`                                        | `administration/service_list.html`                    |
 
-> **Note:** The staff list and user profile pages (`administration/staff_list.html` and
-> `administration/user_profile.html`) do not go through the custom template lookup yet, so they cannot be overridden
-> this way.
+> **Note:** Five administration pages do not go through the custom template lookup yet, so they cannot be overridden
+> this way — their paths are hardcoded:
+>
+> - `administration/staff_list.html` — the list of staff members a superuser sees
+> - `administration/user_profile.html` — a staff member's profile page
+> - `administration/manage_day_off.html` — the add/edit day off form
+> - `administration/manage_unavailability.html` — the add/edit unavailability form
+> - `administration/manage_working_hours.html` — the add/edit working hours form
 
 ### Email Templates (Emails Directory)
 
