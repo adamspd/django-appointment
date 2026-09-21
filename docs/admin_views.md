@@ -243,14 +243,16 @@ All of these live under the `ajax/` prefix.
 
 - **Get Available Slots**:
     - **Endpoint**: `ajax/available_slots/`
-    - **Description**: Provides AJAX functionality to get available slots for appointments. Reads `selected_date` and
-      `staff_member` from the query string.
+    - **Description**: Provides AJAX functionality to get available slots for appointments. Reads `selected_date`,
+      `staff_member` and the optional `service_id` from the query string; passing `service_id` checks availability
+      against the service's real duration rather than the slot step.
     - **Methods**: GET · **Access**: public
 
 - **Request Next Available Slot**:
     - **Endpoint**: `ajax/request_next_available_slot/<int:service_id>/`
     - **Description**: Fetches the next available slot for a given service via AJAX. The service is identified
-      by `service_id`, and the staff member by the `staff_member` query parameter.
+      by `service_id`, and the staff member by the `staff_member` query parameter. The search gives up after 90
+      days and answers with the `NEXT_AVAILABILITY_NOT_FOUND` [error code](utils/error_codes.md).
     - **Methods**: GET · **Access**: public
 
 - **Get Staff Member Non-working Days**:
