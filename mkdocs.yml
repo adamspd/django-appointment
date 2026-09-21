@@ -109,11 +109,13 @@ nav:
       - Compatibility matrix: compatibility.md
   - Releases:
       - Release notes:
+          - Version 3.11.0 (upcoming): release_notes/v3_11_0.md
           - Latest: release_notes/latest.md
           - Version 3.0.1: release_notes/v3_0_1.md
           - Version 3.0.0: release_notes/v3_0_0.md
           - Version 2.1.1: release_notes/v2_1_1.md
       - Migration guides:
+          - Version 3.11.0 (upcoming): migration_guides/v3_11_0.md
           - Latest: migration_guides/latest.md
           - Version 3.0.1: migration_guides/v3_0_1.md
           - Version 2.1.0: migration_guides/v2_1_0.md
