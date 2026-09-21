@@ -38,7 +38,7 @@ appointment system.
     - `localized_formats` is a dictionary the date and time pickers need, holding Django's `TIME_INPUT_FORMATS`,
       `DATE_INPUT_FORMATS` and `DATETIME_INPUT_FORMATS` for the active locale, plus `js_timepicker_display_format`
       and `js_datepicker_display_format` — the same formats translated into their Moment.js equivalents, built by
-      [`date_time.py`](date_time.md).
+      [`date_time.py`](date_time.md#javascript-display-formats).
 
 - **get_generic_context_with_extra(request, extra, admin=True)**:
     - Retrieves the generic context for the admin pages with additional context information.
