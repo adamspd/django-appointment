@@ -57,7 +57,7 @@ updating. Version 3.x.x introduces the ability to send email reminders for appoi
 task scheduling. It also allows clients to reschedule appointments if it is allowed by admins.
 
 For a detailed walkthrough and live example of the system, please refer to
-[this tutorial](https://github.com/adamspd/django-appointment/tree/main/docs/explanation.md).
+[this tutorial](https://django-appt-doc.adamspierredavid.com/tutorial/).
 
 Detailed documentation can be found in
 the [documentation site](https://django-appt-doc.adamspierredavid.com/).
