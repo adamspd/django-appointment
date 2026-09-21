@@ -29,7 +29,16 @@ appointment system.
 ### Context Operations:
 
 - **get_generic_context(request, admin=True)**:
-    - Retrieves the generic context for the admin pages: `BASE_TEMPLATE`, `user`, `is_superuser` and `locale`.
+    - Retrieves the generic context every rendered page receives: `BASE_TEMPLATE`, `user`, `is_superuser`, `locale`
+      and `localized_formats`.
+    - `BASE_TEMPLATE` is `APPOINTMENT_ADMIN_BASE_TEMPLATE` when `admin` is true and `APPOINTMENT_BASE_TEMPLATE`
+      otherwise, which is how the client-facing pages and the administration pages can extend different bases.
+    - `locale` is the active language stripped of its region (`fr-FR` becomes `fr`), because that is the form
+      FullCalendar expects.
+    - `localized_formats` is a dictionary the date and time pickers need, holding Django's `TIME_INPUT_FORMATS`,
+      `DATE_INPUT_FORMATS` and `DATETIME_INPUT_FORMATS` for the active locale, plus `js_timepicker_display_format`
+      and `js_datepicker_display_format` — the same formats translated into their Moment.js equivalents, built by
+      [`date_time.py`](date_time.md).
 
 - **get_generic_context_with_extra(request, extra, admin=True)**:
     - Retrieves the generic context for the admin pages with additional context information.
