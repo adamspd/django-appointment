@@ -13,7 +13,7 @@ system.
     - [Rescheduling](#rescheduling)
     - [Users & Staff Members](#users-and-staff-members)
     - [Per-staff-member Scheduling Values](#per-staff-member-scheduling-values)
-    - [Working Hours & Days Off](#working-hours-and-days-off)
+    - [Unavailabilities, Working Hours & Days Off](#unavailabilities-working-hours-and-days-off)
     - [Configurations & Settings](#configurations-and-settings)
 
 ## Module Metadata:
@@ -28,9 +28,10 @@ system.
 - **calculate_slots**: Calculate the available slots between given start and end times using buffer time and slot
   duration.
 - **calculate_staff_slots**: Calculate the available slots for a given staff member on a specified date.
-- **exclude_booked_slots**: Exclude booked slots from a list of available slots. Takes an optional `service_duration`
-  so services longer than the slot step don't overlap, and an optional `gap_time` applied on both sides of each
-  appointment.
+- **exclude_unavailable_slots**: Remove from a list of slots everything the staff member cannot take: the
+  `appointments` already booked, and the `unavailabilities` blocking part of the day. Takes an optional
+  `service_duration` so services longer than the slot step don't overlap, and an optional `gap_time` applied on both
+  sides of each appointment. A slot is dropped as soon as it overlaps either kind of entry, even partly.
 - **exclude_pending_reschedules**: Exclude the slots that have a pending reschedule request for the given staff
   member and date.
 
@@ -87,10 +88,15 @@ Each of these resolves the staff member's own value first and falls back to the 
 - **get_staff_member_slot_gap_time**: The rest time in minutes between two appointments. Resolves in priority order:
   the staff member's `slot_gap_time`, then `Config.slot_gap_time`, then `0`.
 
-### Working Hours and Days Off:
+### Unavailabilities, Working Hours and Days Off:
 
 - **day_off_exists_for_date_range**: Check if a day off exists for a given staff member within a specified date range.
 - **get_day_off_by_id**: Retrieve a day off record by its ID.
+- **get_unavailability_by_id**: Retrieve an [`Unavailability`](../models.md#unavailability) by its ID, or `None` when
+  there is no such row.
+- **get_unavailabilities_for_date_and_time**: Return the staff member's unavailabilities on a given date that overlap
+  a time range — the range being the working hours of the day, so the result is what actually eats into bookable
+  slots.
 - **get_non_working_days_for_staff**: Get non-working days for a given staff member.
 - **get_weekday_num_from_date**: Determine the number of the weekday from a given date.
 - **get_working_hours_by_id**: Fetch working hours by its ID.

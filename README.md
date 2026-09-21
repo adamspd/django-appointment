@@ -81,6 +81,8 @@ and [here](https://github.com/adamspd/django-appointment/tree/main/docs/release_
 9. Slot availability that accounts for the real duration of a service, plus a configurable rest time between
    appointments (globally or per staff member).
 10. Automatic cleanup of abandoned appointment requests, with a `cleanup_appointment_requests` management command.
+11. Per-day unavailabilities: a staff member can block a time range on a single date (a break, a meeting) without
+    losing the whole day, and the booking page hides the affected slots.
 
 ## Key features introduced in previous versions.
 

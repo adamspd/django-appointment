@@ -19,6 +19,8 @@ reporting.
 - **APPOINTMENT_NOT_FOUND**: Indicates that the specified appointment was not found.
 - **DAY_OFF_CONFLICT**: Denotes a conflict with an existing day-off entry.
 - **DAY_OFF_NOT_FOUND**: Indicates that the specified day-off entry was not found.
+- **UNAVAILABILITY_NOT_FOUND**: Indicates that the specified [unavailability](../models.md#unavailability) was not
+  found.
 - **INVALID_DATA**: Denotes that the provided data is invalid.
 - **INVALID_DATE**: Indicates that the provided date is invalid.
 - **NOT_AUTHORIZED**: Denotes that the user is not authorized to perform the requested action.
