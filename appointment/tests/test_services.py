@@ -11,20 +11,22 @@ from django.core.cache import cache
 from django.test import Client, override_settings
 from django.test.client import RequestFactory
 from django.utils import timezone
-from django.utils.translation import gettext as _, gettext_lazy as _
+from django.utils.formats import localize, get_format
+from django.utils.translation import gettext as _
 
 from appointment.forms import StaffDaysOffForm
 from appointment.services import (
     create_staff_member_service, email_change_verification_service, fetch_user_appointments, get_available_slots,
     get_available_slots_for_staff, get_finish_button_text, handle_day_off_form, handle_entity_management_request,
-    handle_service_management_request, handle_working_hours_form, prepare_appointment_display_data,
+    handle_service_management_request, handle_working_hours_form, handle_unavailability_form, prepare_appointment_display_data,
     prepare_user_profile_data, save_appointment, save_appt_date_time, update_personal_info_service
 )
 from appointment.tests.base.base_test import BaseTest
 from appointment.tests.mixins.base_mixin import (
     ConfigMixin)
+from appointment.utils.error_codes import ErrorCode
 from appointment.utils.date_time import convert_str_to_time, get_ar_end_time
-from appointment.utils.db_helpers import Config, DayOff, EmailVerificationCode, StaffMember, WorkingHours
+from appointment.utils.db_helpers import Config, DayOff, EmailVerificationCode, StaffMember, WorkingHours, Unavailability
 from appointment.views import get_appointments_and_slots
 
 
@@ -53,7 +55,7 @@ class GetAvailableSlotsTests(BaseTest):
     def test_get_available_slots(self):
         slots = get_available_slots(self.tomorrow, [self.appointment])
         self.assertIsInstance(slots, list)
-        self.assertNotIn('11:00 AM', slots)
+        self.assertNotIn(localize(time(11,0)), slots)
 
     def test_get_available_slots_with_config(self):
         Config.objects.create(
@@ -64,7 +66,7 @@ class GetAvailableSlotsTests(BaseTest):
         )
         slots = get_available_slots(self.tomorrow, [self.appointment])
         self.assertIsInstance(slots, list)
-        self.assertNotIn('11:00 AM', slots)
+        self.assertNotIn(localize(time(11,0)), slots)
 
 
 class FetchUserAppointmentsTests(BaseTest):
@@ -317,8 +319,10 @@ class HandleEntityManagementRequestTests(BaseTest):
         self.request.method = 'POST'
         self.request.POST = {
             'day_of_week': '2',
-            'start_time': '08:00 AM',
-            'end_time': '12:00 PM'
+            'start_time': localize(time(8,0)),
+            'start_time_raw': time(8,0).strftime("%Y-%m-%dT%H:%M:%S"),
+            'end_time': localize(time(12,0)),
+            'end_time_raw': time(12,0).strftime("%Y-%m-%dT%H:%M:%S"),
         }
         # Create a WorkingHours instance for self.staff_member1
         working_hours_instance = WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=1,
@@ -352,57 +356,122 @@ class HandleWorkingHoursFormTest(BaseTest):
 
     def test_add_working_hours(self):
         """Test if working hours can be added."""
-        response = handle_working_hours_form(self.staff_member1, 1, '09:00 AM', '05:00 PM', True)
+        response = handle_working_hours_form(self.staff_member1, 1, time(9,0), time(17,0), True)
         self.assertEqual(response.status_code, 200)
 
     def test_update_working_hours(self):
         """Test if working hours can be updated."""
         wh = WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=2, start_time='09:00',
                                          end_time='17:00')
-        response = handle_working_hours_form(self.staff_member1, 3, '10:00 AM', '06:00 PM', False, wh_id=wh.id)
+        response = handle_working_hours_form(self.staff_member1, 3, time(10,0), time(18,0), False, wh_id=wh.id)
         self.assertEqual(response.status_code, 200)
 
     def test_invalid_data(self):
         """If the form is invalid, the function should return a JsonResponse with the appropriate error message."""
-        response = handle_working_hours_form(None, 1, '09:00 AM', '05:00 PM', True)  # Missing staff_member
+        response = handle_working_hours_form(None, 1, time(9,0), time(17,0), True)  # Missing staff_member
         self.assertEqual(response.status_code, 400)
         self.assertFalse(json.loads(response.getvalue())['success'])
 
     def test_invalid_time(self):
         """If the start time is after the end time, the function should return a JsonResponse with the
         appropriate error"""
-        response = handle_working_hours_form(self.staff_member1, 1, '05:00 PM', '09:00 AM', True)
+        response = handle_working_hours_form(self.staff_member1, 1, time(17,0), time(9,0), True)
         self.assertEqual(response.status_code, 400)
         content = json.loads(response.getvalue())
-        self.assertEqual(content['errorCode'], 5)
+        self.assertEqual(content['errorCode'], ErrorCode.INVALID_DATA.value)
         self.assertFalse(content['success'])
 
     def test_working_hours_conflict(self):
         """A staff member cannot have two working hours on the same day."""
         WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=4, start_time='09:00',
                                     end_time='17:00')
-        response = handle_working_hours_form(self.staff_member1, 4, '10:00 AM', '06:00 PM', True)
+        response = handle_working_hours_form(self.staff_member1, 4, time(10,0), time(18,0), True)
         self.assertEqual(response.status_code, 400)
         content = json.loads(response.getvalue())
-        self.assertEqual(content['errorCode'], 11)
+        self.assertEqual(content['errorCode'], ErrorCode.WORKING_HOURS_CONFLICT.value)
         self.assertFalse(content['success'])
 
     def test_invalid_working_hours_id(self):
         """If the working hours ID is invalid, the function should return a JsonResponse with the appropriate error"""
-        response = handle_working_hours_form(self.staff_member1, 1, '10:00 AM', '06:00 PM', False, wh_id=9999)
+        response = handle_working_hours_form(self.staff_member1, 1, time(10,0), time(18,0), False, wh_id=9999)
         self.assertEqual(response.status_code, 400)
         content = json.loads(response.getvalue())
         self.assertEqual(content['success'], False)
-        self.assertEqual(content['errorCode'], 10)
+        self.assertEqual(content['errorCode'], ErrorCode.WORKING_HOURS_NOT_FOUND.value)
 
     def test_no_working_hours_id(self):
         """If the working hours ID is not provided, the function should return a JsonResponse with the
         appropriate error"""
-        response = handle_working_hours_form(self.staff_member1, 1, '10:00 AM', '06:00 PM', False)
+        response = handle_working_hours_form(self.staff_member1, 1, time(10,0), time(18,0), False)
         self.assertEqual(response.status_code, 400)
         content = json.loads(response.getvalue())
         self.assertEqual(content['success'], False)
-        self.assertEqual(content['errorCode'], 5)
+        self.assertEqual(content['errorCode'], ErrorCode.INVALID_DATA.value)
+
+
+class HandleUnavailabilityFormTest(BaseTest):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+
+    def setUp(self):
+        super().setUp()
+
+    def tearDown(self):
+        Unavailability.objects.all().delete()
+        super().tearDown()
+
+    def test_add_unavailability(self):
+        """Test if the unavailabilities can be added."""
+        response = handle_unavailability_form(self.staff_member1, datetime.datetime.now(), time(9,0), time(17,0), "A description", True)
+        self.assertEqual(response.status_code, 200)
+
+    def test_update_unavailability(self):
+        """Test if the unavailabilities can be updated."""
+        unav = Unavailability.objects.create(staff_member=self.staff_member1, date=datetime.datetime.now(), start_time='09:00',
+                                         end_time='17:00', description="A description")
+        response = handle_unavailability_form(self.staff_member1, datetime.datetime.now(), time(10,0), time(18,0), "An updated description", False, unav_id=unav.id)
+        self.assertEqual(response.status_code, 200)
+        unav_updated = Unavailability.objects.get(pk=unav.id)
+        self.assertEqual(unav_updated.start_time, time(10,0))
+        self.assertEqual(unav_updated.end_time, time(18,0))
+        self.assertEqual(unav_updated.description, 'An updated description')
+
+    def test_invalid_data(self):
+        """If the form is invalid, the function should return a JsonResponse with the appropriate error message."""
+        response = handle_unavailability_form(None, datetime.datetime.now(), time(9,0), time(17,0), "A description", True)  # Missing staff_member
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(json.loads(response.getvalue())['success'])
+
+    def test_invalid_time(self):
+        """If the start time is after the end time, the function should return a JsonResponse with the
+        appropriate error"""
+        response = handle_unavailability_form(self.staff_member1, datetime.datetime.now(), time(17,0), time(9,0), "A description", True)
+        self.assertEqual(response.status_code, 400)
+        content = json.loads(response.getvalue())
+        self.assertEqual(content['errorCode'], ErrorCode.INVALID_DATA.value)
+        self.assertFalse(content['success'])
+
+    def test_invalid_unavailability_id(self):
+        """If the unavailability ID is invalid, the function should return a JsonResponse with the appropriate error"""
+        response = handle_unavailability_form(self.staff_member1, datetime.datetime.now(), time(10,0), time(18,0), "An updated description", False, unav_id=1337)
+        self.assertEqual(response.status_code, 400)
+        content = json.loads(response.getvalue())
+        self.assertEqual(content['success'], False)
+        self.assertEqual(content['errorCode'], ErrorCode.UNAVAILABILITY_NOT_FOUND.value)
+
+    def test_no_unavailability_id(self):
+        """If the unavailability ID is not provided, the function should return a JsonResponse with the
+        appropriate error"""
+        response = handle_unavailability_form(self.staff_member1, datetime.datetime.now(), time(10,0), time(18,0), "An updated description", False)
+        self.assertEqual(response.status_code, 400)
+        content = json.loads(response.getvalue())
+        self.assertEqual(content['success'], False)
+        self.assertEqual(content['errorCode'], ErrorCode.INVALID_DATA.value)
 
 
 class HandleDayOffFormTest(BaseTest):
@@ -457,7 +526,7 @@ class SaveAppointmentTests(BaseTest):
         """Test if an appointment can be saved with valid data."""
         client_name = "Teal'c of Chulak"
         client_email = "tealc@chulak.com"
-        start_time_str = "10:00 AM"
+        start_time_str = time(10,0).strftime(get_format('TIME_INPUT_FORMATS')[0])
         phone_number = "+1234567890"
         client_address = "123 Stargate Command, Cheyenne Mountain"
         service_id = self.service2.id
@@ -1022,7 +1091,7 @@ class SlotAvailabilityTest(BaseTest, ConfigMixin):
     def test_slot_availability_without_appointments(self):
         """Test if the available slots are correct when there are no appointments."""
         _, available_slots = get_appointments_and_slots(self.test_date, self.service)
-        expected_slots = ['11:00 AM', '01:00 PM']
+        expected_slots = [localize(time(11, 0)), localize(time(13, 0))]
         self.assertEqual(available_slots, expected_slots)
 
     def test_slot_availability_with_first_slot_booked(self):
@@ -1031,7 +1100,7 @@ class SlotAvailabilityTest(BaseTest, ConfigMixin):
                                                    end_time=time(13, 0))
         self.create_appt_for_sm1(appointment_request=self.ar)
         _, available_slots = get_appointments_and_slots(self.test_date, self.service)
-        expected_slots = ['01:00 PM']
+        expected_slots = [localize(time(13, 0))]
         self.assertEqual(available_slots, expected_slots)
 
     def test_slot_availability_with_second_slot_booked(self):
@@ -1040,7 +1109,7 @@ class SlotAvailabilityTest(BaseTest, ConfigMixin):
                                                    end_time=time(15, 0))
         self.create_appt_for_sm1(appointment_request=self.ar)
         _, available_slots = get_appointments_and_slots(self.test_date, self.service)
-        expected_slots = ['11:00 AM']
+        expected_slots = [localize(time(11, 0))]
         self.assertEqual(available_slots, expected_slots)
 
     def test_slot_availability_with_both_slots_booked(self):

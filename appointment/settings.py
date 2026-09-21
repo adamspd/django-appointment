@@ -25,6 +25,9 @@ APPOINTMENT_FINISH_TIME = getattr(settings, 'APPOINTMENT_FINISH_TIME', (18, 30))
 APPOINTMENT_CLEANUP_DAYS = getattr(settings, 'APPOINTMENT_CLEANUP_DAYS', 7)
 APP_DEFAULT_FROM_EMAIL = getattr(settings, 'DEFAULT_FROM_EMAIL', DEFAULT_FROM_EMAIL)
 
+# Cache key holding the singleton Config; shared by the reader and its invalidation.
+CONFIG_CACHE_KEY = 'config'
+
 
 def check_q_cluster(hide_warning: bool = False):
     """
@@ -46,7 +49,7 @@ def check_q_cluster(hide_warning: bool = False):
     # Check if Q_CLUSTER configuration is defined
     if not hasattr(settings, 'Q_CLUSTER'):
         missing_conf.append("Q_CLUSTER is not defined in settings. Please define it. "
-                            "See https://django-appt-doc.adamspierredavid.com/project-structure/#configuration "
+                            "See https://django-appt-doc.adamspierredavid.com/configuration/ "
                             "for more information.")
 
     # Log warnings if any configurations are missing

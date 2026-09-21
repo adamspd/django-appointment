@@ -17,14 +17,14 @@ from django.contrib.auth.models import AnonymousUser
 
 from appointment.logger_config import get_logger
 from appointment.models import Config, DayOff, PaymentInfo
-from appointment.settings import check_q_cluster
+from appointment.settings import CONFIG_CACHE_KEY, check_q_cluster
 from appointment.tests.base.base_test import BaseTest
 from appointment.tests.mixins.base_mixin import ConfigMixin
 from appointment.utils.db_helpers import (
     Appointment, AppointmentRequest, AppointmentRescheduleHistory, Config, WorkingHours, calculate_slots,
     calculate_staff_slots, can_appointment_be_rescheduled, cancel_existing_reminder, check_day_off_for_staff,
     create_and_save_appointment, create_new_user, create_payment_info_and_get_url, day_off_exists_for_date_range,
-    exclude_booked_slots, exclude_pending_reschedules, generate_unique_username_from_email, get_absolute_url_,
+    exclude_unavailable_slots, exclude_pending_reschedules, generate_unique_username_from_email, get_absolute_url_,
     get_all_appointments, get_all_staff_members, get_appointment_buffer_time, get_appointment_by_id,
     get_appointment_finish_time, get_appointment_lead_time, get_appointment_slot_duration,
     get_appointments_for_date_and_time, get_config, get_day_off_by_id, get_non_working_days_for_staff,
@@ -36,19 +36,17 @@ from appointment.utils.db_helpers import (
 
 logger = get_logger(__name__)
 
-# Check if django-q is installed in settings
-DJANGO_Q_AVAILABLE = 'django_q' in settings.INSTALLED_APPS
+# django-q is only usable when it is both installed as a dependency and listed in INSTALLED_APPS
+DJANGO_Q_AVAILABLE = False
+Schedule = None
 
-# Check if django-q is installed as a dependency
-try:
-    from django_q.models import Schedule
-    from django_q.tasks import schedule
+if 'django_q' in settings.INSTALLED_APPS:
+    try:
+        from django_q.models import Schedule
 
-    DJANGO_Q_AVAILABLE = True
-except ImportError:
-    DJANGO_Q_AVAILABLE = False
-    Schedule = None
-    schedule = None
+        DJANGO_Q_AVAILABLE = True
+    except ImportError:
+        pass
 
 
 @skip("Django-Q is not available")
@@ -121,8 +119,11 @@ class TestCalculateStaffSlots(BaseTest):
     def setUp(self):
         super().setUp()
         self.slot_duration = datetime.timedelta(minutes=30)
+        # Anchored on the current day so these tests never go stale, and pinned to a
+        # fixed hour so they do not depend on what time of day the suite runs.
+        self.reference_now = datetime.datetime.combine(timezone.localtime().date(), datetime.time(9, 0))
         # Not working today but tomorrow
-        self.date_not_working = datetime.date(2026, 9, 18)
+        self.date_not_working = self.reference_now.date()
         self.working_date1 = self.date_not_working + datetime.timedelta(days=1)
         self.working_date2 = self.date_not_working + datetime.timedelta(days=2)
         weekday_num1 = get_weekday_num_from_date(self.working_date1)
@@ -150,7 +151,9 @@ class TestCalculateStaffSlots(BaseTest):
         cache.clear()
         super().tearDown()
 
-    def test_calculate_slots_on_working_day_within_buffer_time(self):
+    @patch("appointment.utils.db_helpers.timezone.localtime")
+    def test_calculate_slots_on_working_day_within_buffer_time(self, mock_localtime):
+        mock_localtime.return_value = self.reference_now
         slots = calculate_staff_slots(self.working_date1, self.staff_member1)
         # Buffertime is 48 Hours
         # We are checking for "tomorrow" so only 24h in the future. We should not have any slot available.
@@ -159,10 +162,10 @@ class TestCalculateStaffSlots(BaseTest):
     @patch("appointment.utils.db_helpers.timezone.localtime")
     def test_calculate_slots_on_working_day_without_appointments(self, mock_localtime):
         """Test that buffer time works beyond the first day """
-        mock_localtime.return_value = datetime.datetime(2026, 9, 18, 9, 0) # set localtime 2026-9-18 @ 9:00 AM
+        mock_localtime.return_value = self.reference_now # today @ 9:00 AM
 
         self.staff_member1.appointment_buffer_time += 25.0 # we add 25min as buffer to test if the first slot is removed as expected
-        slots = calculate_staff_slots(self.working_date2, self.staff_member1) # checking slot for 2026-9-20
+        slots = calculate_staff_slots(self.working_date2, self.staff_member1) # checking slots for today + 2
         # First slot is excluded due to 25min buffer time.
         expected_slots = [
             datetime.time(9, 30),
@@ -187,11 +190,11 @@ class TestCalculateStaffSlots(BaseTest):
     @patch("appointment.utils.db_helpers.timezone.localtime")
     def test_calculate_slots_on_working_day_without_appointments_with_service_duration(self, mock_localtime):
         """Test that buffer time and service duration works together"""
-        mock_localtime.return_value = datetime.datetime(2026, 9, 18, 9, 0) # set localtime 2026-9-18 @ 9:00 AM
+        mock_localtime.return_value = self.reference_now # today @ 9:00 AM
 
         self.staff_member1.appointment_buffer_time += 25.0 # we add 25 min as buffer to test if the first slot is removed as expected
         service_duration = datetime.timedelta(minutes=90) # we had a service of 1h30.
-        slots = calculate_staff_slots(self.working_date2, self.staff_member1, service_duration) # checking slot for 2026-9-20
+        slots = calculate_staff_slots(self.working_date2, self.staff_member1, service_duration) # checking slots for today + 2
         # First slot is excluded due to 25 min buffer time, and last slot is 3:30 PM because of the 90 min service duration and end working time 5 PM
         expected_slots = [
             datetime.time(9, 30),
@@ -492,6 +495,14 @@ class StaffChangeAllowedOnRescheduleTests(TestCase):
         # Call the function and assert that staff change is not allowed
         self.assertFalse(staff_change_allowed_on_reschedule())
 
+    def test_staff_change_without_config(self):
+        """No Config row is a supported state; rescheduling must not 500 on it."""
+        Config.objects.all().delete()
+        cache.clear()
+
+        # falls back to the field's default rather than dereferencing None
+        self.assertTrue(staff_change_allowed_on_reschedule())
+
 
 class CancelExistingReminderTest(BaseTest):
     def test_cancel_existing_reminder(self):
@@ -543,7 +554,7 @@ class TestCreatePaymentInfoAndGetUrl(BaseTest):
                 self.assertEqual(payment_url, expected_mocked_url)
 
 
-class TestExcludeBookedSlots(BaseTest):
+class TestExcludeUnavailableSlots(BaseTest):
 
     def setUp(self):
         super().setUp()
@@ -562,7 +573,7 @@ class TestExcludeBookedSlots(BaseTest):
         self.slot_duration = datetime.timedelta(hours=1)
 
     def test_no_appointments(self):
-        result = exclude_booked_slots([], self.slots, self.slot_duration)
+        result = exclude_unavailable_slots(self.slots, appointments=[], slot_duration=self.slot_duration)
         self.assertEqual(result, self.slots)
 
     def test_appointment_not_intersecting_slots(self):
@@ -570,7 +581,7 @@ class TestExcludeBookedSlots(BaseTest):
         self.appointment.appointment_request.end_time = datetime.time(14, 30)
         self.appointment.save()
 
-        result = exclude_booked_slots([self.appointment], self.slots, self.slot_duration)
+        result = exclude_unavailable_slots(self.slots, appointments=[self.appointment], slot_duration=self.slot_duration)
         self.assertEqual(result, self.slots)
 
     def test_appointment_intersecting_single_slot(self):
@@ -578,7 +589,7 @@ class TestExcludeBookedSlots(BaseTest):
         self.appointment.appointment_request.end_time = datetime.time(9, 0)
         self.appointment.save()
 
-        result = exclude_booked_slots([self.appointment], self.slots, self.slot_duration)
+        result = exclude_unavailable_slots(self.slots, appointments=[self.appointment], slot_duration=self.slot_duration)
         expected = [
             datetime.datetime.combine(self.today, datetime.time(9, 0)),
             datetime.datetime.combine(self.today, datetime.time(10, 0)),
@@ -592,7 +603,7 @@ class TestExcludeBookedSlots(BaseTest):
                                                end_time=datetime.time(11, 30))
         appointment2 = self.create_appt_for_sm2(appointment_request=ar2)
         appointment2.save()
-        result = exclude_booked_slots([self.appointment, appointment2], self.slots, self.slot_duration)
+        result = exclude_unavailable_slots(self.slots, appointments=[self.appointment, appointment2], slot_duration=self.slot_duration)
         expected = [
             datetime.datetime.combine(self.today, datetime.time(8, 0)),
             datetime.datetime.combine(self.today, datetime.time(12, 0))
@@ -600,8 +611,8 @@ class TestExcludeBookedSlots(BaseTest):
         self.assertEqual(result, expected)
 
 
-class TestExcludeBookedSlotsWithServiceDuration(BaseTest):
-    """Tests for exclude_booked_slots with service_duration and gap_time parameters (Issues #261 & #57)."""
+class TestExcludeUnavailalbleSlotsWithServiceDuration(BaseTest):
+    """Tests for exclude_unavailable_slots with service_duration and gap_time parameters (Issues #261 & #57)."""
 
     def setUp(self):
         super().setUp()
@@ -639,7 +650,7 @@ class TestExcludeBookedSlotsWithServiceDuration(BaseTest):
     def test_service_duration_none_falls_back_to_slot_duration(self):
         """Without service_duration, behaviour is identical to original."""
         appt = self._make_appointment(datetime.time(9, 30), datetime.time(12, 30))
-        result = exclude_booked_slots([appt], self.slots, self.slot_duration, service_duration=None)
+        result = exclude_unavailable_slots(self.slots, appointments=[appt], slot_duration=self.slot_duration, service_duration=None)
         # slot 9:00 is NOT blocked (30-min window [9:00,9:30] does not intersect [9:30,12:30])
         slot_9_00 = datetime.datetime.combine(self.today, datetime.time(9, 0))
         self.assertIn(slot_9_00, result)
@@ -648,7 +659,7 @@ class TestExcludeBookedSlotsWithServiceDuration(BaseTest):
         """With service_duration=3h, slot 9:00 should be blocked when a 3-hr appt starts at 9:30."""
         appt = self._make_appointment(datetime.time(9, 30), datetime.time(12, 30))
         service_duration = datetime.timedelta(hours=3)
-        result = exclude_booked_slots([appt], self.slots, self.slot_duration, service_duration=service_duration)
+        result = exclude_unavailable_slots(self.slots, appointments=[appt], slot_duration=self.slot_duration, service_duration=service_duration)
         slot_9_00 = datetime.datetime.combine(self.today, datetime.time(9, 0))
         self.assertNotIn(slot_9_00, result)
 
@@ -656,7 +667,7 @@ class TestExcludeBookedSlotsWithServiceDuration(BaseTest):
         """All slots whose 3-hr window overlaps the booked appointment are blocked."""
         appt = self._make_appointment(datetime.time(9, 30), datetime.time(12, 30))
         service_duration = datetime.timedelta(hours=3)
-        result = exclude_booked_slots([appt], self.slots, self.slot_duration, service_duration=service_duration)
+        result = exclude_unavailable_slots(self.slots, appointments=[appt], slot_duration=self.slot_duration, service_duration=service_duration)
         # Slots 9:00 through 11:30 each have a 3-hr window that overlaps [9:30, 12:30]
         blocked_times = [datetime.time(9, 0), datetime.time(9, 30), datetime.time(10, 0),
                          datetime.time(10, 30), datetime.time(11, 0), datetime.time(11, 30)]
@@ -667,7 +678,7 @@ class TestExcludeBookedSlotsWithServiceDuration(BaseTest):
         """When service_duration < slot_duration, slot_duration is used (max behaviour)."""
         appt = self._make_appointment(datetime.time(9, 30), datetime.time(9, 45), service=self.service1)
         short_service = datetime.timedelta(minutes=10)
-        result = exclude_booked_slots([appt], self.slots, self.slot_duration, service_duration=short_service)
+        result = exclude_unavailable_slots(self.slots, appointments=[appt], slot_duration=self.slot_duration, service_duration=short_service)
         # 30-min check window: slot 9:00 → [9:00, 9:30] does NOT touch [9:30, 9:45] → available
         slot_9_00 = datetime.datetime.combine(self.today, datetime.time(9, 0))
         self.assertIn(slot_9_00, result)
@@ -681,12 +692,12 @@ class TestExcludeBookedSlotsWithServiceDuration(BaseTest):
         """A slot starting right after an appointment ends is blocked when gap_time > 0."""
         appt = self._make_appointment(datetime.time(9, 0), datetime.time(10, 0), service=self.service1)
         # Without gap_time, 10:00 should be available
-        result_no_gap = exclude_booked_slots([appt], self.slots, self.slot_duration, gap_time=None)
+        result_no_gap = exclude_unavailable_slots(self.slots, appointments=[appt], slot_duration=self.slot_duration, gap_time=None)
         slot_10_00 = datetime.datetime.combine(self.today, datetime.time(10, 0))
         self.assertIn(slot_10_00, result_no_gap)
 
         # With 30-min gap_time, 10:00 slot falls inside the gap [10:00, 10:30) → blocked
-        result_with_gap = exclude_booked_slots([appt], self.slots, self.slot_duration, gap_time=30)
+        result_with_gap = exclude_unavailable_slots(self.slots, appointments=[appt], slot_duration=self.slot_duration, gap_time=30)
         self.assertNotIn(slot_10_00, result_with_gap)
 
     def test_gap_time_slot_after_gap_window_is_available(self):
@@ -695,7 +706,7 @@ class TestExcludeBookedSlotsWithServiceDuration(BaseTest):
         # 30-min gap applied on both sides:
         # gap-after: slot 10:00-10:30 is blocked (10:00 < 10:00+30min)
         # slot 10:30: slot(10:30) < 10:30 is False → available
-        result = exclude_booked_slots([appt], self.slots, self.slot_duration, gap_time=30)
+        result = exclude_unavailable_slots(self.slots, appointments=[appt], slot_duration=self.slot_duration, gap_time=30)
         slot_10_30 = datetime.datetime.combine(self.today, datetime.time(10, 30))
         self.assertIn(slot_10_30, result)
 
@@ -706,7 +717,7 @@ class TestExcludeBookedSlotsWithServiceDuration(BaseTest):
         # Appointment starts at 10:30. slot_duration=30min, so slot 10:00→10:30 ends exactly at 10:30.
         # With a 30-min gap: slot_end(10:30) + gap(30min) = 11:00 > appointment_start(10:30) → blocked.
         appt = self._make_appointment(datetime.time(10, 30), datetime.time(11, 30), service=self.service1)
-        result = exclude_booked_slots([appt], self.slots, self.slot_duration, gap_time=30)
+        result = exclude_unavailable_slots(self.slots, appointments=[appt], slot_duration=self.slot_duration, gap_time=30)
         slot_10_00 = datetime.datetime.combine(self.today, datetime.time(10, 0))
         self.assertNotIn(slot_10_00, result)
         # slot 9:30 → slot_end 10:00 + gap 30min = 10:30; 10:30 < 10:30 is False → available
@@ -716,8 +727,8 @@ class TestExcludeBookedSlotsWithServiceDuration(BaseTest):
     def test_gap_time_zero_no_effect(self):
         """gap_time=0 has no effect compared to gap_time=None."""
         appt = self._make_appointment(datetime.time(9, 0), datetime.time(10, 0), service=self.service1)
-        result_none = exclude_booked_slots([appt], self.slots, self.slot_duration, gap_time=None)
-        result_zero = exclude_booked_slots([appt], self.slots, self.slot_duration, gap_time=0)
+        result_none = exclude_unavailable_slots(self.slots, appointments=[appt], slot_duration=self.slot_duration, gap_time=None)
+        result_zero = exclude_unavailable_slots(self.slots, appointments=[appt], slot_duration=self.slot_duration, gap_time=0)
         self.assertEqual(result_none, result_zero)
 
     def test_combined_service_duration_and_gap_time(self):
@@ -731,7 +742,7 @@ class TestExcludeBookedSlotsWithServiceDuration(BaseTest):
         # slot 9:30 → slot_end=10:30; 10:00 < 11:00=True; 9:30 < 11:30=True → blocked
         # slot 10:00, 10:30, 11:00 → blocked (inside/near appointment)
         # slot 11:30 → slot(11:30) < 11:30 is False → available
-        result = exclude_booked_slots([appt], self.slots, self.slot_duration,
+        result = exclude_unavailable_slots(self.slots, appointments=[appt], slot_duration=self.slot_duration,
                                       service_duration=service_duration, gap_time=30)
         slot_11_30 = datetime.datetime.combine(self.today, datetime.time(11, 30))
         self.assertIn(slot_11_30, result)
@@ -945,13 +956,33 @@ class TestGetConfig(TestCase):
     def test_config_in_cache(self):
         """Test when there's a Config object in the cache."""
         db_config = Config.objects.create(finish_time='17:00:00')
-        cache.set('config', db_config)
+        cache.set(CONFIG_CACHE_KEY, db_config)
 
-        # Clear the database to ensure it won't be accessed
+        # Served from the cache: the database is not queried at all. Emptying the
+        # table to prove that no longer works, as deleting now clears the cache too.
+        with self.assertNumQueries(0):
+            config = get_config()
+        self.assertEqual(config, db_config)
+
+    def test_saving_config_invalidates_the_cache(self):
+        """An edit must be visible at once, not when the hour-long entry expires."""
+        Config.objects.create(finish_time='17:00:00', slot_duration=30)
+        self.assertEqual(get_config().slot_duration, 30)
+
+        config = Config.objects.first()
+        config.slot_duration = 45
+        config.save()
+
+        self.assertEqual(get_config().slot_duration, 45)
+
+    def test_deleting_config_invalidates_the_cache(self):
+        """Deleting the Config must not leave the old one being served."""
+        Config.objects.create(finish_time='17:00:00', slot_duration=30)
+        self.assertIsNotNone(get_config())
+
         Config.objects.all().delete()
 
-        config = get_config()
-        self.assertEqual(config, db_config)
+        self.assertIsNone(get_config())
 
 
 class TestGetDayOffById(BaseTest):  # Assuming you have a BaseTest class with some initial setups

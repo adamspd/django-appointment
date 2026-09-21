@@ -42,49 +42,111 @@ TEMPLATES = [
 your_project/
 ├── templates/
 │   ├── custom/          # HTML Page templates (configurable via APPOINTMENT_CUSTOM_TEMPLATES_DIR)
+│   │   ├── appointments.html
 │   │   ├── appointment_client_information.html
 │   │   ├── verification_code.html
 │   │   ├── thank_you_page.html
 │   │   ├── rescheduling_thank_you.html
 │   │   ├── password_form.html
 │   │   ├── password_success.html
-│   │   └── password_error.html
+│   │   ├── password_error.html
+│   │   ├── 304_already_submitted.html
+│   │   ├── 403_forbidden.html
+│   │   ├── 403_forbidden_rescheduling.html
+│   │   ├── 404_not_found.html
+│   │   ├── staff_index.html
+│   │   ├── display_appointment.html
+│   │   ├── manage_staff_member.html
+│   │   ├── manage_staff_personal_info.html
+│   │   ├── email_change_verification_code.html
+│   │   ├── manage_service.html
+│   │   └── service_list.html
 │   └── emails/          # Email templates (configurable via APPOINTMENT_CUSTOM_EMAILS_DIR)
-│       ├── password_reset.html
 │       ├── thank_you.html
+│       ├── password_reset.html
+│       ├── verification.html
+│       ├── reminder_email.html
+│       ├── new_appointment_admin_notification.html
 │       ├── reschedule.html
-│       ├── reschedule_admin.html
-│       └── verification.html
+│       └── reschedule_admin.html
 └── settings.py
 ```
+
+You only create the files you actually want to override — everything else keeps using the defaults.
 
 ## Available Templates
 
 ### Page Templates (Custom Directory)
 
-These are the HTML pages users see in their browser:
+These are the HTML pages users see in their browser.
 
-| Template Name                         | When Used                                | Context Variables                                                                                                 | Original Template                                 |
-|---------------------------------------|------------------------------------------|-------------------------------------------------------------------------------------------------------------------|---------------------------------------------------|
-| `appointment_client_information.html` | Client information form page             | `ar`, `APPOINTMENT_PAYMENT_URL`, `form`, `client_data_form`, `service_name`, `has_required_email_reminder_config` | `appointment/appointment_client_information.html` |
-| `verification_code.html`              | Email verification code entry page       | `appointment_request_id`, `id_request`                                                                            | `appointment/enter_verification_code.html`        |
-| `thank_you_page.html`                 | Thank you page after appointment booking | `appointment`                                                                                                     | `appointment/default_thank_you.html`              |
-| `rescheduling_thank_you.html`         | Thank you page after rescheduling        | (empty context)                                                                                                   | `appointment/rescheduling_thank_you.html`         |
-| `password_form.html`                  | Password reset form page                 | `form`, `page_title`, `page_message`, `page_description`                                                          | `appointment/set_password.html`                   |
-| `password_success.html`               | After successful password reset          | `page_title`, `page_message`, `page_description`                                                                  | `appointment/thank_you.html`                      |
-| `password_error.html`                 | When password reset fails                | `page_title`, `page_message`, `page_description`                                                                  | `appointment/thank_you.html`                      |
+Every page below also receives the generic context: `BASE_TEMPLATE`, `user`, `is_superuser` and `locale`. Only the
+page-specific variables are listed.
+
+#### Booking flow
+
+| Template Name                         | When Used                                                     | Page-specific Context Variables                                                                                                                                    | Original Template                                 |
+|---------------------------------------|---------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------|
+| `appointments.html`                   | Slot picker, for both booking and rescheduling                | `service`, `staff_member`, `all_staff_members`, `page_title`, `page_description`, `available_slots`, `date_chosen`, `locale`, `timezoneTxt`, `label` — plus `rescheduled_date`, `page_header`, `ar_id_request` when rescheduling | `appointment/appointments.html`                   |
+| `appointment_client_information.html` | Client information form page                                  | `ar`, `APPOINTMENT_PAYMENT_URL`, `form`, `client_data_form`, `service_name`, `has_required_email_reminder_config`                                                   | `appointment/appointment_client_information.html` |
+| `verification_code.html`              | Email verification code entry page                            | `appointment_request_id`, `id_request`                                                                                                                             | `appointment/enter_verification_code.html`        |
+| `thank_you_page.html`                 | Thank you page after appointment booking                      | `appointment`                                                                                                                                                      | `appointment/default_thank_you.html`              |
+| `rescheduling_thank_you.html`         | Thank you page after rescheduling                             | (generic context only)                                                                                                                                             | `appointment/rescheduling_thank_you.html`         |
+
+#### Password reset
+
+| Template Name           | When Used                        | Page-specific Context Variables                            | Original Template               |
+|-------------------------|----------------------------------|------------------------------------------------------------|---------------------------------|
+| `password_form.html`    | Password reset form page         | `form`, `page_title`, `page_message`, `page_description`   | `appointment/set_password.html` |
+| `password_success.html` | After successful password reset  | `page_title`, `page_message`, `page_description`           | `appointment/thank_you.html`    |
+| `password_error.html`   | When password reset fails        | `page_title`, `page_message`, `page_description`           | `appointment/thank_you.html`    |
+
+#### Error pages
+
+| Template Name                     | When Used                                                        | Page-specific Context Variables          | Original Template                            |
+|-----------------------------------|------------------------------------------------------------------|------------------------------------------|----------------------------------------------|
+| `304_already_submitted.html`      | Client re-submits an appointment request that was already sent   | `service_id`                             | `error_pages/304_already_submitted.html`     |
+| `403_forbidden.html`              | User tries to act on something they don't own                    | `message`, `back_url`, `BASE_TEMPLATE`   | `error_pages/403_forbidden.html`             |
+| `403_forbidden_rescheduling.html` | Appointment can't be rescheduled (not allowed, or limit reached) | `url`                                    | `error_pages/403_forbidden_rescheduling.html` |
+| `404_not_found.html`              | Appointment, service, or reschedule link not found               | `error_message` (reschedule links only)  | `error_pages/404_not_found.html`             |
+
+#### Administration
+
+| Template Name                         | When Used                                          | Page-specific Context Variables                   | Original Template                                     |
+|---------------------------------------|----------------------------------------------------|---------------------------------------------------|-------------------------------------------------------|
+| `staff_index.html`                    | Staff/admin calendar dashboard                     | `appointments` (JSON string)                      | `administration/staff_index.html`                     |
+| `display_appointment.html`            | Detail page for a single appointment               | `appointment`, `page_title`                       | `administration/display_appointment.html`             |
+| `manage_staff_member.html`            | Add or edit a staff member's appointment settings  | `form`                                            | `administration/manage_staff_member.html`             |
+| `manage_staff_personal_info.html`     | Add or edit a staff member's personal information  | `form`, `btn_text`                                | `administration/manage_staff_personal_info.html`      |
+| `email_change_verification_code.html` | Verification code entry after an email change      | (generic context only)                            | `administration/email_change_verification_code.html`  |
+| `manage_service.html`                 | Add, edit, or view a service                       | `form`, `btn_text`, `page_title`, `service` (view mode only) | `administration/manage_service.html`       |
+| `service_list.html`                   | List of all services                               | `services`                                        | `administration/service_list.html`                    |
+
+> **Note:** The staff list and user profile pages (`administration/staff_list.html` and
+> `administration/user_profile.html`) do not go through the custom template lookup yet, so they cannot be overridden
+> this way.
 
 ### Email Templates (Emails Directory)
 
 These are HTML emails sent to users:
 
-| Template Name           | When Sent                        | Fallback Behavior          | Context Variables                                                                                                                                                                 |
-|-------------------------|----------------------------------|----------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `password_reset.html`   | Staff member password setup      | Plain text email           | `first_name`, `company`, `activation_link`, `username`, `current_year`, `account_details`, `user`, `website_name`                                                                 |
-| `thank_you.html`        | Appointment confirmation         | Uses default HTML template | `first_name`, `message_1`, `company`, `more_details`, `account_details`, `message_2`, `month_year`, `day`, `activation_link`, `main_title`, `reschedule_link`, `current_year`     |
-| `reschedule.html`       | Reschedule confirmation request  | Uses default HTML template | `is_confirmation`, `first_name`, `old_date`, `reschedule_date`, `old_start_time`, `start_time`, `old_end_time`, `end_time`, `confirmation_link`, `company`                        |
-| `reschedule_admin.html` | Admin notification of reschedule | Uses default HTML template | `is_confirmation`, `client_name`, `service_name`, `reason_for_rescheduling`, `old_date`, `reschedule_date`, `old_start_time`, `start_time`, `old_end_time`, `end_time`, `company` |
-| `verification.html`     | Email address verification       | Plain text email           | `user`, `first_name`, `verification_code`, `company`                                                                                                                              |
+| Template Name                             | When Sent                            | Fallback Behavior          | Context Variables                                                                                                                                                             |
+|-------------------------------------------|--------------------------------------|----------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `thank_you.html`                          | Appointment confirmation             | Uses default HTML template | `first_name`, `message_1`, `current_year`, `company`, `more_details`, `account_details`, `message_2`, `month_year`, `day`, `activation_link`, `main_title`, `reschedule_link`  |
+| `password_reset.html`                     | Staff member password setup          | Plain text email           | `first_name`, `current_year`, `company`, `activation_link`, `account_details`, `username`, `login_instruction`, `user`, `website_name`                                        |
+| `verification.html`                       | Email address verification           | Plain text email           | `user`, `first_name`, `verification_code`, `company`                                                                                                                          |
+| `reminder_email.html`                     | 24h appointment reminder (Django Q)  | Uses default HTML template | `first_name`, `appointment`, `reschedule_link`, `recipient_type` (`'client'` or `'admin'`)                                                                                     |
+| `new_appointment_admin_notification.html` | Admin/staff notified of a new booking | Uses default HTML template | `recipient_name`, `client_name`, `appointment`, `is_staff_member`, `staff_member_name`                                                                                        |
+| `reschedule.html`                         | Reschedule confirmation request      | Uses default HTML template | `is_confirmation`, `first_name`, `old_date`, `reschedule_date`, `old_start_time`, `start_time`, `old_end_time`, `end_time`, `confirmation_link`, `company`                     |
+| `reschedule_admin.html`                   | Admin notification of reschedule     | Uses default HTML template | `is_confirmation`, `client_name`, `service_name`, `reason_for_rescheduling`, `old_date`, `reschedule_date`, `old_start_time`, `start_time`, `old_end_time`, `end_time`, `company` |
+
+> **Accepted aliases:** for historical reasons the two reschedule emails are also looked up under their internal
+> names, which take precedence if both files exist:
+>
+> - `reschedule.html` — also accepted as `reschedule_confirmation_email.html`
+> - `reschedule_admin.html` — also accepted as `notify_admin_about_reschedule_email.html`
+>
+> Use the short names for new projects.
 
 ## Template Examples
 
@@ -350,8 +412,12 @@ The following are just examples. You can customize them as you see fit. Or you c
 2. **Directory names are configurable** - Change `APPOINTMENT_CUSTOM_TEMPLATES_DIR` and `APPOINTMENT_CUSTOM_EMAILS_DIR` in your `settings.py` if you prefer different folder names.
 3. **Partial implementation is fine** - You can create only some templates; others will use defaults
 4. **Context variables** - Use the provided context variables in your templates
-6. **Form requirements** - Keep form field names and IDs intact for proper functionality
-7. **Fallback behavior** - If your template has errors, the system falls back to defaults
+5. **Form requirements** - Keep form field names and IDs intact for proper functionality
+6. **Fallback behavior** - A template that is missing, or that fails to compile (an unclosed `{% if %}`, an unknown
+   tag, a bad `{% load %}`), is skipped and the default is used instead. Compile failures are logged as a warning
+   naming the template, so check your logs if an override seems to be ignored. Errors that only surface while the
+   page is being rendered — a template filter raising on the data it is given, for example — cannot be caught this
+   way and will still propagate.
 
 ## Testing Your Templates
 

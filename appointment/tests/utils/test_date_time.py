@@ -2,6 +2,7 @@
 # Path: appointment/tests/utils/test_date_time.py
 
 import datetime
+import warnings
 from unittest.mock import Mock, patch
 
 from django.test import TestCase
@@ -15,6 +16,12 @@ from appointment.utils.date_time import (
 
 
 class Convert12HourTo24HourTimeTests(TestCase):
+    def setUp(self):
+        ctx = warnings.catch_warnings()
+        ctx.__enter__()
+        warnings.simplefilter("ignore", DeprecationWarning)
+        self.addCleanup(ctx.__exit__, None, None, None)
+
     def test_basic_conversion(self):
         """Test basic 12-hour to 24-hour conversions."""
         self.assertEqual(convert_12_hour_time_to_24_hour_time("01:10 AM"), "01:10:00")
@@ -63,6 +70,12 @@ class Convert12HourTo24HourTimeTests(TestCase):
 
 
 class Convert24HourTimeTo12HourTimeTests(TestCase):
+    def setUp(self):
+        ctx = warnings.catch_warnings()
+        ctx.__enter__()
+        warnings.simplefilter("ignore", DeprecationWarning)
+        self.addCleanup(ctx.__exit__, None, None, None)
+
 
     def test_valid_24_hour_strings(self):
         self.assertEqual(convert_24_hour_time_to_12_hour_time("13:00"), "01:00 PM")
@@ -102,6 +115,17 @@ class Convert24HourTimeTo12HourTimeTests(TestCase):
         self.assertEqual(convert_24_hour_time_to_12_hour_time("00:00"), "12:00 AM")
         self.assertEqual(convert_24_hour_time_to_12_hour_time("11:59"), "11:59 AM")
         self.assertEqual(convert_24_hour_time_to_12_hour_time("23:59"), "11:59 PM")
+
+class DeprecatedTimeHelperWarningTests(TestCase):
+    def test_convert_12_hour_time_to_24_hour_time_warns(self):
+        """The 12h -> 24h helper is deprecated and must say so."""
+        with self.assertWarns(DeprecationWarning):
+            convert_12_hour_time_to_24_hour_time("01:10 AM")
+
+    def test_convert_24_hour_time_to_12_hour_time_warns(self):
+        """The 24h -> 12h helper is deprecated and must say so."""
+        with self.assertWarns(DeprecationWarning):
+            convert_24_hour_time_to_12_hour_time("13:00")
 
 
 class ConvertMinutesInHumanReadableFormatTests(TestCase):

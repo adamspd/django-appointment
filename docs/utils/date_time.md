@@ -1,4 +1,4 @@
-# `date_time_ops.py`
+# `date_time.py`
 
 This module contains various utility functions to assist in date and time-related operations in the Django appointment
 system.
@@ -18,13 +18,17 @@ system.
 
 ## Time Conversion:
 
-- **convert_12_hour_time_to_24_hour_time**: Convert a 12-hour time format to a 24-hour time format.
+- **convert_12_hour_time_to_24_hour_time**: Convert a 12-hour time format to a 24-hour time format. *Deprecated since
+  3.11.0, removed in 4.0.0 — times are now formatted through Django's localization framework.*
+- **convert_24_hour_time_to_12_hour_time**: Convert a 24-hour time format to a 12-hour time format. *Deprecated since
+  3.11.0, removed in 4.0.0 — times are now formatted through Django's localization framework.*
 - **convert_minutes_in_human_readable_format**: Convert minutes to a human-readable format.
 - **convert_str_to_date**: Convert a string representation of a date to a Python `date` object.
 - **convert_str_to_time**: Convert a string representation of time to a Python `time` object.
 
 ## Date Time Utilities:
 
+- **combine_date_and_time**: Combine a `date` and a `time` into a single `datetime`.
 - **get_ar_end_time**: Calculate the end time of an appointment request based on its start time and duration.
 - **get_timestamp**: Obtain the current timestamp as a string without the decimal part.
 - **time_difference**: Calculate the difference between two times.
@@ -36,3 +40,9 @@ system.
 ## General Utilities:
 
 - **get_current_year**: Fetch the current year as an integer.
+
+## Module Constants:
+
+- **DATE_FORMATS**: Maps a language code to the Django date format string used to render a chosen date in that
+  language. Adding a language here is all it takes to localise the date display — see the
+  [internationalization guide](../internationalization.md).

@@ -20,7 +20,6 @@ from appointment.email_sender import notify_admin, send_email
 from appointment.logger_config import get_logger
 from appointment.models import Appointment, AppointmentRequest, EmailVerificationCode, PasswordResetToken
 from appointment.settings import APPOINTMENT_PAYMENT_URL
-from appointment.utils.date_time import convert_24_hour_time_to_12_hour_time
 from appointment.utils.db_helpers import get_absolute_url_, get_website_name, username_in_user_model
 from appointment.utils.ics_utils import generate_ics_file
 from appointment.utils.template_helpers import get_email_template
@@ -308,18 +307,21 @@ def send_reschedule_confirmation_email(request, reschedule_history, appointment_
     email_context = {
         'is_confirmation': True,
         'first_name': first_name,
-        'old_date': appointment_request.date.strftime("%A, %d %B %Y"),
-        'reschedule_date': reschedule_history.date.strftime("%A, %d %B %Y"),
-        'old_start_time': convert_24_hour_time_to_12_hour_time(appointment_request.start_time),
-        'start_time': convert_24_hour_time_to_12_hour_time(reschedule_history.start_time),
-        'old_end_time': convert_24_hour_time_to_12_hour_time(appointment_request.end_time),
-        'end_time': convert_24_hour_time_to_12_hour_time(reschedule_history.end_time),
+        'old_date': appointment_request.date,
+        'reschedule_date': reschedule_history.date,
+        'old_start_time': appointment_request.start_time,
+        'start_time': reschedule_history.start_time,
+        'old_end_time': appointment_request.end_time,
+        'end_time': reschedule_history.end_time,
         'confirmation_link': confirmation_link,
         'company': get_website_name(),
     }
 
-    # User must name their template 'reschedule_confirmation_email.html' in their email directory
-    template_path = get_email_template('reschedule_confirmation_email.html', 'email_sender/reschedule_email.html')
+    # User may name their template 'reschedule_confirmation_email.html' or 'reschedule.html'
+    template_path = get_email_template(
+            ('reschedule_confirmation_email.html', 'reschedule.html'),
+            'email_sender/reschedule_email.html'
+    )
     subject = _("Confirm Your Appointment Rescheduling")
 
     send_email(
@@ -343,12 +345,12 @@ def notify_admin_about_reschedule(reschedule_history, appointment_request, clien
         'client_name': client_name,
         'service_name': service_name,
         'reason_for_rescheduling': reason_for_rescheduling,
-        'old_date': appointment_request.date.strftime("%A, %d %B %Y"),
-        'reschedule_date': reschedule_history.date.strftime("%A, %d %B %Y"),
-        'old_start_time': convert_24_hour_time_to_12_hour_time(appointment_request.start_time),
-        'start_time': convert_24_hour_time_to_12_hour_time(reschedule_history.start_time),
-        'old_end_time': convert_24_hour_time_to_12_hour_time(appointment_request.end_time),
-        'end_time': convert_24_hour_time_to_12_hour_time(reschedule_history.end_time),
+        'old_date': appointment_request.date,
+        'reschedule_date': reschedule_history.date,
+        'old_start_time': appointment_request.start_time,
+        'start_time': reschedule_history.start_time,
+        'old_end_time': appointment_request.end_time,
+        'end_time': reschedule_history.end_time,
         'company': get_website_name(),
     }
 
@@ -359,8 +361,11 @@ def notify_admin_about_reschedule(reschedule_history, appointment_request, clien
     subject = _("Reschedule Request for ") + client_name
     staff_member = appointment_request.staff_member
 
-    # User must name their template 'notify_admin_about_reschedule_email.html' in their email directory
-    template_path = get_email_template('notify_admin_about_reschedule_email.html', 'email_sender/reschedule_email.html')
+    # User may name their template 'notify_admin_about_reschedule_email.html' or 'reschedule_admin.html'
+    template_path = get_email_template(
+            ('notify_admin_about_reschedule_email.html', 'reschedule_admin.html'),
+            'email_sender/reschedule_email.html'
+    )
 
     # Notifying admin
     notify_admin(subject=subject, template_url=template_path, context=email_context,

@@ -21,31 +21,32 @@ from django.utils import timezone
 from appointment.logger_config import get_logger
 from appointment.settings import (
     APPOINTMENT_BUFFER_TIME, APPOINTMENT_FINISH_TIME, APPOINTMENT_LEAD_TIME, APPOINTMENT_PAYMENT_URL,
-    APPOINTMENT_SLOT_DURATION, APPOINTMENT_WEBSITE_NAME
+    APPOINTMENT_SLOT_DURATION, APPOINTMENT_WEBSITE_NAME, CONFIG_CACHE_KEY
 )
 from appointment.utils.date_time import combine_date_and_time, get_weekday_num
 
 logger = get_logger(__name__)
 
-# Check if django-q is installed in settings
-DJANGO_Q_AVAILABLE = 'django_q' in settings.INSTALLED_APPS
+# django-q is only usable when it is both installed as a dependency and listed in INSTALLED_APPS
+DJANGO_Q_AVAILABLE = False
+Schedule = None
+schedule = None
 
-# Check if django-q is installed as a dependency
-try:
-    from django_q.models import Schedule
-    from django_q.tasks import schedule
+if 'django_q' in settings.INSTALLED_APPS:
+    try:
+        from django_q.models import Schedule
+        from django_q.tasks import schedule
 
-    DJANGO_Q_AVAILABLE = True
-except ImportError:
-    DJANGO_Q_AVAILABLE = False
-    Schedule = None
-    schedule = None
+        DJANGO_Q_AVAILABLE = True
+    except ImportError:
+        pass
     logger.warning("django-q is not installed. Email reminders will not be scheduled.")
 
 Appointment = apps.get_model('appointment', 'Appointment')
 AppointmentRequest = apps.get_model('appointment', 'AppointmentRequest')
 WorkingHours = apps.get_model('appointment', 'WorkingHours')
 DayOff = apps.get_model('appointment', 'DayOff')
+Unavailability = apps.get_model('appointment', 'Unavailability')
 PaymentInfo = apps.get_model('appointment', 'PaymentInfo')
 StaffMember = apps.get_model('appointment', 'StaffMember')
 Config = apps.get_model('appointment', 'Config')
@@ -250,7 +251,13 @@ def can_appointment_be_rescheduled(appointment_request):
 
 
 def staff_change_allowed_on_reschedule():
-    return Config.objects.first().allow_staff_change_on_reschedule
+    """Return whether clients may pick another staff member when rescheduling.
+
+    Falls back to the field's default when no Config row exists, which is a
+    supported state: the reschedule page must not depend on one being created.
+    """
+    config = Config.objects.first()
+    return config.allow_staff_change_on_reschedule if config else True
 
 
 def generate_unique_username_from_email(email: str) -> str:
@@ -355,11 +362,12 @@ def create_payment_info_and_get_url(appointment):
     return payment_url
 
 
-def exclude_booked_slots(appointments, slots, slot_duration=None, service_duration=None, gap_time=None):
+def exclude_unavailable_slots(slots, appointments=[], unavailabilities=[], slot_duration=None, service_duration=None, gap_time=None):
     """Exclude the booked slots from the given list of slots.
 
-    :param appointments: The appointments to exclude.
     :param slots: The slots to exclude the appointments from.
+    :param appointments: The appointments to exclude.
+    :param unavailabilities: The unavailabilites sets for this day.
     :param slot_duration: The duration of each slot used to determine how far ahead each slot reaches.
     :param service_duration: The actual service duration (timedelta). When provided, the effective check
         window is max(slot_duration, service_duration), preventing overlaps for services longer than the
@@ -383,6 +391,12 @@ def exclude_booked_slots(appointments, slots, slot_duration=None, service_durati
             appointment_start_time = appointment.get_start_time()
             appointment_end_time = appointment.get_end_time()
             if appointment_start_time < slot_end + gap_delta and slot < appointment_end_time + gap_delta:
+                is_available = False
+                break
+        for unavailability in unavailabilities:
+            unavailability_start_time = unavailability.get_start_datetime()
+            unavailability_end_time = unavailability.get_end_datetime()
+            if unavailability_start_time < slot_end + gap_delta and slot < unavailability_end_time + gap_delta:
                 is_available = False
                 break
         if is_available:
@@ -533,13 +547,31 @@ def get_appointments_for_date_and_time(date, start_time, end_time, staff_member)
     )
 
 
+def get_unavailabilities_for_date_and_time(date, start_time, end_time, staff_member):
+    """Returns all unavailabilities that overlap with the specified date and time range.
+
+    :param date: The date to filter unavailabilities on.
+    :param start_time: The starting time to filter unavailabilities on.
+    :param end_time: The ending time to filter unavailabilities on.
+    :param staff_member: The staff member to filter unavailabilities on.
+
+    :return: QuerySet, all unavailabilities that overlap with the specified date and time range
+    """
+    return Unavailability.objects.filter(date=date,
+        start_time__lte=end_time,
+        end_time__gte=start_time,
+        staff_member=staff_member
+    )
+
+
 def get_config():
     """Returns the configuration object from the database or the cache."""
-    config = cache.get('config')
+    config = cache.get(CONFIG_CACHE_KEY)
     if not config:
         config = Config.objects.first()
-        # Cache the configuration for 1 hour (3600 seconds)
-        cache.set('config', config, 3600)
+        # Cache the configuration for 1 hour (3600 seconds); it is invalidated on
+        # save and delete by the receiver in models.py.
+        cache.set(CONFIG_CACHE_KEY, config, 3600)
     return config
 
 
@@ -552,6 +584,18 @@ def get_day_off_by_id(day_off_id):
     try:
         return DayOff.objects.get(pk=day_off_id)
     except DayOff.DoesNotExist:
+        return None
+
+
+def get_unavailability_by_id(unavailability_id):
+    """Get a unavailability by its ID.
+
+    :param unavailability_id: The unavailability ID
+    :return: Unavailability, the unavailability with the specified ID or None if no unavailability with the specified ID exists.
+    """
+    try:
+        return Unavailability.objects.get(pk=unavailability_id)
+    except Unavailability.DoesNotExist:
         return None
 
 
