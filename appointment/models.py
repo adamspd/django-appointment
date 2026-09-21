@@ -395,6 +395,27 @@ class StaffMember(models.Model):
         return day not in self.get_non_working_days()
 
 
+@receiver(post_save, sender=StaffMember)
+def grant_django_staff_status(sender, instance, created, **kwargs):
+    """Give a new staff member Django's staff flag.
+
+    The administration views gate on ``user.is_staff``, so a StaffMember created anywhere
+    other than the "create new staff member" flow — the Django admin, the staff settings
+    form, a fixture — would otherwise be locked out of the pages it was created for.
+
+    Superusers are left alone, mirroring ``remove_staff_member``, which only clears the
+    flag for non-superusers; they pass the same checks through ``is_superuser`` anyway.
+    """
+    if not created:
+        return
+    user = instance.user
+    # A custom AUTH_USER_MODEL is not required to define is_staff.
+    if not hasattr(user, 'is_staff') or user.is_staff or user.is_superuser:
+        return
+    user.is_staff = True
+    user.save(update_fields=['is_staff'])
+
+
 class AppointmentRequest(models.Model):
     """
     Represents an appointment request made by a client.

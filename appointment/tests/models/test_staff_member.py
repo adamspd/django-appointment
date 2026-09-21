@@ -88,6 +88,45 @@ class StaffMemberCreationTests(BaseTest):
         self.assertEqual(full_staff.get_staff_member_name(), "mckay.rodney@django-appointment.com")
 
 
+class StaffMemberStaffStatusTests(BaseTest):
+    """Creating a StaffMember must give its user the flag the admin views gate on."""
+
+    def test_creation_grants_django_staff_status(self):
+        user = self.create_user_(first_name="Cameron", last_name="Mitchell",
+                                 email="cameron.mitchell@django-appointment.com", username="cameron.mitchell")
+        self.assertFalse(user.is_staff)
+
+        StaffMember.objects.create(user=user)
+
+        user.refresh_from_db()
+        self.assertTrue(user.is_staff)
+
+    def test_superuser_keeps_its_flags_untouched(self):
+        """remove_staff_member only clears is_staff for non-superusers, so we never set it for them either."""
+        superuser = self.users['superuser']
+        superuser.is_superuser = True
+        superuser.is_staff = False
+        superuser.save()
+
+        StaffMember.objects.create(user=superuser)
+
+        superuser.refresh_from_db()
+        self.assertFalse(superuser.is_staff)
+
+    def test_updating_a_staff_member_does_not_regrant_staff_status(self):
+        """Only creation grants it; an admin who deliberately cleared the flag keeps it cleared."""
+        staff_member = self.staff_member1
+        user = staff_member.user
+        user.is_staff = False
+        user.save()
+
+        staff_member.slot_duration = 45
+        staff_member.save()
+
+        user.refresh_from_db()
+        self.assertFalse(user.is_staff)
+
+
 class StaffMemberServiceTests(BaseTest):
     @classmethod
     def setUpTestData(cls):
