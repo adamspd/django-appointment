@@ -457,7 +457,7 @@ def save_appt_date_time(appt_start_time, appt_date, appt_id, request):
     return appt
 
 
-def get_available_slots(date, appointments, unavailabilities=[]):
+def get_available_slots(date, appointments, unavailabilities=None):
     """Calculate the available time slots for a given date and a list of appointments.
 
     :param date: The date for which to calculate the available slot
@@ -534,7 +534,7 @@ def get_finish_button_text(service) -> str:
     return _("Finish")
 
 
-def get_appointments_and_slots(date_, service=None, unavailabilities=[]):
+def get_appointments_and_slots(date_, service=None, unavailabilities=None):
     """
     Get appointments and available slots for a given date and service.
 
