@@ -5,7 +5,7 @@ to schedule an appointment for a service.
 
 ## Model Structure
 
-The application has eleven (11) models:
+The application has twelve (12) models:
 
 1. [Service](models.md#service)
 2. [StaffMember](models.md#staffmember)
@@ -17,7 +17,8 @@ The application has eleven (11) models:
 8. [EmailVerificationCode](models.md#emailverificationcode)
 9. [PasswordResetToken](models.md#passwordresettoken)
 10. [DayOff](models.md#dayoff)
-11. [WorkingHours](models.md#workinghours)
+11. [Unavailability](models.md#unavailability)
+12. [WorkingHours](models.md#workinghours)
 
 ## Service
 
@@ -90,6 +91,14 @@ from a link sent by email. Creating a new token invalidates the user's previous 
 
 The DayOff model is used to represent a day off for a staff member.
 It includes the start date, the end date, an optional description, and the staff member associated with the day off.
+
+## Unavailability
+
+The Unavailability model blocks part of a single day for a staff member — a lunch break, a meeting, anything that
+makes them unavailable without costing them the whole day. Where a day off removes entire days from the calendar, an
+unavailability removes a time range from one day and leaves the rest of it bookable. The booking page filters these
+out of the slots it offers.
+[More details here](models.md#unavailability).
 
 ## WorkingHours
 

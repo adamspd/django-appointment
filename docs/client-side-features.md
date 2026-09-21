@@ -37,7 +37,8 @@ This is an overview of what is displayed:
 ![Overview of what is displayed](images/overview_of_page.png)
 
 Once a photographer is chosen, their availability is displayed, including days they are not working (making those dates
-un-selectable), vacation times (also un-selectable), etc...
+un-selectable), vacation times (also un-selectable), etc... A staff member can also block part of a single day — a
+lunch break, a meeting — and the slots covering it simply do not appear, while the rest of that day stays bookable.
 
 Their start and end times (set by the staff member) are used along with the slot duration to determine available booking
 slots. This setup is aimed at ensuring that the booking time aligns well with the photographer's schedule.
