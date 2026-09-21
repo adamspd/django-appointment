@@ -9,21 +9,29 @@ The client-facing views live in `appointment/views.py`. The staff and superuser 
 This view function handles AJAX requests to get available slots for a selected date.
 
 #### Args:
-- `request` (django.http.HttpRequest): The request instance. Reads `selected_date` and `staff_member` from the query
-  string.
+- `request` (django.http.HttpRequest): The request instance. Reads three values from the query string:
+  `selected_date`, `staff_member`, and the optional `service_id`. When `service_id` is given, the service's real
+  duration is used as the overlap-check window, so a service longer than the slot step no longer offers slots it
+  cannot finish in.
 
 #### Returns:
-- `django.http.JsonResponse`: A JSON response containing available slots, selected date, an error flag, and an optional error message.
+- `django.http.JsonResponse`: A JSON response carrying `message` and `success`, plus `date_chosen` (the date
+  rendered in the active locale), `date_iso`, `staff_member`, and `available_slots` — a list of
+  `[iso_datetime, localized_time]` pairs such as `[["2026-07-29T09:30:00", "9:30 a.m."], ...]`. Failures add an
+  `errorCode` and, for a day off, a non-working day or a fully booked day, `no_availability: true`.
 
 ### get next available date ajax
-This view function handles AJAX requests to get the next available date for a service.
+This view function handles AJAX requests to get the next available date for a service. It scans forward day by day
+from today, stopping at the first date with a free slot or after **90 days**.
 
 #### Args:
 - `request` (django.http.HttpRequest): The request instance. Reads `staff_member` from the query string.
 - `service_id` (int): The ID of the service.
 
 #### Returns:
-- `django.http.JsonResponse`: A JSON response containing the next available date.
+- `django.http.JsonResponse`: A JSON response containing `next_available_date` as an ISO date. When nothing is free
+  within the 90-day window it returns a failure carrying the `NEXT_AVAILABILITY_NOT_FOUND`
+  [error code](utils/error_codes.md); when no staff member was selected, `STAFF_ID_REQUIRED`.
 
 ### get non working days ajax
 This view function handles AJAX requests to get the days a staff member does not work, so the calendar can render
