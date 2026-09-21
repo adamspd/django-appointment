@@ -15,6 +15,7 @@
 [![GitHub stars](https://img.shields.io/github/stars/adamspd/django-appointment)](https://github.com/adamspd/django-appointment/stargazers)
 [![Django compatible version](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/adamspd/django-appointment/main/django_compatible.json)](https://github.com/adamspd/django-appointment/blob/main/compatibility_matrix.md)
 [![Python compatible version](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/adamspd/django-appointment/main/python_compatible.json)](https://github.com/adamspd/django-appointment/blob/main/compatibility_matrix.md)
+[![Latest on Django Packages](https://img.shields.io/badge/Django%20Packages-django--appointment-8c3c26.svg)](https://djangopackages.org/packages/p/django-appointment/)
 
 Django-Appointment is a Django app engineered for managing appointment scheduling with ease and flexibility. It enables
 users to define custom configurations for time slots, lead time, and finish time, or use the default values
