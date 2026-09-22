@@ -23,7 +23,7 @@ from appointment.tests.mixins.base_mixin import ConfigMixin
 from appointment.utils.db_helpers import (
     Appointment, AppointmentRequest, AppointmentRescheduleHistory, Config, WorkingHours, calculate_slots,
     calculate_staff_slots, can_appointment_be_rescheduled, cancel_existing_reminder, check_day_off_for_staff,
-    create_and_save_appointment, create_new_user, create_payment_info_and_get_url, day_off_exists_for_date_range,
+    create_and_save_appointment, create_new_user, create_payment_info_and_get_url, day_off_exists_for_date_range, exclude_booked_slots,
     exclude_unavailable_slots, exclude_pending_reschedules, generate_unique_username_from_email, get_absolute_url_,
     get_all_appointments, get_all_staff_members, get_appointment_buffer_time, get_appointment_by_id,
     get_appointment_finish_time, get_appointment_lead_time, get_appointment_slot_duration,
@@ -571,6 +571,14 @@ class TestExcludeUnavailableSlots(BaseTest):
             datetime.datetime.combine(self.today, datetime.time(12, 0))
         ]
         self.slot_duration = datetime.timedelta(hours=1)
+
+    @patch("appointment.utils.db_helpers.exclude_unavailable_slots")
+    def test_exclude_booked_slots_warns_and_delegate(self, mock_exclude_unavailable_slots):
+        """'exclude_booked_slots' is deprecated and must say so."""
+        with self.assertWarns(DeprecationWarning):
+            exclude_booked_slots([], self.slots, self.slot_duration)
+
+        mock_exclude_unavailable_slots.assert_called_once_with(self.slots, appointments=[], unavailabilities=None, slot_duration=self.slot_duration, service_duration=None, gap_time=None)
 
     def test_no_appointments(self):
         result = exclude_unavailable_slots(self.slots, appointments=[], slot_duration=self.slot_duration)

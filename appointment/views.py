@@ -207,14 +207,14 @@ def appointment_request(request, service_id=None, staff_member_id=None):
         # If only one staff member for a service, choose them by default and fetch their slots.
         if all_staff_members.count() == 1:
             staff_member = all_staff_members.first()
-            #TODO unavailabilities
-            x, available_slots = get_appointments_and_slots(date.today(), service)
+            unavailabilities = staff_member.get_unavailabilities_for_date(date.today())
+            x, available_slots = get_appointments_and_slots(date.today(), service, unavailabilities)
 
     # If a specific staff member is selected, fetch their slots.
     if staff_member_id:
         staff_member = get_object_or_404(StaffMember, pk=staff_member_id)
-        #TODO unavailabilities
-        y, available_slots = get_appointments_and_slots(date.today(), service)
+        unavailabilities = staff_member.get_unavailabilities_for_date(date.today())
+        y, available_slots = get_appointments_and_slots(date.today(), service, unavailabilities)
 
     page_title = f"{service.name} - {get_website_name()}"
     page_description = _("Book an appointment for {s} at {wn}.").format(s=service.name, wn=get_website_name())
