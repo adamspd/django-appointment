@@ -35,6 +35,7 @@ from appointment.utils.error_codes import ErrorCode
 from appointment.utils.json_context import convert_appointment_to_json, get_generic_context, json_response
 from appointment.utils.permissions import check_entity_ownership
 from appointment.utils.session import handle_email_change
+from appointment.utils.template_helpers import get_custom_template
 
 
 def fetch_user_appointments(user):
@@ -96,7 +97,7 @@ def prepare_user_profile_data(user, staff_user_id):
             btn_staff_me_link = reverse('appointment:remove_superuser_staff_member')
         data = {
             'error': False,
-            'template': 'administration/staff_list.html',
+            'template': get_custom_template('staff_list.html', 'administration/staff_list.html'),
             'extra_context': {
                 'staff_members': staff_members,
                 'btn_staff_me': btn_staff_me,
@@ -132,7 +133,7 @@ def prepare_user_profile_data(user, staff_user_id):
         service_msg = _("Here you can add/remove services offered by you by modifying this section.")
     return {
         'error': False,
-        'template': 'administration/user_profile.html',
+        'template': get_custom_template('user_profile.html', 'administration/user_profile.html'),
         'extra_context': {
             'superuser': user if user.is_superuser else None,
             'user': staff_member.user if staff_member else user,
@@ -173,19 +174,19 @@ def handle_entity_management_request(request, staff_member, entity_type, instanc
     if entity_type == 'day_off':
         form = StaffDaysOffForm(instance=instance)
         context = get_entity_management_context(request, button_text, 'day_off_form', form)
-        template = 'administration/manage_day_off.html'
+        template = get_custom_template('manage_day_off.html', 'administration/manage_day_off.html')
     elif entity_type == 'unavailability':
         form = StaffUnavailabilityForm(instance=instance)
         context = get_entity_management_context(request, button_text, 'unavailability_form', form,
                                                          staff_user_id, instance,
                                                          instance_id)
-        template = 'administration/manage_unavailability.html'
+        template = get_custom_template('manage_unavailability.html', 'administration/manage_unavailability.html')
     else:
         form = StaffWorkingHoursForm(instance=instance)
         context = get_entity_management_context(request, button_text, 'working_hours_form', form,
                                                          staff_user_id, instance,
                                                          instance_id)
-        template = 'administration/manage_working_hours.html'
+        template = get_custom_template('manage_working_hours.html', 'administration/manage_working_hours.html')
 
     if request.method == 'POST' and entity_type == 'day_off':
         day_off_form = StaffDaysOffForm(request.POST, instance=instance)

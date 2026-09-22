@@ -91,7 +91,10 @@ def user_profile(request, staff_user_id=None):
     error = data.get('error')
     status_code = data.get('status_code', 400)
     context = get_generic_context_with_extra(request=request, extra=data['extra_context'])
-    error_template = 'error_pages/403_forbidden.html' if status_code == 403 else 'error_pages/404_not_found.html'
+    if status_code == 403:
+        error_template = get_custom_template('403_forbidden.html', 'error_pages/403_forbidden.html')
+    else:
+        error_template = get_custom_template('404_not_found.html', 'error_pages/404_not_found.html')
     template = data['template'] if not error else error_template
     return render(request, template, context)
 
