@@ -7,6 +7,7 @@ Since: 2.0.0
 """
 
 import datetime
+import warnings
 from typing import Optional
 from urllib.parse import urlparse
 
@@ -361,8 +362,11 @@ def create_payment_info_and_get_url(appointment):
 
     return payment_url
 
+def exclude_booked_slots(appointments, slots, slot_duration=None):
+    warnings.warn("'exclude_booked_slots' is now deprecated and will be replaced by 'exclude_unavailable_slots' in the next version", DeprecationWarning)
+    return exclude_unavailable_slots(slots, appointments=appointments, unavailabilities=None, slot_duration=slot_duration, service_duration=None, gap_time=None)
 
-def exclude_unavailable_slots(slots, appointments=[], unavailabilities=[], slot_duration=None, service_duration=None, gap_time=None):
+def exclude_unavailable_slots(slots, appointments=None, unavailabilities=None, slot_duration=None, service_duration=None, gap_time=None):
     """Exclude the booked slots from the given list of slots.
 
     :param slots: The slots to exclude the appointments from.
@@ -382,6 +386,9 @@ def exclude_unavailable_slots(slots, appointments=[], unavailabilities=[], slot_
     else:
         check_duration = slot_duration
     gap_delta = datetime.timedelta(minutes=gap_time) if gap_time else datetime.timedelta(0)
+
+    appointments = [] if appointments is None else appointments
+    unavailabilities = [] if unavailabilities is None else unavailabilities
 
     available_slots = []
     for slot in slots:

@@ -198,18 +198,26 @@ def handle_entity_management_request(request, staff_member, entity_type, instanc
                                  error_code=ErrorCode.DAY_OFF_CONFLICT)
 
         return handle_day_off_form(day_off_form, staff_member)
+
     elif request.method == 'POST' and entity_type == 'unavailability':
-        date = datetime.datetime.strptime(request.POST.get('date_raw'), "%Y-%m-%d")
-        start_time = datetime.datetime.strptime(request.POST.get('start_time_raw'), "%H:%M:%S")
-        end_time = datetime.datetime.strptime(request.POST.get('end_time_raw'), "%H:%M:%S")
-        description = request.POST.get('description')
+        try:
+            date = datetime.datetime.strptime(request.POST.get('date_raw'), "%Y-%m-%d").date()
+            start_time = datetime.datetime.strptime(request.POST.get('start_time_raw'), "%H:%M:%S").time()
+            end_time = datetime.datetime.strptime(request.POST.get('end_time_raw'), "%H:%M:%S").time()
+            description = request.POST.get('description')
+        except (TypeError, ValueError):
+            return json_response(_("Invalid data."), status=400, success=False, error_code=ErrorCode.INVALID_DATA)
     
         return handle_unavailability_form(staff_member, date, start_time, end_time, description, add, instance_id)
+
     elif request.method == 'POST' and entity_type == 'working_hours':
-        day_of_week = request.POST.get('day_of_week')
-        # get js string start and end times formatted as YYYY-MM-DDTHH:mm:ss and parse it.
-        start_time = datetime.datetime.strptime(request.POST.get('start_time_raw'), "%Y-%m-%dT%H:%M:%S")
-        end_time = datetime.datetime.strptime(request.POST.get('end_time_raw'), "%Y-%m-%dT%H:%M:%S")
+        try:
+            day_of_week = request.POST.get('day_of_week')
+            # get js string start and end times formatted as YYYY-MM-DDTHH:mm:ss and parse it.
+            start_time = datetime.datetime.strptime(request.POST.get('start_time_raw'), "%Y-%m-%dT%H:%M:%S")
+            end_time = datetime.datetime.strptime(request.POST.get('end_time_raw'), "%Y-%m-%dT%H:%M:%S")
+        except (TypeError, ValueError):
+            return json_response(_("Invalid data."), status=400, success=False, error_code=ErrorCode.INVALID_DATA)
 
         return handle_working_hours_form(staff_member, day_of_week, start_time, end_time, add, instance_id)
 
@@ -458,7 +466,7 @@ def save_appt_date_time(appt_start_time, appt_date, appt_id, request):
     return appt
 
 
-def get_available_slots(date, appointments, unavailabilities=[]):
+def get_available_slots(date, appointments, unavailabilities=None):
     """Calculate the available time slots for a given date and a list of appointments.
 
     :param date: The date for which to calculate the available slot
@@ -535,7 +543,7 @@ def get_finish_button_text(service) -> str:
     return _("Finish")
 
 
-def get_appointments_and_slots(date_, service=None, unavailabilities=[]):
+def get_appointments_and_slots(date_, service=None, unavailabilities=None):
     """
     Get appointments and available slots for a given date and service.
 
