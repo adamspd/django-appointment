@@ -34,6 +34,27 @@ system.
   sides of each appointment. A slot is dropped as soon as it overlaps either kind of entry, even partly.
 - **exclude_pending_reschedules**: Exclude the slots that have a pending reschedule request for the given staff
   member and date.
+- **exclude_booked_slots**: *Deprecated.* The former name of `exclude_unavailable_slots`, kept so existing callers
+  keep working. See the note below.
+
+!!! warning "`exclude_booked_slots` is deprecated"
+    `exclude_booked_slots(appointments, slots, slot_duration=None)` still exists and still works, but it emits a
+    `DeprecationWarning` and will be removed. It keeps the **old argument order** — `appointments` first, then
+    `slots` — whereas the replacement takes `slots` first and everything else by keyword:
+
+    ```python
+    # before
+    exclude_booked_slots(appointments, slots, slot_duration)
+
+    # after
+    exclude_unavailable_slots(slots, appointments=appointments, slot_duration=slot_duration)
+    ```
+
+    The wrapper always passes `unavailabilities=None`, `service_duration=None` and `gap_time=None`, so it cannot
+    express any of the behaviour added since it was renamed: it will not exclude
+    [unavailabilities](../models.md#unavailability), will not account for a service longer than the slot step, and
+    will not apply the rest time between appointments. Call `exclude_unavailable_slots` directly if you need any of
+    those.
 
 ### Appointments:
 
