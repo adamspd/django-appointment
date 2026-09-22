@@ -60,7 +60,12 @@ your_project/
 │   │   ├── manage_staff_personal_info.html
 │   │   ├── email_change_verification_code.html
 │   │   ├── manage_service.html
-│   │   └── service_list.html
+│   │   ├── service_list.html
+│   │   ├── staff_list.html
+│   │   ├── user_profile.html
+│   │   ├── manage_day_off.html
+│   │   ├── manage_unavailability.html
+│   │   └── manage_working_hours.html
 │   └── emails/          # Email templates (configurable via APPOINTMENT_CUSTOM_EMAILS_DIR)
 │       ├── thank_you.html
 │       ├── password_reset.html
@@ -126,15 +131,19 @@ picker, or the widget will fall back to a format the server may not parse back.
 | `email_change_verification_code.html` | Verification code entry after an email change      | (generic context only)                            | `administration/email_change_verification_code.html`  |
 | `manage_service.html`                 | Add, edit, or view a service                       | `form`, `btn_text`, `page_title`, `service` (view mode only) | `administration/manage_service.html`       |
 | `service_list.html`                   | List of all services                               | `services`                                        | `administration/service_list.html`                    |
+| `staff_list.html`                     | List of all staff members, shown to a superuser    | `staff_members`, `btn_staff_me`, `btn_staff_me_link` | `administration/staff_list.html`                   |
+| `user_profile.html`                   | A staff member's profile page                      | `superuser`, `user`, `staff_member`, `days_off`, `unavailabilities`, `working_hours`, `services_offered`, `staff_member_not_found`, `buffer_time_help_text`, `slot_duration_help_text`, `service_msg` | `administration/user_profile.html` |
+| `manage_day_off.html`                 | Add or edit a day off                              | `button_text`, `day_off_form`                     | `administration/manage_day_off.html`                  |
+| `manage_unavailability.html`          | Add or edit an unavailability                      | `button_text`, `unavailability_form`, `staff_user_id`, `entity_instance` and `entity_id` (edit only) | `administration/manage_unavailability.html` |
+| `manage_working_hours.html`           | Add or edit working hours                          | `button_text`, `working_hours_form`, `staff_user_id`, `entity_instance` and `entity_id` (edit only) | `administration/manage_working_hours.html` |
 
-> **Note:** Five administration pages do not go through the custom template lookup yet, so they cannot be overridden
-> this way — their paths are hardcoded:
+> **Note:** `user-profile/` serves two different templates. A superuser visiting it without a `staff_user_id` gets
+> `staff_list.html`; everyone else, and a superuser visiting a specific member, gets `user_profile.html`. Override
+> whichever you need — they are independent.
 >
-> - `administration/staff_list.html` — the list of staff members a superuser sees
-> - `administration/user_profile.html` — a staff member's profile page
-> - `administration/manage_day_off.html` — the add/edit day off form
-> - `administration/manage_unavailability.html` — the add/edit unavailability form
-> - `administration/manage_working_hours.html` — the add/edit working hours form
+> The three `manage_*` forms post their values back as pre-formatted hidden fields (`date_raw`, `start_time_raw`,
+> `end_time_raw`, and `day_of_week` for working hours) alongside the localized ones the user sees. A replacement
+> template must keep those, or the view will not be able to parse the submission.
 
 ### Email Templates (Emails Directory)
 
