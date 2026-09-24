@@ -12,7 +12,6 @@ from typing import Optional
 from urllib.parse import urlparse
 
 from django.apps import apps
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.exceptions import FieldDoesNotExist
@@ -22,26 +21,14 @@ from django.utils import timezone
 from appointment.logger_config import get_logger
 from appointment.settings import (
     APPOINTMENT_BUFFER_TIME, APPOINTMENT_FINISH_TIME, APPOINTMENT_LEAD_TIME, APPOINTMENT_PAYMENT_URL,
-    APPOINTMENT_SLOT_DURATION, APPOINTMENT_WEBSITE_NAME, CONFIG_CACHE_KEY
+    APPOINTMENT_SLOT_DURATION, APPOINTMENT_WEBSITE_NAME, CONFIG_CACHE_KEY, initialize_django_q
 )
 from appointment.utils.date_time import combine_date_and_time, get_weekday_num
 
 logger = get_logger(__name__)
 
 # django-q is only usable when it is both installed as a dependency and listed in INSTALLED_APPS
-DJANGO_Q_AVAILABLE = False
-Schedule = None
-schedule = None
-
-if 'django_q' in settings.INSTALLED_APPS:
-    try:
-        from django_q.models import Schedule
-        from django_q.tasks import schedule
-
-        DJANGO_Q_AVAILABLE = True
-    except ImportError:
-        pass
-    logger.warning("django-q is not installed. Email reminders will not be scheduled.")
+DJANGO_Q_AVAILABLE, _, schedule, Schedule = initialize_django_q()
 
 Appointment = apps.get_model('appointment', 'Appointment')
 AppointmentRequest = apps.get_model('appointment', 'AppointmentRequest')
@@ -56,7 +43,7 @@ EmailVerificationCode = apps.get_model('appointment', 'EmailVerificationCode')
 AppointmentRescheduleHistory = apps.get_model('appointment', 'AppointmentRescheduleHistory')
 
 
-def calculate_slots(start_time, end_time, buffer_time, slot_duration, service_duration = None):
+def calculate_slots(start_time, end_time, buffer_time, slot_duration, service_duration=None):
     """Calculate the available slots between the given start and end times using the given buffer time and slot duration
 
     :param start_time: The start time.
@@ -83,7 +70,7 @@ def calculate_slots(start_time, end_time, buffer_time, slot_duration, service_du
     return slots
 
 
-def calculate_staff_slots(date, staff_member, service_duration = None):
+def calculate_staff_slots(date, staff_member, service_duration=None):
     """Calculate the available slots for the given staff member on the given date.
 
     :param date: The date to calculate the slots for.
@@ -128,8 +115,8 @@ def create_and_save_appointment(ar, client_data: dict, appointment_data: dict, r
     """
     user = request.user if request.user.is_authenticated else get_user_by_email(client_data['email'])
     appointment = Appointment.objects.create(
-            client=user, appointment_request=ar,
-            **appointment_data
+        client=user, appointment_request=ar,
+        **appointment_data
     )
     appointment.save()
     logger.info(f"New appointment created: {appointment.to_dict()}")
@@ -210,8 +197,8 @@ def update_appointment_reminder(appointment, new_date, new_start_time, request, 
             schedule_email_reminder(appointment, request, new_datetime)
         else:
             logger.info(
-                    f"Reminder for appointment {appointment.id} is not scheduled per "
-                    f"user's preference or past datetime.")
+                f"Reminder for appointment {appointment.id} is not scheduled per "
+                f"user's preference or past datetime.")
 
     # Update the appointment's reminder preference
     appointment.want_reminder = want_reminder
@@ -353,8 +340,8 @@ def create_payment_info_and_get_url(appointment):
             urlparse(APPOINTMENT_PAYMENT_URL).netloc):
         # It's a Django reverse URL; generate the URL
         payment_url = reverse(
-                APPOINTMENT_PAYMENT_URL,
-                kwargs={'object_id': payment_info.id, 'id_request': payment_info.get_id_request()}
+            APPOINTMENT_PAYMENT_URL,
+            kwargs={'object_id': payment_info.id, 'id_request': payment_info.get_id_request()}
         )
     else:
         # It's an external link; return as is or append necessary data
@@ -362,11 +349,17 @@ def create_payment_info_and_get_url(appointment):
 
     return payment_url
 
-def exclude_booked_slots(appointments, slots, slot_duration=None):
-    warnings.warn("'exclude_booked_slots' is now deprecated and will be replaced by 'exclude_unavailable_slots' in the next version", DeprecationWarning)
-    return exclude_unavailable_slots(slots, appointments=appointments, unavailabilities=None, slot_duration=slot_duration, service_duration=None, gap_time=None)
 
-def exclude_unavailable_slots(slots, appointments=None, unavailabilities=None, slot_duration=None, service_duration=None, gap_time=None):
+def exclude_booked_slots(appointments, slots, slot_duration=None):
+    warnings.warn(
+        "'exclude_booked_slots' is now deprecated and will be replaced by 'exclude_unavailable_slots' in the next version",
+        DeprecationWarning)
+    return exclude_unavailable_slots(slots, appointments=appointments, unavailabilities=None,
+                                     slot_duration=slot_duration, service_duration=None, gap_time=None)
+
+
+def exclude_unavailable_slots(slots, appointments=None, unavailabilities=None, slot_duration=None,
+                              service_duration=None, gap_time=None):
     """Exclude the booked slots from the given list of slots.
 
     :param slots: The slots to exclude the appointments from.
@@ -419,10 +412,10 @@ def exclude_pending_reschedules(slots, staff_member, date):
     # Calculate the time window for "last 5 minutes"
     ten_minutes_ago = timezone.now() - datetime.timedelta(minutes=5)
     pending_reschedules = AppointmentRescheduleHistory.objects.filter(
-            appointment_request__staff_member=staff_member,
-            date=date,
-            reschedule_status='pending',
-            created_at__gte=ten_minutes_ago
+        appointment_request__staff_member=staff_member,
+        date=date,
+        reschedule_status='pending',
+        created_at__gte=ten_minutes_ago
     )
 
     # Filter out slots that overlap with any pending rescheduling
@@ -547,10 +540,10 @@ def get_appointments_for_date_and_time(date, start_time, end_time, staff_member)
     :return: QuerySet, all appointments that overlap with the specified date and time range
     """
     return Appointment.objects.filter(
-            appointment_request__date=date,
-            appointment_request__start_time__lte=end_time,
-            appointment_request__end_time__gte=start_time,
-            appointment_request__staff_member=staff_member
+        appointment_request__date=date,
+        appointment_request__start_time__lte=end_time,
+        appointment_request__end_time__gte=start_time,
+        appointment_request__staff_member=staff_member
     )
 
 
@@ -565,10 +558,10 @@ def get_unavailabilities_for_date_and_time(date, start_time, end_time, staff_mem
     :return: QuerySet, all unavailabilities that overlap with the specified date and time range
     """
     return Unavailability.objects.filter(date=date,
-        start_time__lte=end_time,
-        end_time__gte=start_time,
-        staff_member=staff_member
-    )
+                                         start_time__lte=end_time,
+                                         end_time__gte=start_time,
+                                         staff_member=staff_member
+                                         )
 
 
 def get_config():
