@@ -2,8 +2,7 @@
 {% load i18n %}
 {% load static %}
 {% block customCSS %}
-    <link rel="stylesheet" type="text/css" href="{% static 'css/appt-common.css' %}"/>
-    <link rel="stylesheet" type="text/css" href="{% static 'css/appointments.css' %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/booking.css' %}"/>
 {% endblock %}
 {% block title %}
     {{ page_title }}
@@ -12,31 +11,57 @@
     {{ page_description }}
 {% endblock %}
 {% block djappt_content %}
-    <div class="container">
-        <div class="djangoAppt_main-container">
-            <div class="djangoAppt_body-container">
-                <h1 class="page-title">
-                    {% if page_header %}{{ page_header }}{% else %}{{ service.name }}{% endif %} </h1>
-                <small class="page-description">
-                    {% trans "Check out our availability and book the date and time that works for you" %}
-                </small>
-                <hr>
+    <div class="djappt-shell djappt-booking djangoAppt_main-container">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
+                     role="alert">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
 
-                <div class="djangoAppt_page-body">
-                    <div class="djangoAppt_appointment-calendar">
-                        <div class="djangoAppt_appointment-calendar-title-timezone">
-                            <div class="djangoAppt_title">
-                                {% trans "Select a date and time" %}
-                            </div>
-                            <div class="djangoAppt_timezone-details">
-                                {% trans "Timezone" %}:&nbsp;{{ timezoneTxt }}
-                            </div>
-                        </div>
-                        <hr class="djangoAppt_second-part">
-                        <div class="djangoAppt_calendar-and-slot">
-                            <div class="djangoAppt_calendar" id="calendar">
+        <div class="djangoAppt_body-container">
+            <header class="djappt-header">
+                <p class="djappt-eyebrow">{% trans "Book an appointment" %}</p>
+                <h1 class="djappt-title page-title">
+                    {% if page_header %}{{ page_header }}{% else %}{{ service.name }}{% endif %}</h1>
+                <p class="djappt-lead page-description">
+                    {% trans "Check out our availability and book the date and time that works for you" %}</p>
+                <ul class="djappt-chips">
+                    <li class="djappt-chip">
+                        <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                            <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71z"/>
+                            <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0"/>
+                        </svg>
+                        {{ service.get_duration }}
+                    </li>
+                    <li class="djappt-chip">
+                        <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                            <path d="M6 4.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m-1 0a.5.5 0 1 0-1 0 .5.5 0 0 0 1 0"/>
+                            <path d="M2 1h4.586a1 1 0 0 1 .707.293l7 7a1 1 0 0 1 0 1.414l-4.586 4.586a1 1 0 0 1-1.414 0l-7-7A1 1 0 0 1 1 6.586V2a1 1 0 0 1 1-1m0 5.586 7 7L13.586 9l-7-7H2z"/>
+                        </svg>
+                        {{ service.get_price_text }}
+                    </li>
+                    <li class="djappt-chip djangoAppt_timezone-details">
+                        <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                            <path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m7.5-6.923c-.67.204-1.335.82-1.887 1.855A8 8 0 0 0 5.145 4H7.5zM4.09 4a9.3 9.3 0 0 1 .64-1.539 7 7 0 0 1 .597-.933A7.03 7.03 0 0 0 2.255 4zm-.582 3.5c.03-.877.138-1.718.312-2.5H1.674a7 7 0 0 0-.656 2.5zM4.847 5a12.5 12.5 0 0 0-.338 2.5H7.5V5zM8.5 5v2.5h2.99a12.5 12.5 0 0 0-.337-2.5zM4.51 8.5a12.5 12.5 0 0 0 .337 2.5H7.5V8.5zm3.99 0V11h2.653c.187-.765.306-1.608.338-2.5zM5.145 12q.208.58.468 1.068c.552 1.035 1.218 1.65 1.887 1.855V12zm.182 2.472a7 7 0 0 1-.597-.933A9.3 9.3 0 0 1 4.09 12H2.255a7 7 0 0 0 3.072 2.472M3.82 11a13.7 13.7 0 0 1-.312-2.5h-2.49c.062.89.291 1.733.656 2.5zm6.853 3.472A7 7 0 0 0 13.745 12H11.91a9.3 9.3 0 0 1-.64 1.539 7 7 0 0 1-.597.933M8.5 12v2.923c.67-.204 1.335-.82 1.887-1.855q.26-.487.468-1.068zm3.68-1h2.146c.365-.767.594-1.61.656-2.5h-2.49a13.7 13.7 0 0 1-.312 2.5m2.802-3.5a7 7 0 0 0-.656-2.5H12.18c.174.782.282 1.623.312 2.5zM11.27 2.461c.247.464.462.98.64 1.539h1.835a7 7 0 0 0-3.072-2.472c.218.284.418.598.597.933M10.855 4a8 8 0 0 0-.468-1.068C9.835 1.897 9.17 1.282 8.5 1.077V4z"/>
+                        </svg>
+                        {% trans "Timezone" %}:&nbsp;{{ timezoneTxt }}
+                    </li>
+                </ul>
+            </header>
+
+            <div class="djappt-layout djangoAppt_page-body">
+                <section class="djappt-card djappt-form djangoAppt_appointment-calendar">
+                    <h2 class="djappt-card-title djangoAppt_title">{% trans "Select a date and time" %}</h2>
+
+                    <div class="djappt-picker-wrap">
+                        <div class="djappt-picker djangoAppt_calendar-and-slot">
+                            <div>
+                                <p class="djappt-step"><span class="djappt-step-number">2</span>{% trans "Choose a date" %}</p>
+                                <div class="djangoAppt_calendar" id="calendar"></div>
                             </div>
                             <div class="djangoAppt_slot">
+                                <p class="djappt-step"><span class="djappt-step-number">3</span>{% trans "Choose a time" %}</p>
                                 <div class="djangoAppt_date_chosen">{{ date_chosen }}</div>
                                 <div class="slot-container">
                                     <div class="error-message"></div>
@@ -44,55 +69,63 @@
                                         <!-- Slot list will be updated dynamically by the AJAX request -->
                                     </ul>
                                 </div>
-
                             </div>
                         </div>
-                        {% if rescheduled_date %}
-                            <div class="form-group" style="margin-top: 10px">
-                                <label for="reason_for_rescheduling">{% trans "Reason for rescheduling" %}:</label>
-                                <textarea name="reason_for_rescheduling" id="reason_for_rescheduling"
-                                          class="form-control" rows="1" required></textarea>
-                            </div>
-                        {% endif %}
                     </div>
-                    <div class="djangoAppt_service-description">
-                        <form method="post" action="{% url 'appointment:appointment_request_submit' %}"
-                              class="appointment-form">
-                            {% csrf_token %}
-                            <div class="staff-members-list">
-                                <label class="djangoAppt_item-name" for="staff_id">{{ label }}</label>
-                                <select name="staff_member" id="staff_id">
-                                    {% if not staff_member %}
-                                        <option value="none"
-                                                selected>{% trans 'Please select a staff member' %}</option>
-                                    {% endif %}
-                                    {% for sf in all_staff_members %}
-                                        <option value="{{ sf.id }}"
-                                                {% if staff_member and staff_member.id == sf.id %}selected{% endif %}>{{ sf.get_staff_member_name }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
 
-                            <div>{% trans "Service Details" %}</div>
-                            <hr class="djangoAppt_second-part">
-                            <div class="djangoAppt_service-description-content">
-                                <p class="djangoAppt_item-name">{{ service.name }}</p>
-                                <p id="service-datetime-chosen" class="service-datetime-chosen">{{ date_chosen }}</p>
-                                <p>{{ service.get_duration }}</p>
-                                <p>{{ service.get_price_text }}</p>
-                                <button type="submit"
-                                        class="btn btn-primary btn-submit-appointment"
-                                        disabled>{% trans 'Next' %}</button>
-                            </div>
-                        </form>
-                    </div>
+                    {% if rescheduled_date %}
+                        <div class="mt-4">
+                            <label class="form-label" for="reason_for_rescheduling">
+                                {% trans "Reason for rescheduling" %}</label>
+                            <textarea name="reason_for_rescheduling" id="reason_for_rescheduling"
+                                      class="form-control" rows="2" required></textarea>
+                        </div>
+                    {% endif %}
+                </section>
+
+                {# Its own card so it can come first on small screens; form= submits it with the booking form. #}
+                <div class="djappt-card djappt-form djappt-staff staff-members-list">
+                    <label class="djappt-step djangoAppt_item-name" for="staff_id">
+                        <span class="djappt-step-number">1</span>{{ label }}</label>
+                    <select name="staff_member" id="staff_id" class="form-select" form="djappt-booking-form">
+                        {% if not staff_member %}
+                            <option value="none"
+                                    selected>{% trans 'Please select a staff member' %}</option>
+                        {% endif %}
+                        {% for sf in all_staff_members %}
+                            <option value="{{ sf.id }}"
+                                    {% if staff_member and staff_member.id == sf.id %}selected{% endif %}>{{ sf.get_staff_member_name }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
-                             role="alert">{{ message }}</div>
-                    {% endfor %}
-                {% endif %}
+
+                <aside class="djappt-card djappt-aside djangoAppt_service-description">
+                    <form method="post" action="{% url 'appointment:appointment_request_submit' %}"
+                          id="djappt-booking-form" class="appointment-form">
+                        {% csrf_token %}
+                        <h2 class="djappt-card-title">{% trans "Your appointment" %}</h2>
+                        <dl class="djappt-summary djangoAppt_service-description-content">
+                            <div>
+                                <dt>{% trans "Service" %}</dt>
+                                <dd class="djangoAppt_item-name">{{ service.name }}</dd>
+                            </div>
+                            <div>
+                                <dt>{% trans "Date" %}</dt>
+                                <dd id="service-datetime-chosen" class="service-datetime-chosen">{{ date_chosen }}</dd>
+                            </div>
+                            <div>
+                                <dt>{% trans "Duration" %}</dt>
+                                <dd>{{ service.get_duration }}</dd>
+                            </div>
+                            <div class="djappt-summary-total">
+                                <dt>{% trans "Price" %}</dt>
+                                <dd>{{ service.get_price_text }}</dd>
+                            </div>
+                        </dl>
+                        <button type="submit" class="btn djappt-btn djappt-btn-primary w-100 btn-submit-appointment"
+                                disabled>{% trans 'Next' %}</button>
+                    </form>
+                </aside>
             </div>
         </div>
     </div>

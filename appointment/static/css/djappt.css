@@ -1,0 +1,342 @@
+/*
+ * django-appointment: shared styles, linked by appointment/layout.html on every package page.
+ * Everything applies inside the .djappt wrapper only, so it never restyles the host site.
+ *
+ * Colours are --djappt-* variables. Override them in your own CSS to match your brand, e.g.
+ *     .djappt { --djappt-accent: #17799c; }
+ * The hover and soft shades follow the accent; set them too if you want other shades.
+ * The variables are declared with zero specificity, so a plain .djappt rule in your CSS wins.
+ */
+
+:where(.djappt) {
+    --djappt-ink: #0c1b33;
+    --djappt-ink-soft: #33415c;
+    --djappt-muted: #64748b;
+    --djappt-line: #e3e8ef;
+    --djappt-surface: #fff;
+    --djappt-accent: #00307c;
+    /* Derived from the accent: setting --djappt-accent alone re-colours buttons, hovers and highlights. */
+    --djappt-accent-hover: color-mix(in srgb, var(--djappt-accent) 82%, #000);
+    --djappt-accent-soft: color-mix(in srgb, var(--djappt-accent) 10%, #fff);
+    --djappt-accent-contrast: #fff;
+    --djappt-danger: #c53030;
+    --djappt-danger-soft: #fdecec;
+    --djappt-success: #1d8055;
+    --djappt-success-soft: #e7f5ee;
+    --djappt-radius: 12px;
+    --djappt-radius-sm: 8px;
+    --djappt-shadow: 0 1px 2px rgba(12, 27, 51, .05), 0 8px 24px -12px rgba(12, 27, 51, .18);
+}
+
+/* ---- Page frame ---- */
+
+/* Centres the page content; the layout inside adapts to the width the host gives it (container queries). */
+:where(.djappt) .djappt-shell {
+    container-type: inline-size;
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 2rem 1rem 3rem;
+    color: var(--djappt-ink);
+}
+
+:where(.djappt) .djappt-shell--narrow {
+    max-width: 560px;
+}
+
+/* ---- Page header ---- */
+
+:where(.djappt) .djappt-header {
+    margin-bottom: 1.5rem;
+}
+
+:where(.djappt) .djappt-eyebrow {
+    margin: 0 0 .35rem;
+    font-size: .75rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--djappt-accent);
+}
+
+:where(.djappt) .djappt-title {
+    margin: 0 0 .35rem;
+    font-size: clamp(1.5rem, 1.2rem + 1.4vw, 2.1rem);
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--djappt-ink);
+}
+
+:where(.djappt) .djappt-lead {
+    margin: 0;
+    color: var(--djappt-muted);
+}
+
+/* Small facts under the title (duration, price, timezone). */
+:where(.djappt) .djappt-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    margin: 1rem 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+:where(.djappt) .djappt-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .3rem .75rem;
+    border: 1px solid var(--djappt-line);
+    border-radius: 999px;
+    background-color: var(--djappt-surface);
+    font-size: .85rem;
+    font-weight: 500;
+    color: var(--djappt-ink-soft);
+}
+
+:where(.djappt) .djappt-icon {
+    width: 1em;
+    height: 1em;
+    flex-shrink: 0;
+}
+
+/* ---- Cards ---- */
+
+:where(.djappt) .djappt-card {
+    background-color: var(--djappt-surface);
+    border: 1px solid var(--djappt-line);
+    border-radius: var(--djappt-radius);
+    box-shadow: var(--djappt-shadow);
+    padding: 1.5rem;
+    min-width: 0;
+}
+
+@container (max-width: 479.98px) {
+    :where(.djappt) .djappt-card {
+        padding: 1.1rem;
+    }
+}
+
+/* Single-card pages (thank-you, verification code): more room around the text. */
+:where(.djappt) .djappt-card--roomy {
+    padding: 2.5rem 2.25rem;
+}
+
+@container (max-width: 479.98px) {
+    :where(.djappt) .djappt-card--roomy {
+        padding: 1.75rem 1.25rem;
+    }
+}
+
+/* Section title over a thin rule. */
+:where(.djappt) .djappt-card-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: .25rem 1rem;
+    margin: 0 0 1.1rem;
+    padding-bottom: .75rem;
+    border-bottom: 1px solid var(--djappt-line);
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--djappt-ink);
+}
+
+/* Numbered step label: "1  Choose a staff member". */
+:where(.djappt) .djappt-step {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    margin: 0 0 .75rem;
+    font-size: .95rem;
+    font-weight: 600;
+    color: var(--djappt-ink);
+}
+
+:where(.djappt) .djappt-step-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 50%;
+    background-color: var(--djappt-accent);
+    color: var(--djappt-accent-contrast);
+    font-size: .8rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+/* ---- Summary list: label left, value right ---- */
+
+:where(.djappt) .djappt-summary {
+    margin: 0 0 1.25rem;
+}
+
+:where(.djappt) .djappt-summary > div {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    padding: .6rem 0;
+    border-bottom: 1px dashed var(--djappt-line);
+}
+
+:where(.djappt) .djappt-summary > div:last-child {
+    border-bottom: 0;
+}
+
+:where(.djappt) .djappt-summary dt {
+    font-weight: 400;
+    color: var(--djappt-muted);
+    white-space: nowrap;
+}
+
+:where(.djappt) .djappt-summary dd {
+    margin: 0;
+    font-weight: 600;
+    text-align: right;
+    color: var(--djappt-ink);
+}
+
+:where(.djappt) .djappt-summary .djappt-summary-total {
+    margin-top: .25rem;
+    padding-top: .85rem;
+    border-top: 1px solid var(--djappt-line);
+    border-bottom: 0;
+}
+
+:where(.djappt) .djappt-summary .djappt-summary-total dt,
+:where(.djappt) .djappt-summary .djappt-summary-total dd {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--djappt-ink);
+}
+
+/* ---- Buttons (sizes come from Bootstrap's .btn, colours from the package) ---- */
+
+:where(.djappt) .djappt-btn {
+    --bs-btn-padding-y: .6rem;
+    --bs-btn-padding-x: 1.25rem;
+    --bs-btn-font-weight: 600;
+    --bs-btn-border-radius: var(--djappt-radius-sm);
+    border-radius: var(--djappt-radius-sm);
+    font-weight: 600;
+}
+
+:where(.djappt) .djappt-btn-primary {
+    background-color: var(--djappt-accent);
+    border-color: var(--djappt-accent);
+    color: var(--djappt-accent-contrast);
+}
+
+:where(.djappt) .djappt-btn-primary:hover,
+:where(.djappt) .djappt-btn-primary:focus-visible {
+    background-color: var(--djappt-accent-hover);
+    border-color: var(--djappt-accent-hover);
+    color: var(--djappt-accent-contrast);
+}
+
+:where(.djappt) .djappt-btn-primary:disabled {
+    background-color: var(--djappt-accent);
+    border-color: var(--djappt-accent);
+    color: var(--djappt-accent-contrast);
+    opacity: .45;
+}
+
+:where(.djappt) .djappt-btn-outline {
+    background-color: transparent;
+    border-color: var(--djappt-accent);
+    color: var(--djappt-accent);
+}
+
+:where(.djappt) .djappt-btn-outline:hover,
+:where(.djappt) .djappt-btn-outline:focus-visible {
+    background-color: var(--djappt-accent-soft);
+    border-color: var(--djappt-accent);
+    color: var(--djappt-accent);
+}
+
+:where(.djappt) .djappt-btn-outline:disabled {
+    background-color: transparent;
+    border-color: var(--djappt-accent);
+    color: var(--djappt-accent);
+    opacity: .45;
+}
+
+/* ---- Forms (Bootstrap fields, package focus colour) ---- */
+
+:where(.djappt) .djappt-form .form-label {
+    margin-bottom: .35rem;
+    font-weight: 600;
+    font-size: .9rem;
+    color: var(--djappt-ink-soft);
+}
+
+:where(.djappt) .djappt-form .form-control,
+:where(.djappt) .djappt-form .form-select {
+    border-color: var(--djappt-line);
+    border-radius: var(--djappt-radius-sm);
+    padding-top: .55rem;
+    padding-bottom: .55rem;
+    padding-left: .8rem;
+}
+
+:where(.djappt) .djappt-form .form-control {
+    padding-right: .8rem;
+}
+
+/* .form-select keeps Bootstrap's right padding and arrow position, so the arrow never touches the edge. */
+
+:where(.djappt) .djappt-form .form-control:focus,
+:where(.djappt) .djappt-form .form-select:focus,
+:where(.djappt) .djappt-form .form-check-input:focus {
+    border-color: var(--djappt-accent);
+    box-shadow: 0 0 0 .2rem var(--djappt-accent-soft);
+}
+
+:where(.djappt) .djappt-form .form-check-input:checked {
+    background-color: var(--djappt-accent);
+    border-color: var(--djappt-accent);
+}
+
+/* ---- Notice box (information for the visitor) ---- */
+
+:where(.djappt) .djappt-notice {
+    margin: 0 0 1.25rem;
+    padding: .75rem 1rem;
+    border-left: 3px solid var(--djappt-accent);
+    border-radius: var(--djappt-radius-sm);
+    background-color: var(--djappt-accent-soft);
+    color: var(--djappt-ink-soft);
+}
+
+:where(.djappt) .djappt-notice a {
+    color: var(--djappt-accent);
+    font-weight: 600;
+}
+
+/* ---- Status icon (thank-you and verification pages) ---- */
+
+:where(.djappt) .djappt-status-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    margin-bottom: 1rem;
+    border-radius: 50%;
+    background-color: var(--djappt-accent-soft);
+    color: var(--djappt-accent);
+    font-size: 1.6rem;
+}
+
+:where(.djappt) .djappt-status-icon--success {
+    background-color: var(--djappt-success-soft);
+    color: var(--djappt-success);
+}
+
+:where(.djappt) .djappt-center {
+    text-align: center;
+}
