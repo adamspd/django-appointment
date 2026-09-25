@@ -5,7 +5,8 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 
-from appointment.models import Service
+from appointment.forms import ServiceForm, color_to_hex
+from appointment.models import Service, generate_rgb_color
 from appointment.tests.base.base_test import BaseTest
 
 
@@ -111,7 +112,7 @@ class ServiceDownPaymentTests(BaseTest):
         super().tearDownClass()
 
     def test_down_payment_value(self):
-        """By default, down payment value is 0"""
+        """By default, a down payment value is 0"""
         self.assertEqual(self.service.down_payment, 0)
         self.assertEqual(self.service.get_down_payment(), 0)
 
@@ -241,7 +242,7 @@ class ServiceModelNegativeTestCase(BaseTest):
             s.full_clean()
 
     def test_invalid_currency_code_length(self):
-        """A service cannot be created with a currency of less or more than three characters."""
+        """A service cannot be created with a currency of fewer or more than three characters."""
         s = deepcopy(self.service)
         s.currency = "US"
 
@@ -264,3 +265,24 @@ class ServiceModelNegativeTestCase(BaseTest):
         """A service cannot be created with no name."""
         with self.assertRaises(ValidationError):
             Service.objects.create(name="", duration=timedelta(hours=1), price=100).full_clean()
+
+
+class ServiceColorTests(BaseTest):
+    """The service form edits the color with <input type="color">, which only understands #rrggbb."""
+
+    def test_default_color_is_hex(self):
+        self.assertRegex(generate_rgb_color(), r'^#[0-9a-f]{6}$')
+        self.assertRegex(self.create_service_().background_color, r'^#[0-9a-f]{6}$')
+
+    def test_color_to_hex(self):
+        self.assertEqual(color_to_hex('rgb(51, 102, 153)'), '#336699')
+        self.assertEqual(color_to_hex('rgb(255,0,0)'), '#ff0000')
+        self.assertEqual(color_to_hex('#abcdef'), '#abcdef')
+
+    def test_form_shows_legacy_rgb_color_as_hex(self):
+        service = self.create_service_()
+        Service.objects.filter(pk=service.pk).update(background_color='rgb(51, 102, 153)')
+        service.refresh_from_db()
+        form = ServiceForm(instance=service)
+        self.assertEqual(form['background_color'].value(), '#336699')
+        self.assertIn('value="#336699"', str(form['background_color']))
