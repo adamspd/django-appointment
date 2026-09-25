@@ -59,9 +59,9 @@ class ServicePriceTests(BaseTest):
     def test_dynamic_price_representation(self):
         """Test that the get_price method returns the correct string for a service with a price of 100, 1000, etc."""
         test_cases = [
-            (100, '100$'),
-            (100.50, '100.5$'),
-            (49.99, '49.99$'),
+            (100, '$100'),
+            (100.50, '$100.50'),
+            (49.99, '$49.99'),
             (0, 'Free')
         ]
         for price, expected in test_cases:
@@ -123,7 +123,7 @@ class ServiceDownPaymentTests(BaseTest):
         s.down_payment = 69.99
         self.assertEqual(s.get_down_payment(), 69.99)
 
-        self.assertEqual(s.get_down_payment_text(), "69.99$")
+        self.assertEqual(s.get_down_payment_text(), "$69.99")
 
     def test_accepts_down_payment(self):
         """By default, down payment is not accepted."""
