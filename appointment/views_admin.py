@@ -23,7 +23,7 @@ from appointment.messages_ import appt_updated_successfully
 from appointment.models import Appointment, DayOff, Unavailability, StaffMember, WorkingHours
 from appointment.services import (
     create_new_appointment, create_staff_member_service, email_change_verification_service,
-    fetch_user_appointments, handle_entity_management_request, handle_service_management_request,
+    fetch_user_appointments, get_error_message_in_form, handle_entity_management_request,
     prepare_appointment_display_data, prepare_user_profile_data, save_appt_date_time, update_existing_appointment,
     update_personal_info_service)
 from appointment.utils.db_helpers import (
@@ -140,10 +140,11 @@ def update_day_off(request, day_off_id, staff_user_id=None, response_type='html'
 @require_POST
 def delete_day_off(request, day_off_id, staff_user_id=None):
     day_off = get_object_or_404(DayOff, pk=day_off_id)
-    if not check_extensive_permissions(staff_user_id, request.user, day_off):
+    if not check_extensive_permissions(staff_user_id or request.user.pk, request.user, day_off):
         message = _("You can only delete your own days off.")
         return handle_unauthorized_response(request, message, 'html')
     day_off.delete()
+    messages.success(request, _("Day off deleted successfully."))
     if staff_user_id:
         return redirect('appointment:user_profile', staff_user_id=staff_user_id)
     return redirect('appointment:user_profile')
@@ -193,10 +194,11 @@ def update_unavailability(request, unavailability_id, staff_user_id=None, respon
 @require_POST
 def delete_unavailability(request, unavailability_id, staff_user_id=None):
     unavailability = get_object_or_404(Unavailability, pk=unavailability_id)
-    if not check_extensive_permissions(staff_user_id, request.user, unavailability):
+    if not check_extensive_permissions(staff_user_id or request.user.pk, request.user, unavailability):
         message = _("You can only delete your own unavailabilities.")
         return handle_unauthorized_response(request, message, 'html')
     unavailability.delete()
+    messages.success(request, _("Unavailability deleted successfully."))
     if staff_user_id:
         return redirect('appointment:user_profile', staff_user_id=staff_user_id)
     return redirect('appointment:user_profile')
@@ -247,13 +249,14 @@ def update_working_hours(request, working_hours_id, staff_user_id=None, response
 def delete_working_hours(request, working_hours_id, staff_user_id=None):
     working_hours = get_object_or_404(WorkingHours, pk=working_hours_id)
     staff_member = working_hours.staff_member
-    if not check_extensive_permissions(staff_user_id, request.user, working_hours):
+    if not check_extensive_permissions(staff_user_id or request.user.pk, request.user, working_hours):
         message = _("You can only delete your own working hours.")
         return handle_unauthorized_response(request, message, 'html')
     # update weekend hours if necessary
     staff_member.update_upon_working_hours_deletion(working_hours.day_of_week)
 
     working_hours.delete()
+    messages.success(request, _("Working hours deleted successfully."))
 
     if staff_user_id:
         return redirect('appointment:user_profile', staff_user_id=staff_user_id)
@@ -272,9 +275,10 @@ def add_or_update_staff_info(request, user_id=None):
     if not check_permissions(staff_user_id=user_id, user=user):
         return json_response(_("Not authorized."), status=403, success=False, error_code=ErrorCode.NOT_AUTHORIZED)
 
-    target_user = get_user_model().objects.get(pk=user_id) if user_id else user
+    target_user = get_object_or_404(get_user_model(), pk=user_id) if user_id else user
 
-    staff_member, created = StaffMember.objects.get_or_create(user=target_user)
+    # Only saving the form makes the user a staff member; merely opening it must not.
+    staff_member = StaffMember.objects.filter(user=target_user).first() or StaffMember(user=target_user)
 
     if request.method == 'POST':
         form = StaffAppointmentInformationForm(request.POST, instance=staff_member)
@@ -420,10 +424,12 @@ def update_personal_info(request, staff_user_id=None):
     if request.method == 'POST':
         user, is_valid, error_message = update_personal_info_service(staff_user_id, request.POST, request.user)
         if is_valid:
+            if staff_user_id:
+                return redirect('appointment:user_profile', staff_user_id=staff_user_id)
             return redirect('appointment:user_profile')
         else:
             messages.error(request, error_message)
-            return redirect('appointment:update_personal_info')
+            return redirect(request.path)
 
     if staff_user_id:
         user = get_user_model().objects.get(pk=staff_user_id)
@@ -457,10 +463,12 @@ def email_change_verification_code(request):
             return redirect('appointment:user_profile')
         else:
             messages.error(request, _("The verification code provided is incorrect. Please try again."))
-            template = get_custom_template('email_change_verification_code.html', 'administration/email_change_verification_code.html')
+            template = get_custom_template('email_change_verification_code.html',
+                                           'administration/email_change_verification_code.html')
             return render(request, template, context=context)
 
-    template = get_custom_template('email_change_verification_code.html', 'administration/email_change_verification_code.html')
+    template = get_custom_template('email_change_verification_code.html',
+                                   'administration/email_change_verification_code.html')
     return render(request, template, context=context)
 
 
@@ -524,33 +532,52 @@ def remove_superuser_staff_member(request):
 @require_user_authenticated
 @require_superuser
 def add_or_update_service(request, service_id=None, view=0):
+    if view == 1:
+        return view_service(request, service_id=service_id)
+    service = get_object_or_404(Service, pk=service_id) if service_id else None
+
     if request.method == 'POST':
-        service, is_valid, error_message = handle_service_management_request(request.POST, request.FILES, service_id)
-        if is_valid:
-            messages.success(request, "Service saved successfully!")
-            return redirect('appointment:add_service')
-        else:
-            messages.error(request, error_message)
+        # Keep the bound form on error, so the page shows the user's input and the field errors
+        form = ServiceForm(request.POST, request.FILES, instance=service)
+        if form.is_valid():
+            form.save()
+            messages.success(request, _("Service saved successfully."))
+            return redirect('appointment:get_service_list')
+        messages.error(request, get_error_message_in_form(form=form))
+    else:
+        form = ServiceForm(instance=service)
 
     extra_context = {
-        "btn_text": _("Save"),
-        "page_title": _("Add Service"),
+        "form": form,
+        "service": service,
+        "btn_text": _("Update") if service else _("Save"),
+        "page_title": _("Update Service") if service else _("Add Service"),
     }
-    if service_id:
-        service = get_object_or_404(Service, pk=service_id)
-        form = ServiceForm(instance=service)
-        if view != 1:
-            extra_context['btn_text'] = _("Update")
-            extra_context['page_title'] = _("Update Service")
-        else:
-            for field in form.fields.values():
-                field.disabled = True
-            extra_context['btn_text'] = None
-            extra_context['page_title'] = _("View Service")
-            extra_context['service'] = service
-    else:
-        form = ServiceForm()
-    extra_context['form'] = form
+    context = get_generic_context_with_extra(request=request, extra=extra_context)
+    template = get_custom_template('manage_service.html', 'administration/manage_service.html')
+    return render(request, template, context=context)
+
+
+@require_user_authenticated
+@require_staff_or_superuser
+def view_service(request, service_id, view=1):
+    """Read-only page for a service. Unlike adding or editing one, staff members may open it.
+
+    Any ``view`` other than ``1`` still opens the (superuser-only) edit form, as it always did.
+    """
+    if view != 1:
+        return add_or_update_service(request, service_id=service_id)
+    service = get_object_or_404(Service, pk=service_id)
+    form = ServiceForm(instance=service)
+    for field in form.fields.values():
+        field.disabled = True
+    extra_context = {
+        "form": form,
+        "btn_text": None,
+        "page_title": _("View Service"),
+        "service": service,
+        "offered_by_me": StaffMember.objects.filter(user=request.user, services_offered=service).exists(),
+    }
     context = get_generic_context_with_extra(request=request, extra=extra_context)
     template = get_custom_template('manage_service.html', 'administration/manage_service.html')
     return render(request, template, context=context)
@@ -563,7 +590,7 @@ def delete_service(request, service_id):
     service = get_object_or_404(Service, pk=service_id)
     service.delete()
     messages.success(request, _("Service deleted successfully!"))
-    return redirect('appointment:user_profile')
+    return redirect('appointment:get_service_list')
 
 
 ###############################################################

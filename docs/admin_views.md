@@ -112,7 +112,8 @@ anyone's.
 
 - **Add New Service**:
     - **Endpoint**: `app-admin/add-service/`
-    - **Description**: Allows a superuser to add a new service. The service details are captured through a form.
+    - **Description**: Allows a superuser to add a new service. The service details are captured through a form. On
+      success it redirects to the service list; on error the form is shown again with the input and field errors.
     - **Methods**: GET (display form), POST (submit form) · **Access**: superuser only
 
 - **Update Existing Service**:
@@ -124,7 +125,7 @@ anyone's.
 - **Delete Service**:
     - **Endpoint**: `app-admin/delete-service/<int:service_id>/`
     - **Description**: Allows a superuser to remove a service from the system. The service is identified
-      by `service_id`.
+      by `service_id`. Redirects to the service list.
     - **Methods**: POST · **Access**: superuser only
 
 - **View All Services**:
@@ -136,9 +137,9 @@ anyone's.
 - **View One Service**:
     - **Endpoint**: `app-admin/view-service/<int:service_id>/<int:view>/`
     - **Description**: Displays detailed information about a particular service. The service is identified
-      by `service_id`. The `view` parameter is mandatory and should be `1` to render the form read-only; any other
-      value renders it as an editable update form.
-    - **Methods**: GET · **Access**: superuser only
+      by `service_id`. The `view` parameter is mandatory and should be `1` to render the form read-only, which staff
+      members may open too; any other value renders it as an editable update form, for superusers only.
+    - **Methods**: GET · **Access**: staff or superuser (`view=1`), superuser only otherwise
 
 #### **Profile & Personal Information**:
 
