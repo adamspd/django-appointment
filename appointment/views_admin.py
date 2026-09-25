@@ -13,6 +13,7 @@ import json
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.formats import date_format
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
@@ -78,6 +79,8 @@ def display_appointment(request, appointment_id):
     extra_context = {
         'appointment': appointment,
         'page_title': page_title,
+        'page_description': _("%(service)s on %(date)s") % {
+            'service': appointment.get_service_name(), 'date': date_format(appointment.get_date())},
     }
     context = get_generic_context_with_extra(request=request, extra=extra_context)
     template = get_custom_template('display_appointment.html', 'administration/display_appointment.html')

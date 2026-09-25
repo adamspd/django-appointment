@@ -27,10 +27,10 @@
                         </script>
                     {% endif %}
 
-                    {% if days_off_form.staff_member %}
+                    {% if day_off_form.staff_member %}
                         <div class="form-group">
-                            <label for="{{ days_off_form.staff_member.id_for_label }}">{% trans 'Staff Member' %}:</label>
-                            {{ days_off_form.staff_member }}
+                            <label for="{{ day_off_form.staff_member.id_for_label }}">{% trans 'Staff Member' %}:</label>
+                            {{ day_off_form.staff_member }}
                         </div>
                     {% endif %}
 
@@ -39,11 +39,11 @@
                         <label for="{{ day_off_form.start_date.id_for_label }}_display">{% trans 'Start date' %}:</label>
                         <input type="text" id="{{ day_off_form.start_date.id_for_label }}_display"
                                class="datepicker-display"
-                               value="{{ day_off_form.start_date.value }}" readonly>
+                               value="{{ day_off_form.start_date.value|default_if_none:'' }}" readonly>
                         <!-- Actual value to be submitted -->
                         <input type="hidden" id="{{ day_off_form.start_date.id_for_label }}"
                                name="{{ day_off_form.start_date.name }}" class="datepicker-actual"
-                               value="{{ day_off_form.start_date.value }}">
+                               value="{{ day_off_form.start_date.value|default_if_none:'' }}">
                     </div>
 
                     <!-- End Date Display (read-only) -->
@@ -51,27 +51,28 @@
                         <label for="{{ day_off_form.end_date.id_for_label }}_display">{% trans 'End date' %}:</label>
                         <input type="text" id="{{ day_off_form.end_date.id_for_label }}_display"
                                class="datepicker-display"
-                               value="{{ day_off_form.end_date.value }}" readonly>
+                               value="{{ day_off_form.end_date.value|default_if_none:'' }}" readonly>
                         <!-- Actual value to be submitted -->
                         <input type="hidden" id="{{ day_off_form.end_date.id_for_label }}"
                                name="{{ day_off_form.end_date.name }}" class="datepicker-actual"
-                               value="{{ day_off_form.end_date.value }}">
+                               value="{{ day_off_form.end_date.value|default_if_none:'' }}">
                     </div>
 
 
                     <div class="form-group">
                         <label for="{{ day_off_form.description.id_for_label }}">{% trans 'Description' %}:</label>
                         <input type="text" id="{{ day_off_form.description.id_for_label }}"
-                               name="{{ day_off_form.description.name }}" value="{{ day_off_form.description.value }}">
+                               name="{{ day_off_form.description.name }}"
+                               value="{{ day_off_form.description.value|default_if_none:'' }}">
                     </div>
 
 
                     <button type="submit" class="btn btn-primary">{% trans "Submit" %}</button>
                 </form>
                 <div class="row-form-errors" style="margin: 10px 0">
-                    {% if days_off_form.errors %}
+                    {% if day_off_form.errors %}
                         <div class="alert alert-danger">
-                            {{ days_off_form.errors }}
+                            {{ day_off_form.errors }}
                         </div>
                     {% endif %}
                 </div>
@@ -139,7 +140,7 @@
                     if (response.success) {
                         window.location.href = response.redirect_url;
                     } else {
-                        showErrorModal(error.responseJSON.message);
+                        showErrorModal(response.message);
                     }
                 },
                 error: function (error) {

@@ -6,7 +6,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="eventModalLabel">{% trans 'Appointment Details' %}</h5>
-                <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
                         onclick="closeModal()"></button>
             </div>
             <div class="modal-body" id="eventModalBody">
@@ -15,7 +15,7 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-success" id="eventGoBtn"
                         onclick="goToEvent()">{% trans 'Go' %}</button>
-                <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
                         onclick="closeModal()">{% trans 'Close' %}
                 </button>
                 <button type="button" class="btn btn-secondary" id="eventCancelBtn" style="display: none;"
