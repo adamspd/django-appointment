@@ -58,7 +58,8 @@ def generate_rgb_color():
     g = int(g * 255)
     b = int(b * 255)
 
-    return f'rgb({r}, {g}, {b})'
+    # Hex, because the service form edits the color with <input type="color">, which only accepts #rrggbb
+    return f'#{r:02x}{g:02x}{b:02x}'
 
 
 class Service(models.Model):
@@ -122,7 +123,7 @@ class Service(models.Model):
         )
     )
 
-    # meta data
+    # metadata
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Created At'))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=_('Updated At'))
 
@@ -143,7 +144,7 @@ class Service(models.Model):
             "id": self.id,
             "name": self.name,
             "description": self.description,
-            "price": str(self.price)  # Convert Decimal to string for JSON serialization
+            "price": f"{self.price}"  # Convert Decimal to string for JSON serialization
         }
 
     def get_duration_parts(self):
@@ -160,30 +161,30 @@ class Service(models.Model):
 
         if days:
             parts.append(ngettext(
-                    "%(count)d day",
-                    "%(count)d days",
-                    days
+                "%(count)d day",
+                "%(count)d days",
+                days
             ) % {'count': days})
 
         if hours:
             parts.append(ngettext(
-                    "%(count)d hour",
-                    "%(count)d hours",
-                    hours
+                "%(count)d hour",
+                "%(count)d hours",
+                hours
             ) % {'count': hours})
 
         if minutes:
             parts.append(ngettext(
-                    "%(count)d minute",
-                    "%(count)d minutes",
-                    minutes
+                "%(count)d minute",
+                "%(count)d minutes",
+                minutes
             ) % {'count': minutes})
 
         if seconds:
             parts.append(ngettext(
-                    "%(count)d second",
-                    "%(count)d seconds",
-                    seconds
+                "%(count)d second",
+                "%(count)d seconds",
+                seconds
             ) % {'count': seconds})
 
         return ' '.join(parts)
@@ -199,7 +200,7 @@ class Service(models.Model):
         return get_currency_symbol(self.currency, locale=get_locale())
 
     def get_price_text(self):
-        if self.price == 0:
+        if not self.price:
             return _("Free")
         else:
             return f"{self.get_price()}{self.get_currency_icon()}"
@@ -211,8 +212,8 @@ class Service(models.Model):
             return self.down_payment  # Return the original float value
 
     def get_down_payment_text(self):
-        if self.down_payment == 0:
-            return f"Free"
+        if not self.down_payment:
+            return _("Free")
         return f"{self.get_down_payment()}{self.get_currency_icon()}"
 
     def get_image_url(self):
@@ -274,7 +275,7 @@ class StaffMember(models.Model):
         help_text=_("Indicates whether this staff member works on Sundays.")
     )
 
-    # meta data
+    # metadata
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=_("Updated At"))
 
@@ -359,7 +360,7 @@ class StaffMember(models.Model):
         return self.services_offered.all()
 
     def get_service_offered_text(self):
-        return ', '.join([service.name for service in self.services_offered.all()])
+        return ', '.join(self.services_offered.values_list('name', flat=True))
 
     def get_service_is_offered(self, service_id):
         return self.services_offered.filter(id=service_id).exists()
@@ -395,11 +396,12 @@ class StaffMember(models.Model):
         return day not in self.get_non_working_days()
 
 
+# noinspection PyUnusedParameter
 @receiver(post_save, sender=StaffMember)
 def grant_django_staff_status(sender, instance, created, **kwargs):
     """Give a new staff member Django's staff flag.
 
-    The administration views gate on ``user.is_staff``, so a StaffMember created anywhere
+    The administration views check ``user.is_staff``, so a StaffMember created anywhere
     other than the "create new staff member" flow — the Django admin, the staff settings
     form, a fixture — would otherwise be locked out of the pages it was created for.
 
@@ -447,7 +449,7 @@ class AppointmentRequest(models.Model):
         help_text=_("Number of times this appointment has been rescheduled.")
     )
 
-    # meta data
+    # metadata
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=_("Updated At"))
 
@@ -476,7 +478,7 @@ class AppointmentRequest(models.Model):
 
     def save(self, *args, **kwargs):
         # if no id_request is provided, generate one
-        if self.id_request is None:
+        if not self.id_request:
             self.id_request = f"{get_timestamp()}{self.service.id}{generate_random_id()}"
         # start time should not be equal to end time
         if self.start_time == self.end_time:
@@ -494,7 +496,7 @@ class AppointmentRequest(models.Model):
 
     def get_service_price(self):
         return self.service.get_price()
-    
+
     def get_service_price_text(self):
         return self.service.get_price_text()
 
@@ -569,9 +571,9 @@ class AppointmentRescheduleHistory(models.Model):
         verbose_name=_("Reschedule Status"),
         help_text=_("Indicates the status of the reschedule action.")
     )
-    id_request = models.CharField(max_length=100, blank=True, null=True, verbose_name=_("Request ID"),)
+    id_request = models.CharField(max_length=100, blank=True, null=True, verbose_name=_("Request ID"), )
 
-    # meta data
+    # metadata
     created_at = models.DateTimeField(
         auto_now_add=True,
         verbose_name=_("Created At"),
@@ -593,7 +595,7 @@ class AppointmentRescheduleHistory(models.Model):
 
     def save(self, *args, **kwargs):
         # if no id_request is provided, generate one
-        if self.id_request is None:
+        if not self.id_request:
             self.id_request = f"{get_timestamp()}{generate_random_id()}"
         # date should not be in the past
         if self.date < datetime.date.today():
@@ -665,7 +667,7 @@ class Appointment(models.Model):
     )
     id_request = models.CharField(max_length=100, blank=True, null=True, verbose_name=_("Request ID"))
 
-    # meta datas
+    # metadata
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=_("Updated At"))
 
@@ -692,9 +694,9 @@ class Appointment(models.Model):
         if not hasattr(self, 'appointment_request'):
             raise ValidationError("Appointment request is required")
 
-        if self.id_request is None:
+        if not self.id_request:
             self.id_request = f"{get_timestamp()}{self.appointment_request.id}{generate_random_id()}"
-        if self.amount_to_pay is None or self.amount_to_pay == 0:
+        if not self.amount_to_pay:
             payment_type = self.appointment_request.payment_type
             if payment_type == 'full':
                 self.amount_to_pay = self.appointment_request.get_service_price()
@@ -921,7 +923,7 @@ class Config(models.Model):
                     "Applies to all staff members unless overridden per staff member.")
     )
 
-    # meta data
+    # metadata
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=_("Updated At"))
 
@@ -959,6 +961,7 @@ class Config(models.Model):
                f"finish_time={self.finish_time}"
 
 
+# noinspection PyUnusedParameter
 @receiver(post_save, sender=Config)
 @receiver(post_delete, sender=Config)
 def invalidate_config_cache(sender, **kwargs):
@@ -980,7 +983,7 @@ class PaymentInfo(models.Model):
     """
     appointment = models.ForeignKey(Appointment, on_delete=models.CASCADE, verbose_name=_("Appointment"))
 
-    # meta data
+    # metadata
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=_("Updated At"))
 
@@ -1035,7 +1038,7 @@ class EmailVerificationCode(models.Model):
         help_text=_("The verification code sent to the user's email.")
     )
 
-    # meta data
+    # metadata
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=_("Updated At"))
 
@@ -1067,6 +1070,7 @@ class PasswordResetToken(models.Model):
     Since: 3.x.x
     """
 
+    # noinspection PyTypeChecker
     class TokenStatus(models.TextChoices):
         ACTIVE = 'active', _('Active')
         VERIFIED = 'verified', _('Verified')
@@ -1080,6 +1084,7 @@ class PasswordResetToken(models.Model):
     )
     token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, verbose_name=_("Token"))
     expires_at = models.DateTimeField(verbose_name=_("Expires At"))
+    # noinspection PyTypeChecker
     status = models.CharField(
         max_length=11,
         choices=TokenStatus.choices,
@@ -1087,7 +1092,7 @@ class PasswordResetToken(models.Model):
         verbose_name=_("Status"),
     )
 
-    # meta data
+    # metadata
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=_("Updated At"))
 
@@ -1127,7 +1132,7 @@ class PasswordResetToken(models.Model):
         """
         cls.objects.filter(user=user, expires_at__gte=timezone.now(), status=cls.TokenStatus.ACTIVE).update(
             status=cls.TokenStatus.INVALIDATED)
-        expires_at = timezone.now() + timezone.timedelta(minutes=expiration_minutes)
+        expires_at = timezone.now() + datetime.timedelta(minutes=expiration_minutes)
         token = cls.objects.create(user=user, expires_at=expires_at, status=cls.TokenStatus.ACTIVE)
         return token
 
@@ -1157,7 +1162,7 @@ class DayOff(models.Model):
     end_date = models.DateField(verbose_name=_("End Date"))
     description = models.CharField(max_length=255, blank=True, null=True, verbose_name=_("Description"))
 
-    # meta data
+    # metadata
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=_("Updated At"))
 
@@ -1177,13 +1182,14 @@ class DayOff(models.Model):
     def is_owner(self, user_id):
         return self.staff_member.user.id == user_id
 
+
 class Unavailability(models.Model):
     staff_member = models.ForeignKey(StaffMember, on_delete=models.CASCADE, verbose_name=_("Staff Member"))
     description = models.CharField(max_length=255, blank=True, null=True, verbose_name=_("Description"))
     date = models.DateField(verbose_name=_("Date"))
     start_time = models.TimeField(verbose_name=_("Start Time"))
     end_time = models.TimeField(verbose_name=_("End Time"))
-    # meta data
+    # metadata
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=_("Updated At"))
 
@@ -1215,7 +1221,7 @@ class Unavailability(models.Model):
         return self.start_time
 
     def get_end_time(self):
-            return self.end_time
+        return self.end_time
 
     def get_start_datetime(self):
         return datetime.datetime.combine(self.get_date(), self.get_start_time())
@@ -1224,7 +1230,7 @@ class Unavailability(models.Model):
         return datetime.datetime.combine(self.get_date(), self.get_end_time())
 
     def is_owner(self, user_id):
-            return self.staff_member.user.id == user_id
+        return self.staff_member.user.id == user_id
 
 
 class WorkingHours(models.Model):
@@ -1233,7 +1239,7 @@ class WorkingHours(models.Model):
     start_time = models.TimeField(verbose_name=_("Start Time"))
     end_time = models.TimeField(verbose_name=_("End Time"))
 
-    # meta data
+    # metadata
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=_("Updated At"))
 

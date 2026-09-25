@@ -5,7 +5,7 @@ import datetime
 import json
 import uuid
 from datetime import date, time, timedelta
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 from django.contrib import messages
 from django.contrib.messages import get_messages
@@ -31,7 +31,7 @@ from appointment.utils.db_helpers import Service, WorkingHours, create_user_with
 from appointment.utils.error_codes import ErrorCode
 from appointment.utils.template_helpers import escape_json_for_script
 from appointment.views import (
-    create_appointment, redirect_to_payment_or_thank_you_page, verify_user_and_login
+    redirect_to_payment_or_thank_you_page, verify_user_and_login
 )
 
 
@@ -198,9 +198,9 @@ class StaffMemberTestCase(BaseTest):
 
         message_list = list(get_messages(response.wsgi_request))
         self.assertTrue(any(
-                message.message == "User doesn't have a staff member instance. Please contact the administrator." for
-                message in message_list),
-                "Expected error message not found in messages.")
+            message.message == "User doesn't have a staff member instance. Please contact the administrator." for
+            message in message_list),
+            "Expected error message not found in messages.")
 
     def test_remove_staff_member(self):
         self.need_superuser_login()
@@ -570,8 +570,8 @@ class ServiceViewTestCase(BaseTest):
         response_data = response.json()
         self.assertEqual(response_data["message"], "Successfully fetched services.")
         self.assertCountEqual(
-                response_data["services_offered"],
-                [{"id": service.id, "name": service.name} for service in staff_member_services]
+            response_data["services_offered"],
+            [{"id": service.id, "name": service.name} for service in staff_member_services]
         )
 
         # Create a test appointment and link it to self.staff_member1
@@ -585,8 +585,8 @@ class ServiceViewTestCase(BaseTest):
         self.assertEqual(response_data_with_appointment["message"], "Successfully fetched services.")
         # Assuming the staff member linked to the appointment offers the same services
         self.assertCountEqual(
-                response_data_with_appointment["services_offered"],
-                [{"id": service.id, "name": service.name} for service in staff_member_services]
+            response_data_with_appointment["services_offered"],
+            [{"id": service.id, "name": service.name} for service in staff_member_services]
         )
 
     def test_fetch_service_list_for_staff_no_staff_member_instance(self):
@@ -635,7 +635,7 @@ class ServiceViewTestCase(BaseTest):
         self.assertIn(_("Service deleted successfully!"), [m.message for m in messages_])
 
         # Check if it redirects to the user profile
-        self.assertRedirects(response, reverse('appointment:user_profile'))
+        self.assertRedirects(response, reverse('appointment:get_service_list'))
 
     def test_delete_service_without_superuser(self):
         # Log in as a regular/staff user
@@ -844,6 +844,144 @@ class DestructiveViewsRequirePostTests(BaseTest):
         self.assert_get_not_allowed(url, WorkingHours, working_hours.id)
 
 
+class StaffScheduleFeedbackTests(BaseTest):
+    """Staff members manage their own schedule from their profile, through the URLs without a user id."""
+
+    def setUp(self):
+        super().setUp()
+        self.need_staff_login()
+
+    def assert_deleted_with_message(self, url, model, pk, message):
+        response = self.client.post(url)
+        self.assertRedirects(response, reverse('appointment:user_profile'), fetch_redirect_response=False)
+        self.assertFalse(model.objects.filter(pk=pk).exists())
+        self.assertIn(message, [m.message for m in get_messages(response.wsgi_request)])
+
+    def test_staff_deletes_own_day_off(self):
+        day_off = DayOff.objects.create(staff_member=self.staff_member1, start_date=date.today(),
+                                        end_date=date.today())
+        self.assert_deleted_with_message(reverse('appointment:delete_day_off', args=[day_off.id]),
+                                         DayOff, day_off.id, _("Day off deleted successfully."))
+
+    def test_staff_deletes_own_unavailability(self):
+        unavailability = Unavailability.objects.create(staff_member=self.staff_member1,
+                                                       date=date.today() + timedelta(days=1),
+                                                       start_time=time(12, 0), end_time=time(13, 0))
+        self.assert_deleted_with_message(reverse('appointment:delete_unavailability', args=[unavailability.id]),
+                                         Unavailability, unavailability.id, _("Unavailability deleted successfully."))
+
+    def test_staff_deletes_own_working_hours(self):
+        working_hours = WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=3,
+                                                    start_time=time(9, 0), end_time=time(17, 0))
+        self.assert_deleted_with_message(reverse('appointment:delete_working_hours', args=[working_hours.id]),
+                                         WorkingHours, working_hours.id, _("Working hours deleted successfully."))
+
+    def test_staff_cannot_delete_someone_elses_day_off(self):
+        day_off = DayOff.objects.create(staff_member=self.staff_member2, start_date=date.today(),
+                                        end_date=date.today())
+        response = self.client.post(reverse('appointment:delete_day_off', args=[day_off.id]))
+        self.assertEqual(response.status_code, 403)
+        self.assertTrue(DayOff.objects.filter(pk=day_off.id).exists())
+
+    def test_saving_a_day_off_queues_the_success_message(self):
+        response = self.client.post(reverse('appointment:add_day_off_id', args=[self.staff_member1.user_id]),
+                                    data={'start_date': '2050-01-01', 'end_date': '2050-01-02'})
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(_("Day off saved successfully."), [m.message for m in get_messages(response.wsgi_request)])
+
+
+class AdminViewRegressionTests(BaseTest):
+    def test_personal_info_error_returns_to_the_form(self):
+        self.need_superuser_login()
+        staff_user = self.users['staff1']
+        url = reverse('appointment:update_user_info', args=[staff_user.pk])
+        response = self.client.post(url, data={'first_name': 'Daniel', 'last_name': 'Jackson',
+                                               'email': self.users['staff2'].email})
+        self.assertRedirects(response, url, fetch_redirect_response=False)
+
+    def test_personal_info_success_returns_to_that_profile(self):
+        self.need_superuser_login()
+        staff_user = self.users['staff1']
+        response = self.client.post(reverse('appointment:update_user_info', args=[staff_user.pk]),
+                                    data={'first_name': 'Dan', 'last_name': 'Jackson', 'email': staff_user.email})
+        self.assertRedirects(response, reverse('appointment:user_profile', args=[staff_user.pk]),
+                             fetch_redirect_response=False)
+
+    def test_opening_staff_settings_does_not_make_a_staff_member(self):
+        self.need_superuser_login()
+        client_user = self.users['client1']
+        response = self.client.get(reverse('appointment:update_staff_other_info', args=[client_user.pk]))
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(StaffMember.objects.filter(user=client_user).exists())
+
+    def test_saving_staff_settings_makes_a_staff_member(self):
+        self.need_superuser_login()
+        client_user = self.users['client1']
+        response = self.client.post(reverse('appointment:update_staff_other_info', args=[client_user.pk]),
+                                    data={'services_offered': [self.service1.id], 'work_on_saturday': False,
+                                          'work_on_sunday': False})
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(StaffMember.objects.filter(user=client_user).exists())
+
+
+class ServiceFormViewTests(BaseTest):
+    def service_data(self, **overrides):
+        data = {'name': 'Naquadah Analysis', 'description': 'Analyse a sample', 'duration': '01:00:00',
+                'price': '100', 'down_payment': '0', 'currency': 'USD', 'background_color': '#336699'}
+        data.update(overrides)
+        return data
+
+    def test_invalid_service_keeps_input_and_errors(self):
+        self.need_superuser_login()
+        response = self.client.post(reverse('appointment:add_service'), data=self.service_data(name=''))
+        self.assertEqual(response.status_code, 200)
+        form = response.context['form']
+        self.assertTrue(form.is_bound)
+        self.assertIn('name', form.errors)
+        self.assertEqual(form['description'].value(), 'Analyse a sample')
+
+    def test_saving_a_service_returns_to_the_service_list(self):
+        self.need_superuser_login()
+        response = self.client.post(reverse('appointment:add_service'), data=self.service_data())
+        self.assertRedirects(response, reverse('appointment:get_service_list'), fetch_redirect_response=False)
+        self.assertTrue(Service.objects.filter(name='Naquadah Analysis').exists())
+
+    def test_staff_can_view_a_service(self):
+        self.need_staff_login()
+        response = self.client.get(reverse('appointment:view_service', args=[self.service1.id, 1]))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['service'], self.service1)
+        self.assertTrue(response.context['offered_by_me'])
+        self.assertTrue(all(field.disabled for field in response.context['form'].fields.values()))
+
+    def test_offered_by_me_is_false_for_other_services(self):
+        self.need_staff_login()
+        response = self.client.get(reverse('appointment:view_service', args=[self.service2.id, 1]))
+        self.assertFalse(response.context['offered_by_me'])
+
+    def test_view_other_than_one_still_opens_the_edit_form(self):
+        self.need_superuser_login()
+        response = self.client.get(reverse('appointment:view_service', args=[self.service1.id, 0]))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['btn_text'], _("Update"))
+        self.assertFalse(any(field.disabled for field in response.context['form'].fields.values()))
+
+    def test_staff_cannot_open_the_edit_form_through_view_service(self):
+        self.need_staff_login()
+        response = self.client.get(reverse('appointment:view_service', args=[self.service1.id, 0]))
+        self.assertEqual(response.status_code, 403)
+
+    def test_invalid_service_still_adds_an_error_message(self):
+        self.need_superuser_login()
+        response = self.client.post(reverse('appointment:add_service'), data=self.service_data(name=''))
+        self.assertTrue(any(m.level_tag == 'error' for m in get_messages(response.wsgi_request)))
+
+    def test_staff_still_cannot_edit_a_service(self):
+        self.need_staff_login()
+        response = self.client.get(reverse('appointment:update_service', args=[self.service1.id]))
+        self.assertEqual(response.status_code, 403)
+
+
 class CalendarScriptEscapingTests(BaseTest):
     """Client-supplied appointment data is printed inside a <script> on the staff calendar."""
 
@@ -923,7 +1061,7 @@ class AddStaffMemberInfoTestCase(ViewsTestCase):
         self.staff_member = self.staff_member1
         self.url = reverse('appointment:add_staff_member_info')
         self.user_test = self.create_user_(
-                first_name="Great Tester", email="great.tester@django-appointment.com", username="great_tester"
+            first_name="Great Tester", email="great.tester@django-appointment.com", username="great_tester"
         )
         self.data = {
             "user": self.user_test.id,
@@ -1021,7 +1159,7 @@ class SetPasswordViewTests(BaseTest):
         self.assertEqual(response.status_code, 200)
         messages_ = list(get_messages(response.wsgi_request))
         self.assertTrue(
-                any(msg.message == _("The password reset link is invalid or has expired.") for msg in messages_))
+            any(msg.message == _("The password reset link is invalid or has expired.") for msg in messages_))
 
     def test_post_request_with_invalid_token(self):
         invalid_token = str(uuid.uuid4())
@@ -1042,7 +1180,7 @@ class SetPasswordViewTests(BaseTest):
         self.assertEqual(response.status_code, 200)
         messages_ = list(get_messages(response.wsgi_request))
         self.assertTrue(
-                any(msg.message == _("The password reset link is invalid or has expired.") for msg in messages_))
+            any(msg.message == _("The password reset link is invalid or has expired.") for msg in messages_))
 
 
 class GetNonWorkingDaysAjaxTests(BaseTest):
@@ -1231,9 +1369,9 @@ class RescheduleAppointmentSubmitViewTests(BaseTest):
         self.assertTemplateUsed(response, 'appointment/appointments.html')
         messages_list = list(get_messages(response.wsgi_request))
         self.assertTrue(any(
-                _("There was an error in your submission. Please check the form and try again.") in str(message) for
-                message
-                in messages_list))
+            _("There was an error in your submission. Please check the form and try again.") in str(message) for
+            message
+            in messages_list))
 
 
 class ConfirmRescheduleViewTests(BaseTest):
@@ -1251,13 +1389,13 @@ class ConfirmRescheduleViewTests(BaseTest):
         self.ar = self.create_appt_request_for_sm1()
         self.create_appt_for_sm1(appointment_request=self.ar)
         self.reschedule_history = AppointmentRescheduleHistory.objects.create(
-                appointment_request=self.ar,
-                date=timezone.now().date() + timezone.timedelta(days=2),
-                start_time='10:00',
-                end_time='11:00',
-                staff_member=self.staff_member1,
-                id_request='unique_id_request',
-                reschedule_status='pending'
+            appointment_request=self.ar,
+            date=timezone.now().date() + timezone.timedelta(days=2),
+            start_time='10:00',
+            end_time='11:00',
+            staff_member=self.staff_member1,
+            id_request='unique_id_request',
+            reschedule_status='pending'
         )
         self.url = reverse('appointment:confirm_reschedule', args=[self.reschedule_history.id_request])
 
@@ -1326,7 +1464,7 @@ class RedirectToPaymentOrThankYouPageTests(BaseTest):
 
         self.assertIsInstance(response, HttpResponseRedirect)
         self.assertTrue(response.url.startswith(
-                reverse('appointment:default_thank_you', kwargs={'appointment_id': self.appointment.id})))
+            reverse('appointment:default_thank_you', kwargs={'appointment_id': self.appointment.id})))
 
     @patch('appointment.views.APPOINTMENT_PAYMENT_URL', '')
     @patch('appointment.views.APPOINTMENT_THANK_YOU_URL', '')
@@ -1336,7 +1474,7 @@ class RedirectToPaymentOrThankYouPageTests(BaseTest):
 
         self.assertIsInstance(response, HttpResponseRedirect)
         self.assertTrue(response.url.startswith(
-                reverse('appointment:default_thank_you', kwargs={'appointment_id': self.appointment.id})))
+            reverse('appointment:default_thank_you', kwargs={'appointment_id': self.appointment.id})))
 
 
 class CreateAppointmentTests(BaseTest):

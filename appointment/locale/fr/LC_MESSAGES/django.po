@@ -2371,3 +2371,15 @@ msgstr "Français"
 #: .\appointments\settings.py:138
 msgid "Spanish"
 msgstr "Espagnol"
+
+#: appointment/views_admin.py
+msgid "Day off deleted successfully."
+msgstr "Jour de congé supprimé avec succès."
+
+#: appointment/views_admin.py
+msgid "Unavailability deleted successfully."
+msgstr "Indisponibilité supprimée avec succès."
+
+#: appointment/views_admin.py
+msgid "Working hours deleted successfully."
+msgstr "Heures de travail supprimées avec succès."
