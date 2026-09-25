@@ -1,46 +1,76 @@
 name-template: 'v${{ env.RELEASE_VERSION }}'
 tag-template: 'v${{ env.RELEASE_VERSION }}'
+
+# Order is both display order and priority. With exclusive: true a PR lands in
+# the first category it matches, so real change types sit above path-derived labels.
 categories:
-  - title: '🚀 Features'
-    labels:
-      - 'feature'
-    collapse-after: 3
-  - title: '🐛 Bug Fixes'
-    labels:
-      - 'fix'
-      - 'bugfix'
-      - 'bug'
-      - 'hotfix'
-    collapse-after: 3
-  - title: '🧰 Maintenance'
-    labels:
-      - 'chore'
-      - 'maintenance'
-      - 'dependencies'
-    collapse-after: 3
-  - title: '🔨 Refactor'
-    labels:
-      - 'refactor'
-      - 'refactoring'
-    collapse-after: 3
-  - title: '🧪 Testing'
-    labels:
-      - 'tests'
-      - 'testing'
-      - 'test'
-      - 'unittest'
-      - 'pytest'
-    collapse-after: 3
-  - title: '📚 Documentation'
-    labels:
-      - 'docs'
-      - 'documentation'
-    collapse-after: 3
+  - type: 'pre-exclude'
+    when:
+      label: 'skip-changelog'
+
   - title: '🔒 Security'
-    labels:
-      - 'security'
-      - 'security-fixes'
+    exclusive: true
     collapse-after: 3
+    when:
+      labels: ['security', 'security-fixes']
+
+  - title: '🚀 Features'
+    exclusive: true
+    collapse-after: 3
+    when:
+      labels: ['feature', 'enhancement']
+
+  - title: '🌍 Localization'
+    exclusive: true
+    collapse-after: 3
+    when:
+      labels: ['localization', 'i18n', 'l10n']
+
+  - title: '🐛 Bug Fixes'
+    exclusive: true
+    collapse-after: 3
+    when:
+      labels: ['fix', 'bugfix', 'bug', 'hotfix']
+
+  - title: '🔨 Refactor'
+    exclusive: true
+    collapse-after: 3
+    when:
+      labels: ['refactor', 'refactoring']
+
+  - title: '📚 Documentation'
+    exclusive: true
+    collapse-after: 3
+    when:
+      labels: ['docs', 'documentation']
+
+  - title: '📦 Dependencies'
+    exclusive: true
+    collapse-after: 0
+    when:
+      labels: ['dependencies']
+
+  - title: '🧰 Maintenance and Tests'
+    collapse-after: 3
+    when:
+      labels: ['chore', 'maintenance', 'tests', 'testing', 'test', 'unittest', 'pytest']
+
+autolabeler:
+  - label: 'skip-changelog'
+    title:
+      - '/^release v?\d/i'
+  - label: 'dependencies'
+    branch:
+      - '/^dependabot\/.+/'
+  - label: 'fix'
+    title:
+      - '/^fix\b/i'
+  - label: 'documentation'
+    title:
+      - '/^(docs?|document)\b/i'
+  - label: 'feature'
+    title:
+      - '/^(feat|add|support)\b/i'
 
 change-template: '- $TITLE by @$AUTHOR in (#$NUMBER)'
 change-title-escapes: '\<*_&'
