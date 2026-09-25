@@ -3,8 +3,10 @@ from copy import deepcopy
 from datetime import timedelta
 
 from django.db import IntegrityError
+from django.forms import SelectMultiple
 from django.utils.translation import gettext as _
 
+from appointment.forms import StaffAppointmentInformationForm, StaffMemberForm
 from appointment.models import Config, DayOff, Service, StaffMember, WorkingHours
 from appointment.tests.base.base_test import BaseTest
 
@@ -48,7 +50,7 @@ class StaffMemberCreationTests(BaseTest):
 
     def test_get_staff_member_name_with_email(self):
         # Simulate create a staff member with only an email and username
-        # (in my case, username is mandatory, but should work with email as well)
+        # (in my case, username is mandatory but should work with email as well)
         email_only_user = self.create_user_(
                 first_name="",
                 last_name="",
@@ -89,7 +91,7 @@ class StaffMemberCreationTests(BaseTest):
 
 
 class StaffMemberStaffStatusTests(BaseTest):
-    """Creating a StaffMember must give its user the flag the admin views gate on."""
+    """Creating a StaffMember must give its user the flag the admin views gate-on."""
 
     def test_creation_grants_django_staff_status(self):
         user = self.create_user_(first_name="Cameron", last_name="Mitchell",
@@ -329,3 +331,11 @@ class StaffMemberGetterTestCase(BaseTest):
         sm.appointment_buffer_time = 24
         self.assertEqual(sm.get_slot_duration_text(), "33 minutes")
         self.assertEqual(sm.get_appointment_buffer_time_text(), "24 minutes")
+
+
+class StaffMemberFormWidgetTests(BaseTest):
+    def test_services_offered_widget_is_applied(self):
+        for form_class in (StaffAppointmentInformationForm, StaffMemberForm):
+            widget = form_class().fields['services_offered'].widget
+            self.assertIsInstance(widget, SelectMultiple)
+            self.assertEqual(widget.attrs.get('class'), 'form-control')

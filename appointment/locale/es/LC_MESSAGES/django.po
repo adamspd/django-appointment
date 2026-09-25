@@ -2184,3 +2184,15 @@ msgstr "Frances"
 #: appointments/settings.py:137
 msgid "Spanish"
 msgstr "Español"
+
+#: appointment/views_admin.py
+msgid "Day off deleted successfully."
+msgstr "Día libre eliminado con éxito."
+
+#: appointment/views_admin.py
+msgid "Unavailability deleted successfully."
+msgstr "Indisponibilidad eliminada con éxito."
+
+#: appointment/views_admin.py
+msgid "Working hours deleted successfully."
+msgstr "Las horas laborales se eliminaron con éxito."
