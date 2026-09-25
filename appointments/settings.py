@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "recurrence",
     "appointment.apps.AppointmentConfig",
+    "appointments",  # demo project: its templates/demo/ hold the demo bases
 ]
 
 # if you want to use Django Q for sending emails asynchronously, you must install django-q2 in your env
@@ -131,6 +132,10 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, "appointment/static")]
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 APPOINTMENT_BUFFER_TIME = 0
+
+# Demo bases with a nav, set like a host project would. They live in appointments/templates/demo/ and aren't shipped.
+APPOINTMENT_BASE_TEMPLATE = 'demo/base.html'
+APPOINTMENT_ADMIN_BASE_TEMPLATE = 'demo/admin_base.html'
 
 LANGUAGES = (
     ('en', _('English')),

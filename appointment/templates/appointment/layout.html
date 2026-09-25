@@ -1,0 +1,9 @@
+{% extends BASE_TEMPLATE %}
+{% comment %}
+    Package layout: every django-appointment page extends this file, and this file extends the base template set in
+    APPOINTMENT_BASE_TEMPLATE or APPOINTMENT_ADMIN_BASE_TEMPLATE (your project's base, with its navbar and footer).
+    It only holds what all the package pages share, never the outer layout of your site.
+    Your base must define the blocks the pages fill: title, description, keyword, author, customMetaTag, customCSS,
+    scriptHead, body and customJS. It must also load Bootstrap 5 (CSS and JS) and jQuery.
+    Don't override this file; override a page (see CUSTOM_TEMPLATES.md) or set your own base instead.
+{% endcomment %}
