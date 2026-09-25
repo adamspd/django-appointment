@@ -1,0 +1,102 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-25 09:37+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? "
+"1 : 2;\n"
+
+#: settings.py:141
+msgid "English"
+msgstr "Inglés"
+
+#: settings.py:142
+msgid "French"
+msgstr "Francés"
+
+#: settings.py:143
+msgid "Spanish"
+msgstr "Español"
+
+#: templates/demo/admin_base.html:122 templates/demo/admin_base.html:129
+#: templates/demo/admin_base.html:199 templates/demo/nav_links.html:19
+msgid "Staff area"
+msgstr "Área del personal"
+
+#: templates/demo/admin_base.html:124
+msgid "Close"
+msgstr "Cerrar"
+
+#: templates/demo/admin_base.html:132 templates/demo/admin_base.html:134
+#: templates/demo/admin_base.html:196 templates/demo/base.html:42
+msgid "Toggle navigation"
+msgstr "Mostrar/ocultar navegación"
+
+#: templates/demo/admin_base.html:141 templates/demo/admin_base.html:142
+msgid "Calendar"
+msgstr "Calendario"
+
+#: templates/demo/admin_base.html:147 templates/demo/admin_base.html:148
+msgid "Staff"
+msgstr "Personal"
+
+#: templates/demo/admin_base.html:151 templates/demo/admin_base.html:152
+msgid "Profile"
+msgstr "Perfil"
+
+#: templates/demo/admin_base.html:157 templates/demo/admin_base.html:158
+msgid "Services"
+msgstr "Servicios"
+
+#: templates/demo/admin_base.html:162 templates/demo/admin_base.html:163
+msgid "Django admin"
+msgstr "Admin de Django"
+
+#: templates/demo/admin_base.html:167 templates/demo/admin_base.html:168
+msgid "View site"
+msgstr "Ver el sitio"
+
+#: templates/demo/admin_base.html:181 templates/demo/admin_base.html:182
+#: templates/demo/nav_links.html:25
+msgid "Log out"
+msgstr "Cerrar sesión"
+
+#: templates/demo/base.html:13
+msgid "Appointment application"
+msgstr "Aplicación de citas"
+
+#: templates/demo/base.html:40
+msgid "Demo site"
+msgstr "Sitio de demostración"
+
+#: templates/demo/home.html:5 templates/demo/home.html:8
+msgid "Book an appointment"
+msgstr "Reservar una cita"
+
+#: templates/demo/home.html:20
+msgid "No service yet. Add one from the staff area."
+msgstr "Todavía no hay servicios. Añada uno desde el área del personal."
+
+#: templates/demo/language_form.html:8
+msgid "Language"
+msgstr "Idioma"
+
+#: templates/demo/nav_links.html:11
+msgid "Book"
+msgstr "Reservar"
+
+#: templates/demo/nav_links.html:29
+msgid "Log in"
+msgstr "Iniciar sesión"
