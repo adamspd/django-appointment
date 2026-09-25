@@ -172,6 +172,10 @@ These are HTML emails sent to users:
 >
 > Use the short names for new projects.
 
+> **Plain-text part:** every HTML email is also sent with a plain-text version. It is rendered from a `.txt` template
+> with the same name next to the HTML one when there is one (`emails/thank_you.txt` for `emails/thank_you.html`, with
+> the same context), and derived from the HTML otherwise.
+
 ## Template Examples
 
 The following are just examples. You can customize them as you see fit. Or you can create your own designs from scratch.

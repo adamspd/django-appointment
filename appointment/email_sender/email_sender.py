@@ -2,12 +2,14 @@
 # Path: appointment/email_sender/email_sender.py
 
 import os
+import re
 from datetime import datetime, timedelta
+from html.parser import HTMLParser
 from typing import Optional, Tuple, Union
 
 from django.conf import settings
-from django.core.mail import send_mail
-from django.template import loader
+from django.core.mail import EmailMultiAlternatives
+from django.template import TemplateDoesNotExist, loader
 from django.utils import timezone
 
 from appointment.logger_config import get_logger
@@ -53,6 +55,62 @@ def render_email_template(template_url, context, request=None):
     return ""
 
 
+class _TextExtractor(HTMLParser):
+    """Collect the visible text of an HTML document, skipping what isn't body text (<head>, <style>, <script>)."""
+    skipped_tags = {'head', 'style', 'script'}
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.parts = []
+        self.skip_depth = 0
+
+    def handle_starttag(self, tag, attrs):
+        if tag in self.skipped_tags:
+            self.skip_depth += 1
+
+    def handle_endtag(self, tag):
+        if tag in self.skipped_tags and self.skip_depth:
+            self.skip_depth -= 1
+
+    def handle_data(self, data):
+        if not self.skip_depth:
+            self.parts.append(data)
+
+
+def html_to_text(html_message: str) -> str:
+    """Turn an HTML email into a readable plain-text body: no tags, no runs of blank lines."""
+    extractor = _TextExtractor()
+    extractor.feed(html_message)
+    extractor.close()
+    text = ''.join(extractor.parts)
+    lines = [line.strip() for line in text.splitlines()]
+    return re.sub(r'\n{3,}', '\n\n', '\n'.join(lines)).strip()
+
+
+def render_text_body(template_url, context, html_message, request=None) -> str:
+    """Plain-text part of a templated email.
+
+    A ``.txt`` template next to the HTML one (``emails/thank_you.txt`` for ``emails/thank_you.html``) is used when it
+    exists; otherwise the text is derived from the HTML, so the email is never sent with an empty text part.
+    """
+    if template_url.endswith('.html'):
+        try:
+            return loader.render_to_string(template_url[:-len('.html')] + '.txt', context, request=request)
+        except TemplateDoesNotExist:
+            pass
+    return html_to_text(html_message)
+
+
+def send_email_now(recipient_list, subject, message, html_message, from_email, attachments=None):
+    """Send an email synchronously, with its text part, optional HTML alternative and attachments."""
+    email = EmailMultiAlternatives(subject=subject, body=message, from_email=from_email, to=recipient_list)
+    if html_message:
+        email.attach_alternative(html_message, "text/html")
+    for attachment in attachments or []:
+        email.attach(*attachment)
+    email.send(fail_silently=False)
+
+
 def send_email(recipient_list, subject: str, template_url: str = "", context: Optional[dict] = None,
                from_email=None, message: str = "", attachments=None, request=None):
     if context is None:
@@ -62,6 +120,8 @@ def send_email(recipient_list, subject: str, template_url: str = "", context: Op
 
     from_email = from_email or APP_DEFAULT_FROM_EMAIL
     html_message = render_email_template(template_url, context, request)
+    if template_url:
+        message = render_text_body(template_url, context, html_message, request)
 
     if get_use_django_q_for_emails() and check_q_cluster() and DJANGO_Q_AVAILABLE:
         # Pass only the necessary data to construct the email
@@ -77,14 +137,7 @@ def send_email(recipient_list, subject: str, template_url: str = "", context: Op
     else:
         # Synchronously send the email
         try:
-            send_mail(
-                subject=subject,
-                message=message if not template_url else "",
-                html_message=html_message if template_url else None,
-                from_email=from_email,
-                recipient_list=recipient_list,
-                fail_silently=False,
-            )
+            send_email_now(recipient_list, subject, message, html_message, from_email, attachments)
         except Exception as e:
             logger.error(f"Error sending email: {e}")
 
@@ -252,6 +305,8 @@ def notify_admin(subject: str, template_url: str = "", context: Optional[dict] =
         return
 
     html_message = render_email_template(template_url, context, request)
+    if template_url:
+        message = render_text_body(template_url, context, html_message, request)
 
     recipients = [recipient_email] if recipient_email else [email for name, email in settings.ADMINS]
 
@@ -267,14 +322,7 @@ def notify_admin(subject: str, template_url: str = "", context: Optional[dict] =
     else:
         # Synchronously send the email
         try:
-            send_mail(
-                subject=subject,
-                message=message if not template_url else "",
-                html_message=html_message if template_url else None,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=recipients,
-                fail_silently=False,
-            )
+            send_email_now(recipients, subject, message, html_message, settings.DEFAULT_FROM_EMAIL, attachments)
         except Exception as e:
             logger.error(f"Error sending email: {e}")
 
