@@ -70,7 +70,7 @@ anyone's.
     - **Endpoint**: `app-admin/delete-appointment/<int:appointment_id>/`
     - **Description**: Deletes an appointment. Superusers can delete any appointment; staff members can only delete
       their own, and get a `403` page otherwise.
-    - **Methods**: GET · **Access**: staff or superuser
+    - **Methods**: POST · **Access**: staff or superuser
 
 #### **Staff Member Management**:
 
@@ -95,18 +95,18 @@ anyone's.
 - **Make Superuser a Staff Member**:
     - **Endpoint**: `app-admin/make-superuser-staff-member/`
     - **Description**: Converts a superuser account to have staff member privileges.
-    - **Methods**: GET · **Access**: superuser only
+    - **Methods**: POST · **Access**: superuser only
 
 - **Remove Staff Member Role from Superuser**:
     - **Endpoint**: `app-admin/remove-superuser-staff-member/`
     - **Description**: Removes the staff member privileges from a superuser account.
-    - **Methods**: GET · **Access**: superuser only
+    - **Methods**: POST · **Access**: superuser only
 
 - **Remove Staff Member**:
     - **Endpoint**: `app-admin/remove-staff-member/<int:staff_user_id>/`
     - **Description**: Allows a superuser to remove a staff member account. The account to be removed is identified
       by `staff_user_id`.
-    - **Methods**: GET · **Access**: superuser only
+    - **Methods**: POST · **Access**: superuser only
 
 #### **Service Management**:
 
@@ -125,7 +125,7 @@ anyone's.
     - **Endpoint**: `app-admin/delete-service/<int:service_id>/`
     - **Description**: Allows a superuser to remove a service from the system. The service is identified
       by `service_id`.
-    - **Methods**: GET · **Access**: superuser only
+    - **Methods**: POST · **Access**: superuser only
 
 - **View All Services**:
     - **Endpoint**: `app-admin/service-list/` and `app-admin/service-list/<str:response_type>/`
@@ -181,7 +181,7 @@ anyone's.
       `app-admin/delete-day-off/<int:day_off_id>/<int:staff_user_id>/`
     - **Description**: Enables users to remove a day off. Staff members can only delete their own days off, while
       superusers can delete any day off.
-    - **Methods**: GET · **Access**: staff or superuser
+    - **Methods**: POST · **Access**: staff or superuser
 
 #### **Unavailability Management**:
 
@@ -206,7 +206,7 @@ bookable — use a day off to remove whole days instead. Slots overlapping one a
       `app-admin/delete-unavailability/<int:unavailability_id>/<int:staff_user_id>/`
     - **Description**: Removes an unavailability. Staff members can only delete their own, while superusers can delete
       any.
-    - **Methods**: GET · **Access**: staff or superuser
+    - **Methods**: POST · **Access**: staff or superuser
 
 !!! note "What the add and update forms post"
     Both submit the date and times as pre-formatted hidden fields alongside the localized ones the user sees:
@@ -235,7 +235,7 @@ bookable — use a day off to remove whole days instead. Slots overlapping one a
       `app-admin/delete-working-hours/<int:working_hours_id>/<int:staff_user_id>/`
     - **Description**: Users can remove a working hours' entry.
       Superusers can delete any entry, while staff members can only delete their own.
-    - **Methods**: GET · **Access**: staff or superuser
+    - **Methods**: POST · **Access**: staff or superuser
 
 #### **Ajax Endpoints**:
 

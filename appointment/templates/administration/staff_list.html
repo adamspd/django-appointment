@@ -15,16 +15,21 @@
     {% trans 'List of all staff members' %}.
 {% endblock %}
 {% block body %}
+    {% translate "Confirm Removal" as modal_title %}
+    {% translate "Remove" as remove_btn_modal %}
+    {% translate "Are you sure you want to remove this staff member?" as r_modal_message %}
     <section class="content content-wrapper">
         <div class="profile-container">
             <section class="profile-section">
                 <div class="section-header">
                     <h2 class="section-header-itm">{% trans 'Staff Members' %}</h2>
                     <div class="buttons-container section-header-itm">
-                        <a href="{{ btn_staff_me_link }}"
-                           class="modify-btn button-color-purple">
-                            {{ btn_staff_me }}
-                        </a>
+                        <form method="post" action="{{ btn_staff_me_link }}" style="display: inline">
+                            {% csrf_token %}
+                            <button type="submit" class="modify-btn button-color-purple">
+                                {{ btn_staff_me }}
+                            </button>
+                        </form>
                         <a href="{% url 'appointment:add_staff_member_info' %}"
                            class="modify-btn button-color-green">
                             <i class="fas fa-add"></i>
@@ -48,7 +53,8 @@
                                 <td>
                                     <a href="{% url 'appointment:user_profile' staff_member.user.id %}"
                                        class="modify-btn button-color-blue">{% trans 'View Profile' %}</a>
-                                    <a href="{% url 'appointment:remove_staff_member' staff_member.user.id %}"
+                                    <a href="javascript:void(0)"
+                                       onclick="showModal('{{ modal_title|escapejs }}', '{{ r_modal_message|escapejs }}', '{{ remove_btn_modal|escapejs }}', '{% url 'appointment:remove_staff_member' staff_member.user.id %}', null)"
                                        class="modify-btn button-color-red">{% trans 'Remove' %}</a>
                                 </td>
                             </tr>
@@ -57,11 +63,11 @@
                                 <td colspan="3">{% trans 'No staff members found' %}.</td>
                             </tr>
                         {% endfor %}
-                        <small>
-                            {% trans "PS: Remove means, deleting the staff status of the user. The user account is still active." %}
-                        </small>
                         </tbody>
                     </table>
+                    <small>
+                        {% trans "PS: Remove means, deleting the staff status of the user. The user account is still active." %}
+                    </small>
                 </div>
             </section>
             <div class="messages" style="margin: 20px 0">
@@ -73,9 +79,11 @@
                 {% endif %}
             </div>
         </div>
+        {% include 'modal/confirm_modal.html' %}
     </section>
 {% endblock %}
 
 {% block customJS %}
+    <script src="{% static 'js/modal/show_modal.js' %}"></script>
     <script src="{% static 'js/js-utils.js' %}"></script>
 {% endblock %}

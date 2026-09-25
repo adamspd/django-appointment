@@ -24,11 +24,12 @@ from appointment.forms import StaffMemberForm
 from appointment.messages_ import passwd_error
 from appointment.models import (
     Appointment, AppointmentRequest, AppointmentRescheduleHistory, Config, DayOff, EmailVerificationCode,
-    PasswordResetToken, StaffMember
+    PasswordResetToken, StaffMember, Unavailability
 )
 from appointment.tests.base.base_test import BaseTest
 from appointment.utils.db_helpers import Service, WorkingHours, create_user_with_username
 from appointment.utils.error_codes import ErrorCode
+from appointment.utils.template_helpers import escape_json_for_script
 from appointment.views import (
     create_appointment, redirect_to_payment_or_thank_you_page, verify_user_and_login
 )
@@ -206,7 +207,7 @@ class StaffMemberTestCase(BaseTest):
         self.clean_staff_member_objects()
 
         url = reverse('appointment:remove_staff_member', args=[self.staff_member.user_id])
-        response = self.client.get(url)
+        response = self.client.post(url)
 
         self.assertEqual(response.status_code, 302)  # Redirect status code
         self.assertRedirects(response, reverse('appointment:user_profile'))
@@ -225,8 +226,8 @@ class StaffMemberTestCase(BaseTest):
         # Test removal of staff member by a superuser
         self.jack = self.users['superuser']
 
-        self.client.get(reverse('appointment:make_superuser_staff_member'))
-        response = self.client.get(reverse('appointment:remove_superuser_staff_member'))
+        self.client.post(reverse('appointment:make_superuser_staff_member'))
+        response = self.client.post(reverse('appointment:remove_superuser_staff_member'))
 
         # Check if the StaffMember instance was deleted
         self.assertFalse(StaffMember.objects.filter(user=self.jack).exists())
@@ -237,7 +238,7 @@ class StaffMemberTestCase(BaseTest):
     def test_remove_staff_member_without_superuser(self):
         # Log out superuser and log in as a regular user
         self.need_staff_login()
-        response = self.client.get(reverse('appointment:remove_superuser_staff_member'))
+        response = self.client.post(reverse('appointment:remove_superuser_staff_member'))
 
         # Check for a forbidden status code, as only superusers should be able to remove staff members
         self.assertEqual(response.status_code, 403)
@@ -247,7 +248,7 @@ class StaffMemberTestCase(BaseTest):
         self.remove_staff_member()
         self.jack = self.users['superuser']
         # Test creating a staff member by a superuser
-        response = self.client.get(reverse('appointment:make_superuser_staff_member'))
+        response = self.client.post(reverse('appointment:make_superuser_staff_member'))
 
         # Check if the StaffMember instance was created
         self.assertTrue(StaffMember.objects.filter(user=self.jack).exists())
@@ -257,7 +258,7 @@ class StaffMemberTestCase(BaseTest):
 
     def test_make_staff_member_without_superuser(self):
         self.need_staff_login()
-        response = self.client.get(reverse('appointment:make_superuser_staff_member'))
+        response = self.client.post(reverse('appointment:make_superuser_staff_member'))
 
         # Check for a forbidden status code, as only superusers should be able to create staff members
         self.assertEqual(response.status_code, 403)
@@ -313,7 +314,7 @@ class AppointmentTestCase(BaseTest):
         self.need_staff_login()
 
         url = reverse('appointment:delete_appointment', args=[self.appointment.id])
-        response = self.client.get(url)
+        response = self.client.post(url)
 
         self.assertEqual(response.status_code, 302)  # Redirect status code
         self.assertRedirects(response, reverse('appointment:get_user_appointments'))
@@ -624,7 +625,7 @@ class ServiceViewTestCase(BaseTest):
     def test_delete_service_with_superuser(self):
         self.need_superuser_login()
         # Test deletion with a superuser
-        response = self.client.get(reverse('appointment:delete_service', args=[self.service1.id]))
+        response = self.client.post(reverse('appointment:delete_service', args=[self.service1.id]))
 
         # Check if the service was deleted
         self.assertFalse(Service.objects.filter(id=self.service1.id).exists())
@@ -640,7 +641,7 @@ class ServiceViewTestCase(BaseTest):
         # Log in as a regular/staff user
         self.need_staff_login()
 
-        response = self.client.get(reverse('appointment:delete_service', args=[self.service1.id]))
+        response = self.client.post(reverse('appointment:delete_service', args=[self.service1.id]))
 
         # Check for a forbidden status code, as only superusers should be able to delete services
         self.assertEqual(response.status_code, 403)
@@ -648,7 +649,7 @@ class ServiceViewTestCase(BaseTest):
     def test_delete_nonexistent_service(self):
         self.need_superuser_login()
         # Try to delete a service that does not exist
-        response = self.client.get(reverse('appointment:delete_service', args=[99999]))
+        response = self.client.post(reverse('appointment:delete_service', args=[99999]))
 
         # Check for a 404-status code
         self.assertEqual(response.status_code, 404)
@@ -769,22 +770,100 @@ class DayOffViewsTestCase(BaseTest):
         # Log in as staff user
         self.need_superuser_login()
         url = reverse('appointment:delete_day_off', args=[self.day_off.id])
-        response = self.client.get(url)
+        response = self.client.post(url)
         self.assertEqual(response.status_code, 302)  # Assuming success redirects to the user profile
 
     def test_delete_day_off_unauthorized_user(self):
         # Log in as another staff user
         self.need_normal_login()
         url = reverse('appointment:delete_day_off', args=[self.day_off.id])
-        response = self.client.get(url)
+        response = self.client.post(url)
         self.assertEqual(response.status_code, 403)  # Expect access denied
 
     def test_delete_nonexistent_day_off(self):
         self.need_staff_login()
         non_existent_day_off_id = 99999
         url = reverse('appointment:delete_day_off', args=[non_existent_day_off_id])
-        response = self.client.get(url)
+        response = self.client.post(url)
         self.assertEqual(response.status_code, 404)
+
+
+class DestructiveViewsRequirePostTests(BaseTest):
+    """Deletes and removals must not run on GET: a link, a prefetch or a cross-site image would trigger them."""
+
+    def setUp(self):
+        super().setUp()
+        self.need_superuser_login()
+
+    def assert_get_not_allowed(self, url, model, pk):
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 405)
+        self.assertTrue(model.objects.filter(pk=pk).exists())
+
+    def test_delete_service_get(self):
+        url = reverse('appointment:delete_service', args=[self.service1.id])
+        self.assert_get_not_allowed(url, Service, self.service1.id)
+
+    def test_delete_appointment_get(self):
+        appointment = self.create_appt_for_sm1()
+        url = reverse('appointment:delete_appointment', args=[appointment.id])
+        self.assert_get_not_allowed(url, Appointment, appointment.id)
+
+    def test_remove_staff_member_get(self):
+        url = reverse('appointment:remove_staff_member', args=[self.staff_member1.user_id])
+        self.assert_get_not_allowed(url, StaffMember, self.staff_member1.id)
+
+    def test_remove_superuser_staff_member_get(self):
+        staff_member = StaffMember.objects.create(user=self.users['superuser'])
+        url = reverse('appointment:remove_superuser_staff_member')
+        self.assert_get_not_allowed(url, StaffMember, staff_member.id)
+
+    def test_make_superuser_staff_member_get(self):
+        response = self.client.get(reverse('appointment:make_superuser_staff_member'))
+        self.assertEqual(response.status_code, 405)
+        self.assertFalse(StaffMember.objects.filter(user=self.users['superuser']).exists())
+
+    def test_delete_day_off_get(self):
+        day_off = DayOff.objects.create(staff_member=self.staff_member1, start_date=date.today(),
+                                        end_date=date.today())
+        url = reverse('appointment:delete_day_off_id', args=[day_off.id, self.staff_member1.user_id])
+        self.assert_get_not_allowed(url, DayOff, day_off.id)
+
+    def test_delete_unavailability_get(self):
+        unavailability = Unavailability.objects.create(staff_member=self.staff_member1,
+                                                       date=date.today() + timedelta(days=1),
+                                                       start_time=time(12, 0), end_time=time(13, 0))
+        url = reverse('appointment:delete_unavailability_id',
+                      args=[unavailability.id, self.staff_member1.user_id])
+        self.assert_get_not_allowed(url, Unavailability, unavailability.id)
+
+    def test_delete_working_hours_get(self):
+        working_hours = WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=3,
+                                                    start_time=time(9, 0), end_time=time(17, 0))
+        url = reverse('appointment:delete_working_hours_id', args=[working_hours.id, self.staff_member1.user_id])
+        self.assert_get_not_allowed(url, WorkingHours, working_hours.id)
+
+
+class CalendarScriptEscapingTests(BaseTest):
+    """Client-supplied appointment data is printed inside a <script> on the staff calendar."""
+
+    def test_escape_json_for_script(self):
+        raw = json.dumps({"name": "</script><img src=x onerror=alert(1)>", "note": "a & b"})
+        escaped = escape_json_for_script(raw)
+        self.assertNotIn('<', escaped)
+        self.assertNotIn('>', escaped)
+        self.assertNotIn('&', escaped)
+        self.assertEqual(json.loads(escaped), json.loads(raw))
+
+    def test_calendar_does_not_close_script_tag(self):
+        appointment = self.create_appt_for_sm1()
+        appointment.additional_info = "</script><script>alert(1)</script>"
+        appointment.save()
+        self.need_staff_login()
+        response = self.client.get(reverse('appointment:get_user_appointments'))
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "</script><script>alert(1)")
+        self.assertIn("\\u003C/script\\u003E", response.context['appointments'])
 
 
 class ViewsTestCase(BaseTest):
