@@ -12,7 +12,7 @@ from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.forms import SetPasswordForm
 from django.db.models import Q
-from django.http import HttpResponseRedirect
+from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone, translation
@@ -283,6 +283,35 @@ def appointment_request_submit(request):
     return render(request, appointment_template, context=context)
 
 
+# Session key: {appointment id: True while its thank-you email is still to be sent}. Only the browser that booked or
+# rescheduled an appointment can open its thank-you page, and the email goes out on the first visit only.
+THANK_YOU_SESSION_KEY = 'appointment_thank_you_pages'
+
+
+def allow_thank_you_page(request, appointment):
+    """Let this browser open the appointment's thank-you page, and send the thank-you email on its next visit.
+
+    :param request: The request instance.
+    :param appointment: The Appointment instance.
+    """
+    pages = request.session.get(THANK_YOU_SESSION_KEY, {})
+    pages[str(appointment.id)] = True
+    request.session[THANK_YOU_SESSION_KEY] = pages
+
+
+def can_view_thank_you_page(request, appointment) -> bool:
+    """Whether this request may see the appointment's thank-you page: the browser that booked or rescheduled it, the
+    client's account, the appointment's staff member or a superuser.
+    """
+    if str(appointment.id) in request.session.get(THANK_YOU_SESSION_KEY, {}):
+        return True
+    user = request.user
+    if not user.is_authenticated:
+        return False
+    staff_member = appointment.get_staff_member()
+    return user.is_superuser or user == appointment.client or (staff_member is not None and staff_member.user == user)
+
+
 def redirect_to_payment_or_thank_you_page(appointment):
     """This function redirects to the payment page or the thank-you page based on the configuration.
 
@@ -314,6 +343,7 @@ def create_appointment(request, appointment_request_obj, client_data, appointmen
     :return: The redirect response.
     """
     appointment = create_and_save_appointment(appointment_request_obj, client_data, appointment_data, request)
+    allow_thank_you_page(request, appointment)
     notify_admin_about_appointment(appointment, appointment.client.first_name)
     return redirect_to_payment_or_thank_you_page(appointment)
 
@@ -423,11 +453,17 @@ def enter_verification_code(request, appointment_request_id, id_request):
 def default_thank_you(request, appointment_id):
     """This view function handles the default 'thank you' page.
 
+    Only the browser that booked or rescheduled the appointment, the client's account, the appointment's staff member
+    or a superuser can see it (anyone else gets a 404). The thank-you email is sent on the first visit after a booking
+    or a reschedule, not on every page load.
+
     :param request: The request instance.
     :param appointment_id: The ID of the appointment.
     :return: The rendered HTML page.
     """
     appointment = get_object_or_404(Appointment, pk=appointment_id)
+    if not can_view_thank_you_page(request, appointment):
+        raise Http404
     ar = appointment.appointment_request
     email = appointment.client.email
     appointment_details = {
@@ -446,9 +482,13 @@ def default_thank_you(request, appointment_id):
     if appointment.client.has_usable_password():
         account_details = None
 
-    # Send the thank-you email (also used for rescheduling and after verification code sent)
-    send_thank_you_email(ar=ar, user=appointment.client, email=email, appointment_details=appointment_details,
-                         account_details=account_details, request=request)
+    # Send the thank-you email (also used for rescheduling and after verification code sent), once per booking
+    pages = request.session.get(THANK_YOU_SESSION_KEY, {})
+    if pages.get(str(appointment.id)):
+        send_thank_you_email(ar=ar, user=appointment.client, email=email, appointment_details=appointment_details,
+                             account_details=account_details, request=request)
+        pages[str(appointment.id)] = False
+        request.session[THANK_YOU_SESSION_KEY] = pages
     extra_context = {
         'appointment': appointment,
     }
@@ -630,4 +670,5 @@ def confirm_reschedule(request, id_request):
     # notify admin and the concerned staff admin about client's rescheduling
     client_name = Appointment.objects.get(appointment_request=ar).client.get_full_name()
     notify_admin_about_reschedule(reschedule_history, ar, client_name)
+    allow_thank_you_page(request, ar.appointment)
     return redirect('appointment:default_thank_you', appointment_id=ar.appointment.id)
