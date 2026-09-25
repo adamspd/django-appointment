@@ -344,7 +344,7 @@ def get_current_year() -> int:
 
     :return: The current year
     """
-    return datetime.datetime.now().year
+    return timezone.localdate().year
 
 
 def get_weekday_num(weekday: str) -> int:

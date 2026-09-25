@@ -473,7 +473,7 @@ class AppointmentRequest(models.Model):
                 raise ValidationError(_("Start time and end time cannot be the same"))
 
         # Ensure the date is not in the past:
-        if self.date and self.date < datetime.date.today():
+        if self.date and self.date < timezone.localdate():
             raise ValidationError(_("Date cannot be in the past"))
 
     def save(self, *args, **kwargs):
@@ -484,7 +484,7 @@ class AppointmentRequest(models.Model):
         if self.start_time == self.end_time:
             raise ValidationError(_("Start time and end time cannot be the same"))
         # date should not be in the past
-        if self.date < datetime.date.today():
+        if self.date < timezone.localdate():
             raise ValidationError(_("Date cannot be in the past"))
         # duration should not exceed the service duration
         if time_difference(self.start_time, self.end_time) > self.service.duration:
@@ -598,7 +598,7 @@ class AppointmentRescheduleHistory(models.Model):
         if not self.id_request:
             self.id_request = f"{get_timestamp()}{generate_random_id()}"
         # date should not be in the past
-        if self.date < datetime.date.today():
+        if self.date < timezone.localdate():
             raise ValidationError(_("Date cannot be in the past"))
         try:
             datetime.datetime.strptime(str(self.date), '%Y-%m-%d')
@@ -1211,7 +1211,7 @@ class Unavailability(models.Model):
         if self.date is not None and self.start_time is not None and self.end_time is not None:
             if self.start_time >= self.end_time:
                 raise ValidationError(_("Start datetime must be before end datetime"))
-            if self.date < datetime.date.today():
+            if self.date < timezone.localdate():
                 raise ValidationError(_("Cannot create unavailabilities for past dates"))
 
     def get_date(self):

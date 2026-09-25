@@ -6,7 +6,7 @@ Author: Adams Pierre David
 Since: 1.0.0
 """
 
-from datetime import date, timedelta
+from datetime import timedelta
 
 from django.contrib import messages
 from django.contrib.auth import login
@@ -106,7 +106,7 @@ def get_available_slots_ajax(request):
     available_slots = get_available_slots_for_staff(selected_date, sm, weekday_num, service=service)
 
     # Check if the selected_date is today and filter out past slots
-    if selected_date == date.today():
+    if selected_date == timezone.localdate():
         current_time = timezone.localtime().time()
         available_slots = [slot for slot in available_slots if slot.time() > current_time]
 
@@ -139,7 +139,7 @@ def get_next_available_date_ajax(request, service_id):
         staff_member = get_object_or_404(StaffMember, pk=staff_id)
         service = get_object_or_404(Service, pk=service_id)
 
-        current_date = date.today()
+        current_date = timezone.localdate()
         next_available_date = None
         day_offset = 0
         max_offset = 90
@@ -207,14 +207,14 @@ def appointment_request(request, service_id=None, staff_member_id=None):
         # If only one staff member for a service, choose them by default and fetch their slots.
         if all_staff_members.count() == 1:
             staff_member = all_staff_members.first()
-            unavailabilities = staff_member.get_unavailabilities_for_date(date.today())
-            x, available_slots = get_appointments_and_slots(date.today(), service, unavailabilities)
+            unavailabilities = staff_member.get_unavailabilities_for_date(timezone.localdate())
+            x, available_slots = get_appointments_and_slots(timezone.localdate(), service, unavailabilities)
 
     # If a specific staff member is selected, fetch their slots.
     if staff_member_id:
         staff_member = get_object_or_404(StaffMember, pk=staff_member_id)
-        unavailabilities = staff_member.get_unavailabilities_for_date(date.today())
-        y, available_slots = get_appointments_and_slots(date.today(), service, unavailabilities)
+        unavailabilities = staff_member.get_unavailabilities_for_date(timezone.localdate())
+        y, available_slots = get_appointments_and_slots(timezone.localdate(), service, unavailabilities)
 
     page_title = f"{service.name} - {get_website_name()}"
     page_description = _("Book an appointment for {s} at {wn}.").format(s=service.name, wn=get_website_name())
@@ -227,7 +227,7 @@ def appointment_request(request, service_id=None, staff_member_id=None):
     #  Future contributors: add your language's preferred format in the DATE_FORMATS dictionary in utils.date_time.py
     #  file.
     format_string = DATE_FORMATS.get(get_locale(), "D, F j, Y")
-    date_chosen = date_format(date.today(), format_string, use_l10n=True)
+    date_chosen = date_format(timezone.localdate(), format_string, use_l10n=True)
     extra_context = {
         'service': service,
         'staff_member': staff_member,
