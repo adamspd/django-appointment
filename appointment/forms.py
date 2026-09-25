@@ -7,9 +7,10 @@ Since: 1.0.0
 """
 
 import re
-from datetime import time, datetime
+from datetime import time
 
 from django import forms
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.formfields import SplitPhoneNumberField
 
@@ -220,7 +221,7 @@ class StaffDaysOffForm(forms.ModelForm):
 class StaffUnavailabilityForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(StaffUnavailabilityForm, self).__init__(*args, **kwargs)
-        self.fields['date'].initial = datetime.today()
+        self.fields['date'].initial = timezone.localdate()
         self.fields['start_time'].initial = time(9, 0)
         self.fields['end_time'].initial = time(17, 0)
 
