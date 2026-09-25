@@ -91,7 +91,7 @@ and [here](https://github.com/adamspd/django-appointment/tree/main/docs/release_
 
 ## Added Features and Bug Fixes in version 3.x.x
 
-See the [release notes for the current 3.10 series](https://django-appt-doc.adamspierredavid.com/release_notes/latest/),
+See the [release notes for the current 3.11 release](https://django-appt-doc.adamspierredavid.com/release_notes/latest/),
 or the [GitHub releases page](https://github.com/adamspd/django-appointment/releases).
 For older versions,
 see their [release notes](https://github.com/adamspd/django-appointment/tree/main/docs/release_notes).

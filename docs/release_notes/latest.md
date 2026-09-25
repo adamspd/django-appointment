@@ -1,115 +1,170 @@
 # django-appointment 📦
 
-**v3.10.x 🆕**
+**v3.11.0 🆕**
 
-## ___Release Notes for the 3.10 series___
+## ___Release Notes for Version 3.11.0___
 
 ## Introduction 📜
 
-The 3.10 series is the largest set of changes since 3.0. It makes slot availability aware of how long a service
-actually takes, lets you replace any page or email the package renders with your own template, tightens authorization
-on appointment updates, adds Spanish, and keeps the database from filling up with abandoned appointment requests.
+Version 3.11.0 is a feature release on top of 3.10.1. It adds **unavailabilities** — a way for a staff member to
+block part of a single day without losing the whole day — brings Django 6.0 and 6.1 support, and finishes the
+localization work so dates, times and prices follow the visitor's locale everywhere instead of only in some places.
 
-Version 3.10.1 follows 3.9.2; there is no separately published 3.9.3.
+It also drops Python 3.8 and 3.9. See [Breaking Changes](#breaking-changes) before upgrading.
 
 ## New Features ✨
 
-### Custom templates for pages and emails
+### Unavailabilities 🗓️
 
-Every HTML page and every email the package sends can now be replaced with your own template, without forking
-anything. Drop a file with the expected name into `templates/custom/` or `templates/emails/` and it is used instead of
-the packaged default; anything you don't provide keeps working as before.
+A staff member can now record an *unavailability*: a start time, an end time and a date, with an optional reason. A
+lunch break, a meeting, an errand — anything that makes them unavailable for part of a day. Slots overlapping one
+disappear from the booking page while the rest of that day stays bookable.
 
-Two new settings control where the package looks:
+This is the short-range counterpart to a day off, which keeps removing whole days.
 
-```python
-APPOINTMENT_CUSTOM_TEMPLATES_DIR = 'custom'
-APPOINTMENT_CUSTOM_EMAILS_DIR = 'emails'
-```
+The feature ships as:
 
-See [Custom templates](../custom-templates.md) for the full list of names and the context each one receives.
+- a new `Unavailability` model, registered in the Django admin;
+- add, update and delete pages under `app-admin/`, reachable from the staff member's profile, with the same
+  ownership rules as days off — staff members manage their own, superusers manage anyone's;
+- slot filtering, so an unavailability is honoured by the booking page, the reschedule page and the
+  next-available-date lookup alike — including the slots rendered with the booking page itself, not only those
+  fetched afterwards when the client picks a date. It is applied by the same pass that removes slots taken by
+  existing appointments, so the service's real duration and `slot_gap_time` are respected around it too.
 
-### Flexible slot duration and gap time
+See [the model reference](../models.md#unavailability) and [the admin views](../admin_views.md).
 
-Previously a service longer than the configured slot step could be double-booked, because availability was checked
-against the slot step rather than the service's real duration. Slot calculation now accounts for the service duration,
-and you can require a rest period between consecutive appointments.
+### Django 6.0 and 6.1 support 🐍
 
-New fields:
+Django 6.0 and 6.1 are supported and covered by the [compatibility matrix](../compatibility.md), which was reworked
+at the same time. The declared range moves from `Django>=4.2,<6.0` to `Django>=4.2,<7.0`, tested across Python 3.10
+to 3.14.
 
-- `Config.default_to_service_duration` — when enabled (the default), every service uses its own duration when
-  checking availability.
-- `Service.use_service_duration_as_slot` — the per-service equivalent, consulted when the Config flag above is off.
-- `Config.slot_gap_time` — required rest time in minutes between the end of one appointment and the start of the
-  next.
-- `StaffMember.slot_gap_time` — the per-staff-member override of that gap.
+`CheckConstraint`'s `check` argument was renamed to `condition` in Django 5.1 and removed in Django 6.0, which no
+single spelling can satisfy across the supported range. A small `appointment/compat.py` shim now picks the keyword
+the running Django accepts, so the package's check constraints work from 4.2 to 6.1 without a version-specific
+branch in every model.
 
-Addresses issues #261 and #57.
+### Localization everywhere 🌍
 
-### Automatic cleanup of abandoned appointment requests
+Dates, times and prices now follow the active locale consistently, rather than falling back to a US format in the
+places the earlier work had not reached:
 
-Appointment requests that never became an appointment are now deleted automatically. When `django_q` is in your
-`INSTALLED_APPS` a daily task is scheduled for you on startup; otherwise you can run it yourself:
+- the booking calendar starts the week on the locale's first day, via Django's `FIRST_DAY_OF_WEEK`;
+- the chosen date and the offered time slots are rendered through Django's localization rather than a hardcoded
+  format, and the slots are sent to the browser as `[iso_datetime, localized_time]` pairs so the page can display one
+  and submit the other;
+- the down payment is localized like the price already was;
+- the date and time pickers in the administration pages get their format from the locale. Two new helpers,
+  `js_timepicker_display_format()` and `js_datepicker_display_format()`, translate Django's format characters into
+  their Moment.js equivalents, since the widgets cannot read Django's. They reach the templates through
+  `localized_formats` in the generic context.
+- the working hours form splits each field into a localized one the user sees and a hidden pre-formatted one it
+  submits, so what is displayed and what is parsed can differ without ambiguity;
+- the default email templates use the full weekday name instead of a locale-dependent abbreviation, and the admin
+  appointment view shows a localized time rather than a whole datetime.
 
-```bash
-python manage.py cleanup_appointment_requests --dry-run
-python manage.py cleanup_appointment_requests
-```
-
-The retention window is configurable with `APPOINTMENT_CLEANUP_DAYS` (default `7`). Confirmed appointments are never
-touched.
-
-### Spanish translation 🇪🇸
-
-Spanish (`es`) is now bundled, contributed by a community member. It is not actively maintained — see the
-[internationalization guide](../internationalization.md) — and maintainers would be very welcome.
-
-Alongside it, two translation bugs were fixed: `forms.py` used `gettext` instead of `gettext_lazy`, so field
-placeholders were always rendered in English, and email bodies were composed with `gettext`, so they were always sent
-in English regardless of the active language.
+The French catalogue was refreshed to match. Spanish is still looking for a maintainer — see the
+[internationalization guide](../internationalization.md).
 
 ### Smoother booking for logged-in users
 
-- A logged-in user booking an appointment no longer has to go through email verification.
+- A logged-in user booking an appointment no longer goes through email verification.
 - `ClientDataForm` pre-fills and disables the identity fields for a logged-in user, and the appointment is created
   from `request.user` rather than from the submitted data.
 - The address field is no longer required.
 - Django messages stay on screen 5 seconds longer.
 
-### Django 6 support
+### Template overrides that survive a mistake
 
-Django 6.0 and 6.1 are supported and covered by the compatibility matrix, which was reworked at the same time. The
-supported range is now `Django>=4.2,<7.0` on Python 3.10 – 3.14. See the
-[compatibility matrix](../compatibility.md).
+The custom template lookup added in 3.10 now accepts more than one name per template, and skips a candidate that
+exists but fails to compile — an unclosed `{% if %}`, an unknown tag, a bad `{% load %}` — falling back to the
+packaged default instead of taking the page down with it. Compile failures are logged with a warning naming the
+template, so a silently ignored override is visible in the logs.
+
+The two reschedule emails are the first to use the multiple-name lookup: `reschedule.html` and
+`reschedule_admin.html` are accepted alongside their older internal names. See
+[Custom templates](../custom-templates.md).
+
+### Context processors in verification emails
+
+`send_verification_email` now accepts the `request`, and it is passed to every renderer, so a custom email template
+can use your context processors.
+
+## Deprecations ⚠️
+
+`convert_12_hour_time_to_24_hour_time()` and `convert_24_hour_time_to_12_hour_time()` are deprecated. Both now emit a
+`DeprecationWarning` and **will be removed in 4.0.0**. Neither is used internally any more: times are formatted
+through Django's localization framework. If you call them from your own code, move to
+`django.utils.formats.time_format()` or the `time` template filter.
+
+`exclude_booked_slots()` is deprecated in favour of `exclude_unavailable_slots()`, which replaced it. It still works
+and still emits a `DeprecationWarning`, but it keeps the old argument order and hardcodes the newer parameters to
+`None`, so it cannot exclude unavailabilities, account for a service longer than the slot step, or apply the rest
+time between appointments. See [`db_helpers.py`](../utils/db_helpers.md#slot-calculations).
+
+Nothing was removed in this release.
 
 ## Bug Fixes 🐛
 
-- **Security:** authorization is now enforced on appointment updates, so a staff member can no longer modify an
-  appointment that isn't theirs (#426).
-- Fixed service durations under a minute being mishandled by `formatTime` (#262).
-- Fixed a local variable named `_` shadowing gettext's `_` in `views.py`, which broke translation in that module
-  (#455).
+- The daily cleanup task is now scheduled after `migrate` (from a `post_migrate` handler) rather than when the app
+  loads. On a fresh install, any management command — `makemigrations` included — used to log
+  `no such table: django_q_schedule`, because the schedule was queried before Django-Q's tables existed.
+- Fixed a `500` on the reschedule page when no `Config` row exists. Whether clients may change staff member on
+  reschedule now falls back to the field's default instead of dereferencing `None`.
+- The cached `Config` is now dropped whenever it is saved or deleted. An edit made in the admin previously took up to
+  an hour to reach the booking pages, for as long as the stale entry survived.
+- Django-Q is only considered available when it is both installed **and** listed in `INSTALLED_APPS`. It was
+  previously enough for the package to be importable, so a project that had it installed as an indirect dependency
+  could have reminders scheduled against a cluster that was never going to run.
+- The appointment buffer time is applied as a rolling window — no appointment may start before *now plus the buffer*,
+  whatever the day — rather than only on the current day.
+- Slots no longer extend past closing time: the service duration is subtracted from the end of the working day before
+  candidate slots are generated.
+- Fixed several `gettext` aliases shadowed by `gettext_lazy`, and a local variable named `_` shadowing `gettext`'s
+  `_` in the cleanup task and in `views_admin.py`. Affected strings were always rendered in the source language.
+- Fixed the guard in `appointment.js` that ran when no date had been selected.
+- Fixed date formatting arguments in the email templates.
 - Fixed the name of the `areRequiredFieldsFilled()` JavaScript function.
-- `send_verification_email` now accepts the `request`, so custom email templates can use context processors. The
-  request is passed to all renderers.
+- Fixed a CodeQL finding about clear-text logging of sensitive information.
+- Creating a `StaffMember` now grants that user Django's `is_staff` flag, whichever way the record was created — the
+  Django admin, the staff settings form, a fixture. Previously only the "create new staff member" flow set it, so a
+  staff member created any other way was locked out of the very pages they had been created for. Superusers are left
+  untouched.
+- `Unavailability.clean()` compared a `date` against a `datetime` and raised `TypeError` instead of validating.
+  Anything calling `full_clean()` — the Django admin's add and change forms among them — hit the error.
+- Removed leftover debug `print()` calls from `views_admin.py`.
+- The booking page rendered its first batch of slots without consulting unavailabilities, so a slot blocked by one
+  was offered until the client picked a date and the ajax lookup replaced the list. Both paths now agree.
+- The unavailability and working hours forms answer malformed input with a `400` and the `INVALID_DATA` error code
+  instead of raising. Their submitted values are also converted to `date` and `time` before reaching the model,
+  rather than being handed whole `datetime` objects.
+- Several helpers used a mutable list as a default argument (`unavailabilities=[]`, `appointments=[]`); they now
+  default to `None`. Calling them without those arguments is unchanged.
 
 ## Improvements 📈
 
-- The documentation site now lives in this repository under `docs/`, and is built with MkDocs Material.
-- Dependency updates across the board: Pillow, phonenumbers, django-phonenumber-field, babel, icalendar, django-q2,
-  python-dotenv, requests and setuptools.
+- The documentation site lives in this repository under `docs/` and is built with MkDocs Material. The reference
+  pages are now generated from, and checked against, the code they describe.
+- Slot availability tests no longer depend on the date they are run on, or on state cached by an earlier test.
+- Dependency updates across the board: Django, Pillow, phonenumbers, django-phonenumber-field, icalendar, django-q2,
+  python-dotenv, requests, setuptools and the CI actions.
 
 ## Breaking Changes 🚨
 
-- None in the public API. The new model fields do require a migration — see the
-  [migration guide](../migration_guides/latest.md).
+- **Python 3.8 and 3.9 are no longer supported.** `python_requires` is now `>=3.10`. Both are past end of life; if
+  you are still on either, stay on 3.10.1 until you can upgrade.
+- **A migration is required.** The new `Unavailability` model has to be created in your database. No existing field
+  changes meaning and no data is rewritten — see the [migration guide](../migration_guides/latest.md).
+- Projects that create `StaffMember` rows directly and deliberately relied on those users *not* being Django staff
+  should be aware of the `is_staff` change described under Bug Fixes.
 
 ## Getting Started 🚀
 
 ### Installation 📥:
 
 ```bash
-pip install django-appointment==3.10.1
+pip install django-appointment==3.11.0
 ```
 
 ### Database Migration 🔧:
@@ -121,6 +176,7 @@ python manage.py migrate
 
 ## Previous Version Highlights 🔙
 
+- [Release notes for the 3.10 series](v3_10_1.md)
 - [Release notes for version 3.0.1](v3_0_1.md)
 - [Release notes for version 3.0.0](v3_0_0.md)
 

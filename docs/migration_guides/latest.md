@@ -1,10 +1,24 @@
-## Migration Guide for the 3.10 series 🚀
+## Migration Guide for Version 3.11.0 🚀
 
-Version 3.10 adds four new model fields, so unlike 3.0.1 this upgrade **does** require a migration. No existing field
-changes meaning, and no data is rewritten — every new field has a default that preserves the previous behaviour for
-existing rows.
+Version 3.11.0 adds one new model, `Unavailability`, so this upgrade **does** require a migration. No existing field
+changes meaning, nothing is renamed, and no data is rewritten — the migration only creates the new table.
 
-### Steps for Upgrading to Version 3.10.x:
+It also raises the minimum Python version. Check that first.
+
+### Before you start: supported versions
+
+| Declared in `setup.cfg` | 3.10.1 | 3.11.0 |
+|---|---|---|
+| `python_requires` | `>=3.8` | **`>=3.10`** |
+| Django | `>=4.2,<6.0` | **`>=4.2,<7.0`** |
+| Tested combinations | Python 3.10 (CI only) | **Python 3.10 – 3.14, Django 4.2 – 6.1** |
+
+Python 3.8 and 3.9 are no longer accepted. `pip` will refuse to install 3.11.0 on them rather than installing
+something broken, so if you are still on either, stay on 3.10.1 until you can upgrade the interpreter.
+
+The [compatibility matrix](../compatibility.md) has the full grid of tested Python and Django combinations.
+
+### Steps for Upgrading to Version 3.11.0:
 
 1. **Backup Your Database**:
     - As a best practice, always back up your current database before performing an upgrade. This precaution ensures
@@ -22,37 +36,63 @@ existing rows.
       python manage.py makemigrations appointment
       python manage.py migrate
       ```
-    - The new fields are:
+    - What the migration creates:
 
-      | Model         | Field                        | Default | Effect                                             |
-      |---------------|------------------------------|---------|----------------------------------------------------|
-      | `Config`      | `default_to_service_duration` | `True`  | Availability accounts for each service's duration  |
-      | `Config`      | `slot_gap_time`              | `NULL`  | No rest time enforced between appointments         |
-      | `Service`     | `use_service_duration_as_slot` | `True` | Per-service fallback when the Config flag is off   |
-      | `StaffMember` | `slot_gap_time`              | `NULL`  | Falls back to the Config value                     |
+      | Model            | Change                                                                             |
+      |------------------|------------------------------------------------------------------------------------|
+      | `Unavailability` | New table: `staff_member`, `date`, `start_time`, `end_time`, `description`, `created_at`, `updated_at`, plus a check constraint enforcing `start_time < end_time` |
 
-4. **Review your slot availability**:
-    - `default_to_service_duration` defaults to `True`, which means services longer than your configured slot
-      duration will now correctly reserve the time they need. If you were relying on the previous behaviour — where a
-      long service only blocked one slot — your availability will legitimately look tighter after upgrading. Set the
-      flag to `False` in the Config model to opt back out per service.
+    - Nothing else in the schema changes. If `makemigrations` proposes anything beyond creating that table, stop and
+      compare it against your previous migrations before applying it.
 
-5. **Review and Test**:
+4. **Check your `StaffMember` rows**:
+    - From this release, creating a `StaffMember` grants that user Django's `is_staff` flag. Existing rows are **not**
+      backfilled. If you have staff members created outside the "create new staff member" flow — through the Django
+      admin, a fixture, or a data migration — they may still be missing the flag and therefore be unable to reach the
+      administration pages. To grant it to everyone who has a `StaffMember` record:
+      ```python
+      from django.contrib.auth import get_user_model
+      from appointment.models import StaffMember
+
+      get_user_model().objects.filter(
+          pk__in=StaffMember.objects.values('user_id'), is_staff=False, is_superuser=False
+      ).update(is_staff=True)
+      ```
+    - Conversely, if you deliberately keep staff members out of Django's staff group, review that decision: the
+      administration views have always gated on `is_staff`, so those users were not reaching the pages anyway.
+
+5. **Review your deprecation warnings**:
+    - `convert_12_hour_time_to_24_hour_time()` and `convert_24_hour_time_to_12_hour_time()` now emit a
+      `DeprecationWarning` and will be removed in 4.0.0. They are no longer used internally. If your own code calls
+      them, move to `django.utils.formats.time_format()` or the `time` template filter.
+    - `exclude_booked_slots()` also emits a `DeprecationWarning`. It still works, but it cannot exclude
+      unavailabilities or apply the newer slot rules — switch to `exclude_unavailable_slots()`, noting the argument
+      order changed: `exclude_unavailable_slots(slots, appointments=..., slot_duration=...)`.
+    - Run your test suite with `-W error::DeprecationWarning` to find the call sites.
+
+6. **Review and Test**:
     - After upgrading, thoroughly test your application to ensure all functionalities are working as expected with
       the new version.
-    - Pay particular attention to appointment booking, since that is where the slot changes are visible.
+    - Pay particular attention to any page that displays a date or a time. This release moved the remaining
+      hardcoded formats onto Django's localization, so dates, time slots and the down payment now follow the active
+      locale. If you had worked around the previous US-formatted output, that workaround is likely to be wrong now.
+    - If you override the administration templates, check the date and time pickers specifically: they are
+      configured from `localized_formats` in the generic context. See
+      [Custom templates](../custom-templates.md).
 
 ### Optional follow-ups
 
-- **Cleanup task**: if `django_q` is in your `INSTALLED_APPS`, a daily cleanup of abandoned appointment requests is
-  now scheduled automatically the first time the app starts. Set `APPOINTMENT_CLEANUP_DAYS` if 7 days is not the
-  retention you want, and run `python manage.py cleanup_appointment_requests --dry-run` first if you'd like to see
-  what it would remove.
-- **Custom templates**: nothing to do unless you want them. If you had previously forked a template, you can now
-  override it by name instead — see [Custom templates](../custom-templates.md).
+- **Unavailabilities**: nothing to do unless you want them. They are opt-in per staff member, and a staff member with
+  no unavailability behaves exactly as before. See [the model reference](../models.md#unavailability) for how they
+  interact with slot availability.
+- **Django 6**: the package now supports it, but upgrading Django is a separate exercise. Do one at a time.
 
 ### Troubleshooting:
 
+- **`makemigrations` wants to alter constraints it should not**:
+    - `CheckConstraint`'s `check` argument was renamed to `condition` in Django 5.1. The package handles both through
+      `appointment/compat.py`, but a project holding migrations generated under an older Django may see a no-op
+      constraint change proposed on first run. It is harmless to apply.
 - **Issues Post Migration**:
     - If you encounter issues after migration, consult the [release notes](../release_notes/latest.md) for the
       specific updates that might affect your setup.
@@ -62,5 +102,7 @@ existing rows.
 
 - As with any upgrade, testing in a development or staging environment before applying changes to your production
   environment is highly recommended.
+- Upgrading from the 3.10 series? Read the [3.10 migration guide](v3_10_1.md) first if you skipped it — that release
+  added four model fields.
 - Upgrading from a version before 2.0.0? Read the [2.1.0 migration guide](v2_1_0.md) first — that release did change
   the schema significantly.
