@@ -3,34 +3,41 @@
 {% load static %}
 
 {% block customCSS %}
-    <link rel="stylesheet" href="{% static 'css/verification_code.css' %}">
+    <link rel="stylesheet" href="{% static 'css/booking.css' %}">
 {% endblock %}
 
 {% block title %}{% trans 'Enter Verification Code' %}{% endblock %}
 {% block description %}{% trans 'Enter Verification Code' %}{% endblock %}
 
 {% block djappt_content %}
-    <div class="vcode-container">
-        <div class="vcode-card">
-            <h1 class="vcode-title">{% trans 'Enter Verification Code' %}</h1>
-            <p class="vcode-instruction">{% trans "We've sent a verification code to your email. Please enter it below" %}:</p>
-
-            <form method="post" class="vcode-form">
-                {% csrf_token %}
-                <div class="vcode-input-group">
-                    <label for="verification-code" class="vcode-label">{% trans 'Code' %}:</label>
-                    <input type="text" id="verification-code" name="code" class="vcode-input" required>
-                </div>
-                <button type="submit" class="vcode-button">{% trans 'Submit' %}</button>
-            </form>
+    <div class="djappt-shell djappt-shell--narrow djappt-booking vcode-container">
+        <div class="djappt-card djappt-card--roomy djappt-form djappt-center vcode-card">
+            <span class="djappt-status-icon" aria-hidden="true">
+                <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1zm13 2.383-4.708 2.825L15 11.105zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741M1 11.105l4.708-2.897L1 5.383z"/>
+                </svg>
+            </span>
+            <h1 class="djappt-title vcode-title">{% trans 'Enter Verification Code' %}</h1>
+            <p class="djappt-lead mb-4 vcode-instruction">{% trans "We've sent a verification code to your email. Please enter it below" %}:</p>
 
             {% if messages %}
                 {% for message in messages %}
-                    <div class="vcode-alert vcode-alert-{% if message.tags %}{{ message.tags }}{% endif %}">
-                        {{ message }}
-                    </div>
+                    <div class="alert {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}alert-danger{% else %}alert-{{ message.tags|default:'info' }}{% endif %} text-start vcode-alert vcode-alert-{% if message.tags %}{{ message.tags }}{% endif %}"
+                         role="alert">{{ message }}</div>
                 {% endfor %}
             {% endif %}
+
+            <form method="post" class="vcode-form">
+                {% csrf_token %}
+                <div class="mb-3 text-start vcode-input-group">
+                    <label for="verification-code" class="form-label vcode-label">{% trans 'Code' %}</label>
+                    <input type="text" id="verification-code" name="code"
+                           class="form-control djappt-code-input vcode-input"
+                           autocomplete="one-time-code" autocapitalize="characters" spellcheck="false"
+                           autofocus required>
+                </div>
+                <button type="submit" class="btn djappt-btn djappt-btn-primary w-100 vcode-button">{% trans 'Submit' %}</button>
+            </form>
         </div>
     </div>
 {% endblock %}

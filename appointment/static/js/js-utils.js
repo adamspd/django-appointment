@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const messageElements = document.querySelectorAll('.alert-dismissible');
+    // Only the package's own messages: the host page can have alerts of its own.
+    const messageElements = document.querySelectorAll('.djappt .alert-dismissible');
     setTimeout(function () {
         messageElements.forEach(function (element) {
             element.style.display = 'none';

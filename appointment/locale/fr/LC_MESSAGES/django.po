@@ -285,7 +285,7 @@ msgstr "Mis à jour le"
 #: .\appointment\templates\email_sender\reminder_email.html:130
 #: .\appointment\views.py:433
 msgid "Service"
-msgstr ""
+msgstr "Service"
 
 #: .\appointment\models.py:126
 msgid "Services"
@@ -441,7 +441,7 @@ msgstr "Rien"
 #: .\appointment\templates\email_sender\reschedule_email.html:64
 #: .\appointment\templates\email_sender\reschedule_email.html:69
 msgid "Date"
-msgstr ""
+msgstr "Date"
 
 #: .\appointment\models.py:400
 msgid "The date of the appointment request."
@@ -1134,7 +1134,7 @@ msgstr ""
 #: .\appointment\templates\administration\email_change_verification_code.html:22
 #: .\appointment\templates\appointment\enter_verification_code.html:21
 msgid "Code"
-msgstr ""
+msgstr "Code"
 
 #: .\appointment\templates\administration\email_change_verification_code.html:25
 #: .\appointment\templates\administration\manage_day_off.html:69
@@ -1518,7 +1518,7 @@ msgstr "Détails du paiement"
 
 #: .\appointment\templates\appointment\appointment_client_information.html:105
 msgid "Total"
-msgstr ""
+msgstr "Total"
 
 #: .\appointment\templates\appointment\appointment_client_information.html:111
 msgid "Pay"
@@ -2398,3 +2398,23 @@ msgstr "Demande de reprogrammation pour %(client_name)s"
 #, python-format
 msgid "%(service)s on %(date)s"
 msgstr "%(service)s le %(date)s"
+
+#: appointment/templates/appointment/appointments.html
+msgid "Book an appointment"
+msgstr "Prendre rendez-vous"
+
+#: appointment/templates/appointment/appointments.html
+msgid "Choose a date"
+msgstr "Choisissez une date"
+
+#: appointment/templates/appointment/appointments.html
+msgid "Choose a time"
+msgstr "Choisissez une heure"
+
+#: appointment/templates/appointment/appointments.html
+msgid "Your appointment"
+msgstr "Votre rendez-vous"
+
+#: appointment/templates/appointment/appointments.html
+msgid "Contact information"
+msgstr "Coordonnées"
