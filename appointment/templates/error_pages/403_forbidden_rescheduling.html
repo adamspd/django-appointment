@@ -2,93 +2,6 @@
 {% extends "appointment/layout.html" %}
 {% load i18n %}
 {% load static %}
-{% block customCSS %}
-    <style>
-        :where(.djappt) *,
-        :where(.djappt) *::before,
-        :where(.djappt) *::after {
-            box-sizing: border-box;
-        }
-
-        :where(.djappt) * {
-            margin: 0;
-            padding: 0;
-        }
-
-        :where(.djappt) {
-            font: normal 100%/1.15 "Merriweather", serif;
-            background: #fff url("{% static 'img/texture.webp' %}") repeat 0 0;
-            color: #fff;
-        }
-
-        :where(.djappt) .wrapper {
-            position: relative;
-            max-width: 1298px;
-            height: auto;
-            margin: 2em auto 0 auto;
-            background: transparent url("{% static 'img/wood-fence.webp' %}") no-repeat center top 24em;
-        }
-
-        .box {
-            max-width: 70%;
-            min-height: 600px;
-            margin: 0 auto;
-            padding: 1em 1em;
-            text-align: center;
-            background: transparent url("{% static 'img/dog-family-colored-doodle-drawing.webp' %}") no-repeat top 10em center;
-        }
-
-        :where(.djappt) h1 {
-            margin: 0 0 1rem 0;
-            font-size: 8em;
-            text-shadow: 0 0 6px #8b4d1a;
-        }
-
-        :where(.djappt) p {
-            margin-bottom: 0.5em;
-            font-size: 1.75em;
-            color: #ea8a1a;
-        }
-
-        :where(.djappt) p:first-of-type {
-            margin-top: 16em;
-            text-shadow: none;
-        }
-
-        :where(.djappt) p > a {
-            border-bottom: 1px dashed #837256;
-            font-style: italic;
-            text-decoration: none;
-            color: #837256;
-        }
-
-        :where(.djappt) p > a:hover {
-            text-shadow: 0 0 3px #8b4d1a;
-        }
-
-        :where(.djappt) p img {
-            vertical-align: bottom;
-        }
-
-        @media screen and (max-width: 600px) {
-            :where(.djappt) .wrapper {
-                background-size: 300px 114px;
-                background-position: center top 22em;
-            }
-
-            .box {
-                max-width: 100%;
-                margin: 0 auto;
-                padding: 0;
-                background-size: 320px 185px;
-            }
-
-            :where(.djappt) p:first-of-type {
-                margin-top: 12em;
-            }
-        }
-    </style>
-{% endblock %}
 {% block customMetaTag %}
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
 {% endblock %}
@@ -99,14 +12,17 @@
     {% trans "Form resubmission not allowed." %}
 {% endblock %}
 {% block djappt_content %}
-    <div class="wrapper">
-        <div class="box">
-            <h1>403</h1>
-            <p>{% trans "Sorry, it's not allowed to reschedule this appointment at this time" %}.</p>
-            <p><a href="{{ url }}">{% trans "Please, send us a message or schedule a new appointment" %}.</a></p>
-
+    <div class="djappt-shell djappt-shell--narrow">
+        <div class="djappt-card djappt-card--roomy djappt-center box">
+            <img class="djappt-illustration" src="{% static 'img/dog-family-colored-doodle-drawing.webp' %}" alt=""
+                 width="383" height="221">
+            <p class="djappt-eyebrow">403</p>
+            <h1 class="djappt-title">{% trans "Sorry, it's not allowed to reschedule this appointment at this time" %}.</h1>
+            <p class="djappt-lead">{% trans "Please, send us a message or schedule a new appointment" %}.</p>
+            <div class="djappt-actions">
+                <a href="{{ url }}" class="btn djappt-btn djappt-btn-primary">{% trans "Book an appointment" %}</a>
+            </div>
         </div>
     </div>
-    <!-- Credits -->
-    <!-- https://codepen.io/fcasantos/pen/Ooreoa -->
+    <!-- Illustration credits: https://codepen.io/fcasantos/pen/Ooreoa -->
 {% endblock %}
