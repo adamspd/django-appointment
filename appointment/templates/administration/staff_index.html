@@ -9,7 +9,7 @@
     <link rel="stylesheet" type="text/css" href="{% static 'css/app_admin/admin.css' %}"/>
     <style>
         @media (max-width: 991px) {
-            body {
+            :where(.djappt) {
                 font-size: 15px; /* Adjust font size for tablets */
             }
 
@@ -20,8 +20,7 @@
 
         /* Mobile Styles */
         @media (max-width: 767px) {
-            body {
-                margin: 20px 5px; /* Reduce margins on mobile */
+            :where(.djappt) {
                 font-size: 14px; /* Adjust font size for mobiles */
             }
 
@@ -29,7 +28,7 @@
                 max-width: 100%; /* Let the calendar take the full width on mobile */
             }
 
-            .fc, .fc-toolbar-title, h2 {
+            :where(.djappt) .fc, :where(.djappt) .fc-toolbar-title, :where(.djappt) h2 {
                 font-size: 15px !important; /* Adjust as needed */
                 margin: 0; /* Remove any default margin */
             }
@@ -57,7 +56,7 @@
             flex-shrink: 0; /* Prevents the div from shrinking beyond its content's size */
         }
 
-        .modal-content {
+        :where(.djappt) .modal-content {
             background-color: #fff;
             margin: 10% auto; /* Centering the modal vertically */
             width: 100%;
@@ -65,7 +64,7 @@
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.2); /* A little shadow for depth */
         }
 
-        .modal-footer {
+        :where(.djappt) .modal-footer {
             text-align: right;
         }
 
@@ -79,7 +78,7 @@
             cursor: pointer;
         }
 
-        .body-blur {
+        :where(.djappt) .body-blur {
             filter: blur(2px); /* This will blur the whole body when modal is open */
         }
 
@@ -182,7 +181,7 @@
 
         /* Larger Modal on Desktop */
         @media (min-width: 850px) {
-            .modal-content {
+            :where(.djappt) .modal-content {
                 /* centering the modal horizontally */
                 margin: 10% auto;
                 left: 0;
@@ -238,11 +237,11 @@
         }
 
         @media (max-width: 450px) {
-            .fc-daygrid-event-harness {
+            :where(.djappt) .fc-daygrid-event-harness {
                 width: 5px;
             }
 
-            .fc td, .fc th {
+            :where(.djappt) .fc td, :where(.djappt) .fc th {
 
             }
         }
@@ -259,7 +258,7 @@
 {% block description %}
     {{ page_description }}
 {% endblock %}
-{% block body %}
+{% block djappt_content %}
     <section class="content content-wrapper">
         <div class="container">
             <div class="calendar-wrapper">

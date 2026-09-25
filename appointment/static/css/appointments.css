@@ -1,9 +1,9 @@
-.fc-scroller {
+:where(.djappt) .fc-scroller {
     overflow: hidden !important;
 }
 
 @media (max-width: 450px) {
-    .fc-daygrid-day-events {
+    :where(.djappt) .fc-daygrid-day-events {
         display: none !important;
         margin: 0 !important;
         padding: 0 !important;
@@ -11,7 +11,7 @@
         height: 0 !important;
     }
 
-    .fc, .fc-button {
+    :where(.djappt) .fc, :where(.djappt) .fc-button {
         padding: .3em .45em !important;
     }
 }

@@ -11,14 +11,14 @@
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-h2 {
+:where(.djappt) h2 {
     border-bottom: 1px solid #e0e0e0;
     padding-bottom: 15px;
     margin-bottom: 30px;
     font-weight: 600;
 }
 
-.form-control {
+:where(.djappt) .form-control {
     width: 100%;
     padding: 5px;
     border: 1px solid #ccc;
@@ -26,12 +26,12 @@ h2 {
     transition: border 0.3s;
 }
 
-.form-control:focus {
+:where(.djappt) .form-control:focus {
     border-color: #007BFF;
     box-shadow: 0 0 5px rgba(0,123,255,0.2);
 }
 
 /* Design TextArea */
-textarea.form-control {
+:where(.djappt) textarea.form-control {
     height:60px;
 }

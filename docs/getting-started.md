@@ -120,6 +120,9 @@ following blocks:
 Note: At minimum, the `customMetaTag` (inside `<head>`), `customCSS`, `body`, and `customJS` blocks are required.
 jQuery and Bootstrap 5 (CSS and JS) are also necessary for proper functionality.
 
+The pages render inside a `<div class="djappt">` wrapper in your `body` block, and the package CSS only styles what's
+inside it: your navbar, footer and own CSS are left alone.
+
 ## Customization
 
 You can override default settings in your `settings.py`.

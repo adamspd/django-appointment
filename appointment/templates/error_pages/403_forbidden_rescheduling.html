@@ -4,28 +4,24 @@
 {% load static %}
 {% block customCSS %}
     <style>
-        html {
+        :where(.djappt) *,
+        :where(.djappt) *::before,
+        :where(.djappt) *::after {
             box-sizing: border-box;
         }
 
-        *,
-        *::before,
-        *::after {
-            box-sizing: inherit;
-        }
-
-        body * {
+        :where(.djappt) * {
             margin: 0;
             padding: 0;
         }
 
-        body {
+        :where(.djappt) {
             font: normal 100%/1.15 "Merriweather", serif;
             background: #fff url("{% static 'img/texture.webp' %}") repeat 0 0;
             color: #fff;
         }
 
-        .wrapper {
+        :where(.djappt) .wrapper {
             position: relative;
             max-width: 1298px;
             height: auto;
@@ -42,40 +38,40 @@
             background: transparent url("{% static 'img/dog-family-colored-doodle-drawing.webp' %}") no-repeat top 10em center;
         }
 
-        h1 {
+        :where(.djappt) h1 {
             margin: 0 0 1rem 0;
             font-size: 8em;
             text-shadow: 0 0 6px #8b4d1a;
         }
 
-        p {
+        :where(.djappt) p {
             margin-bottom: 0.5em;
             font-size: 1.75em;
             color: #ea8a1a;
         }
 
-        p:first-of-type {
+        :where(.djappt) p:first-of-type {
             margin-top: 16em;
             text-shadow: none;
         }
 
-        p > a {
+        :where(.djappt) p > a {
             border-bottom: 1px dashed #837256;
             font-style: italic;
             text-decoration: none;
             color: #837256;
         }
 
-        p > a:hover {
+        :where(.djappt) p > a:hover {
             text-shadow: 0 0 3px #8b4d1a;
         }
 
-        p img {
+        :where(.djappt) p img {
             vertical-align: bottom;
         }
 
         @media screen and (max-width: 600px) {
-            .wrapper {
+            :where(.djappt) .wrapper {
                 background-size: 300px 114px;
                 background-position: center top 22em;
             }
@@ -87,7 +83,7 @@
                 background-size: 320px 185px;
             }
 
-            p:first-of-type {
+            :where(.djappt) p:first-of-type {
                 margin-top: 12em;
             }
         }
@@ -102,7 +98,7 @@
 {% block description %}
     {% trans "Form resubmission not allowed." %}
 {% endblock %}
-{% block body %}
+{% block djappt_content %}
     <div class="wrapper">
         <div class="box">
             <h1>403</h1>
