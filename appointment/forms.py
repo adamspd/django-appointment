@@ -100,7 +100,8 @@ class ClientDataForm(forms.Form):
         super().__init__(*args, **kwargs)
 
         if user and user.is_authenticated:
-            self.fields['name'].disabled = True
+            # The name is prefilled but stays editable (saved to the account). The email is the account's identity:
+            # the booking goes to that account, so it can't be changed here.
             self.fields['name'].initial = user.get_full_name()
             self.fields['email'].disabled = True
             self.fields['email'].initial = user.email
