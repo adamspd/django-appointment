@@ -100,9 +100,13 @@ Your base must define the `customMetaTag` (inside `<head>`), `customCSS`, `title
 `{% block body %}`. Without these settings, the package falls back to `base_templates/base.html`, a bare page with no
 navbar.
 
+The layout fills your `body` block with a `<div class="djappt">` wrapper, and the pages put their content in its
+`djappt_content` block. The package CSS only styles what's inside that wrapper: it never changes your navbar, footer or
+other pages, and your own CSS keeps working around it.
+
 Don't override `appointment/layout.html`: it holds what every package page needs. To change a page, override it as
-shown below; to change the page shell, change your base. Your page overrides can extend `appointment/layout.html` too,
-or extend `BASE_TEMPLATE` directly as before.
+shown below; to change the page shell, change your base. Your page overrides can extend `appointment/layout.html` too
+(put the content in `{% block djappt_content %}` so it gets the wrapper), or extend `BASE_TEMPLATE` directly as before.
 
 ## Available Templates
 

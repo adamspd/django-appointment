@@ -13,24 +13,24 @@
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-h3 {
+:where(.djappt) h3 {
     border-bottom: 1px solid #e0e0e0;
     padding-bottom: 15px;
     margin-bottom: 20px;
     font-weight: 500;
 }
 
-.form-group {
+:where(.djappt) .form-group {
     margin-bottom: 20px;
 }
 
-.form-group label {
+:where(.djappt) .form-group label {
     display: block;
     margin-bottom: 8px;
     font-weight: 500;
 }
 
-.form-control {
+:where(.djappt) .form-control {
     width: 100%;
     padding: 2px 10px;
     border: 1px solid #ccc;
@@ -38,21 +38,21 @@ h3 {
     transition: border 0.3s;
 }
 
-.form-control:focus {
+:where(.djappt) .form-control:focus {
     border-color: #007BFF;
     box-shadow: 0 0 5px rgba(0,123,255,0.2);
 }
 
-.form-check {
+:where(.djappt) .form-check {
     margin-bottom: 10px;
 }
 
-.form-check label {
+:where(.djappt) .form-check label {
     margin-left: 5px;
     font-weight: 400;
 }
 
-.btn {
+:where(.djappt) .btn {
     padding: 10px 20px;
     border: none;
     background-color: #007bff;
@@ -62,7 +62,7 @@ h3 {
     transition: background-color 0.3s;
 }
 
-.btn:hover {
+:where(.djappt) .btn:hover {
     background-color: #0056b3;
 }
 
@@ -85,7 +85,7 @@ h3 {
     color: #666;
 }
 
-small {
+:where(.djappt) small {
     color: #3d3d3d;
     font-size: 12px;
 }

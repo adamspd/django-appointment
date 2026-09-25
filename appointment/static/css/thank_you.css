@@ -9,7 +9,7 @@
     margin-bottom: 50px;
 }
 
-.main-content {
+:where(.djappt) .main-content {
     font-family: Arial, sans-serif;
     line-height: 1.6;
     padding: 20px;

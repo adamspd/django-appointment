@@ -1,18 +1,18 @@
 /* Set margins for the main container */
-.main-container {
+:where(.djappt) .main-container {
     margin-left: 20px;
     margin-right: 20px;
 }
 
 /* Center and set max width for the body container */
-.body-container {
+:where(.djappt) .body-container {
     margin: 0 auto;
     max-width: 1080px;
     padding: 0 15px;
 }
 
 /* Set display and margin for page body */
-.page-body {
+:where(.djappt) .page-body {
     display: flex;
     flex-direction: row;
     margin-top: 50px;
@@ -113,7 +113,7 @@
 
 
 /* Set font styles for input labels */
-label {
+:where(.djappt) label {
     font-family: "DejaVu Serif", serif;
 }
 
@@ -147,12 +147,12 @@ label {
 }
 
 /* Set flex for title section */
-.title {
+:where(.djappt) .title {
     flex: 1;
 }
 
 /* Set color for links */
-a {
+:where(.djappt) a {
     color: #0c042c;
 }
 
@@ -200,7 +200,7 @@ a {
 @media only screen and (max-width: 795px) {
 
     /* Adjust the page body layout for smaller screens */
-    .page-body {
+    :where(.djappt) .page-body {
         flex-direction: column;
     }
 
@@ -254,7 +254,7 @@ a {
 @media only screen and (max-width: 450px) {
 
     /* Adjust the page body layout for smaller screens */
-    .main-container {
+    :where(.djappt) .main-container {
         width: 97%;
         margin: 0 !important;
     }

@@ -3,14 +3,13 @@
 {% load static %}
 {% block customCSS %}
     <style>
-        body {
+        :where(.djappt) {
             font-family: 'Nunito', sans-serif;
             background-color: #f7f7f7;
-            margin: 0;
             padding: 20px;
         }
 
-        .container {
+        :where(.djappt) .container {
             max-width: 600px;
             background: #ffffff;
             margin: 40px auto;
@@ -19,7 +18,7 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
-        .title {
+        :where(.djappt) .title {
             color: #333;
             text-align: center;
         }
@@ -34,7 +33,7 @@
 {% endblock %}
 {% block title %}{{ page_title }}{% endblock %}
 {% block description %}{{ page_description }}{% endblock %}
-{% block body %}
+{% block djappt_content %}
     <div class="container">
         <h1 class="title">{{ page_title }}</h1>
         <p class="message">

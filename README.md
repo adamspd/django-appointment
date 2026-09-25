@@ -280,7 +280,8 @@ blocks:
 These blocks are essential for the proper functioning of the application:
 - `customMetaTag` goes inside `<head>`: the staff pages put the CSRF token there for their AJAX requests.
 - `customCSS` and `customJS` allow the application to inject the necessary styles and scripts.
-- `body` is where the main content of each page will be rendered.
+- `body` is where the main content of each page will be rendered, inside a `<div class="djappt">` wrapper. The
+  package CSS only styles what's inside that wrapper, so your navbar and footer keep their look.
 - `title` and `description` are used for SEO and are recommended but not strictly required.
 
 Your base must also load jQuery and Bootstrap 5 (CSS and JS), before the `customJS` block.
