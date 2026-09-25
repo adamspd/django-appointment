@@ -541,6 +541,8 @@ def set_passwd(request, uidb64, token):
         messages.error(request, _("The password reset link is invalid or has expired."))
         return render(request, error_template, context=context_)
 
+    for field in form.fields.values():
+        field.widget.attrs.setdefault('class', 'form-control')
     context_.update({'form': form})
     return render(request, form_template, context_)
 
