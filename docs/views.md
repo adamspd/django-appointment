@@ -123,7 +123,12 @@ This view function handles the submission of the email verification code.
 - `django.http.HttpResponse`: The rendered HTML page.
 
 ### default thank you
-This view function handles the default thank you page. It also sends the confirmation email to the client.
+This view function handles the default thank you page. It also sends the confirmation email to the client, on the first
+visit after a booking or a reschedule only.
+
+The page is shown to the browser that booked or rescheduled the appointment (the booking and reschedule views record
+it in the session), to the client's account, to the appointment's staff member and to superusers. Anyone else gets a
+`404`, so appointment ids can't be tried in turn.
 
 #### Args:
 - `request` (django.http.HttpRequest): The request instance.
