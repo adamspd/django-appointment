@@ -429,7 +429,9 @@ def update_personal_info(request, staff_user_id=None):
             return redirect('appointment:user_profile')
         else:
             messages.error(request, error_message)
-            return redirect(request.path)
+            if staff_user_id:
+                return redirect('appointment:update_user_info', staff_user_id=staff_user_id)
+            return redirect('appointment:update_user_info')
 
     if staff_user_id:
         user = get_user_model().objects.get(pk=staff_user_id)
