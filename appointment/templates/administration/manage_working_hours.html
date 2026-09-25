@@ -54,7 +54,7 @@
                         <div class="input-group date" id="start-timepicker" data-target-input="nearest">
                             <input type="text" class="form-control datetimepicker-input" data-toggle="datetimepicker"
                                    data-target="#start-timepicker" name="{{ working_hours_form.start_time.name }}"
-                                   value="{{ working_hours_form.start_time.value }}"
+                                   value="{{ working_hours_form.start_time.value|default_if_none:'' }}"
                                    id="{{ working_hours_form.start_time.id_for_label }}">
                             <div class="input-group-append" data-toggle="datetimepicker"
                                  data-target="#start-timepicker">
@@ -62,8 +62,8 @@
                             </div>
                         </div>
                         <input type="hidden" name="{{ working_hours_form.start_time.name }}_raw"
-                            value="{{ working_hours_form.start_time.value }}"
-                            id="{{ working_hours_form.start_time.id_for_label }}_raw">
+                               value="{{ working_hours_form.start_time.value|default_if_none:'' }}"
+                               id="{{ working_hours_form.start_time.id_for_label }}_raw">
                     </div>
 
                     <div class="form-group">
@@ -71,15 +71,15 @@
                         <div class="input-group date" id="end-timepicker" data-target-input="nearest">
                             <input type="text" class="form-control datetimepicker-input" data-toggle="datetimepicker"
                                    data-target="#end-timepicker" name="{{ working_hours_form.end_time.name }}"
-                                   value="{{ working_hours_form.end_time.value }}"
+                                   value="{{ working_hours_form.end_time.value|default_if_none:'' }}"
                                    id="{{ working_hours_form.end_time.id_for_label }}">
                             <div class="input-group-append" data-toggle="datetimepicker" data-target="#end-timepicker">
                                 <div class="input-group-text"><i class="far fa-clock"></i></div>
                             </div>
                         </div>
                         <input type="hidden" name="{{ working_hours_form.end_time.name }}_raw"
-                            value="{{ working_hours_form.end_time.value }}"
-                            id="{{ working_hours_form.end_time.id_for_label }}_raw">
+                               value="{{ working_hours_form.end_time.value|default_if_none:'' }}"
+                               id="{{ working_hours_form.end_time.id_for_label }}_raw">
                     </div>
 
                     <button type="submit" class="btn btn-primary">{{ button_text }}</button>
@@ -92,8 +92,8 @@
                 <div class="messages" style="margin: 20px 0">
                     {% if messages %}
                         {% for message in messages %}
-                        <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
-                            role="alert">{{ message }}</div>
+                            <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
+                                 role="alert">{{ message }}</div>
                         {% endfor %}
                     {% endif %}
                 </div>
