@@ -79,6 +79,31 @@ your_project/
 
 You only create the files you actually want to override — everything else keeps using the defaults.
 
+## Your Base Template
+
+The package pages don't draw your site's navbar or footer. They render inside your own base template, through a small
+package layout:
+
+```
+your page override or package page
+  └── extends appointment/layout.html   (package, shared by every page, no site chrome)
+        └── extends APPOINTMENT_BASE_TEMPLATE / APPOINTMENT_ADMIN_BASE_TEMPLATE   (your base)
+```
+
+```python
+APPOINTMENT_BASE_TEMPLATE = 'base.html'  # booking, thank-you and error pages
+APPOINTMENT_ADMIN_BASE_TEMPLATE = 'staff_base.html'  # staff pages (optional, defaults to the same file)
+```
+
+Your base must define the `customMetaTag` (inside `<head>`), `customCSS`, `title`, `description`, `body` and
+`customJS` blocks, and load jQuery and Bootstrap 5 (CSS and JS) before `customJS`. Put your navbar and footer around
+`{% block body %}`. Without these settings, the package falls back to `base_templates/base.html`, a bare page with no
+navbar.
+
+Don't override `appointment/layout.html`: it holds what every package page needs. To change a page, override it as
+shown below; to change the page shell, change your base. Your page overrides can extend `appointment/layout.html` too,
+or extend `BASE_TEMPLATE` directly as before.
+
 ## Available Templates
 
 ### Page Templates (Custom Directory)
