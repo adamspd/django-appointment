@@ -7,23 +7,24 @@ from unittest.mock import MagicMock, PropertyMock, patch
 
 from django.apps import apps
 from django.conf import settings
+from django.contrib.auth.models import AnonymousUser
 from django.core.cache import cache
 from django.core.exceptions import FieldDoesNotExist
 from django.test import TestCase, override_settings
 from django.test.client import RequestFactory
 from django.urls import reverse
 from django.utils import timezone
-from django.contrib.auth.models import AnonymousUser
 
 from appointment.logger_config import get_logger
 from appointment.models import Config, DayOff, PaymentInfo
-from appointment.settings import CONFIG_CACHE_KEY, check_q_cluster
+from appointment.settings import CONFIG_CACHE_KEY, initialize_django_q
 from appointment.tests.base.base_test import BaseTest
 from appointment.tests.mixins.base_mixin import ConfigMixin
 from appointment.utils.db_helpers import (
     Appointment, AppointmentRequest, AppointmentRescheduleHistory, Config, WorkingHours, calculate_slots,
     calculate_staff_slots, can_appointment_be_rescheduled, cancel_existing_reminder, check_day_off_for_staff,
-    create_and_save_appointment, create_new_user, create_payment_info_and_get_url, day_off_exists_for_date_range, exclude_booked_slots,
+    create_and_save_appointment, create_new_user, create_payment_info_and_get_url, day_off_exists_for_date_range,
+    exclude_booked_slots,
     exclude_unavailable_slots, exclude_pending_reschedules, generate_unique_username_from_email, get_absolute_url_,
     get_all_appointments, get_all_staff_members, get_appointment_buffer_time, get_appointment_by_id,
     get_appointment_finish_time, get_appointment_lead_time, get_appointment_slot_duration,
@@ -37,16 +38,7 @@ from appointment.utils.db_helpers import (
 logger = get_logger(__name__)
 
 # django-q is only usable when it is both installed as a dependency and listed in INSTALLED_APPS
-DJANGO_Q_AVAILABLE = False
-Schedule = None
-
-if 'django_q' in settings.INSTALLED_APPS:
-    try:
-        from django_q.models import Schedule
-
-        DJANGO_Q_AVAILABLE = True
-    except ImportError:
-        pass
+DJANGO_Q_AVAILABLE, _, _, Schedule = initialize_django_q()
 
 
 @skip("Django-Q is not available")
@@ -60,7 +52,7 @@ class TestCalculateSlots(TestCase):
         self.start_time = datetime.datetime(2023, 10, 8, 8, 0)  # 8:00 AM
         self.end_time = datetime.datetime(2023, 10, 8, 12, 0)  # 12:00 PM
         self.slot_duration = datetime.timedelta(hours=1)  # 1 hour
-        # Buffer time should've been datetime.datetime.now() but for the purpose of the tests, we'll use a fixed time.
+        # Buffer time should've been datetime.datetime.now(), but for these tests, we'll use a fixed time.
         self.buffer_time = datetime.datetime(2023, 10, 8, 8, 0) + self.slot_duration
 
     def test_multiple_slots(self):
@@ -511,7 +503,7 @@ class CancelExistingReminderTest(BaseTest):
         appointment = self.create_appt_for_sm1()
         Schedule.objects.create(func='appointment.tasks.send_email_reminder', name=f"reminder_{appointment.id_request}")
 
-        self.assertEqual(Schedule.objects.count(), 1)
+        self.assertEqual(Schedule.objects.filter(name=f"reminder_{appointment.id_request}").count(), 1)
         cancel_existing_reminder(appointment.id_request)
         self.assertEqual(Schedule.objects.filter(name=f"reminder_{appointment.id_request}").count(), 0)
 
