@@ -18,16 +18,16 @@
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-.form-group {
+:where(.djappt) .form-group {
     margin-bottom: 20px;
 }
 
-.form-group label {
+:where(.djappt) .form-group label {
     display: block;
     margin-bottom: 5px;
 }
 
-.form-group input, .form-group select, .form-group textarea {
+:where(.djappt) .form-group input, :where(.djappt) .form-group select, :where(.djappt) .form-group textarea {
     width: 100%;
     padding: 10px;
     border: 1px solid #e0e0e0;

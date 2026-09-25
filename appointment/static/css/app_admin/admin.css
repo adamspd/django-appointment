@@ -10,15 +10,15 @@
         font-size: 13px !important;
     }
 
-    .fc-dayGridMonth-view .fc-scroller {
+    :where(.djappt) .fc-dayGridMonth-view .fc-scroller {
         overflow: hidden !important;
     }
 
-    .modal-content {
+    :where(.djappt) .modal-content {
         margin: 0 auto !important;
     }
 
-    .modal-footer {
+    :where(.djappt) .modal-footer {
         text-align: left !important;
         flex-wrap: inherit !important;
         justify-content: center !important;
@@ -41,13 +41,13 @@
 
 /* Hide scrollbar for time grid day view on larger screens */
 @media (min-width: 450px) {
-    .fc-timeGridDay-view .fc-scroller {
+    :where(.djappt) .fc-timeGridDay-view .fc-scroller {
         overflow: hidden !important;
     }
 }
 
 @media (min-width: 600px) {
-    .fc-scroller {
+    :where(.djappt) .fc-scroller {
         overflow: hidden !important;
     }
 }
