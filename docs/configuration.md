@@ -11,7 +11,7 @@ model in the admin panel. However, you can also set them here.
 The values provided here represent the default settings. Change them to suit your needs.
 
 ```python
-APPOINTMENT_BASE_TEMPLATE = 'base_templates/base.html'
+APPOINTMENT_BASE_TEMPLATE = 'base_templates/base.html'  # Your site's base template, used by the booking pages
 APPOINTMENT_ADMIN_BASE_TEMPLATE = 'base_templates/base.html'  # (optional) Specify a different base template for the admin panel
 APPOINTMENT_WEBSITE_NAME = 'Website'  # Can be set in the Config model.
 APPOINTMENT_PAYMENT_URL = None
@@ -22,6 +22,9 @@ APPOINTMENT_LEAD_TIME = (9, 0)  # Can be set in the Config Model. Start time of 
 APPOINTMENT_FINISH_TIME = (18, 30)  # Can be set in the Config Model. End time of the appointment slots (in 24-hour format)
 USE_DJANGO_Q_FOR_EMAILS = False  # Use Django Q for sending ALL emails.
 ```
+
+The package pages extend `appointment/layout.html`, which extends the base template you set. See
+[Your base template](custom-templates.md#your-base-template) for the blocks and scripts it must provide.
 
 !!! note "Settings vs. the Config model"
     Where a setting says "Can be set in the Config Model", the database value wins when a `Config` row exists.

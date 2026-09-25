@@ -246,9 +246,21 @@ This feature is optional but recommended for better performance and user experie
 
 ## Template Configuration 📝
 
-If you're using a base.html template, you must include the following blocks in your template:
+The package pages don't bring their own page shell (navbar, footer…): they render inside your site's base template.
+Point the package at it in `settings.py`:
+
+```python
+APPOINTMENT_BASE_TEMPLATE = 'base.html'  # used by the booking pages
+APPOINTMENT_ADMIN_BASE_TEMPLATE = 'base.html'  # (optional) used by the staff pages, can be a different base
+```
+
+Every package page extends `appointment/layout.html`, which extends the base you set. Your base must include these
+blocks:
 
 ```html
+{% block customMetaTag %}
+{% endblock %}
+
 {% block customCSS %}
 {% endblock %}
 
@@ -266,14 +278,15 @@ If you're using a base.html template, you must include the following blocks in y
 ```
 
 These blocks are essential for the proper functioning of the application:
+- `customMetaTag` goes inside `<head>`: the staff pages put the CSRF token there for their AJAX requests.
 - `customCSS` and `customJS` allow the application to inject the necessary styles and scripts.
 - `body` is where the main content of each page will be rendered.
 - `title` and `description` are used for SEO and are recommended but not strictly required.
 
-At minimum, the blocks for CSS, body, and JS are required for the application to work properly. 
-jQuery is also required to be included in the template.
+Your base must also load jQuery and Bootstrap 5 (CSS and JS), before the `customJS` block.
 
 See an example of a base.html template [here](https://github.com/adamspd/django-appointment/blob/main/appointment/templates/base_templates/base.html).
+It is the default when you don't set `APPOINTMENT_BASE_TEMPLATE`.
 
 
 ## Customization 🔧
