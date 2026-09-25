@@ -120,8 +120,51 @@ highlights all follow it (their hover and light shades are computed from it):
 }
 ```
 
-The other `--djappt-*` variables in `appointment/static/css/djappt.css` (text, borders, card background, radius...)
-can be set the same way, for example `--djappt-accent-hover` if you want a hover shade of your own.
+Every variable below can be set the same way, in a `.djappt { ... }` rule in your own CSS. The package declares them
+with zero specificity, so your rule wins wherever your stylesheet is loaded.
+
+| Variable                   | Default                                      | Used for                                                                      |
+|----------------------------|----------------------------------------------|-------------------------------------------------------------------------------|
+| `--djappt-accent`          | `#00307c`                                    | Buttons, links, step numbers, selected day and time slot, small headings      |
+| `--djappt-accent-hover`    | the accent, 18% darker                       | Button hover and the pressed state                                            |
+| `--djappt-accent-soft`     | the accent at 10% on white                   | Light highlights: hovered day and slot, notices, field focus ring, icon backs |
+| `--djappt-accent-contrast` | `#fff`                                       | Text on accent backgrounds (buttons, selected day and slot)                   |
+| `--djappt-ink`             | `#0c1b33`                                    | Titles and main text                                                          |
+| `--djappt-ink-soft`        | `#33415c`                                    | Field labels, notice text, chips                                              |
+| `--djappt-muted`           | `#64748b`                                    | Secondary text: descriptions, summary labels, weekday names, past days        |
+| `--djappt-line`            | `#e3e8ef`                                    | Borders and separators                                                        |
+| `--djappt-surface`         | `#fff`                                       | Card, chip and time slot backgrounds (fields keep Bootstrap's)                |
+| `--djappt-danger`          | `#c53030`                                    | Error text (no availability, day off...)                                      |
+| `--djappt-danger-soft`     | `#fdecec`                                    | Error message background                                                      |
+| `--djappt-success`         | `#1d8055`                                    | Success icon on the thank-you pages                                           |
+| `--djappt-success-soft`    | `#e7f5ee`                                    | Success icon background                                                       |
+| `--djappt-radius`          | `12px`                                       | Card corners                                                                  |
+| `--djappt-radius-sm`       | `8px`                                        | Buttons, fields, time slots, notices                                          |
+| `--djappt-shadow`          | a light two-layer shadow                     | Cards (`none` removes it)                                                     |
+
+`--djappt-accent-hover` and `--djappt-accent-soft` follow `--djappt-accent` unless you set them yourself. The other
+colours assume a light card background: on a dark site, set the surface, line, text and soft colours together, for
+example as below. Form fields are Bootstrap's, so they follow your Bootstrap theme (`data-bs-theme="dark"`, Bootstrap
+5.3 or later).
+
+```css
+.djappt {
+    --djappt-accent: #7cb3ff;
+    --djappt-accent-contrast: #0c1b33;
+    --djappt-accent-soft: #1f2d45;
+    --djappt-surface: #151d2b;
+    --djappt-line: #2a3547;
+    --djappt-ink: #f1f5f9;
+    --djappt-ink-soft: #cbd5e1;
+    --djappt-muted: #94a3b8;
+    --djappt-danger: #ff9b9b;
+    --djappt-danger-soft: #3a1d22;
+    --djappt-success: #6ee7b7;
+    --djappt-success-soft: #173328;
+}
+```
+
+The package pages never set a page background: they sit on your site's own.
 
 ## Available Templates
 
