@@ -6,6 +6,9 @@ Author: Adams Pierre David
 Since: 1.0.0
 """
 
+import functools
+from typing import Any, Tuple
+
 from django.conf import settings
 from django.conf.global_settings import DEFAULT_FROM_EMAIL
 
@@ -61,3 +64,35 @@ def check_q_cluster(hide_warning: bool = False):
     if not hide_warning:
         logger.info("Django Q cluster is properly configured")
     return True
+
+
+@functools.cache
+def initialize_django_q() -> Tuple[bool, Any, Any, Any]:
+    """
+    Initialize django-q components if available.
+
+    Returns a tuple of (DJANGO_Q_AVAILABLE, async_task, schedule, Schedule).
+    If django-q is not available, returns (False, None, None, None), so callers must check the first
+    element before calling the other three. They are annotated as ``Any`` because django-q is an
+    optional dependency: its symbols cannot be resolved statically when it is not installed.
+
+    The result is cached, so the imports and the warning below happen once per process no matter how
+    many modules call this.
+    """
+    # Initialize defaults
+    async_task = None
+    schedule = None
+    Schedule = None
+
+    # Try to import and use django_q if available
+    if 'django_q' in settings.INSTALLED_APPS:
+        try:
+            from django_q.tasks import async_task, schedule
+            from django_q.models import Schedule
+            return True, async_task, schedule, Schedule
+        except ImportError:
+            logger.warning("django-q is not installed. Async tasks will not be available.")
+    else:
+        logger.warning("django-q is not in INSTALLED_APPS. Async tasks will not be available.")
+
+    return False, async_task, schedule, Schedule
