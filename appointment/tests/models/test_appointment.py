@@ -67,6 +67,7 @@ class AppointmentCreationTestCase(BaseTest):
         self.assertEqual(self.appointment.get_service_duration(), "1 hour")
         self.assertEqual(self.appointment.get_appointment_currency(), "USD")
         self.assertEqual(self.appointment.get_appointment_amount_to_pay(), self.ar.get_service_price())
+        self.assertEqual(self.appointment.get_appointment_amount_to_pay_text(), "$100,000")
         self.assertEqual(self.appointment.get_service_img_url(), "")
         self.assertEqual(self.appointment.get_staff_member_name(), self.staff_member1.get_staff_member_name())
         self.assertTrue(self.appointment.service_is_paid())
