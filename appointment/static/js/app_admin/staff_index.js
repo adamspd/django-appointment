@@ -10,11 +10,14 @@ const Constants = {
 
 // Application State
 const AppState = {
-    eventIdSelected: null, calendar: null, isEditingAppointment: false, isCreating: false, isUserStaffAdmin: true,
+    eventIdSelected: null,
+    calendar: null,
+    isEditingAppointment: false,
+    isCreating: false,
+    isUserStaffAdmin: true,
+    layout: null,
 };
 
-document.addEventListener("DOMContentLoaded", initializeCalendar);
-window.addEventListener('resize', updateCalendarConfig);
 document.getElementById('eventDetailsModal').addEventListener('keypress', function (event) {
     if (event.key === 'Enter') {
         event.preventDefault();
@@ -28,21 +31,16 @@ window.addEventListener('resize', function () {
     if (resizeTimeout) {
         clearTimeout(resizeTimeout);
     }
-    resizeTimeout = setTimeout(function () {
-        initializeCalendar()
-    }, 500); // Only rerender at most, every 100ms
+    resizeTimeout = setTimeout(handleResize, 500); // Only update at most every 500ms
 });
 
 document.addEventListener("DOMContentLoaded", function () {
-    // Wait for a 50ms after the DOM is ready before initializing the calendar
-    setUserStaffAdminFlag().then(() => {
-        setTimeout(initializeCalendar, 50);
-    });
+    // The day cells need the staff admin flag when they are mounted, so render the calendar once it is known
+    setUserStaffAdminFlag().then(initializeCalendar);
 });
 
 const AppStateProxy = new Proxy(AppState, {
     set(target, property, value) {
-        console.log(`Setting ${property} to ${value}`)
         // Check if the property being changed is 'isCreating'
         if (value === true) {
             attachEventListeners(); // Attach event listeners if isCreating becomes true
@@ -83,9 +81,43 @@ function attachEventListenersToDropdown() {
 function initializeCalendar() {
     const formattedAppointments = formatAppointmentsForCalendar(appointments);
     const calendarEl = document.getElementById('calendar');
-    AppState.calendar = new FullCalendar.Calendar(calendarEl, getCalendarConfig(formattedAppointments));
+    const config = getCalendarConfig(formattedAppointments);
+    const previousCalendar = AppState.calendar;
+    if (previousCalendar) {
+        // Keep the view and date the user was on
+        config.initialView = previousCalendar.view.type;
+        config.initialDate = previousCalendar.getDate();
+        previousCalendar.destroy();
+    }
+    AppState.calendar = new FullCalendar.Calendar(calendarEl, config);
     AppState.calendar.setOption('locale', locale);
     AppState.calendar.render();
+    AppState.layout = getLayout();
+}
+
+function getLayout() {
+    return `${mobileCheck()}-${tabletCheck()}`;
+}
+
+function handleResize() {
+    if (!AppState.calendar) {
+        return;
+    }
+    if (getLayout() !== AppState.layout) {
+        // Events and day cells are rendered differently on mobile and tablet, so they need a new render
+        initializeCalendar();
+    } else {
+        updateCalendarConfig();
+    }
+}
+
+function getEventDetailsModal() {
+    return bootstrap.Modal.getOrCreateInstance(document.getElementById('eventDetailsModal'));
+}
+
+function getModalCloseButton(modal) {
+    // data-dismiss is kept for custom templates written for Bootstrap 4
+    return modal.querySelector(".btn-secondary[data-bs-dismiss='modal'], .btn-secondary[data-dismiss='modal']");
 }
 
 function formatAppointmentsForCalendar(appointments) {
@@ -124,11 +156,7 @@ function getCalendarConfig(events) {
         initialView: 'dayGridMonth',
         headerToolbar: getHeaderToolbarConfig(),
         buttonText: {
-            today: todayBtnText,
-            month: monthBtnText,
-            week: weekBtnText,
-            day: dayBtnText,
-            list: listBtnText
+            today: todayBtnText, month: monthBtnText, week: weekBtnText, day: dayBtnText, list: listBtnText
         },
         navLinks: true,
         editable: true,
@@ -144,7 +172,6 @@ function getCalendarConfig(events) {
             prevYear: 'fa-angle-double-left',
             nextYear: 'fa-angle-double-right'
         },
-        defaultView: mobileCheck() ? "basicDay" : "dayGridMonth",
         selectable: true,
         events: events,
         eventDisplay: getEventDisplayedStyle(),
@@ -328,7 +355,7 @@ function closeModal() {
     const modal = document.getElementById("eventDetailsModal");
     const editButton = document.getElementById("eventEditBtn");
     const submitButton = document.getElementById("eventSubmitBtn");
-    const closeButton = modal.querySelector(".btn-secondary[data-dismiss='modal']");
+    const closeButton = getModalCloseButton(modal);
     const cancelButton = document.getElementById("eventCancelBtn");
 
     // Reset the modal buttons to their default state
@@ -341,7 +368,7 @@ function closeModal() {
     AppStateProxy.isEditingAppointment = false;
 
     // Close the modal
-    $('#eventDetailsModal').modal('hide');
+    getEventDetailsModal().hide();
 }
 
 
@@ -391,7 +418,7 @@ function confirmDeleteAppointment(appointmentId) {
             return response.json();
         })
         .then(data => {
-            $('#eventDetailsModal').modal('hide');
+            getEventDetailsModal().hide();
             let event = AppState.calendar.getEventById(appointmentId);
             if (event) {
                 event.remove();
@@ -603,7 +630,7 @@ async function showCreateAppointmentModal(defaultStartTime, formattedDate) {
 
     adjustCreateAppointmentModalButtons();
     AppStateProxy.isCreating = true;
-    $('#eventDetailsModal').modal('show');
+    getEventDetailsModal().show();
 }
 
 function adjustCreateAppointmentModalButtons() {
@@ -674,7 +701,7 @@ async function showEventModal(eventId = null, isEditMode, isCreatingMode = false
 
     document.getElementById('eventModalBody').innerHTML = generateModalContent(appointment, servicesDropdown, isEditMode, staffDropdown);
     adjustModalButtonsVisibility(isEditMode, isCreatingMode);
-    $('#eventDetailsModal').modal('show');
+    getEventDetailsModal().show();
 }
 
 // Adjust Modal Buttons Visibility
@@ -714,7 +741,7 @@ function updateModalUIForEditMode(modal, isEditingAppointment) {
     const servicesDropdown = document.getElementById("serviceSelect");
     const editButton = document.getElementById("eventEditBtn");
     const submitButton = document.getElementById("eventSubmitBtn");
-    const closeButton = modal.querySelector(".btn-secondary[data-dismiss='modal']");
+    const closeButton = getModalCloseButton(modal);
     const cancelButton = document.getElementById("eventCancelBtn");
     const deleteButton = document.getElementById("eventDeleteBtn");
     const goButton = document.getElementById("eventGoBtn");
@@ -786,9 +813,7 @@ function collectFormDataFromModal(modal) {
     }
 
     const data = {
-        isCreating: AppState.isCreating,
-        service_id: serviceId,
-        appointment_id: AppState.eventIdSelected
+        isCreating: AppState.isCreating, service_id: serviceId, appointment_id: AppState.eventIdSelected
     };
 
     if (staffId) {

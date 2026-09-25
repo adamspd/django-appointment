@@ -21,12 +21,12 @@ function showModal(title, body, actionText, actionUrl, actionCallback) {
     }
 
     // Display the modal
-    $('#confirmModal').modal('show');
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('confirmModal')).show();
 }
 
 
 function closeConfirmModal() {
-    $('#confirmModal').modal('hide');
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('confirmModal')).hide();
 }
 
 

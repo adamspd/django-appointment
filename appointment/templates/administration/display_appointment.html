@@ -39,7 +39,7 @@
                             </div>
                             <div class="detail-row">
                                 <span class="detail-label">{% trans 'Start time' %}</span>
-                                <span class="detail-value">{{ appointment.get_start_time|time}}</span>
+                                <span class="detail-value">{{ appointment.get_start_time|time }}</span>
                             </div>
                             <div class="detail-row">
                                 <span class="detail-label">{% trans 'End time' %}</span>
@@ -94,10 +94,10 @@
                                 <span class="detail-value">{{ appointment.wants_reminder_text }}</span>
                             </div>
                             {% if appointment.additional_info %}
-                            <div class="detail-row">
-                                <span class="detail-label">{% trans 'Additional Information' %}</span>
-                                <span class="detail-value">{{ appointment.additional_info }}</span>
-                            </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">{% trans 'Additional Information' %}</span>
+                                    <span class="detail-value">{{ appointment.additional_info }}</span>
+                                </div>
                             {% endif %}
                         </div>
                     </div>
@@ -134,29 +134,20 @@
 
                 <!-- Messages -->
                 {% if messages %}
-                <div class="messages">
-                    {% for message in messages %}
-                        <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}" role="alert">
-                            {{ message }}
-                        </div>
-                    {% endfor %}
-                </div>
+                    <div class="messages">
+                        {% for message in messages %}
+                            <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
+                                 role="alert">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
                 {% endif %}
             </div>
         </div>
     </section>
 {% endblock %}
 {% block customJS %}
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.30.1/moment.js"
-            integrity="sha512-3CuraBvy05nIgcoXjVN33mACRyI89ydVHg7y/HMN9wcTVbHeur0SeBzweSd/rxySapO7Tmfu68+JlKkLTnDFNg=="
-            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.45/moment-timezone-with-data.min.js"
-            integrity="sha512-t/mY3un180WRfsSkWy4Yi0tAxEDGcY2rAEx873hb5BrkvLA0QLk54+SjfYgFBBoCdJDV1H86M8uyZdJhAOHeyA=="
-            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.10/index.global.min.js"
-            integrity="sha512-JCQkxdym6GmQ+AFVioDUq8dWaWN6tbKRhRyHvYZPupQ6DxpXzkW106FXS1ORgo/m3gxtt5lHRMqSdm2OfPajtg=="
-            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-
     <script src="{% static 'js/js-utils.js' %}"></script>
 
 {% endblock %}
