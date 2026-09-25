@@ -74,3 +74,23 @@ def get_email_template(template_name, default_template):
     # Get user's custom email directory from settings (default: 'emails')
     email_dir = getattr(settings, 'APPOINTMENT_CUSTOM_EMAILS_DIR', 'emails')
     return _first_usable_template(email_dir, template_name, default_template)
+
+
+_JSON_SCRIPT_ESCAPES = {
+    ord('<'): '\\u003C',
+    ord('>'): '\\u003E',
+    ord('&'): '\\u0026',
+}
+
+
+def escape_json_for_script(json_string):
+    """
+    Make a JSON string safe to print inside a ``<script>`` tag with ``|safe``.
+
+    ``<``, ``>`` and ``&`` become JSON unicode escapes, so a value such as ``</script>`` can't close
+    the tag. The result is still valid JSON and parses to the same data.
+
+    :param json_string: The output of ``json.dumps``.
+    :return: The escaped JSON string.
+    """
+    return json_string.translate(_JSON_SCRIPT_ESCAPES)

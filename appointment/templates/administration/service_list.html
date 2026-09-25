@@ -15,6 +15,8 @@
     {% trans 'Service List' %}.
 {% endblock %}
 {% block body %}
+    {% translate "Confirm Deletion" as modal_title %}
+    {% translate "Delete" as delete_btn_modal %}
     <section class="content content-wrapper">
         <div class="service-container">
             <section class="profile-section">
@@ -50,7 +52,7 @@
                                                 <i class="fas fa-pen"></i>
                                             </a>
                                             <a href="javascript:void(0)"
-                                               onclick="showModal('{{ modal_title }}', '{{ d_modal_message }}', '{{ delete_btn_modal }}', '{% url 'appointment:delete_service' service_id=service.id %}', null)"
+                                               onclick="showModal('{{ modal_title|escapejs }}', '{{ d_modal_message|escapejs }}', '{{ delete_btn_modal|escapejs }}', '{% url 'appointment:delete_service' service_id=service.id %}', null)"
                                                class="modify-btn button-color-red">
                                                 <i class="fas fa-trash"></i>
                                             </a>
@@ -76,9 +78,11 @@
                 {% endif %}
             </div>
         </div>
+        {% include 'modal/confirm_modal.html' %}
     </section>
 {% endblock %}
 
 {% block customJS %}
+    <script src="{% static 'js/modal/show_modal.js' %}"></script>
     <script src="{% static 'js/js-utils.js' %}"></script>
 {% endblock %}

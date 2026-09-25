@@ -367,20 +367,20 @@
                 ${servicesDropdown.outerHTML}
                 </div>
                 <label for="clientName">{% trans 'Client Name' %}:</label>
-                <input type="text" name="clientName" value="${appointment.client_name || ''}" ${disabledAttribute} id="clientName" placeholder="John Doe">
+                <input type="text" name="clientName" value="${escapeHtml(appointment.client_name)}" ${disabledAttribute} id="clientName" placeholder="John Doe">
                 <label for="clientEmail">{% trans 'Client Email' %}:</label>
-                <input type="email" name="clientEmail" value="${appointment.client_email || ''}" ${disabledAttribute} id="clientEmail" placeholder="john.doe@example.com">
+                <input type="email" name="clientEmail" value="${escapeHtml(appointment.client_email)}" ${disabledAttribute} id="clientEmail" placeholder="john.doe@example.com">
                 <span id="emailError" style="display:none;"></span>
                 <label for="clientPhone">{% trans 'Phone Number' %}:</label>
-                <input type="tel" name="clientPhone" value="${appointment.client_phone || ''}" ${disabledAttribute} id="clientPhone" placeholder="+12392350799">
+                <input type="tel" name="clientPhone" value="${escapeHtml(appointment.client_phone)}" ${disabledAttribute} id="clientPhone" placeholder="+12392350799">
                 <label for="clientAddress">{% trans 'Client address' %}:</label>
-                <input type="text" name="clientAddress" value="${appointment.client_address || ''}" ${disabledAttribute} id="clientAddress" placeholder="Naples, Florida">
+                <input type="text" name="clientAddress" value="${escapeHtml(appointment.client_address)}" ${disabledAttribute} id="clientAddress" placeholder="Naples, Florida">
                 <div class="flex-container-appt">
                 <label for="want_reminder">{% trans 'Wants reminder' %}:</label>
                 <input type="checkbox" name="want_reminder" id="want_reminder" value="true" ${appointment.want_reminder ? 'checked' : ''}  ${disabledAttribute}>
                 </div>
                 <label for="additional_info">{% trans 'Additional Information' %}:</label>
-                <input type="text" name="additional_info" value="${appointment.additional_info || ''}" ${disabledAttribute} placeholder="{% trans 'Client wants this and that' %}" id="additional_info">
+                <input type="text" name="additional_info" value="${escapeHtml(appointment.additional_info)}" ${disabledAttribute} placeholder="{% trans 'Client wants this and that' %}" id="additional_info">
                 <div class="flex-container-appt">
                 <label for="startTime">{% trans 'Start time' %}:</label>
                 <input type="time" name="startTime" value="${startTimeValue}" ${disabledAttribute}>

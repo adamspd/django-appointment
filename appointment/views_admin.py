@@ -35,7 +35,7 @@ from appointment.utils.json_context import (
     json_response)
 from appointment.utils.permissions import check_extensive_permissions, check_permissions, \
     has_permission_to_delete_appointment
-from appointment.utils.template_helpers import get_custom_template
+from appointment.utils.template_helpers import escape_json_for_script, get_custom_template
 
 
 ###############################################################
@@ -53,7 +53,7 @@ def get_user_appointments(request, response_type='html'):
 
     # Render the HTML template
     extra_context = {
-        'appointments': json.dumps(appointments_json),
+        'appointments': escape_json_for_script(json.dumps(appointments_json)),
     }
     context = get_generic_context_with_extra(request=request, extra=extra_context)
     # if appointment is empty and user doesn't have a staff-member instance, put a message
@@ -137,6 +137,7 @@ def update_day_off(request, day_off_id, staff_user_id=None, response_type='html'
 
 @require_user_authenticated
 @require_staff_or_superuser
+@require_POST
 def delete_day_off(request, day_off_id, staff_user_id=None):
     day_off = get_object_or_404(DayOff, pk=day_off_id)
     if not check_extensive_permissions(staff_user_id, request.user, day_off):
@@ -189,6 +190,7 @@ def update_unavailability(request, unavailability_id, staff_user_id=None, respon
 
 @require_user_authenticated
 @require_staff_or_superuser
+@require_POST
 def delete_unavailability(request, unavailability_id, staff_user_id=None):
     unavailability = get_object_or_404(Unavailability, pk=unavailability_id)
     if not check_extensive_permissions(staff_user_id, request.user, unavailability):
@@ -241,6 +243,7 @@ def update_working_hours(request, working_hours_id, staff_user_id=None, response
 
 @require_user_authenticated
 @require_staff_or_superuser
+@require_POST
 def delete_working_hours(request, working_hours_id, staff_user_id=None):
     working_hours = get_object_or_404(WorkingHours, pk=working_hours_id)
     staff_member = working_hours.staff_member
@@ -499,6 +502,7 @@ def create_new_staff_member(request):
 
 @require_user_authenticated
 @require_superuser
+@require_POST
 def make_superuser_staff_member(request):
     user = request.user
     StaffMember.objects.get_or_create(user=user)
@@ -507,6 +511,7 @@ def make_superuser_staff_member(request):
 
 @require_user_authenticated
 @require_superuser
+@require_POST
 def remove_superuser_staff_member(request):
     user = request.user
     StaffMember.objects.filter(user=user).delete()
@@ -553,6 +558,7 @@ def add_or_update_service(request, service_id=None, view=0):
 
 @require_user_authenticated
 @require_superuser
+@require_POST
 def delete_service(request, service_id):
     service = get_object_or_404(Service, pk=service_id)
     service.delete()
@@ -564,6 +570,7 @@ def delete_service(request, service_id):
 # Remove staff member
 @require_user_authenticated
 @require_superuser
+@require_POST
 def remove_staff_member(request, staff_user_id):
     staff_member = get_object_or_404(StaffMember, user_id=staff_user_id)
     staff_member.delete()
@@ -600,6 +607,7 @@ def get_service_list(request, response_type='html'):
 
 @require_user_authenticated
 @require_staff_or_superuser
+@require_POST
 def delete_appointment(request, appointment_id):
     appointment = get_object_or_404(Appointment, pk=appointment_id)
     if not has_permission_to_delete_appointment(request.user, appointment):
