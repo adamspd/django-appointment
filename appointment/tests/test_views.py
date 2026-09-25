@@ -1298,6 +1298,41 @@ class AppointmentClientInformationTest(BaseTest):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'error_pages/304_already_submitted.html')
 
+    def logged_in_post_data(self, name):
+        return {'name': name, 'email': 'someone.else@django-appointment.com', 'payment_type': 'full',
+                'phone_0': 'US', 'phone_1': '2025550123', 'address': '123 Ori Temple, Celestis'}
+
+    def test_logged_in_name_is_prefilled_and_editable_email_is_locked(self):
+        """A logged-in client gets their name prefilled but editable; the email is the account's and locked."""
+        user = self.users['client1']
+        self.client.force_login(user)
+        response = self.client.get(self.url)
+        client_data_form = response.context['client_data_form']
+        self.assertFalse(client_data_form.fields['name'].disabled)
+        self.assertEqual(client_data_form.fields['name'].initial, user.get_full_name())
+        self.assertTrue(client_data_form.fields['email'].disabled)
+        self.assertContains(response, user.email)
+
+    def test_logged_in_post_saves_the_typed_name_and_keeps_the_account_email(self):
+        """The typed name is saved to the account; a posted email is ignored and the booking goes to the account."""
+        user = self.users['client1']
+        self.client.force_login(user)
+        self.client.post(self.url, self.logged_in_post_data('Vala Mal Doran'))
+        user.refresh_from_db()
+        self.assertEqual((user.first_name, user.last_name), ('Vala', 'Mal Doran'))
+        self.assertNotEqual(user.email, 'someone.else@django-appointment.com')
+        self.assertTrue(Appointment.objects.filter(appointment_request=self.ar, client=user).exists())
+
+    def test_logged_in_account_without_a_name_can_book(self):
+        """An account with no name used to get an empty, locked, required field and could never book."""
+        user = self.create_user_(first_name='', last_name='', email='no.name@django-appointment.com',
+                                 username='no.name')
+        self.client.force_login(user)
+        self.client.post(self.url, self.logged_in_post_data('Cameron Mitchell'))
+        user.refresh_from_db()
+        self.assertEqual(user.get_full_name(), 'Cameron Mitchell')
+        self.assertTrue(Appointment.objects.filter(appointment_request=self.ar, client=user).exists())
+
 
 class PrepareRescheduleAppointmentViewTests(BaseTest):
     @classmethod
