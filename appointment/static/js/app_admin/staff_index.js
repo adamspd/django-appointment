@@ -208,12 +208,18 @@ function getCalendarConfig(events) {
     };
 }
 
+function escapeHtml(value) {
+    const div = document.createElement('div');
+    div.textContent = value == null ? '' : String(value);
+    return div.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 function displayEventList(events, date) {
     let eventListHtml = '<h4 style="font-size: 14px; font-weight: bold;">' + eventsOnTxt + ' ' + moment(date).format('MMMM Do, YYYY') + '</h4>';
     eventListHtml += '<hr>';
 
     events.forEach(function (event) {
-        eventListHtml += `<div class="event-list-item-appt" data-event-id="${event.id}">${event.service_name}</div>`;
+        eventListHtml += `<div class="event-list-item-appt" data-event-id="${escapeHtml(event.id)}">${escapeHtml(event.service_name)}</div>`;
         eventListHtml += `<div><i class="fa fa-clock-o" aria-hidden="true"></i> ${moment(event.start_time).format('h:mm a')} - ${moment(event.end_time).format('h:mm a')}</div>`;
         eventListHtml += '<hr>';
     });

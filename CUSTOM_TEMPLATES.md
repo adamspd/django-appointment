@@ -144,6 +144,11 @@ picker, or the widget will fall back to a format the server may not parse back.
 > The three `manage_*` forms post their values back as pre-formatted hidden fields (`date_raw`, `start_time_raw`,
 > `end_time_raw`, and `day_of_week` for working hours) alongside the localized ones the user sees. A replacement
 > template must keep those, or the view will not be able to parse the submission.
+>
+> Every delete and remove action (`delete_service`, `delete_appointment`, `delete_day_off`, `delete_unavailability`,
+> `delete_working_hours`, `remove_staff_member`) and the staff-me toggle (`btn_staff_me_link`) only accept **POST**;
+> a GET returns `405`. Use a small `<form method="post">` with `{% csrf_token %}`, or the default
+> `modal/confirm_modal.html` with `js/modal/show_modal.js`, which submits one for you.
 
 ### Email Templates (Emails Directory)
 
