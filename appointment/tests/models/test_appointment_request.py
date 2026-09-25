@@ -1,5 +1,5 @@
 from copy import deepcopy
-from datetime import date, datetime, time, timedelta
+from datetime import datetime, time, timedelta
 
 from django.core.exceptions import ValidationError
 from django.utils import timezone
@@ -31,7 +31,7 @@ class AppointmentRequestCreationAndBasicAttributesTests(BaseTest):
         self.assertEqual(self.ar.start_time, time(9, 0))
         self.assertEqual(self.ar.end_time, time(10, 0))
         self.assertIsNotNone(self.ar.get_id_request())
-        self.assertEqual(self.ar.date, timezone.now().date())
+        self.assertEqual(self.ar.date, timezone.localdate())
         self.assertTrue(isinstance(self.ar.get_id_request(), str))
         self.assertIsNotNone(self.ar.created_at)
         self.assertIsNotNone(self.ar.updated_at)
@@ -107,7 +107,7 @@ class AppointmentRequestAttributeValidation(BaseTest):
 
         with self.assertRaises(ValidationError, msg="Start time and end time cannot be the same"):
             self.create_appointment_request_(
-                self.service1, self.staff_member1, date_=date.today(), start_time=time(10, 0), end_time=time(10, 0)
+                self.service1, self.staff_member1, date_=timezone.localdate(), start_time=time(10, 0), end_time=time(10, 0)
             )
 
     def test_appointment_duration_less_than_one_minute(self):
@@ -124,7 +124,7 @@ class AppointmentRequestAttributeValidation(BaseTest):
         """Validate that appointment requests cannot be in the past or have invalid durations."""
         ar = deepcopy(self.ar)
 
-        past_date = date.today() - timedelta(days=30)
+        past_date = timezone.localdate() - timedelta(days=30)
         ar.date = past_date
         with self.assertRaises(ValidationError):
             ar.full_clean()

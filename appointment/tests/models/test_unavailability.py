@@ -1,7 +1,8 @@
-from datetime import date, time, timedelta
+from datetime import time, timedelta
 
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
+from django.utils import timezone
 
 from appointment.models import Unavailability
 from appointment.tests.base.base_test import BaseTest
@@ -15,7 +16,7 @@ class UnavailabilityCreationTestCase(BaseTest):
     def setUp(self):
         self.unavailability = Unavailability.objects.create(
             staff_member=self.staff_member1,
-            date=date.today() + timedelta(days=1),
+            date=timezone.localdate() + timedelta(days=1),
             start_time=time(12, 0),
             end_time=time(13, 0)
         )
@@ -43,7 +44,7 @@ class UnavailabilityCreationTestCase(BaseTest):
 
     def test_datetime_getters(self):
         """Test that the date and times can be recombined into datetimes."""
-        tomorrow = date.today() + timedelta(days=1)
+        tomorrow = timezone.localdate() + timedelta(days=1)
         self.assertEqual(self.unavailability.get_date(), tomorrow)
         self.assertEqual(self.unavailability.get_start_time(), time(12, 0))
         self.assertEqual(self.unavailability.get_end_time(), time(13, 0))
@@ -61,7 +62,7 @@ class UnavailabilityModelTestCase(BaseTest):
         """Test that an unavailability cannot be created without a staff member."""
         with self.assertRaises(IntegrityError):
             Unavailability.objects.create(
-                date=date.today() + timedelta(days=1),
+                date=timezone.localdate() + timedelta(days=1),
                 start_time=time(12, 0),
                 end_time=time(13, 0)
             )
@@ -75,7 +76,7 @@ class UnavailabilityCleanTestCase(BaseTest):
     def build(self, date_=None, start_time=time(12, 0), end_time=time(13, 0)):
         return Unavailability(
             staff_member=self.staff_member1,
-            date=date_ if date_ is not None else date.today() + timedelta(days=1),
+            date=date_ if date_ is not None else timezone.localdate() + timedelta(days=1),
             start_time=start_time,
             end_time=end_time
         )
@@ -86,7 +87,7 @@ class UnavailabilityCleanTestCase(BaseTest):
 
     def test_clean_accepts_today(self):
         """Today is not a past date, so it must be accepted."""
-        self.build(date_=date.today()).clean()
+        self.build(date_=timezone.localdate()).clean()
 
     def test_clean_rejects_start_time_after_end_time(self):
         with self.assertRaises(ValidationError):
@@ -98,11 +99,11 @@ class UnavailabilityCleanTestCase(BaseTest):
 
     def test_clean_rejects_a_past_date(self):
         with self.assertRaises(ValidationError):
-            self.build(date_=date.today() - timedelta(days=1)).clean()
+            self.build(date_=timezone.localdate() - timedelta(days=1)).clean()
 
     def test_full_clean_validates_instead_of_raising_type_error(self):
         """full_clean() is what a ModelForm calls, so the Django admin depends on it."""
         self.build().full_clean(exclude=['staff_member'])
 
         with self.assertRaises(ValidationError):
-            self.build(date_=date.today() - timedelta(days=1)).full_clean(exclude=['staff_member'])
+            self.build(date_=timezone.localdate() - timedelta(days=1)).full_clean(exclude=['staff_member'])

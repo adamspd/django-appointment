@@ -4,7 +4,7 @@
 import datetime
 import json
 import uuid
-from datetime import date, time, timedelta
+from datetime import time, timedelta
 from unittest.mock import patch
 
 from django.contrib import messages
@@ -51,7 +51,7 @@ class SlotTestCase(BaseTest):
 
     def test_get_available_slots_ajax(self):
         """get_available_slots_ajax view should return a JSON response with available slots for the selected date."""
-        response = self.client.get(self.url, {'selected_date': date.today().isoformat(), 'staff_member': '1'},
+        response = self.client.get(self.url, {'selected_date': timezone.localdate().isoformat(), 'staff_member': '1'},
                                    HTTP_X_REQUESTED_WITH='XMLHttpRequest')
         print(f"response: {response.content}")
         self.assertEqual(response.status_code, 200)
@@ -62,7 +62,7 @@ class SlotTestCase(BaseTest):
 
     def test_get_available_slots_ajax_past_date(self):
         """get_available_slots_ajax view should return an error if the selected date is in the past."""
-        past_date = (date.today() - timedelta(days=1)).isoformat()
+        past_date = (timezone.localdate() - timedelta(days=1)).isoformat()
         response = self.client.get(self.url, {'selected_date': past_date}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()['error'], True)
@@ -86,7 +86,7 @@ class AppointmentRequestTestCase(BaseTest):
     def test_appointment_request_submit_valid(self):
         """Test if a valid appointment request can be submitted."""
         post_data = {
-            'date': date.today().isoformat(),
+            'date': timezone.localdate().isoformat(),
             'start_time': time(9, 0),
             'end_time': time(10, 0),
             'service': self.service1.id,
@@ -391,7 +391,7 @@ class UpdateAppointmentTestCase(BaseTest):
     def setUp(self):
         super().setUp()
         self.appointment = self.create_appt_for_sm1()
-        self.tomorrow = date.today() + timedelta(days=1)
+        self.tomorrow = timezone.localdate() + timedelta(days=1)
         self.data = {
             'isCreating': False, 'service_id': self.service1.pk, 'appointment_id': self.appointment.id,
             'client_name': 'Vala Mal Doran',
@@ -735,8 +735,8 @@ class DayOffViewsTestCase(BaseTest):
         self.url_add_day_off = reverse('appointment:add_day_off_id', args=[self.staff_member1.user_id])
         self.other_staff_member = self.staff_member2
         self.day_off = DayOff.objects.create(staff_member=self.staff_member1,
-                                             start_date=date.today() + timedelta(days=1),
-                                             end_date=date.today() + timedelta(days=2), description="Day off")
+                                             start_date=timezone.localdate() + timedelta(days=1),
+                                             end_date=timezone.localdate() + timedelta(days=2), description="Day off")
 
     def test_add_day_off_authenticated_staff_user(self):
         # Log in as staff user
@@ -851,14 +851,14 @@ class DestructiveViewsRequirePostTests(BaseTest):
         self.assertFalse(StaffMember.objects.filter(user=self.users['superuser']).exists())
 
     def test_delete_day_off_get(self):
-        day_off = DayOff.objects.create(staff_member=self.staff_member1, start_date=date.today(),
-                                        end_date=date.today())
+        day_off = DayOff.objects.create(staff_member=self.staff_member1, start_date=timezone.localdate(),
+                                        end_date=timezone.localdate())
         url = reverse('appointment:delete_day_off_id', args=[day_off.id, self.staff_member1.user_id])
         self.assert_get_not_allowed(url, DayOff, day_off.id)
 
     def test_delete_unavailability_get(self):
         unavailability = Unavailability.objects.create(staff_member=self.staff_member1,
-                                                       date=date.today() + timedelta(days=1),
+                                                       date=timezone.localdate() + timedelta(days=1),
                                                        start_time=time(12, 0), end_time=time(13, 0))
         url = reverse('appointment:delete_unavailability_id',
                       args=[unavailability.id, self.staff_member1.user_id])
@@ -885,14 +885,14 @@ class StaffScheduleFeedbackTests(BaseTest):
         self.assertIn(message, [m.message for m in get_messages(response.wsgi_request)])
 
     def test_staff_deletes_own_day_off(self):
-        day_off = DayOff.objects.create(staff_member=self.staff_member1, start_date=date.today(),
-                                        end_date=date.today())
+        day_off = DayOff.objects.create(staff_member=self.staff_member1, start_date=timezone.localdate(),
+                                        end_date=timezone.localdate())
         self.assert_deleted_with_message(reverse('appointment:delete_day_off', args=[day_off.id]),
                                          DayOff, day_off.id, _("Day off deleted successfully."))
 
     def test_staff_deletes_own_unavailability(self):
         unavailability = Unavailability.objects.create(staff_member=self.staff_member1,
-                                                       date=date.today() + timedelta(days=1),
+                                                       date=timezone.localdate() + timedelta(days=1),
                                                        start_time=time(12, 0), end_time=time(13, 0))
         self.assert_deleted_with_message(reverse('appointment:delete_unavailability', args=[unavailability.id]),
                                          Unavailability, unavailability.id, _("Unavailability deleted successfully."))
@@ -904,8 +904,8 @@ class StaffScheduleFeedbackTests(BaseTest):
                                          WorkingHours, working_hours.id, _("Working hours deleted successfully."))
 
     def test_staff_cannot_delete_someone_elses_day_off(self):
-        day_off = DayOff.objects.create(staff_member=self.staff_member2, start_date=date.today(),
-                                        end_date=date.today())
+        day_off = DayOff.objects.create(staff_member=self.staff_member2, start_date=timezone.localdate(),
+                                        end_date=timezone.localdate())
         response = self.client.post(reverse('appointment:delete_day_off', args=[day_off.id]))
         self.assertEqual(response.status_code, 403)
         self.assertTrue(DayOff.objects.filter(pk=day_off.id).exists())
@@ -1440,12 +1440,12 @@ class RescheduleAppointmentSubmitViewTests(BaseTest):
     def setUp(self):
         super().setUp()
         self.client = Client()
-        self.ar = self.create_appt_request_for_sm1(date_=timezone.now().date() + datetime.timedelta(days=1))
+        self.ar = self.create_appt_request_for_sm1(date_=timezone.localdate() + datetime.timedelta(days=1))
         self.appointment = self.create_appt_for_sm1(appointment_request=self.ar)
         self.url = reverse('appointment:reschedule_appointment_submit')
         self.post_data = {
             'appointment_request_id': self.ar.id_request,
-            'date': (timezone.now().date() + datetime.timedelta(days=2)).isoformat(),
+            'date': (timezone.localdate() + datetime.timedelta(days=2)).isoformat(),
             'start_time': '10:00',
             'end_time': '11:00',
             'staff_member': self.staff_member1.id,
@@ -1503,7 +1503,7 @@ class ConfirmRescheduleViewTests(BaseTest):
         self.create_appt_for_sm1(appointment_request=self.ar)
         self.reschedule_history = AppointmentRescheduleHistory.objects.create(
             appointment_request=self.ar,
-            date=timezone.now().date() + timezone.timedelta(days=2),
+            date=timezone.localdate() + timezone.timedelta(days=2),
             start_time='10:00',
             end_time='11:00',
             staff_member=self.staff_member1,

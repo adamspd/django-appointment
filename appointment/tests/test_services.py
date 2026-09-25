@@ -4,7 +4,7 @@
 import datetime
 import json
 from _decimal import Decimal
-from datetime import date, time, timedelta
+from datetime import time, timedelta
 from unittest.mock import patch
 
 from django.core.cache import cache
@@ -42,7 +42,7 @@ class GetAvailableSlotsTests(BaseTest):
         super().tearDownClass()
 
     def setUp(self):
-        self.tomorrow = timezone.now().date() + datetime.timedelta(days=1)
+        self.tomorrow = timezone.localdate() + datetime.timedelta(days=1)
         ar = self.create_appt_request_for_sm1(date_=self.tomorrow, start_time=time(11, 0), end_time=time(12, 0))
         self.appointment = self.create_appt_for_sm1(appointment_request=ar)
 
@@ -427,14 +427,14 @@ class HandleUnavailabilityFormTest(BaseTest):
 
     def test_add_unavailability(self):
         """Test if the unavailabilities can be added."""
-        response = handle_unavailability_form(self.staff_member1, datetime.datetime.now(), time(9,0), time(17,0), "A description", True)
+        response = handle_unavailability_form(self.staff_member1, timezone.localdate(), time(9,0), time(17,0), "A description", True)
         self.assertEqual(response.status_code, 200)
 
     def test_update_unavailability(self):
         """Test if the unavailabilities can be updated."""
-        unav = Unavailability.objects.create(staff_member=self.staff_member1, date=datetime.datetime.now(), start_time='09:00',
+        unav = Unavailability.objects.create(staff_member=self.staff_member1, date=timezone.localdate(), start_time='09:00',
                                          end_time='17:00', description="A description")
-        response = handle_unavailability_form(self.staff_member1, datetime.datetime.now(), time(10,0), time(18,0), "An updated description", False, unav_id=unav.id)
+        response = handle_unavailability_form(self.staff_member1, timezone.localdate(), time(10,0), time(18,0), "An updated description", False, unav_id=unav.id)
         self.assertEqual(response.status_code, 200)
         unav_updated = Unavailability.objects.get(pk=unav.id)
         self.assertEqual(unav_updated.start_time, time(10,0))
@@ -443,14 +443,14 @@ class HandleUnavailabilityFormTest(BaseTest):
 
     def test_invalid_data(self):
         """If the form is invalid, the function should return a JsonResponse with the appropriate error message."""
-        response = handle_unavailability_form(None, datetime.datetime.now(), time(9,0), time(17,0), "A description", True)  # Missing staff_member
+        response = handle_unavailability_form(None, timezone.localdate(), time(9,0), time(17,0), "A description", True)  # Missing staff_member
         self.assertEqual(response.status_code, 400)
         self.assertFalse(json.loads(response.getvalue())['success'])
 
     def test_invalid_time(self):
         """If the start time is after the end time, the function should return a JsonResponse with the
         appropriate error"""
-        response = handle_unavailability_form(self.staff_member1, datetime.datetime.now(), time(17,0), time(9,0), "A description", True)
+        response = handle_unavailability_form(self.staff_member1, timezone.localdate(), time(17,0), time(9,0), "A description", True)
         self.assertEqual(response.status_code, 400)
         content = json.loads(response.getvalue())
         self.assertEqual(content['errorCode'], ErrorCode.INVALID_DATA.value)
@@ -458,7 +458,7 @@ class HandleUnavailabilityFormTest(BaseTest):
 
     def test_invalid_unavailability_id(self):
         """If the unavailability ID is invalid, the function should return a JsonResponse with the appropriate error"""
-        response = handle_unavailability_form(self.staff_member1, datetime.datetime.now(), time(10,0), time(18,0), "An updated description", False, unav_id=1337)
+        response = handle_unavailability_form(self.staff_member1, timezone.localdate(), time(10,0), time(18,0), "An updated description", False, unav_id=1337)
         self.assertEqual(response.status_code, 400)
         content = json.loads(response.getvalue())
         self.assertEqual(content['success'], False)
@@ -467,7 +467,7 @@ class HandleUnavailabilityFormTest(BaseTest):
     def test_no_unavailability_id(self):
         """If the unavailability ID is not provided, the function should return a JsonResponse with the
         appropriate error"""
-        response = handle_unavailability_form(self.staff_member1, datetime.datetime.now(), time(10,0), time(18,0), "An updated description", False)
+        response = handle_unavailability_form(self.staff_member1, timezone.localdate(), time(10,0), time(18,0), "An updated description", False)
         self.assertEqual(response.status_code, 400)
         content = json.loads(response.getvalue())
         self.assertEqual(content['success'], False)
@@ -565,7 +565,7 @@ class SaveApptDateTimeTests(BaseTest):
         """Test if an appointment's date and time can be updated."""
         # Given new appointment date and time details
         appt_start_time_str = "10:00:00.000000Z"
-        appt_date_str = (datetime.datetime.today() + datetime.timedelta(days=7)).strftime("%Y-%m-%d")
+        appt_date_str = (timezone.localdate() + datetime.timedelta(days=7)).strftime("%Y-%m-%d")
         appt_id = self.appt.id
 
         # Call the function
@@ -614,7 +614,7 @@ class GetAvailableSlotsForStaffTests(BaseTest):
     def setUp(self):
         super().setUp()
         cache.clear()
-        self.today = datetime.date.today()
+        self.today = timezone.localdate()
         # Staff member1 works only on Mondays and Wednesday (day_of_week: 1, 3)
         self.wh1 = WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=1,
                                                start_time=datetime.time(9, 0), end_time=datetime.time(17, 0))
@@ -1081,7 +1081,7 @@ class SlotAvailabilityTest(BaseTest, ConfigMixin):
     def setUp(self):
         self.service = self.create_service_(duration=timedelta(hours=2))
         self.config = self.create_config_(lead_time=time(11, 0), finish_time=time(15, 0), slot_duration=120)
-        self.test_date = date.today() + timedelta(days=1)  # Use tomorrow's date for the tests
+        self.test_date = timezone.localdate() + timedelta(days=1)  # Use tomorrow's date for the tests
 
     @override_settings(DEBUG=True)
     def tearDown(self):
