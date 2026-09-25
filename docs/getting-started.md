@@ -98,9 +98,18 @@ For more configuration options, refer to [the configuration reference](configura
 
 ## Template Configuration
 
-Ensure your base template includes the following blocks:
+Tell the package which base template its pages render in (your site's base, with its navbar and footer):
+
+```python
+APPOINTMENT_BASE_TEMPLATE = 'base.html'  # booking pages
+APPOINTMENT_ADMIN_BASE_TEMPLATE = 'base.html'  # (optional) staff pages
+```
+
+Every package page extends `appointment/layout.html`, which extends that base. Ensure your base template includes the
+following blocks:
 
 ```html
+{% block customMetaTag %}{% endblock %}
 {% block customCSS %}{% endblock %}
 {% block title %}{% endblock %}
 {% block description %}{% endblock %}
@@ -108,7 +117,8 @@ Ensure your base template includes the following blocks:
 {% block customJS %}{% endblock %}
 ```
 
-Note: At minimum, the `customCSS`, `body`, and `customJS` blocks are required. jQuery is also necessary for proper functionality.
+Note: At minimum, the `customMetaTag` (inside `<head>`), `customCSS`, `body`, and `customJS` blocks are required.
+jQuery and Bootstrap 5 (CSS and JS) are also necessary for proper functionality.
 
 ## Customization
 

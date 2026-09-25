@@ -1,0 +1,22 @@
+{% extends "demo/base.html" %}
+{% load i18n %}
+{% comment %}Demo project only: lists the services so the booking pages can be reached from the nav.{% endcomment %}
+{% block title %}{% trans "Book an appointment" %}{% endblock %}
+{% block body %}
+    <div class="container">
+        <h1 class="h3 mb-3">{% trans "Book an appointment" %}</h1>
+        {% if services %}
+            <div class="list-group">
+                {% for service in services %}
+                    <a href="{% url 'appointment:appointment_request' service.id %}"
+                       class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <span>{{ service.name }}</span>
+                        <span class="text-muted small">{{ service.get_duration }} · {{ service.get_price_text }}</span>
+                    </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-muted">{% trans "No service yet. Add one from the staff area." %}</p>
+        {% endif %}
+    </div>
+{% endblock %}

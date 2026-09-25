@@ -1,0 +1,249 @@
+{% extends "demo/base.html" %}
+{% load i18n %}
+{% comment %}
+    Demo project only (not shipped with the package).
+    Plays the role of a host project's admin base template, set through APPOINTMENT_ADMIN_BASE_TEMPLATE.
+    Same page contract as demo/base.html, but with a left sidebar: collapsible to icons on large screens,
+    an off-canvas menu on small ones.
+{% endcomment %}
+
+{% block demo_css %}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        .demo-admin {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .demo-main {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+
+        .demo-sidebar-panel .nav-link {
+            color: rgba(255, 255, 255, .75);
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            border-radius: .375rem;
+            white-space: nowrap;
+        }
+
+        .demo-sidebar-panel .nav-link:hover,
+        .demo-sidebar-panel .nav-link.active {
+            color: #fff;
+            background-color: rgba(255, 255, 255, .1);
+        }
+
+        .demo-sidebar-panel .bi {
+            font-size: 1.15rem;
+            flex-shrink: 0;
+        }
+
+        .demo-user {
+            color: rgba(255, 255, 255, .6);
+        }
+
+        /* Small screens: the panel is an off-canvas menu opened from the top bar. */
+        @media (max-width: 991.98px) {
+            .demo-sidebar-panel {
+                background-color: #212529;
+                color: #fff;
+            }
+        }
+
+        /* Large screens: a fixed-width column that can shrink to an icon rail. */
+        @media (min-width: 992px) {
+            .demo-sidebar {
+                width: 240px;
+                flex-shrink: 0;
+                background-color: #212529;
+                color: #fff;
+                transition: width .2s ease;
+            }
+
+            .demo-sidebar-panel {
+                position: sticky;
+                top: 0;
+                height: 100vh;
+            }
+
+            .demo-sidebar-panel .offcanvas-body {
+                flex-direction: column;
+                height: 100%;
+                padding: 1rem .75rem;
+            }
+
+            .demo-admin.demo-collapsed .demo-sidebar {
+                width: 72px;
+            }
+
+            .demo-admin.demo-collapsed .demo-label,
+            .demo-admin.demo-collapsed .demo-hide-collapsed {
+                display: none !important;
+            }
+
+            .demo-admin.demo-collapsed .nav-link,
+            .demo-admin.demo-collapsed .demo-sidebar-top {
+                justify-content: center;
+            }
+
+            .demo-collapse-btn .bi {
+                display: inline-block;
+                transition: transform .2s ease;
+            }
+
+            .demo-admin.demo-collapsed .demo-collapse-btn .bi {
+                transform: rotate(180deg);
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block demo_page %}
+    {% url 'demo_home' as home_url %}
+    {% url 'appointment:get_user_appointments' as calendar_url %}
+    {% url 'appointment:user_profile' as profile_url %}
+    {% url 'appointment:get_service_list' as services_url %}
+    <div class="demo-admin" id="demoAdmin">
+        <script>
+            // Restore the collapsed state before the first paint, so the sidebar doesn't flash open.
+            try {
+                if (localStorage.getItem('demoSidebarCollapsed') === '1') {
+                    document.getElementById('demoAdmin').classList.add('demo-collapsed');
+                }
+            } catch (e) {
+            }
+        </script>
+        <aside class="demo-sidebar">
+            <div class="offcanvas-lg offcanvas-start demo-sidebar-panel" tabindex="-1" id="demoSidebar"
+                 aria-labelledby="demoSidebarTitle">
+                <div class="offcanvas-header">
+                    <h5 class="offcanvas-title" id="demoSidebarTitle">{% trans "Staff area" %}</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"
+                            data-bs-target="#demoSidebar" aria-label="{% trans 'Close' %}"></button>
+                </div>
+                <div class="offcanvas-body">
+                    <div class="demo-sidebar-top d-none d-lg-flex align-items-center justify-content-between mb-3">
+                        <a class="text-white text-decoration-none fw-semibold demo-label" href="{{ calendar_url }}">
+                            {% trans "Staff area" %}</a>
+                        <button type="button" class="btn btn-sm btn-outline-light demo-collapse-btn"
+                                id="demoCollapse" aria-controls="demoSidebar" aria-expanded="true"
+                                title="{% trans 'Toggle navigation' %}">
+                            <i class="bi bi-chevron-double-left"></i>
+                            <span class="visually-hidden">{% trans "Toggle navigation" %}</span>
+                        </button>
+                    </div>
+
+                    <ul class="nav nav-pills flex-column gap-1 mb-auto">
+                        <li class="nav-item">
+                            <a class="nav-link{% if request.path == calendar_url %} active{% endif %}"
+                               href="{{ calendar_url }}" title="{% trans 'Calendar' %}">
+                                <i class="bi bi-calendar3"></i><span class="demo-label">{% trans "Calendar" %}</span></a>
+                        </li>
+                        <li class="nav-item">
+                            {% if user.is_superuser %}
+                                <a class="nav-link{% if request.path == profile_url %} active{% endif %}"
+                                   href="{{ profile_url }}" title="{% trans 'Staff' %}">
+                                    <i class="bi bi-people"></i><span class="demo-label">{% trans "Staff" %}</span></a>
+                            {% else %}
+                                <a class="nav-link{% if request.path == profile_url %} active{% endif %}"
+                                   href="{{ profile_url }}" title="{% trans 'Profile' %}">
+                                    <i class="bi bi-person"></i><span class="demo-label">{% trans "Profile" %}</span></a>
+                            {% endif %}
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link{% if request.path == services_url %} active{% endif %}"
+                               href="{{ services_url }}" title="{% trans 'Services' %}">
+                                <i class="bi bi-briefcase"></i><span class="demo-label">{% trans "Services" %}</span></a>
+                        </li>
+                        {% if user.is_superuser %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'admin:index' %}" title="{% trans 'Django admin' %}">
+                                    <i class="bi bi-gear"></i><span class="demo-label">{% trans "Django admin" %}</span></a>
+                            </li>
+                        {% endif %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ home_url }}" title="{% trans 'View site' %}">
+                                <i class="bi bi-box-arrow-up-left"></i><span class="demo-label">{% trans "View site" %}</span></a>
+                        </li>
+                    </ul>
+
+                    <hr class="border-secondary">
+                    <div class="d-flex flex-column gap-2">
+                        <div class="demo-hide-collapsed">{% include "demo/language_form.html" %}</div>
+                        {% if user.is_authenticated %}
+                            <span class="small demo-user demo-label"><i class="bi bi-person-circle me-1"></i>{{ user.get_username }}</span>
+                            <form action="{% url 'admin:logout' %}" method="post">
+                                {% csrf_token %}
+                                <input name="next" type="hidden" value="{{ home_url }}">
+                                <button type="submit" class="nav-link w-100 border-0 bg-transparent px-3 py-2"
+                                        title="{% trans 'Log out' %}">
+                                    <i class="bi bi-box-arrow-right"></i><span class="demo-label">{% trans "Log out" %}</span>
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <div class="demo-main">
+            <nav class="navbar navbar-dark bg-dark d-lg-none mb-3">
+                <div class="container-fluid">
+                    <button class="btn btn-outline-light btn-sm" type="button" data-bs-toggle="offcanvas"
+                            data-bs-target="#demoSidebar" aria-controls="demoSidebar"
+                            aria-label="{% trans 'Toggle navigation' %}">
+                        <i class="bi bi-list"></i>
+                    </button>
+                    <a class="navbar-brand me-auto ms-2" href="{{ calendar_url }}">{% trans "Staff area" %}</a>
+                </div>
+            </nav>
+            <div class="pt-lg-3">
+                {% block body %}
+                {% endblock %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            const root = document.getElementById('demoAdmin');
+            const button = document.getElementById('demoCollapse');
+            const key = 'demoSidebarCollapsed';
+
+            function apply(collapsed) {
+                root.classList.toggle('demo-collapsed', collapsed);
+                button.setAttribute('aria-expanded', String(!collapsed));
+            }
+
+            apply(root.classList.contains('demo-collapsed'));
+
+            button.addEventListener('click', function () {
+                const collapsed = !root.classList.contains('demo-collapsed');
+                apply(collapsed);
+                try {
+                    localStorage.setItem(key, collapsed ? '1' : '0');
+                } catch (e) {
+                }
+            });
+
+            // The page content changes width without a window resize: let widgets such as the calendar re-measure.
+            if ('ResizeObserver' in window) {
+                const main = root.querySelector('.demo-main');
+                let lastWidth = main.offsetWidth;
+                let timer;
+                new ResizeObserver(function () {
+                    if (main.offsetWidth === lastWidth) {
+                        return;
+                    }
+                    lastWidth = main.offsetWidth;
+                    clearTimeout(timer);
+                    timer = setTimeout(function () {
+                        window.dispatchEvent(new Event('resize'));
+                    }, 250);
+                }).observe(main);
+            }
+        })();
+    </script>
+{% endblock %}

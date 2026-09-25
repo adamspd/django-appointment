@@ -1,0 +1,31 @@
+{% load i18n %}
+{% comment %}
+    Client navbar links: a regular public site nav. The staff pages have their own sidebar (demo/admin_base.html),
+    so staff only get one link to it here.
+{% endcomment %}
+{% url 'demo_home' as home_url %}
+{% url 'appointment:get_user_appointments' as calendar_url %}
+<ul class="navbar-nav me-auto mb-2 mb-lg-0">
+    <li class="nav-item">
+        <a class="nav-link{% if request.path == home_url %} active{% endif %}" href="{{ home_url }}">
+            {% trans "Book" %}</a>
+    </li>
+</ul>
+
+<div class="d-flex flex-wrap align-items-center gap-2">
+    {% include "demo/language_form.html" %}
+    {% if user.is_authenticated %}
+        {% if user.is_staff or user.is_superuser %}
+            <a class="btn btn-sm btn-primary" href="{{ calendar_url }}">{% trans "Staff area" %}</a>
+        {% endif %}
+        <span class="navbar-text small">{{ user.get_username }}</span>
+        <form action="{% url 'admin:logout' %}" method="post" class="d-flex">
+            {% csrf_token %}
+            <input name="next" type="hidden" value="{{ home_url }}">
+            <button type="submit" class="btn btn-sm btn-outline-secondary">{% trans "Log out" %}</button>
+        </form>
+    {% else %}
+        <a class="btn btn-sm btn-outline-primary" href="{% url 'admin:login' %}?next={{ calendar_url|urlencode }}">
+            {% trans "Log in" %}</a>
+    {% endif %}
+</div>
