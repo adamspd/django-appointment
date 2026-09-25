@@ -1,10 +1,13 @@
 # test_view_helpers.py
 # Path: appointment/tests/test_view_helpers.py
 
+from decimal import Decimal
+
 from django.http import HttpRequest
 from django.test import TestCase
+from django.utils import translation
 
-from appointment.utils.view_helpers import generate_random_id, get_locale, is_ajax
+from appointment.utils.view_helpers import format_price, generate_random_id, get_locale, is_ajax
 
 
 class GetLocaleTests(TestCase):
@@ -31,6 +34,30 @@ class GetLocaleTests(TestCase):
     def test_get_locale_others(self):
         with self.settings(LANGUAGE_CODE='de'):
             self.assertEqual(get_locale(), 'de')
+
+
+class FormatPriceTests(TestCase):
+    """Test cases for format_price"""
+
+    def test_symbol_placed_by_locale(self):
+        with translation.override('en'):
+            self.assertEqual(format_price(150, 'USD'), '$150')
+        with translation.override('fr'):
+            self.assertEqual(format_price(150, 'USD'), '150\xa0$US')
+            self.assertEqual(format_price(150, 'EUR'), '150\xa0€')
+
+    def test_decimals_kept_when_not_whole(self):
+        with translation.override('en'):
+            self.assertEqual(format_price(Decimal('100.5'), 'USD'), '$100.50')
+            self.assertEqual(format_price(Decimal('49.99'), 'EUR'), '€49.99')
+        with translation.override('fr'):
+            self.assertEqual(format_price(Decimal('49.99'), 'EUR'), '49,99\xa0€')
+
+    def test_whole_amounts_have_no_decimals(self):
+        with translation.override('en'):
+            self.assertEqual(format_price(Decimal('100.00'), 'USD'), '$100')
+            self.assertEqual(format_price(1000, 'USD'), '$1,000')
+            self.assertEqual(format_price(1000, 'JPY'), '¥1,000')
 
 
 class IsAjaxTests(TestCase):

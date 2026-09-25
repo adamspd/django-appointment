@@ -33,9 +33,10 @@ The `Service` model encapsulates a service provided by the appointment system.
 - `get_duration`: Returns the duration of the service in a human-readable format (as a string).
 - `get_price`: Returns the price of the service.
 - `get_currency_icon`: Returns the currency symbol.
-- `get_price_text`: Returns a formatted price text (as a string) that you can use in your HTML code.
+- `get_price_text`: Returns the price formatted for the active language, with the currency symbol where that language
+  puts it (`$150` in English, `150 $US` in French), or "Free". Whole amounts have no decimals.
 - `get_down_payment`: Returns the down payment amount for the service.
-- `get_down_payment_text`: Returns a formatted down payment text that you can use in your HTML code.
+- `get_down_payment_text`: Returns the down payment formatted the same way as `get_price_text`, or "Free".
 - `get_image_url`: Returns the URL of the image associated with the service.
 - `is_a_paid_service`: Returns whether the service is paid (true of false).
 - `accepts_down_payment`: Returns whether the service accepts a down payment (true of false).
@@ -197,7 +198,8 @@ appointment request.
 - `is_paid_text`: Returns a string representation of the paid status.
 - `wants_reminder_text`: Returns a string representation of the reminder preference.
 - `get_appointment_amount_to_pay`: Returns the amount to be paid for the appointment.
-- `get_appointment_amount_to_pay_text`: Returns a formatted amount to pay text.
+- `get_appointment_amount_to_pay_text`: Returns the amount to pay formatted the same way as the service's
+  `get_price_text`, or "Free".
 - `get_appointment_currency`: Returns the currency of the appointment price.
 - `get_appointment_id_request`: Returns the ID of the appointment.
 - `set_appointment_paid_status`: Sets the paid status of the appointment.
