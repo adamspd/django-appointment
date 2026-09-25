@@ -85,15 +85,15 @@
     color: #333;
 }
 
-.fc-day {
+:where(.djappt) .fc-day {
     font-size: 12px;
 }
 
-.fc-daygrid-day-frame {
+:where(.djappt) .fc-daygrid-day-frame {
     height: 20px;
 }
 
-a {
+:where(.djappt) a {
     color: #0c042c;
 }
 
@@ -148,20 +148,20 @@ a {
 }
 
 /* Change the color of the buttons for the calendar */
-.fc-button {
+:where(.djappt) .fc-button {
     background-color: rgba(0, 48, 124, 0.95) !important;
     border-color: rgba(2, 76, 157, 0.85) !important;
     color: #fff !important;
 }
 
 /* Change the color of the buttons when hovered */
-.fc-button:hover {
+:where(.djappt) .fc-button:hover {
     background-color: #025bbb !important;
     border-color: #0056b3;
 }
 
 /* Change the color of the buttons when active or focused */
-.fc-button:active, .fc-button:focus {
+:where(.djappt) .fc-button:active, :where(.djappt) .fc-button:focus {
     background-color: #0759b2 !important;
     border-color: #145294;
 }
@@ -369,7 +369,7 @@ a {
         font-size: 14px;
     }
 
-    .fc-day {
+    :where(.djappt) .fc-day {
         font-size: 10px;
     }
 }
@@ -421,19 +421,19 @@ a {
         font-size: 13px;
     }
 
-    .fc-day {
+    :where(.djappt) .fc-day {
         font-size: 11px;
     }
 
-    .fc-toolbar-title {
+    :where(.djappt) .fc-toolbar-title {
         font-size: 14px !important;
     }
 
-    .fc {
+    :where(.djappt) .fc {
         font-size: 13px !important;
     }
 
-    .fc, .fc-button {
+    :where(.djappt) .fc, :where(.djappt) .fc-button {
         vertical-align: center !important;
     }
 
