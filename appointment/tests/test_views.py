@@ -31,7 +31,7 @@ from appointment.utils.db_helpers import Service, WorkingHours, create_user_with
 from appointment.utils.error_codes import ErrorCode
 from appointment.utils.template_helpers import escape_json_for_script
 from appointment.views import (
-    redirect_to_payment_or_thank_you_page, verify_user_and_login
+    THANK_YOU_SESSION_KEY, redirect_to_payment_or_thank_you_page, verify_user_and_login
 )
 
 
@@ -1065,13 +1065,55 @@ class ViewsTestCase(BaseTest):
         self.assertIsNotNone(response_data)
         self.assertIsNotNone(response_data['next_available_date'])
 
-    def test_default_thank_you(self):
-        """Test if the default thank you page can be rendered."""
-        appointment = Appointment.objects.create(client=self.user1, appointment_request=self.ar)
+    def allow_thank_you_page_in_session(self, appointment):
+        """What create_appointment and confirm_reschedule do for the browser that booked or rescheduled."""
+        session = self.client.session
+        session[THANK_YOU_SESSION_KEY] = {str(appointment.id): True}
+        session.save()
+
+    @patch('appointment.views.send_thank_you_email')
+    def test_default_thank_you(self, mock_send_email):
+        """The browser that booked sees the thank-you page, and the email is sent on the first visit only."""
+        appointment = Appointment.objects.create(client=self.users['client1'], appointment_request=self.ar)
+        self.allow_thank_you_page_in_session(appointment)
         url = reverse('appointment:default_thank_you', args=[appointment.id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertIn(appointment.get_service_name(), str(response.content))
+        self.assertEqual(mock_send_email.call_count, 1)
+
+        # Reloading the page shows it again without sending the email again.
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(mock_send_email.call_count, 1)
+
+    @patch('appointment.views.send_thank_you_email')
+    def test_default_thank_you_is_hidden_from_other_visitors(self, mock_send_email):
+        """Anyone else trying appointment ids gets a 404, and no email is sent."""
+        appointment = Appointment.objects.create(client=self.users['client1'], appointment_request=self.ar)
+        url = reverse('appointment:default_thank_you', args=[appointment.id])
+        self.assertEqual(self.client.get(url).status_code, 404)
+
+        self.client.force_login(self.users['client2'])
+        self.assertEqual(self.client.get(url).status_code, 404)
+        mock_send_email.assert_not_called()
+
+    @patch('appointment.views.send_thank_you_email')
+    def test_default_thank_you_for_the_client_staff_member_and_superuser(self, mock_send_email):
+        """The client's account, the appointment's staff member and a superuser can open the page later, without
+        sending the email again.
+        """
+        appointment = Appointment.objects.create(client=self.users['client1'], appointment_request=self.ar)
+        url = reverse('appointment:default_thank_you', args=[appointment.id])
+        superuser = self.create_user_(first_name='George', last_name='Hammond', email='hammond@django-appointment.com',
+                                      username='george.hammond')
+        superuser.is_superuser = True
+        superuser.save()
+        for user in (self.users['client1'], self.users['staff1'], superuser):
+            with self.subTest(user=user.email):
+                self.client.force_login(user)
+                self.assertEqual(self.client.get(url).status_code, 200)
+        mock_send_email.assert_not_called()
 
 
 class AddStaffMemberInfoTestCase(ViewsTestCase):
@@ -1322,6 +1364,15 @@ class AppointmentClientInformationTest(BaseTest):
         self.assertEqual((user.first_name, user.last_name), ('Vala', 'Mal Doran'))
         self.assertNotEqual(user.email, 'someone.else@django-appointment.com')
         self.assertTrue(Appointment.objects.filter(appointment_request=self.ar, client=user).exists())
+
+    @patch('appointment.views.send_thank_you_email')
+    def test_booking_browser_can_open_its_thank_you_page(self, mock_send_email):
+        """After booking, the redirect to the thank-you page works for this browser and sends the email once."""
+        self.client.force_login(self.users['client1'])
+        response = self.client.post(self.url, self.logged_in_post_data('Georges Hammond'))
+        appointment = Appointment.objects.get(appointment_request=self.ar)
+        self.assertRedirects(response, reverse('appointment:default_thank_you', args=[appointment.id]))
+        self.assertEqual(mock_send_email.call_count, 1)
 
     def test_logged_in_account_without_a_name_can_book(self):
         """An account with no name used to get an empty, locked, required field and could never book."""
