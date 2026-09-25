@@ -24,10 +24,10 @@
                 <h2>{% trans "Manage Unavailabilities" %}</h2>
 
                 <form method="post" action="" id="unavailabilityForm"
-                    data-action="{% if entity_instance %}update{% else %}create{% endif %}"
-                    data-unavailability-id="
+                      data-action="{% if entity_instance %}update{% else %}create{% endif %}"
+                      data-unavailability-id="
                         {% if entity_instance %}{{ entity_instance.id }}{% else %}0{% endif %}"
-                    data-staff-user-id="{% if staff_user_id %}{{ staff_user_id }}{% else %}0{% endif %}">
+                      data-staff-user-id="{% if staff_user_id %}{{ staff_user_id }}{% else %}0{% endif %}">
                     {% csrf_token %}
 
                     {% if error_message %}
@@ -50,18 +50,18 @@
                         <label for="{{ unavailability_form.date.id_for_label }}_display">{% trans 'Date' %}:</label>
                         <div class="input-group date" id="datepicker" data-target-input="nearest">
                             <input type="text" class="form-control datetimepicker-input" data-toggle="datetimepicker"
-                                    data-target="#datepicker" name="{{ unavailability_form.date.name }}"
-                                    value="{{ unavailability_form.date.value }}"
-                                    id="{{ unavailability_form.date.id_for_label }}">
+                                   data-target="#datepicker" name="{{ unavailability_form.date.name }}"
+                                   value="{{ unavailability_form.date.value|default_if_none:'' }}"
+                                   id="{{ unavailability_form.date.id_for_label }}">
                             <div class="input-group-append" data-toggle="datetimepicker"
-                                    data-target="#datepicker">
+                                 data-target="#datepicker">
                                 <div class="input-group-text"><i class="far fa-calendar"></i></div>
                             </div>
                         </div>
                         <!-- Actual value to be submitted -->
                         <input type="hidden" name="{{ unavailability_form.date.name }}_raw"
-                            value="{{ unavailability_form.date.value }}"
-                            id="{{ unavailability_form.date.id_for_label }}_raw">
+                               value="{{ unavailability_form.date.value|default_if_none:'' }}"
+                               id="{{ unavailability_form.date.id_for_label }}_raw">
                     </div>
 
                     <!-- Start Datetime Display -->
@@ -69,18 +69,18 @@
                         <label for="{{ unavailability_form.start_time.id_for_label }}_display">{% trans 'Start time' %}:</label>
                         <div class="input-group date" id="start-timepicker" data-target-input="nearest">
                             <input type="text" class="form-control datetimepicker-input" data-toggle="datetimepicker"
-                                    data-target="#start-timepicker" name="{{ unavailability_form.start_time.name }}"
-                                    value="{{ unavailability_form.start_time.value }}"
-                                    id="{{ unavailability_form.start_time.id_for_label }}">
+                                   data-target="#start-timepicker" name="{{ unavailability_form.start_time.name }}"
+                                   value="{{ unavailability_form.start_time.value|default_if_none:'' }}"
+                                   id="{{ unavailability_form.start_time.id_for_label }}">
                             <div class="input-group-append" data-toggle="datetimepicker"
-                                    data-target="#start-timepicker">
+                                 data-target="#start-timepicker">
                                 <div class="input-group-text"><i class="far fa-clock"></i></div>
                             </div>
                         </div>
                         <!-- Actual value to be submitted -->
                         <input type="hidden" name="{{ unavailability_form.start_time.name }}_raw"
-                            value="{{ unavailability_form.start_time.value }}"
-                            id="{{ unavailability_form.start_time.id_for_label }}_raw">
+                               value="{{ unavailability_form.start_time.value|default_if_none:'' }}"
+                               id="{{ unavailability_form.start_time.id_for_label }}_raw">
                     </div>
 
                     <!-- End Datetime Display -->
@@ -88,25 +88,26 @@
                         <label for="{{ unavailability_form.end_time.id_for_label }}_display">{% trans 'End time' %}:</label>
                         <div class="input-group date" id="end-timepicker" data-target-input="nearest">
                             <input type="text" class="form-control datetimepicker-input" data-toggle="datetimepicker"
-                                    data-target="#end-timepicker" name="{{ unavailability_form.end_time.name }}"
-                                    value="{{ unavailability_form.end_time.value }}"
-                                    id="{{ unavailability_form.end_time.id_for_label }}">
+                                   data-target="#end-timepicker" name="{{ unavailability_form.end_time.name }}"
+                                   value="{{ unavailability_form.end_time.value|default_if_none:'' }}"
+                                   id="{{ unavailability_form.end_time.id_for_label }}">
                             <div class="input-group-append" data-toggle="datetimepicker"
-                                    data-target="#end-timepicker">
+                                 data-target="#end-timepicker">
                                 <div class="input-group-text"><i class="far fa-clock"></i></div>
                             </div>
                         </div>
                         <!-- Actual value to be submitted -->
                         <input type="hidden" name="{{ unavailability_form.end_time.name }}_raw"
-                            value="{{ unavailability_form.end_time.value }}"
-                            id="{{ unavailability_form.end_time.id_for_label }}_raw">
+                               value="{{ unavailability_form.end_time.value|default_if_none:'' }}"
+                               id="{{ unavailability_form.end_time.id_for_label }}_raw">
                     </div>
 
 
                     <div class="form-group">
                         <label for="{{ unavailability_form.description.id_for_label }}">{% trans 'Description' %}:</label>
                         <input type="text" id="{{ unavailability_form.description.id_for_label }}"
-                               name="{{ unavailability_form.description.name }}" value="{{ unavailability_form.description.value }}">
+                               name="{{ unavailability_form.description.name }}"
+                               value="{{ unavailability_form.description.value|default_if_none:'' }}">
                     </div>
 
 
@@ -121,7 +122,7 @@
                     {% if messages %}
                         {% for message in messages %}
                             <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
-                                role="alert">{{ message }}</div>
+                                 role="alert">{{ message }}</div>
                         {% endfor %}
                     {% endif %}
                 </div>
@@ -240,7 +241,7 @@
             });
 
             datePicker.on('change.datetimepicker', function (e) {
-                dateInput.val(e.date.format(timepicker_display_format));
+                dateInput.val(e.date.format(datepicker_display_format));
                 dateInputRaw.val(e.date.format("YYYY-MM-DD"));
             });
 

@@ -2206,3 +2206,8 @@ msgstr "Nueva solicitud de cita para %(client_name)s"
 #, python-format
 msgid "Reschedule Request for %(client_name)s"
 msgstr "Solicitud de reprogramación para %(client_name)s"
+
+#: appointment/views_admin.py
+#, python-format
+msgid "%(service)s on %(date)s"
+msgstr "%(service)s el %(date)s"

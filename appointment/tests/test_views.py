@@ -565,28 +565,23 @@ class ServiceViewTestCase(BaseTest):
 
         # Simulate a request without appointmentId
         url = reverse('appointment:fetch_service_list_for_staff')
+        self.assert_services_fetched(url, staff_member_services)
+
+        # Create a test appointment and link it to self.staff_member1
+        test_appointment = self.create_appt_for_sm1()
+
+        # Simulate a request with appointmentId
+        # Assuming the staff member linked to the appointment offers the same services
+        self.assert_services_fetched(f"{url}?appointmentId={test_appointment.id}", staff_member_services)
+
+    def assert_services_fetched(self, url, expected_services):
         response = self.client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
         self.assertEqual(response.status_code, 200)
         response_data = response.json()
         self.assertEqual(response_data["message"], "Successfully fetched services.")
         self.assertCountEqual(
             response_data["services_offered"],
-            [{"id": service.id, "name": service.name} for service in staff_member_services]
-        )
-
-        # Create a test appointment and link it to self.staff_member1
-        test_appointment = self.create_appt_for_sm1()
-
-        # Simulate a request with appointmentId
-        url_with_appointment = f"{url}?appointmentId={test_appointment.id}"
-        response_with_appointment = self.client.get(url_with_appointment, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-        self.assertEqual(response_with_appointment.status_code, 200)
-        response_data_with_appointment = response_with_appointment.json()
-        self.assertEqual(response_data_with_appointment["message"], "Successfully fetched services.")
-        # Assuming the staff member linked to the appointment offers the same services
-        self.assertCountEqual(
-            response_data_with_appointment["services_offered"],
-            [{"id": service.id, "name": service.name} for service in staff_member_services]
+            [{"id": service.id, "name": service.name} for service in expected_services]
         )
 
     def test_fetch_service_list_for_staff_no_staff_member_instance(self):
@@ -683,6 +678,15 @@ class AppointmentDisplayViewTestCase(BaseTest):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'administration/display_appointment.html')
 
+    def test_display_appointment_page_description(self):
+        self.need_staff_login()
+        response = self.client.get(self.url_display_appt)
+        self.assertIn(self.appointment.get_service_name(), response.context['page_description'])
+        self.assertContains(response, response.context['page_description'])
+        # The page doesn't use any calendar library
+        self.assertNotContains(response, 'moment.js')
+        self.assertNotContains(response, 'fullcalendar')
+
     def test_display_appointment_unauthenticated_user(self):
         # Attempt access without logging in
         response = self.client.get(self.url_display_appt)
@@ -700,6 +704,29 @@ class AppointmentDisplayViewTestCase(BaseTest):
         non_existent_url = reverse('appointment:display_appointment', args=[99999])  # Non-existent appointment ID
         response = self.client.get(non_existent_url)
         self.assertEqual(response.status_code, 404)  # Expect 404 error
+
+
+class ScheduleFormTemplatesTestCase(BaseTest):
+    """Empty schedule forms must not render the text "None" in their fields."""
+
+    def setUp(self):
+        super().setUp()
+        self.need_staff_login()
+        self.staff_user_id = self.staff_member1.user_id
+
+    def assert_no_none_value(self, url_name):
+        response = self.client.get(reverse(url_name, args=[self.staff_user_id]))
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'value="None"')
+
+    def test_add_day_off_form(self):
+        self.assert_no_none_value('appointment:add_day_off_id')
+
+    def test_add_unavailability_form(self):
+        self.assert_no_none_value('appointment:add_unavailability_id')
+
+    def test_add_working_hours_form(self):
+        self.assert_no_none_value('appointment:add_working_hours_id')
 
 
 class DayOffViewsTestCase(BaseTest):
