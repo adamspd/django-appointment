@@ -4,7 +4,7 @@
 {% load static %}
 {% block site_description %}Designer: Adams Pierre David, Category: Resources not found, code 404{% endblock %}
 {% block title %}Page not found | 404{% endblock %}
-{% block body %}
+{% block djappt_content %}
     <div class="apd-main">
         <svg
                 viewBox="0 0 541.17206 328.45184"
@@ -252,7 +252,7 @@
             transition: all 0.5s ease-in-out;
         }
 
-        .apd-main #errorLink:hover, main #errorLink:active {
+        .apd-main #errorLink:hover, :where(.djappt) main #errorLink:active {
             color: #fff;
             background: #000;
         }
