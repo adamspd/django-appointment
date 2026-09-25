@@ -12,6 +12,7 @@ from django.conf import settings
 from django.template.exceptions import TemplateDoesNotExist
 from django.urls import reverse
 from django.utils.encoding import force_bytes
+from django.utils.formats import date_format
 from django.utils.http import urlsafe_base64_encode
 from django.utils.translation import gettext as _
 
@@ -60,7 +61,7 @@ def send_thank_you_email(ar: AppointmentRequest, user, request, email: str, appo
     :return: None
     """
     # Month and year like "J A N 2 0 2 1"
-    month_year = ar.date.strftime("%b %Y").upper()
+    month_year = date_format(ar.date, "M Y").upper()  # In the active language, unlike strftime
     day = ar.date.strftime("%d")
 
     # if first time user, account details won't be none, thus creating a password reset link for the user
@@ -100,11 +101,11 @@ def send_thank_you_email(ar: AppointmentRequest, user, request, email: str, appo
     template_path = get_email_template('thank_you.html', 'email_sender/thank_you_email.html')
 
     send_email(
-            recipient_list=[email],
-            subject=_("Thank you for booking us."),
-            template_url=template_path,
-            context=email_context,
-            attachments=[('appointment.ics', ics_file, 'text/calendar')]
+        recipient_list=[email],
+        subject=_("Thank you for booking us."),
+        template_url=template_path,
+        context=email_context,
+        attachments=[('appointment.ics', ics_file, 'text/calendar')]
     )
 
 
@@ -148,10 +149,10 @@ def send_reset_link_to_staff_member(user, request, email: str, account_details=N
                 'website_name': website_name,
             }
             send_email(
-                    recipient_list=[email],
-                    subject=_("Set Your Password for {company}").format(company=website_name),
-                    template_url=template_path,
-                    context=email_context,
+                recipient_list=[email],
+                subject=_("Set Your Password for {company}").format(company=website_name),
+                template_url=template_path,
+                context=email_context,
             )
         else:
             raise TemplateDoesNotExist("password_reset.html")
@@ -179,12 +180,12 @@ def send_reset_link_to_staff_member(user, request, email: str, account_details=N
             activation_link=set_passwd_link,
             login_instruction=login_instruction,
             account_details=account_details if account_details else _("No additional details provided.")
-    )
+        )
 
         send_email(
-                recipient_list=[email],
-                subject=_("Set Your Password for {company}").format(company=website_name),
-                message=message,
+            recipient_list=[email],
+            subject=_("Set Your Password for {company}").format(company=website_name),
+            message=message,
         )
 
 
@@ -233,15 +234,15 @@ def notify_admin_about_appointment(appointment, client_name: str):
             'staff_member_name': staff_name
         }
 
-        subject = _("New Appointment Request for ") + client_name
+        subject = _("New Appointment Request for %(client_name)s") % {'client_name': client_name}
         attachments = [('appointment.ics', ics_file, 'text/calendar')] if is_staff_admin else None
 
         notify_admin(
-                subject=subject,
-                template_url=template_path,
-                context=email_context,
-                recipient_email=admin_email,
-                attachments=attachments
+            subject=subject,
+            template_url=template_path,
+            context=email_context,
+            recipient_email=admin_email,
+            attachments=attachments
         )
 
         notified_emails.add(admin_email)
@@ -250,11 +251,11 @@ def notify_admin_about_appointment(appointment, client_name: str):
     if staff_email not in notified_emails:
         logger.info(f"Notifying the staff member for new appointment {appointment.id}")
         send_email(
-                recipient_list=[staff_email],
-                subject=_("New Appointment Request for ") + client_name,
-                template_url=template_path,
-                context=staff_context,
-                attachments=[('appointment.ics', ics_file, 'text/calendar')]
+            recipient_list=[staff_email],
+            subject=_("New Appointment Request for %(client_name)s") % {'client_name': client_name},
+            template_url=template_path,
+            context=staff_context,
+            attachments=[('appointment.ics', ics_file, 'text/calendar')]
         )
 
     logger.info(f"Notifications sent for appointment {appointment.id}")
@@ -284,11 +285,11 @@ def send_verification_email(user, email: str, request=None):
                 'company': get_website_name(),
             }
             send_email(
-                    recipient_list=[email],
-                    subject=_("Email Verification"),
-                    template_url=template_path,
-                    context=email_context,
-                    request=request
+                recipient_list=[email],
+                subject=_("Email Verification"),
+                template_url=template_path,
+                context=email_context,
+                request=request
             )
         else:
             raise TemplateDoesNotExist("verification.html")
@@ -319,16 +320,16 @@ def send_reschedule_confirmation_email(request, reschedule_history, appointment_
 
     # User may name their template 'reschedule_confirmation_email.html' or 'reschedule.html'
     template_path = get_email_template(
-            ('reschedule_confirmation_email.html', 'reschedule.html'),
-            'email_sender/reschedule_email.html'
+        ('reschedule_confirmation_email.html', 'reschedule.html'),
+        'email_sender/reschedule_email.html'
     )
     subject = _("Confirm Your Appointment Rescheduling")
 
     send_email(
-            recipient_list=[email],
-            subject=subject,
-            template_url=template_path,
-            context=email_context
+        recipient_list=[email],
+        subject=subject,
+        template_url=template_path,
+        context=email_context
     )
 
 
@@ -358,20 +359,21 @@ def notify_admin_about_reschedule(reschedule_history, appointment_request, clien
     appt = Appointment.objects.get(appointment_request=appointment_request)
     ics_file = generate_ics_file(appt)
 
-    subject = _("Reschedule Request for ") + client_name
+    subject = _("Reschedule Request for %(client_name)s") % {'client_name': client_name}
     staff_member = appointment_request.staff_member
 
     # User may name their template 'notify_admin_about_reschedule_email.html' or 'reschedule_admin.html'
     template_path = get_email_template(
-            ('notify_admin_about_reschedule_email.html', 'reschedule_admin.html'),
-            'email_sender/reschedule_email.html'
+        ('notify_admin_about_reschedule_email.html', 'reschedule_admin.html'),
+        'email_sender/reschedule_email.html'
     )
 
     # Notifying admin
     notify_admin(subject=subject, template_url=template_path, context=email_context,
                  attachments=[('appointment.ics', ics_file, 'text/calendar')])
 
-    if staff_member.user.email not in settings.ADMINS:
+    # ADMINS holds (name, email) pairs; the staff member already got the admin email if they are one
+    if staff_member.user.email not in [email for name, email in settings.ADMINS]:
         send_email(recipient_list=[staff_member.user.email], subject=subject, context=email_context,
                    template_url=template_path,
                    attachments=[('appointment.ics', ics_file, 'text/calendar')])
