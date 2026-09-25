@@ -105,9 +105,9 @@ class SendVerificationEmailTests(BaseTest):
         send_verification_email(user, self.email)
 
         mock_send_email.assert_called_once_with(
-                recipient_list=[self.email],
-                subject=_("Email Verification"),
-                message=mock.ANY
+            recipient_list=[self.email],
+            subject=_("Email Verification"),
+            message=mock.ANY
         )
         self.assertIn("123456", mock_send_email.call_args[1]['message'])
 
@@ -117,12 +117,12 @@ class SendRescheduleConfirmationEmailTests(BaseTest):
         super().setUp()
         self.appointment_request = self.create_appt_request_for_sm1()
         self.reschedule_history = AppointmentRescheduleHistory.objects.create(
-                appointment_request=self.appointment_request,
-                date=self.appointment_request.date + timezone.timedelta(days=1),
-                start_time=self.appointment_request.start_time,
-                end_time=self.appointment_request.end_time,
-                staff_member=self.staff_member1,
-                reason_for_rescheduling="Had to reschedule because I got stuck in a time loop. Again"
+            appointment_request=self.appointment_request,
+            date=self.appointment_request.date + timezone.timedelta(days=1),
+            start_time=self.appointment_request.start_time,
+            end_time=self.appointment_request.end_time,
+            staff_member=self.staff_member1,
+            reason_for_rescheduling="Had to reschedule because I got stuck in a time loop. Again"
         )
         self.first_name = "Jack"
         self.email = "jack.oneill@django-appointment.com"
@@ -145,3 +145,55 @@ class SendRescheduleConfirmationEmailTests(BaseTest):
         self.assertIn('reschedule_date', call_kwargs['context'])
         self.assertIn('confirmation_link', call_kwargs['context'])
         self.assertEqual(call_kwargs['context']['confirmation_link'], "http://gateroomserver/confirmation_link")
+
+
+class EmailSubjectAndRecipientTests(BaseTest):
+    def setUp(self):
+        super().setUp()
+        self.appointment = self.create_appt_for_sm1()
+        self.appointment_request = self.appointment.appointment_request
+        self.reschedule_history = AppointmentRescheduleHistory.objects.create(
+            appointment_request=self.appointment_request,
+            date=self.appointment_request.date + timezone.timedelta(days=1),
+            start_time=self.appointment_request.start_time,
+            end_time=self.appointment_request.end_time,
+            staff_member=self.staff_member1,
+            reason_for_rescheduling="Time loop"
+        )
+
+    @patch('appointment.utils.email_ops.send_email')
+    @patch('appointment.utils.email_ops.notify_admin')
+    def test_reschedule_subject_is_one_translatable_string(self, mock_notify_admin, mock_send_email):
+        notify_admin_about_reschedule(self.reschedule_history, self.appointment_request, "Jack O'Neill")
+        self.assertEqual(mock_notify_admin.call_args.kwargs['subject'], "Reschedule Request for Jack O'Neill")
+
+    @patch('appointment.utils.email_ops.send_email')
+    @patch('appointment.utils.email_ops.notify_admin')
+    def test_staff_member_who_is_an_admin_is_not_emailed_twice(self, mock_notify_admin, mock_send_email):
+        staff_email = self.staff_member1.user.email
+        with self.settings(ADMINS=[('Daniel', staff_email)]):
+            notify_admin_about_reschedule(self.reschedule_history, self.appointment_request, "Jack")
+        mock_notify_admin.assert_called_once()
+        mock_send_email.assert_not_called()
+
+    @patch('appointment.utils.email_ops.send_email')
+    @patch('appointment.utils.email_ops.notify_admin')
+    def test_staff_member_who_is_not_an_admin_gets_their_own_email(self, mock_notify_admin, mock_send_email):
+        with self.settings(ADMINS=[('George', 'george@sgc.mil')]):
+            notify_admin_about_reschedule(self.reschedule_history, self.appointment_request, "Jack")
+        mock_send_email.assert_called_once()
+
+    @patch('appointment.utils.email_ops.send_email')
+    def test_new_appointment_subject_is_one_translatable_string(self, mock_send_email):
+        with self.settings(ADMINS=[]):
+            notify_admin_about_appointment(self.appointment, "Jack O'Neill")
+        self.assertEqual(mock_send_email.call_args.kwargs['subject'], "New Appointment Request for Jack O'Neill")
+
+    @patch('appointment.utils.email_ops.send_email')
+    def test_month_year_follows_the_active_language(self, mock_send_email):
+        from django.utils import translation
+        user = self.users['client1']
+        self.appointment_request.date = datetime(2030, 4, 10).date()
+        with translation.override('fr'):
+            send_thank_you_email(self.appointment_request, user, RequestFactory().get('/'), user.email)
+        self.assertEqual(mock_send_email.call_args.kwargs['context']['month_year'], "AVR 2030")

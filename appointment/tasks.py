@@ -7,11 +7,11 @@ Since: 3.1.0
 """
 from datetime import timedelta
 
-from django.core.mail import EmailMessage
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from appointment.email_sender import notify_admin, send_email
+from appointment.email_sender.email_sender import html_to_text, send_email_now
 from appointment.logger_config import get_logger
 from appointment.models import Appointment, AppointmentRequest
 from appointment.settings import APPOINTMENT_CLEANUP_DAYS
@@ -37,35 +37,24 @@ def send_email_reminder(to_email, first_name, reschedule_link, appointment_id):
     }
     template_url = get_email_template('reminder_email.html', 'email_sender/reminder_email.html')
     send_email(
-            recipient_list=[to_email], subject=_("Reminder: Upcoming Appointment"),
-            template_url=template_url, context=email_context
+        recipient_list=[to_email], subject=_("Reminder: Upcoming Appointment"),
+        template_url=template_url, context=email_context
     )
     # Notify the admin
     logger.info(f"Sending admin reminder also")
     email_context['recipient_type'] = 'admin'
     notify_admin(
-            subject=_("Admin Reminder: Upcoming Appointment"),
-            template_url=template_url, context=email_context
+        subject=_("Admin Reminder: Upcoming Appointment"),
+        template_url=template_url, context=email_context
     )
 
 
 def send_email_task(recipient_list, subject, message, html_message, from_email, attachments=None):
     try:
-        email = EmailMessage(
-                subject=subject,
-                body=message if not html_message else html_message,
-                from_email=from_email,
-                to=recipient_list
-        )
-
-        if html_message:
-            email.content_subtype = "html"
-
-        if attachments:
-            for attachment in attachments:
-                email.attach(*attachment)
-
-        email.send(fail_silently=False)
+        # Tasks queued before the text part existed carry an empty or missing message; derive it from the HTML
+        if html_message and not message:
+            message = html_to_text(html_message)
+        send_email_now(recipient_list, subject, message or "", html_message, from_email, attachments)
     except Exception as e:
         logger.error(f"Error sending email from task: {e}")
 
@@ -92,7 +81,7 @@ def cleanup_old_appointment_requests():
     try:
         # Calculate cutoff date
         cutoff_date = timezone.now() - timedelta(days=APPOINTMENT_CLEANUP_DAYS)
-        
+
         # Find AppointmentRequests that:
         # 1. Don't have an associated Appointment (using the reverse OneToOne relationship)
         # 2. Were created before the cutoff date
@@ -100,10 +89,10 @@ def cleanup_old_appointment_requests():
             created_at__lt=cutoff_date,
             appointment__isnull=True  # Only those without an associated Appointment
         )
-        
+
         # Count before deletion for logging
         count = old_unassociated_requests.count()
-        
+
         if count > 0:
             # Delete the old unassociated appointment requests
             # not `_`: this module imports gettext as _ (issue #455)
@@ -117,7 +106,7 @@ def cleanup_old_appointment_requests():
                 f"No old unassociated AppointmentRequest(s) found to clean up "
                 f"(older than {APPOINTMENT_CLEANUP_DAYS} days)"
             )
-        
+
         return {
             'deleted_count': count,
             'cutoff_date': cutoff_date.isoformat(),

@@ -2196,3 +2196,13 @@ msgstr "Indisponibilidad eliminada con éxito."
 #: appointment/views_admin.py
 msgid "Working hours deleted successfully."
 msgstr "Las horas laborales se eliminaron con éxito."
+
+#: appointment/utils/email_ops.py
+#, python-format
+msgid "New Appointment Request for %(client_name)s"
+msgstr "Nueva solicitud de cita para %(client_name)s"
+
+#: appointment/utils/email_ops.py
+#, python-format
+msgid "Reschedule Request for %(client_name)s"
+msgstr "Solicitud de reprogramación para %(client_name)s"
