@@ -1,4 +1,6 @@
-from datetime import date, time, timedelta
+from datetime import time, timedelta
+
+from django.utils import timezone
 
 from appointment.models import (
     Appointment, AppointmentRequest, AppointmentRescheduleHistory, Config, Service, StaffMember
@@ -56,9 +58,9 @@ class AppointmentRequestMixin:
     @classmethod
     def create_appointment_request_(cls, service, staff_member, date_=None, start_time=time(9, 0),
                                     end_time=time(10, 0)):
-        # date.today() as a default would be frozen at import time, not per call.
+        # timezone.localdate() as a default would be frozen at import time, not per call.
         return AppointmentRequest.objects.create(
-                date=date_ if date_ is not None else date.today(),
+                date=date_ if date_ is not None else timezone.localdate(),
                 start_time=start_time,
                 end_time=end_time,
                 service=service,

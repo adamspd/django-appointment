@@ -6,6 +6,7 @@ import warnings
 from unittest.mock import Mock, patch
 
 from django.test import TestCase
+from django.utils import timezone
 
 from appointment.utils.date_time import (
     combine_date_and_time, convert_12_hour_time_to_24_hour_time, convert_24_hour_time_to_12_hour_time,
@@ -395,12 +396,11 @@ class TimestampTests(TestCase):
 class GeneralDateTimeTests(TestCase):
     def test_get_current_year(self):
         """Test get_current_year function"""
-        self.assertEqual(get_current_year(), datetime.datetime.now().year)
+        self.assertEqual(get_current_year(), timezone.localdate().year)
 
     def test_get_current_year_mocked(self):
         """Test get_current_year function with a mocked year."""
-        with patch('appointment.utils.date_time.datetime.datetime') as mock_date:
-            mock_date.now.return_value.year = 1999  # Setting year attribute of the mock object
+        with patch('appointment.utils.date_time.timezone.localdate', return_value=datetime.date(1999, 12, 31)):
             self.assertEqual(get_current_year(), 1999)
 
     def test_get_weekday_num(self):

@@ -62,7 +62,7 @@ class SendResetLinkToStaffMemberTests(BaseTest):
         # Additional assertions to verify more parts of the message content
         self.assertIn('Hello', kwargs['message'])
         self.assertIn(self.user.first_name, kwargs['message'])
-        self.assertIn(str(datetime.now().year), kwargs['message'])
+        self.assertIn(str(timezone.localdate().year), kwargs['message'])
         self.assertIn('No additional details provided.', kwargs['message'])
         self.assertIn(self.user.username, kwargs['message'])
 

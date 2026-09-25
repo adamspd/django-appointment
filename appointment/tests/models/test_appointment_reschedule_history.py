@@ -14,15 +14,15 @@ class AppointmentRescheduleHistoryCreationTests(BaseTest):
 
     def setUp(self):
         self.appointment_request = self.create_appt_request_for_sm1()
-        self.future_date = timezone.now().date() + timedelta(days=3)
+        self.future_date = timezone.localdate() + timedelta(days=3)
         return super().setUp()
 
     def test_reschedule_history_creation_with_valid_data(self):
         reschedule_history = AppointmentRescheduleHistory.objects.create(
             appointment_request=self.appointment_request,
             date=self.future_date,
-            start_time=timezone.now().time(),
-            end_time=(timezone.now() + timedelta(hours=1)).time(),
+            start_time=timezone.localtime().time(),
+            end_time=(timezone.localtime() + timedelta(hours=1)).time(),
             staff_member=self.staff_member1,
             reason_for_rescheduling="Client request",
             reschedule_status='pending'
@@ -35,8 +35,8 @@ class AppointmentRescheduleHistoryCreationTests(BaseTest):
         reschedule_history = AppointmentRescheduleHistory.objects.create(
             appointment_request=self.appointment_request,
             date=self.future_date,
-            start_time=timezone.now().time(),
-            end_time=(timezone.now() + timedelta(hours=1)).time(),
+            start_time=timezone.localtime().time(),
+            end_time=(timezone.localtime() + timedelta(hours=1)).time(),
             staff_member=self.staff_member1
         )
         self.assertIsNotNone(reschedule_history.id_request)
@@ -46,8 +46,8 @@ class AppointmentRescheduleHistoryValidationTests(BaseTest):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
-        cls.past_date = timezone.now().date() - timedelta(days=3)
-        cls.future_date = timezone.now().date() + timedelta(days=3)
+        cls.past_date = timezone.localdate() - timedelta(days=3)
+        cls.future_date = timezone.localdate() + timedelta(days=3)
 
     def setUp(self):
         self.appointment_request = self.create_appt_request_for_sm1()
@@ -57,8 +57,8 @@ class AppointmentRescheduleHistoryValidationTests(BaseTest):
             AppointmentRescheduleHistory.objects.create(
                 appointment_request=self.appointment_request,
                 date=self.past_date,
-                start_time=timezone.now().time(),
-                end_time=(timezone.now() + timedelta(hours=1)).time(),
+                start_time=timezone.localtime().time(),
+                end_time=(timezone.localtime() + timedelta(hours=1)).time(),
                 staff_member=self.staff_member1
             )
 
@@ -67,8 +67,8 @@ class AppointmentRescheduleHistoryValidationTests(BaseTest):
             AppointmentRescheduleHistory.objects.create(
                 appointment_request=self.appointment_request,
                 date="invalid-date",
-                start_time=timezone.now().time(),
-                end_time=(timezone.now() + timedelta(hours=1)).time(),
+                start_time=timezone.localtime().time(),
+                end_time=(timezone.localtime() + timedelta(hours=1)).time(),
                 staff_member=self.staff_member1
             )
 
@@ -80,15 +80,15 @@ class AppointmentRescheduleHistoryTimingTests(BaseTest):
 
     def setUp(self):
         self.appointment_request = self.create_appt_request_for_sm1()
-        self.future_date = timezone.now().date() + timedelta(days=3)
+        self.future_date = timezone.localdate() + timedelta(days=3)
         return super().setUp()
 
     def test_still_valid_within_time_frame(self):
         reschedule_history = AppointmentRescheduleHistory.objects.create(
             appointment_request=self.appointment_request,
             date=self.future_date,
-            start_time=timezone.now().time(),
-            end_time=(timezone.now() + timedelta(hours=1)).time(),
+            start_time=timezone.localtime().time(),
+            end_time=(timezone.localtime() + timedelta(hours=1)).time(),
             staff_member=self.staff_member1,
             reason_for_rescheduling="Client request",
             reschedule_status='pending'
@@ -99,8 +99,8 @@ class AppointmentRescheduleHistoryTimingTests(BaseTest):
         reschedule_history = AppointmentRescheduleHistory.objects.create(
             appointment_request=self.appointment_request,
             date=self.future_date,
-            start_time=timezone.now().time(),
-            end_time=(timezone.now() + timedelta(hours=1)).time(),
+            start_time=timezone.localtime().time(),
+            end_time=(timezone.localtime() + timedelta(hours=1)).time(),
             staff_member=self.staff_member1,
             reason_for_rescheduling="Client request",
             reschedule_status='pending'

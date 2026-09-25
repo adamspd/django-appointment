@@ -365,8 +365,8 @@ class UpdateAppointmentReminderTest(BaseTest, TestCase):
 
     def test_update_appointment_reminder_date_time_changed(self):
         appointment = self.create_appt_for_sm1()
-        new_date = timezone.now().date() + timezone.timedelta(days=10)
-        new_start_time = timezone.now().time()
+        new_date = timezone.localdate() + timezone.timedelta(days=10)
+        new_start_time = timezone.localtime().time()
 
         with patch('appointment.utils.db_helpers.schedule_email_reminder') as mock_schedule_email_reminder, \
                 patch('appointment.utils.db_helpers.cancel_existing_reminder') as mock_cancel_existing_reminder:
@@ -390,8 +390,8 @@ class UpdateAppointmentReminderTest(BaseTest, TestCase):
     def test_reminder_not_scheduled_due_to_user_preference(self, mock_logger):
         # Scenario where user does not want a reminder
         want_reminder = False
-        new_date = timezone.now().date() + datetime.timedelta(days=1)
-        new_start_time = timezone.now().time()
+        new_date = timezone.localdate() + datetime.timedelta(days=1)
+        new_start_time = timezone.localtime().time()
 
         update_appointment_reminder(self.appointment, new_date, new_start_time, self.request, want_reminder)
 
@@ -404,8 +404,8 @@ class UpdateAppointmentReminderTest(BaseTest, TestCase):
     def test_reminder_not_scheduled_due_to_past_datetime(self, mock_logger):
         # Scenario where the new datetime is in the past
         want_reminder = True
-        new_date = timezone.now().date() - datetime.timedelta(days=1)  # Date in the past
-        new_start_time = timezone.now().time()
+        new_date = timezone.localdate() - datetime.timedelta(days=1)  # Date in the past
+        new_start_time = timezone.localtime().time()
 
         update_appointment_reminder(self.appointment, new_date, new_start_time, self.request, want_reminder)
 
@@ -553,7 +553,7 @@ class TestExcludeUnavailableSlots(BaseTest):
         self.appointment = self.create_appt_for_sm1()
 
         # Sample slots for testing
-        self.today = datetime.date.today()
+        self.today = timezone.localdate()
 
         self.slots = [
             datetime.datetime.combine(self.today, datetime.time(8, 0)),
@@ -616,7 +616,7 @@ class TestExcludeUnavailalbleSlotsWithServiceDuration(BaseTest):
 
     def setUp(self):
         super().setUp()
-        self.today = datetime.date.today()
+        self.today = timezone.localdate()
         # Create a long-duration service so we can make appointments spanning many hours
         self.long_service = self.create_service_(
             name="Long Test Service", duration=datetime.timedelta(hours=4), price=100
@@ -888,7 +888,7 @@ class TestGetAppointmentsForDateAndTime(BaseTest):
         super().setUp()
 
         # Setting up some appointment requests and appointments for testing
-        self.date_sample = datetime.datetime.today()
+        self.date_sample = timezone.localdate()
 
         # Creating overlapping appointments for staff_member1
         self.client1 = self.users['client1']
@@ -1319,9 +1319,9 @@ class ExcludePendingReschedulesTests(BaseTest):
 
     def setUp(self):
         super().setUp()
-        self.date = timezone.now().date() + datetime.timedelta(minutes=5)
-        self.start_time = (timezone.now() - datetime.timedelta(minutes=4)).time()
-        self.end_time = (timezone.now() + datetime.timedelta(minutes=1)).time()
+        self.date = timezone.localdate() + datetime.timedelta(minutes=5)
+        self.start_time = (timezone.localtime() - datetime.timedelta(minutes=4)).time()
+        self.end_time = (timezone.localtime() + datetime.timedelta(minutes=1)).time()
 
         self.slots = [
             datetime.datetime.combine(self.date, self.start_time),
@@ -1339,8 +1339,8 @@ class ExcludePendingReschedulesTests(BaseTest):
         self.create_reschedule_history_(
                 appointment_request,
                 date_=self.date,
-                start_time=(timezone.now() - datetime.timedelta(minutes=10)).time(),
-                end_time=(timezone.now() - datetime.timedelta(minutes=5)).time(),
+                start_time=(timezone.localtime() - datetime.timedelta(minutes=10)).time(),
+                end_time=(timezone.localtime() - datetime.timedelta(minutes=5)).time(),
                 staff_member=self.staff_member1,
                 reason_for_rescheduling="Scheduling conflict"
         )
@@ -1350,8 +1350,8 @@ class ExcludePendingReschedulesTests(BaseTest):
     def test_exclude_with_pending_reschedules_within_last_5_minutes(self):
         """Slots overlapping with pending rescheduling within the last 5 minutes should be excluded."""
         appointment_request = self.create_appointment_request_(self.service1, self.staff_member1)
-        reschedule_start_time = (timezone.now() - datetime.timedelta(minutes=4)).time()
-        reschedule_end_time = (timezone.now() + datetime.timedelta(minutes=1)).time()
+        reschedule_start_time = (timezone.localtime() - datetime.timedelta(minutes=4)).time()
+        reschedule_end_time = (timezone.localtime() + datetime.timedelta(minutes=1)).time()
         self.create_reschedule_history_(
                 appointment_request,
                 date_=self.date,
@@ -1366,8 +1366,8 @@ class ExcludePendingReschedulesTests(BaseTest):
     def test_exclude_with_non_pending_reschedules_within_last_5_minutes(self):
         """Slots should remain unchanged if reschedules within the last 5 minutes are not pending."""
         appointment_request = self.create_appointment_request_(self.service1, self.staff_member1)
-        reschedule_start_time = (timezone.now() - datetime.timedelta(minutes=4)).time()
-        reschedule_end_time = (timezone.now() + datetime.timedelta(minutes=1)).time()
+        reschedule_start_time = (timezone.localtime() - datetime.timedelta(minutes=4)).time()
+        reschedule_end_time = (timezone.localtime() + datetime.timedelta(minutes=1)).time()
         reschedule = self.create_reschedule_history_(
                 appointment_request,
                 date_=self.date,
