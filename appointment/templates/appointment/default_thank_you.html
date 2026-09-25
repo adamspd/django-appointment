@@ -2,7 +2,7 @@
 {% load i18n %}
 {% load static %}
 {% block customCSS %}
-    <link rel="stylesheet" type="text/css" href="{% static 'css/thank_you.css' %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/booking.css' %}"/>
 {% endblock %}
 {% block title %}
     {{ page_title }}
@@ -11,20 +11,39 @@
     {{ page_description }}
 {% endblock %}
 {% block djappt_content %}
-    <div class="container content-body-apd">
-        <div class="main-content">
-            <h1 class="thank-you-title">{% trans "See you soon" %} !</h1>
-            <p class="thank-you-message">{% trans "We've successfully scheduled your appointment! Please check your email for all the details" %}.</p>
-            <p class="appointment-details-title">{% trans "Appointment details" %}:</p>
-            <ul class="appointment-details">
-                <li>{% trans 'Service' %}: {{ appointment.get_service_name }}</li>
-                <li>{% trans 'Appointment Date' %}: {{ appointment.get_appointment_date }}</li>
-                <li>{% trans 'Appointment Time' %}: {{ appointment.get_start_time }}</li>
-                <li>{% trans 'Duration' %}: {{ appointment.get_service_duration }}</li>
-            </ul>
+    <div class="djappt-shell djappt-shell--narrow djappt-booking content-body-apd">
+        <div class="djappt-card djappt-card--roomy main-content">
+            <div class="djappt-center">
+                <span class="djappt-status-icon djappt-status-icon--success" aria-hidden="true">
+                <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0"/>
+                </svg>
+                </span>
+                <h1 class="djappt-title thank-you-title">{% trans "See you soon" %} !</h1>
+                <p class="djappt-lead mb-4 thank-you-message">{% trans "We've successfully scheduled your appointment! Please check your email for all the details" %}.</p>
+            </div>
+            <h2 class="djappt-card-title appointment-details-title">{% trans "Appointment details" %}</h2>
+            <dl class="djappt-summary mb-0 appointment-details">
+                <div>
+                    <dt>{% trans 'Service' %}</dt>
+                    <dd>{{ appointment.get_service_name }}</dd>
+                </div>
+                <div>
+                    <dt>{% trans 'Appointment Date' %}</dt>
+                    <dd>{{ appointment.get_appointment_date }}</dd>
+                </div>
+                <div>
+                    <dt>{% trans 'Appointment Time' %}</dt>
+                    <dd>{{ appointment.appointment_request.start_time }}</dd>
+                </div>
+                <div>
+                    <dt>{% trans 'Duration' %}</dt>
+                    <dd>{{ appointment.get_service_duration }}</dd>
+                </div>
+            </dl>
             {% if messages %}
                 {% for message in messages %}
-                    <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
+                    <div class="alert alert-dismissible text-start mt-3 mb-0 {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
                          role="alert">{{ message }}</div>
                 {% endfor %}
             {% endif %}

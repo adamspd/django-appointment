@@ -2,54 +2,7 @@
 {% load i18n %}
 {% load static %}
 {% block customCSS %}
-    <style>
-        .content-body-apd {
-            font-family: 'Poppins', sans-serif;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            min-height: 40vh;
-        }
-
-        .confirmation-message {
-            max-width: 600px;
-            text-align: center;
-            padding: 20px;
-            background-color: #ffffff;
-            border: 1px solid #dee2e6;
-            border-radius: 5px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, .1);
-        }
-
-        .confirmation-message h1 {
-            color: #333;
-            font-size: 24px;
-            font-weight: 600;
-            margin-bottom: 20px;
-        }
-
-        .confirmation-message p {
-            color: #555;
-            font-size: 16px;
-            line-height: 1.6;
-        }
-
-        .confirmation-message a {
-            display: inline-block;
-            margin-top: 25px;
-            padding: 10px 25px;
-            background-color: #007bff;
-            color: #ffffff;
-            border-radius: 5px;
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .confirmation-message a:hover {
-            background-color: #0056b3;
-        }
-    </style>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/booking.css' %}"/>
 {% endblock %}
 {% block title %}
     {% trans "Rescheduling Successful" %}
@@ -58,16 +11,19 @@
     {% trans "Your appointment rescheduling was successful. Please confirm via email." %}
 {% endblock %}
 {% block djappt_content %}
-    <div class="container content-body-apd">
-        <div class="main-content">
-            <div class="confirmation-message">
-                <h1>{% trans "Rescheduling Successful" %}</h1>
-                <p>{% trans "Your appointment rescheduling request has been successfully submitted. Please check your email and click on the confirmation link to finalize the rescheduling process." %}</p>
-                <a href="/">{% trans "Go to Homepage" %}</a>
-            </div>
+    <div class="djappt-shell djappt-shell--narrow djappt-booking content-body-apd">
+        <div class="djappt-card djappt-card--roomy djappt-center main-content confirmation-message">
+            <span class="djappt-status-icon djappt-status-icon--success" aria-hidden="true">
+                <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0"/>
+                </svg>
+            </span>
+            <h1 class="djappt-title">{% trans "Rescheduling Successful" %}</h1>
+            <p class="djappt-lead mb-4">{% trans "Your appointment rescheduling request has been successfully submitted. Please check your email and click on the confirmation link to finalize the rescheduling process." %}</p>
+            <a class="btn djappt-btn djappt-btn-primary" href="/">{% trans "Go to Homepage" %}</a>
             {% if messages %}
                 {% for message in messages %}
-                    <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
+                    <div class="alert alert-dismissible text-start mt-3 mb-0 {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
                          role="alert">{{ message }}</div>
                 {% endfor %}
             {% endif %}
