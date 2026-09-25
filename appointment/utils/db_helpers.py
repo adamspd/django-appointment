@@ -268,6 +268,20 @@ def parse_name(name: str):
     return parts[0], parts[1]
 
 
+def update_user_name(user, name: str):
+    """Save the name a logged-in client typed on the booking form to their account, when it changed.
+
+    Does nothing if the user model has no first_name/last_name fields.
+    """
+    field_names = {field.name for field in user._meta.get_fields()}
+    if not {'first_name', 'last_name'} <= field_names:
+        return
+    first_name, last_name = parse_name(name.strip())
+    if (user.first_name, user.last_name) != (first_name, last_name):
+        user.first_name, user.last_name = first_name, last_name
+        user.save(update_fields=['first_name', 'last_name'])
+
+
 def create_user_with_email(client_data: dict):
     CLIENT_MODEL = get_user_model()
     # Valid fields
