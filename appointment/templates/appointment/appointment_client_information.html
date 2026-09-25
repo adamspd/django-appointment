@@ -34,7 +34,12 @@
                 {% csrf_token %}
                 <section class="djappt-card appointment-user-info">
                     <h2 class="djappt-card-title appointment-user-info-title">{% trans "Contact information" %}</h2>
-                    {% if not user.is_authenticated %}
+                    {% if user.is_authenticated %}
+                        {# The booking goes to the logged-in account: its email can't be changed here. #}
+                        <p class="djappt-notice already-have-account">
+                            {% blocktrans with email=user.email %}You're booking as <strong>{{ email }}</strong>.{% endblocktrans %}
+                        </p>
+                    {% else %}
                         <p class="djappt-notice already-have-account">
                             {% trans 'Already have an account?' %}
                             {# <a href="{{ login_url }}?next={{ request.path|urlencode }}">{% trans 'Log in' %}</a> {% trans 'for faster booking.' %} #}
@@ -44,16 +49,18 @@
 
                     <div class="djappt-fields-wrap user-info" id="user-info">
                         <div class="djappt-fields name-email">
-                            <div class="name">
+                            <div class="name{% if user.is_authenticated %} djappt-field-full{% endif %}">
                                 <label for="{{ client_data_form.name.id_for_label }}" class="form-label">
                                     {% trans "Full Name" %} *</label>
                                 {{ client_data_form.name }}
                             </div>
-                            <div class="email">
-                                <label for="{{ client_data_form.email.id_for_label }}" class="form-label">
-                                    {% trans "Email" %} *</label>
-                                {{ client_data_form.email }}
-                            </div>
+                            {% if not user.is_authenticated %}
+                                <div class="email">
+                                    <label for="{{ client_data_form.email.id_for_label }}" class="form-label">
+                                        {% trans "Email" %} *</label>
+                                    {{ client_data_form.email }}
+                                </div>
+                            {% endif %}
                             <div class="djappt-field-full phone-number">
                                 <label for="{{ form.phone.id_for_label }}" class="form-label">{% trans "Phone" %} *</label>
                                 <div class="djappt-phone phone-input-container">

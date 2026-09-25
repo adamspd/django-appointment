@@ -2212,6 +2212,11 @@ msgstr "Solicitud de reprogramación para %(client_name)s"
 msgid "%(service)s on %(date)s"
 msgstr "%(service)s el %(date)s"
 
+#: appointment/templates/appointment/appointment_client_information.html
+#, python-format
+msgid "You're booking as <strong>%(email)s</strong>."
+msgstr "Está reservando como <strong>%(email)s</strong>."
+
 #: appointment/templates/appointment/appointments.html
 msgid "Book an appointment"
 msgstr "Reservar una cita"

@@ -34,7 +34,7 @@ from appointment.utils.db_helpers import (
     can_appointment_be_rescheduled, check_day_off_for_staff, create_and_save_appointment,
     create_payment_info_and_get_url, get_non_working_days_for_staff, get_user_by_email, get_user_model,
     get_website_name, get_weekday_num_from_date, is_working_day, staff_change_allowed_on_reschedule,
-    username_in_user_model
+    update_user_name, username_in_user_model
 )
 from appointment.utils.email_ops import notify_admin_about_appointment, notify_admin_about_reschedule, \
     send_reschedule_confirmation_email, \
@@ -345,6 +345,7 @@ def appointment_client_information(request, appointment_request_id, id_request):
         ar.save()
 
         if request.user.is_authenticated:
+            update_user_name(request.user, client_data['name'])
             # Create a new appointment
             response = create_appointment(request, ar, client_data, appointment_data)
             request.session.setdefault(f'appointment_submitted_{id_request}', True)
