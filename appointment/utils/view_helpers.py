@@ -8,6 +8,8 @@ Since: 2.0.0
 
 import uuid
 
+from babel import Locale
+from babel.numbers import format_currency
 from django.utils.translation import get_language, to_locale
 
 
@@ -21,6 +23,21 @@ def get_locale() -> str:
     locale = to_locale(get_language())
     # Split the locale by '_' and take the first part (language code)
     return locale.split('_')[0]
+
+
+def format_price(amount, currency: str) -> str:
+    """Format an amount of money for the current locale, e.g. $100 in English and 100 $US in French.
+    Whole amounts are shown without decimals.
+
+    :param amount: The amount to format
+    :param currency: The ISO 4217 currency code, e.g. USD
+    :return: The formatted amount with its currency symbol
+    """
+    locale = get_locale()
+    if amount % 1 == 0:
+        pattern = Locale.parse(locale).currency_formats['standard'].pattern.replace('.00', '')
+        return format_currency(amount, currency, format=pattern, locale=locale, currency_digits=False)
+    return format_currency(amount, currency, locale=locale)
 
 
 def is_ajax(request):

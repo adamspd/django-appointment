@@ -28,7 +28,7 @@ from appointment.compat import check_constraint
 from appointment.settings import CONFIG_CACHE_KEY
 from appointment.utils.date_time import convert_minutes_in_human_readable_format, get_timestamp, get_weekday_num, \
     time_difference
-from appointment.utils.view_helpers import generate_random_id, get_locale
+from appointment.utils.view_helpers import format_price, generate_random_id, get_locale
 
 PAYMENT_TYPES = (
     ('full', _('Full payment')),
@@ -203,7 +203,7 @@ class Service(models.Model):
         if not self.price:
             return _("Free")
         else:
-            return f"{self.get_price()}{self.get_currency_icon()}"
+            return format_price(self.price, self.currency)
 
     def get_down_payment(self):
         if self.down_payment % 1 == 0:
@@ -214,7 +214,7 @@ class Service(models.Model):
     def get_down_payment_text(self):
         if not self.down_payment:
             return _("Free")
-        return f"{self.get_down_payment()}{self.get_currency_icon()}"
+        return format_price(self.down_payment, self.currency)
 
     def get_image_url(self):
         if not self.image:
@@ -778,7 +778,7 @@ class Appointment(models.Model):
     def get_appointment_amount_to_pay_text(self):
         if self.amount_to_pay == 0 and self.get_service_price() == 0:
             return _("Free")
-        return f"{self.get_appointment_amount_to_pay()}{self.get_service().get_currency_icon()}"
+        return format_price(self.amount_to_pay, self.get_appointment_currency())
 
     def get_appointment_currency(self):
         return self.appointment_request.service.currency
