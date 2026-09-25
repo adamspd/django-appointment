@@ -1,8 +1,9 @@
 from copy import deepcopy
-from datetime import date, timedelta
+from datetime import timedelta
 
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
+from django.utils import timezone
 
 from appointment.models import DayOff
 from appointment.tests.base.base_test import BaseTest
@@ -20,8 +21,8 @@ class DayOffCreationTestCase(BaseTest):
     def setUp(self):
         self.day_off = DayOff.objects.create(
             staff_member=self.staff_member1,
-            start_date=date.today(),
-            end_date=date.today() + timedelta(days=2)
+            start_date=timezone.localdate(),
+            end_date=timezone.localdate() + timedelta(days=2)
         )
         super().setUp()
 
@@ -38,12 +39,12 @@ class DayOffCreationTestCase(BaseTest):
 
     def test_day_off_str_method(self):
         """Test that the string representation of a day off is correct."""
-        self.assertEqual(str(self.day_off), f"{date.today()} to {date.today() + timedelta(days=2)} - Day off")
+        self.assertEqual(str(self.day_off), f"{timezone.localdate()} to {timezone.localdate() + timedelta(days=2)} - Day off")
         day_off = deepcopy(self.day_off)
         # Testing with a description
         day_off.description = "Vacation"
         day_off.save()
-        self.assertEqual(str(day_off), f"{date.today()} to {date.today() + timedelta(days=2)} - Vacation")
+        self.assertEqual(str(day_off), f"{timezone.localdate()} to {timezone.localdate() + timedelta(days=2)} - Vacation")
 
 
 class DayOffModelTestCase(BaseTest):
@@ -56,14 +57,14 @@ class DayOffModelTestCase(BaseTest):
         with self.assertRaises(ValidationError):
             DayOff.objects.create(
                 staff_member=self.staff_member1,
-                start_date=date.today() + timedelta(days=1),
-                end_date=date.today()
+                start_date=timezone.localdate() + timedelta(days=1),
+                end_date=timezone.localdate()
             ).clean()
 
     def test_day_off_without_staff_member(self):
         """Test that a day off cannot be created without a staff member."""
         with self.assertRaises(IntegrityError):
             DayOff.objects.create(
-                start_date=date.today(),
-                end_date=date.today() + timedelta(days=1)
+                start_date=timezone.localdate(),
+                end_date=timezone.localdate() + timedelta(days=1)
             )

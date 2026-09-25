@@ -99,8 +99,8 @@ class AppointmentValidDateTestCase(BaseTest):
         self.weekday_num = get_weekday_num(self.weekday)
         self.wh = WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=self.weekday_num,
                                               start_time=time(9, 0), end_time=time(17, 0))
-        self.appt_date = timezone.now().date() + timedelta(days=(self.weekday_num - timezone.now().weekday()) % 7)
-        self.start_time = timezone.now().replace(hour=10, minute=0, second=0, microsecond=0)
+        self.appt_date = timezone.localdate() + timedelta(days=(self.weekday_num - timezone.localdate().weekday()) % 7)
+        self.start_time = timezone.localtime().replace(hour=10, minute=0, second=0, microsecond=0)
         self.current_appointment_id = None
 
     def tearDown(self):
@@ -122,7 +122,7 @@ class AppointmentValidDateTestCase(BaseTest):
         self.assertIn("does not work on this day", message)
 
     def test_start_time_outside_working_hours(self):
-        early_start_time = timezone.now().replace(hour=8, minute=0)  # Before working hours
+        early_start_time = timezone.localtime().replace(hour=8, minute=0)  # Before working hours
         is_valid, message = Appointment.is_valid_date(self.appt_date, early_start_time, self.staff_member1,
                                                       self.current_appointment_id, self.weekday)
         self.assertFalse(is_valid)
@@ -146,7 +146,7 @@ class AppointmentValidationTestCase(BaseTest):
         super().tearDownClass()
 
     def setUp(self):
-        self.tomorrow = timezone.now().date() + timedelta(days=1)
+        self.tomorrow = timezone.localdate() + timedelta(days=1)
         self.ar = self.create_appointment_request_(service=self.service2, staff_member=self.staff_member2,
                                                    date_=self.tomorrow)
         self.appointment = self.create_appt_for_sm2(appointment_request=self.ar)
