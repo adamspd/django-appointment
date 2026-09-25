@@ -108,6 +108,21 @@ Don't override `appointment/layout.html`: it holds what every package page needs
 shown below; to change the page shell, change your base. Your page overrides can extend `appointment/layout.html` too
 (put the content in `{% block djappt_content %}` so it gets the wrapper), or extend `BASE_TEMPLATE` directly as before.
 
+### Colours
+
+The pages use your site's font and Bootstrap 5 form fields, with the package's own colours (a navy accent by default).
+To match your brand, set the accent colour in your own CSS. Buttons, links, the selected day and slot, and the
+highlights all follow it (their hover and light shades are computed from it):
+
+```css
+.djappt {
+    --djappt-accent: #17799c;
+}
+```
+
+The other `--djappt-*` variables in `appointment/static/css/djappt.css` (text, borders, card background, radius...)
+can be set the same way, for example `--djappt-accent-hover` if you want a hover shade of your own.
+
 ## Available Templates
 
 ### Page Templates (Custom Directory)

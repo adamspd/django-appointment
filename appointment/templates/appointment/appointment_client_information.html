@@ -2,7 +2,7 @@
 {% load i18n %}
 {% load static %}
 {% block customCSS %}
-    <link rel="stylesheet" type="text/css" href="{% static 'css/appointments-user-details.css' %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/booking.css' %}"/>
 {% endblock %}
 {% block title %}
     {% translate 'Client Information' %} - {{ ar.get_service_name }}
@@ -14,124 +14,119 @@
     {% endblocktranslate %}
 {% endblock %}
 {% block djappt_content %}
-    <div class="main-container">
-        <div class="body-container">
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
-                         role="alert">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
+    <div class="djappt-shell djappt-booking main-container">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
+                     role="alert">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
 
-            <form method="post"
+        <div class="body-container">
+            <header class="djappt-header">
+                <p class="djappt-eyebrow">{% trans "Book an appointment" %}</p>
+                <h1 class="djappt-title">{% trans "Fill out your details" %}</h1>
+            </header>
+
+            <form method="post" id="djappt-client-form"
                   action="{% url 'appointment:appointment_client_information' ar.id ar.get_id_request %}"
-                  class="page-body">
+                  class="djappt-layout djappt-form page-body">
                 {% csrf_token %}
-                <div class="appointment-user-info">
-                    <div class="appointment-user-info-title">
-                        <div class="title">
-                            {% trans "Fill out your details" %}
-                        </div>
-                    </div>
-                    <hr class="second-part">
-                    <div class="user-info-input">
-                        <div class="user-info" id="user-info">
-                            {% if not user.is_authenticated %}
-                            <div class="already-have-account">
-                                <div>
-                                    {% trans 'Already have an account?' %}
-                                    {# <a href="{{ login_url }}?next={{ request.path|urlencode }}">{% trans 'Log in' %}</a> {% trans 'for faster booking.' %} #}
-                                    <a href="#">{% trans 'Log in' %}</a> {% trans 'for faster booking.' %}
-                                </div>
+                <section class="djappt-card appointment-user-info">
+                    <h2 class="djappt-card-title appointment-user-info-title">{% trans "Contact information" %}</h2>
+                    {% if not user.is_authenticated %}
+                        <p class="djappt-notice already-have-account">
+                            {% trans 'Already have an account?' %}
+                            {# <a href="{{ login_url }}?next={{ request.path|urlencode }}">{% trans 'Log in' %}</a> {% trans 'for faster booking.' %} #}
+                            <a href="#">{% trans 'Log in' %}</a> {% trans 'for faster booking.' %}
+                        </p>
+                    {% endif %}
+
+                    <div class="djappt-fields-wrap user-info" id="user-info">
+                        <div class="djappt-fields name-email">
+                            <div class="name">
+                                <label for="{{ client_data_form.name.id_for_label }}" class="form-label">
+                                    {% trans "Full Name" %} *</label>
+                                {{ client_data_form.name }}
                             </div>
-                            {% endif %}
-                            <div class="name-email">
-                                <label for="{{ form.name.id_for_label }}" class="name">{% trans "Full Name" %} *<br>
-                                    {{ client_data_form.name }}
-                                </label>
-                                <label for="{{ form.email.id_for_label }}" class="email">{% trans "Email" %} *<br>
-                                    {{ client_data_form.email }}
-                                </label>
+                            <div class="email">
+                                <label for="{{ client_data_form.email.id_for_label }}" class="form-label">
+                                    {% trans "Email" %} *</label>
+                                {{ client_data_form.email }}
                             </div>
-                            {% if has_required_email_reminder_config %}
-                                <div class="receive-email">
-                                    <label for="{{ form.want_reminder.id_for_label }}">
-                                        {{ form.want_reminder }}
-                                        {% trans "I want to receive an EMAIL reminder 24 hours before this session starts" %}
-                                    </label>
-                                </div>
-                            {% endif %}
-                            <div class="phone-number">
-                                <label for="{{ form.phone.id_for_label }}">
-                                    {% trans "Phone" %} *<br>
-                                </label>
-                                <div class="phone-input-container">
+                            <div class="djappt-field-full phone-number">
+                                <label for="{{ form.phone.id_for_label }}" class="form-label">{% trans "Phone" %} *</label>
+                                <div class="djappt-phone phone-input-container">
                                     {{ form.phone }}
                                 </div>
                             </div>
-                            <div class="address">
-                                <label for="{{ form.address.id_for_label }}">{% trans "City and State" %} :<br>
-                                    {{ form.address }}
-                                </label>
+                            <div class="djappt-field-full address">
+                                <label for="{{ form.address.id_for_label }}" class="form-label">
+                                    {% trans "City and State" %}</label>
+                                {{ form.address }}
                             </div>
-                            <div class="additional-information">
-                                <label for="{{ form.additional_info.id_for_label }}">{% trans 'Additional Information' %}<br>
-                                    {{ form.additional_info }}
-                                </label>
+                            <div class="djappt-field-full additional-information">
+                                <label for="{{ form.additional_info.id_for_label }}" class="form-label">
+                                    {% trans 'Additional Information' %}</label>
+                                {{ form.additional_info }}
                             </div>
+                            {% if has_required_email_reminder_config %}
+                                <div class="djappt-field-full receive-email">
+                                    <div class="form-check">
+                                        {{ form.want_reminder }}
+                                        <label class="form-check-label" for="{{ form.want_reminder.id_for_label }}">
+                                            {% trans "I want to receive an EMAIL reminder 24 hours before this session starts" %}
+                                        </label>
+                                    </div>
+                                </div>
+                            {% endif %}
                         </div>
                     </div>
-                </div>
-                <div class="service-description-and-pay">
-                    <div class="service-details-title">{% trans "Service Details" %}</div>
+                </section>
 
-                    <hr class="second-part">
-
-                    <div class="service-description-content">
-                        <div class="item-name">{{ ar.get_service_name }}</div>
-                        <div id="service-datetime-chosen"
-                             class="service-datetime-chosen">
-                            {{ ar.date }}&nbsp;{% trans "at" %}&nbsp;{{ ar.start_time }}
+                <aside class="djappt-card djappt-aside service-description-and-pay">
+                    <h2 class="djappt-card-title service-details-title">{% trans "Your appointment" %}</h2>
+                    <dl class="djappt-summary service-description-content">
+                        <div>
+                            <dt>{% trans "Service" %}</dt>
+                            <dd class="item-name">{{ ar.get_service_name }}</dd>
                         </div>
-                        <div>{{ ar.service.get_duration }}</div>
-                    </div>
-
-                    <hr class="second-part">
-                    {% if ar.is_a_paid_service %}
-                        {% if APPOINTMENT_PAYMENT_URL %}
-                            <div class="service-payment">
-                                <div class="payment-details-title">{% trans "Payment Details" %}</div>
-                                <div class="total">
-                                    <div>{% trans "Total" %}</div>
-                                    <div>{{ ar.get_service_price_text }}</div>
-                                </div>
-                                <div class="payment-options">
-                                    <button type="submit" class="btn btn-dark btn-pay-full" name="payment_type"
-                                            value="full">
-                                        {% trans "Pay" %}
-                                    </button>
-                                    {% if ar.accepts_down_payment %}
-                                        <button type="submit" class="btn btn-dark btn-pay-down-payment"
-                                                name="payment_type"
-                                                value="down">
-                                            {% trans "Down Payment" %} ({{ ar.get_service_down_payment_text }})
-                                        </button>
-                                    {% endif %}
-                                </div>
+                        <div>
+                            <dt>{% trans "Date" %}</dt>
+                            <dd id="service-datetime-chosen" class="service-datetime-chosen">
+                                {{ ar.date }}&nbsp;{% trans "at" %}&nbsp;{{ ar.start_time }}</dd>
+                        </div>
+                        <div>
+                            <dt>{% trans "Duration" %}</dt>
+                            <dd>{{ ar.service.get_duration }}</dd>
+                        </div>
+                        {% if ar.is_a_paid_service %}
+                            <div class="djappt-summary-total total">
+                                <dt>{% trans "Total" %}</dt>
+                                <dd>{{ ar.get_service_price_text }}</dd>
                             </div>
-                        {% else %}
-                            <button type="submit" class="btn btn-dark btn-submit-appointment" name="payment_type"
-                                    value="full">
-                                {% trans "Finish" %}
-                            </button>
                         {% endif %}
+                    </dl>
+                    {% if ar.is_a_paid_service and APPOINTMENT_PAYMENT_URL %}
+                        <div class="d-grid gap-2 service-payment payment-options">
+                            <button type="submit" class="btn djappt-btn djappt-btn-primary btn-pay-full"
+                                    name="payment_type" value="full">
+                                {% trans "Pay" %}
+                            </button>
+                            {% if ar.accepts_down_payment %}
+                                <button type="submit" class="btn djappt-btn djappt-btn-outline btn-pay-down-payment"
+                                        name="payment_type" value="down">
+                                    {% trans "Down Payment" %} ({{ ar.get_service_down_payment_text }})
+                                </button>
+                            {% endif %}
+                        </div>
                     {% else %}
-                        <button type="submit" class="btn btn-dark btn-submit-appointment" name="payment_type"
-                                value="full">
+                        <button type="submit" class="btn djappt-btn djappt-btn-primary w-100 btn-submit-appointment"
+                                name="payment_type" value="full">
                             {% trans "Finish" %}
                         </button>
                     {% endif %}
-                </div>
+                </aside>
             </form>
         </div>
     </div>
@@ -139,15 +134,15 @@
 {% block customJS %}
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const messageElements = document.querySelectorAll('.alert-dismissible');
+            const messageElements = document.querySelectorAll('.djappt .alert-dismissible');
             setTimeout(function () {
                 messageElements.forEach(function (element) {
                     element.style.display = 'none';
                 });
             }, 3000);
 
-            // Get the form and the 'submit' button
-            const form = document.querySelector('form');
+            // Get the form and the 'submit' button (by id: the host's base can have forms of its own)
+            const form = document.getElementById('djappt-client-form');
             const submitButtons = Array.from(form.querySelectorAll('button[type="submit"]'));
             const emailField = form.querySelector('input[type="email"]');
 

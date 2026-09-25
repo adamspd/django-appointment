@@ -1,3 +1,7 @@
+/*
+ * No longer used by the package pages (the booking pages use booking.css). Kept for page overrides that still
+ * link it; it will be removed in a future major version.
+ */
 /* Set margins for the main container */
 :where(.djappt) .main-container {
     margin-left: 20px;
