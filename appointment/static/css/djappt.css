@@ -117,9 +117,14 @@
     }
 }
 
-/* Single-card pages (thank-you, verification code): more room around the text. */
+/* Single-card pages (thank-you, verification code, set password, error pages): more room around the text, and a
+   title sized for a sentence rather than a page heading. */
 :where(.djappt) .djappt-card--roomy {
     padding: 2.5rem 2.25rem;
+}
+
+:where(.djappt) .djappt-card--roomy .djappt-title {
+    font-size: clamp(1.35rem, 1.15rem + 1vw, 1.75rem);
 }
 
 @container (max-width: 479.98px) {
@@ -337,6 +342,50 @@
     color: var(--djappt-success);
 }
 
+:where(.djappt) .djappt-status-icon--danger {
+    background-color: var(--djappt-danger-soft);
+    color: var(--djappt-danger);
+}
+
 :where(.djappt) .djappt-center {
     text-align: center;
+}
+
+/* ---- Single-card pages: illustration and actions (error pages, set password) ---- */
+
+:where(.djappt) .djappt-illustration {
+    display: block;
+    width: 100%;
+    max-width: 320px;
+    height: auto;
+    margin: 0 auto 1.5rem;
+}
+
+:where(.djappt) img.djappt-illustration {
+    border-radius: var(--djappt-radius-sm);
+}
+
+:where(.djappt) .djappt-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: .75rem;
+    margin-top: 1.75rem;
+}
+
+:where(.djappt) .djappt-help {
+    margin-top: .4rem;
+    font-size: .85rem;
+    color: var(--djappt-muted);
+}
+
+:where(.djappt) .djappt-help ul {
+    margin: 0;
+    padding-left: 1.1rem;
+}
+
+:where(.djappt) .djappt-field-error {
+    margin-top: .35rem;
+    font-size: .875rem;
+    color: var(--djappt-danger);
 }
