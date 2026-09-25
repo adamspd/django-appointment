@@ -41,8 +41,7 @@ def schedule_cleanup_task(**kwargs):
                 repeats=-1,  # Repeat indefinitely
             )
             logger.info(
-                f"Scheduled daily cleanup task for old appointment requests "
-                f"(older than {getattr(settings, 'APPOINTMENT_CLEANUP_DAYS', 7)} days)"
+                "Scheduled daily cleanup task for old appointment requests"
             )
         else:
             logger.debug(f"Cleanup task schedule '{schedule_name}' already exists")
