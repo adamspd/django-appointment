@@ -7,121 +7,31 @@
 {% block customMetaTag %}
     <meta name="robots" content="noindex,nofollow">
 {% endblock %}
-{% block customCSS %}
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-          integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
-          crossorigin="anonymous" referrerpolicy="no-referrer"/>
-    <style>
-        @import url('https://fonts.googleapis.com/css?family=Lobster|Open+Sans');
-
-        :where(.djappt) {
-            background-image: url(https://i.imgur.com/faFcxS1.png);
-            background-color: #3E3E3E;
-            animation: scroll 70s infinite linear;
-            font-family: "Open Sans", sans-serif;
-            color: white;
-        }
-
-        @keyframes scroll {
-            from {
-                background-position: 0 0;
-            }
-            to {
-                background-position: 100% 0;
-            }
-        }
-
-        .logo {
-            margin-left: auto;
-            margin-right: auto;
-            font-family: lobster;
-            font-size: 120px;
-            text-align: center;
-        }
-
-        .error {
-            margin-left: auto;
-            margin-right: auto;
-            text-align: center;
-            font-size: 40px;
-            background: rgba(0, 0, 0, .3);
-            width: 240px;
-            border-radius: 2px;
-        }
-
-        .error2 {
-            margin-left: auto;
-            margin-right: auto;
-            text-align: center;
-            background: rgba(0, 0, 0, .3);
-            width: 300px;
-            padding: 10px;
-            border-radius: 2px;
-        }
-
-        :where(.djappt) a:link, :where(.djappt) a:visited, :where(.djappt) a:active {
-            color: white;
-            text-decoration: none;
-        }
-
-        .options {
-            background: rgba(0, 0, 0, .3);
-            width: 160px;
-            margin-right: auto;
-            margin-left: auto;
-            padding: 10px;
-            border-radius: 2px;
-        }
-
-        #back:hover {
-            text-shadow: 0 0 150px #3498db;
-        }
-
-    </style>
-{% endblock %}
 {% block djappt_content %}
-
-    <body>
-    <br><br><br><br>
-    <div class="logo">
-        {% trans "Reality" %}
+    <div class="djappt-shell djappt-shell--narrow">
+        <div class="djappt-card djappt-card--roomy djappt-center">
+            <span class="djappt-status-icon djappt-status-icon--danger" aria-hidden="true">
+                <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2m3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2"/>
+                </svg>
+            </span>
+            <p class="djappt-eyebrow">{% trans "Error 403" %}</p>
+            <h1 class="djappt-title error2">
+                {% if message %}
+                    {{ message }}
+                {% else %}
+                    {% trans "You don't have permission to view this resource, and you know it" %}!
+                {% endif %}
+            </h1>
+            <div class="djappt-actions options">
+                {% if back_url %}
+                    <a href="{{ back_url }}" class="btn djappt-btn djappt-btn-primary" id="back">
+                        {% trans "Go to profile" %}</a>
+                {% else %}
+                    <button type="button" class="btn djappt-btn djappt-btn-primary" id="back"
+                            onclick="window.history.back()">{% trans "Go back" %}</button>
+                {% endif %}
+            </div>
+        </div>
     </div>
-    <br>
-    <div class="error">
-        {% trans "Error 403" %}!
-    </div>
-    <br>
-    <div class="error2">
-        {% if message %}
-            {{ message }}
-        {% else %}
-            {% trans "You don't have permission to view this resource, and you know it" %}!
-        {% endif %}
-    </div>
-    <br>
-    <div class="options" align="center">
-        {% if back_url %}
-            <button type="button" class="btn btn-primary" id="back" onclick="Back()">
-                <i class="fa fa-undo"></i> {% trans "Go to profile" %}
-            </button>
-        {% else %}
-            <button type="button" class="btn btn-primary" id="back" onclick="Back()">
-                <i class="fa fa-undo"></i> {% trans "Go back" %}
-            </button>
-        {% endif %}
-    </div>
-    <script>
-        const back_url = "{{ back_url }}";
-
-        function Back() {
-            if (back_url) {
-                window.location.href = back_url;
-            } else {
-                window.history.back();
-            }
-        }
-    </script>
-
-
-    </body>
 {% endblock %}
