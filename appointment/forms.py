@@ -67,6 +67,11 @@ class AppointmentForm(forms.ModelForm):
             {
                 'placeholder': _('1234567890')
             })
+        # Split widget: country code select, then the number.
+        country_widget, number_widget = self.fields['phone'].widget.widgets
+        country_widget.attrs.update({'class': 'form-select'})
+        number_widget.attrs.update({'class': 'form-control'})
+        self.fields['want_reminder'].widget.attrs.update({'class': 'form-check-input'})
         self.fields['additional_info'].widget.attrs.update(
             {
                 'rows': 2,
