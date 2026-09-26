@@ -1037,6 +1037,81 @@ class ServiceFormViewTests(BaseTest):
         self.assertEqual(response.status_code, 403)
 
 
+class ServicePagesTemplateTests(BaseTest):
+    """The service list and the add/edit/view page show what each user may do, without Font Awesome."""
+
+    def test_service_list_shows_add_edit_and_delete_to_superusers(self):
+        self.need_superuser_login()
+        response = self.client.get(reverse('appointment:get_service_list'))
+        self.assertContains(response, reverse('appointment:add_service'))
+        self.assertContains(response, reverse('appointment:update_service', args=[self.service1.id]))
+        self.assertContains(response, reverse('appointment:delete_service', args=[self.service1.id]))
+        self.assertNotContains(response, 'font-awesome')
+
+    def test_service_list_tiles_use_the_service_colour(self):
+        self.need_staff_login()
+        response = self.client.get(reverse('appointment:get_service_list'))
+        self.assertContains(response, f'--djappt-service-color: {self.service1.background_color}')
+
+    def test_service_list_can_switch_between_cards_and_list(self):
+        self.need_staff_login()
+        response = self.client.get(reverse('appointment:get_service_list'))
+        self.assertContains(response, 'data-view="cards" aria-pressed="true"')
+        self.assertContains(response, 'data-view="list" aria-pressed="false"')
+        self.assertContains(response, 'js/app_admin/service_list.js')
+
+    def test_edit_page_has_a_live_preview(self):
+        self.need_superuser_login()
+        response = self.client.get(reverse('appointment:update_service', args=[self.service1.id]))
+        self.assertContains(response, 'id="djappt-service-preview"')
+        self.assertContains(response, 'js/app_admin/manage_service.js')
+        response = self.client.get(reverse('appointment:view_service', args=[self.service1.id, 1]))
+        self.assertNotContains(response, 'js/app_admin/manage_service.js')
+
+    def test_service_list_marks_the_services_i_offer(self):
+        self.need_staff_login()
+        response = self.client.get(reverse('appointment:get_service_list'))
+        self.assertEqual(response.context['offered_service_ids'], {self.service1.id})
+        self.assertContains(response, 'You offer this service', count=1)
+
+    def test_service_list_only_lets_staff_view(self):
+        self.need_staff_login()
+        response = self.client.get(reverse('appointment:get_service_list'))
+        self.assertContains(response, reverse('appointment:view_service', args=[self.service1.id, 1]))
+        self.assertNotContains(response, reverse('appointment:add_service'))
+        self.assertNotContains(response, reverse('appointment:update_service', args=[self.service1.id]))
+        self.assertNotContains(response, reverse('appointment:delete_service', args=[self.service1.id]))
+
+    def test_view_page_shows_the_details_and_whether_i_offer_it(self):
+        self.need_staff_login()
+        response = self.client.get(reverse('appointment:view_service', args=[self.service1.id, 1]))
+        self.assertContains(response, self.service1.name)
+        self.assertContains(response, self.service1.get_price_text())
+        self.assertContains(response, 'You offer this service')
+        self.assertNotContains(response, reverse('appointment:update_service', args=[self.service1.id]))
+        response = self.client.get(reverse('appointment:view_service', args=[self.service2.id, 1]))
+        self.assertNotContains(response, 'You offer this service')
+
+    def test_view_page_lists_who_offers_the_service_and_the_rescheduling_rule(self):
+        self.need_staff_login()
+        self.service1.allow_rescheduling = True
+        self.service1.reschedule_limit = 2
+        self.service1.save()
+        response = self.client.get(reverse('appointment:view_service', args=[self.service1.id, 1]))
+        self.assertContains(response, self.staff_member1.get_staff_member_name())
+        self.assertContains(response, 'Up to 2 times')
+        response = self.client.get(reverse('appointment:view_service', args=[self.service2.id, 1]))
+        self.assertContains(response, 'Not allowed')
+
+    def test_edit_form_shows_field_errors_next_to_the_field(self):
+        self.need_superuser_login()
+        data = {'name': '', 'duration': '01:00:00', 'price': '100', 'down_payment': '0', 'currency': 'USD',
+                'background_color': '#336699'}
+        response = self.client.post(reverse('appointment:add_service'), data=data)
+        self.assertContains(response, 'djappt-field--name')
+        self.assertContains(response, 'class="djappt-field-error"')
+
+
 class CalendarScriptEscapingTests(BaseTest):
     """Client-supplied appointment data is printed inside a <script> on the staff calendar."""
 

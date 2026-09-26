@@ -4,16 +4,7 @@
  * djappt.css is linked after this file (by the layout), so a rule changing one of its components repeats the class.
  */
 
-/* ---- Page header: title and hints on the left, "New appointment" on the right ---- */
-
-:where(.djappt) .djappt-page-head {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 1rem 1.5rem;
-    margin-bottom: 1.25rem;
-}
+/* ---- Page header hints (the header itself is .djappt-page-head, in djappt.css) ---- */
 
 :where(.djappt) .djappt-hints {
     display: flex;
