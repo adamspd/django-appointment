@@ -1,0 +1,390 @@
+/*
+ * django-appointment: staff calendar (administration/staff_index.html) and its appointment modal.
+ * Scoped to the .djappt wrapper; colours come from the --djappt-* variables in djappt.css.
+ * djappt.css is linked after this file (by the layout), so a rule changing one of its components repeats the class.
+ */
+
+/* ---- Page header: title and hints on the left, "New appointment" on the right ---- */
+
+:where(.djappt) .djappt-page-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem 1.5rem;
+    margin-bottom: 1.25rem;
+}
+
+:where(.djappt) .djappt-hints {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .35rem 1.25rem;
+    margin: .5rem 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: .875rem;
+    color: var(--djappt-muted);
+}
+
+:where(.djappt) .djappt-hints li {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+}
+
+/* Right-clicking only works with a mouse, which the phone and tablet layouts don't assume. */
+@container (max-width: 767.98px) {
+    :where(.djappt) .djappt-hints .djappt-hint-mouse {
+        display: none;
+    }
+}
+
+/* ---- Calendar card ---- */
+
+:where(.djappt) .djappt-card.djappt-calendar-card {
+    padding: 1.25rem;
+}
+
+@container (max-width: 575.98px) {
+    :where(.djappt) .djappt-card.djappt-calendar-card {
+        padding: .75rem;
+    }
+}
+
+:where(.djappt) .djappt-staff-calendar .fc {
+    --fc-border-color: var(--djappt-line);
+    --fc-page-bg-color: var(--djappt-surface);
+    --fc-neutral-bg-color: var(--djappt-accent-soft);
+    --fc-today-bg-color: var(--djappt-accent-soft);
+    --fc-now-indicator-color: var(--djappt-danger);
+    --fc-event-border-color: transparent;
+    --fc-button-text-color: var(--djappt-ink-soft);
+    --fc-button-bg-color: var(--djappt-surface);
+    --fc-button-border-color: var(--djappt-line);
+    --fc-button-hover-bg-color: var(--djappt-accent-soft);
+    --fc-button-hover-border-color: var(--djappt-line);
+    --fc-button-active-bg-color: var(--djappt-accent);
+    --fc-button-active-border-color: var(--djappt-accent);
+    --fc-list-event-hover-bg-color: var(--djappt-accent-soft);
+    color: var(--djappt-ink);
+}
+
+/* Toolbar */
+
+:where(.djappt) .djappt-staff-calendar .fc .fc-toolbar {
+    flex-wrap: wrap;
+    gap: .75rem;
+}
+
+:where(.djappt) .djappt-staff-calendar .fc .fc-toolbar.fc-header-toolbar {
+    margin-bottom: 1.25rem;
+}
+
+:where(.djappt) .djappt-staff-calendar .fc .fc-toolbar-title {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--djappt-ink);
+}
+
+:where(.djappt) .djappt-staff-calendar .fc .fc-button {
+    padding: .4rem .75rem;
+    font-size: .875rem;
+    font-weight: 600;
+    box-shadow: none;
+    text-transform: none;
+}
+
+:where(.djappt) .djappt-staff-calendar .fc .fc-button:hover {
+    color: var(--djappt-ink);
+}
+
+:where(.djappt) .djappt-staff-calendar .fc .fc-button-primary:not(:disabled).fc-button-active,
+:where(.djappt) .djappt-staff-calendar .fc .fc-button-primary:not(:disabled):active {
+    color: var(--djappt-accent-contrast);
+}
+
+:where(.djappt) .djappt-staff-calendar .fc .fc-button:focus-visible {
+    box-shadow: 0 0 0 .2rem var(--djappt-accent-soft);
+}
+
+:where(.djappt) .djappt-staff-calendar .fc .fc-button:disabled {
+    opacity: .5;
+}
+
+:where(.djappt) .djappt-staff-calendar .fc .fc-button-group > .fc-button:first-child {
+    border-top-left-radius: var(--djappt-radius-sm);
+    border-bottom-left-radius: var(--djappt-radius-sm);
+}
+
+:where(.djappt) .djappt-staff-calendar .fc .fc-button-group > .fc-button:last-child {
+    border-top-right-radius: var(--djappt-radius-sm);
+    border-bottom-right-radius: var(--djappt-radius-sm);
+}
+
+@container (max-width: 575.98px) {
+    :where(.djappt) .djappt-staff-calendar .fc .fc-toolbar-title {
+        font-size: 1.1rem;
+    }
+
+    :where(.djappt) .djappt-staff-calendar .fc .fc-button {
+        padding: .35rem .55rem;
+        font-size: .8rem;
+    }
+}
+
+/* Grid */
+
+:where(.djappt) .djappt-staff-calendar .fc .fc-scrollgrid {
+    border-radius: var(--djappt-radius-sm);
+    overflow: hidden;
+}
+
+:where(.djappt) .djappt-staff-calendar .fc .fc-col-header-cell {
+    background-color: var(--djappt-surface);
+}
+
+:where(.djappt) .djappt-staff-calendar .fc .fc-col-header-cell-cushion {
+    padding: .6rem .25rem;
+    font-size: .75rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--djappt-muted);
+    text-decoration: none;
+}
+
+:where(.djappt) .djappt-staff-calendar .fc .fc-daygrid-day-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.9rem;
+    height: 1.9rem;
+    margin: .2rem;
+    padding: 0 .35rem;
+    border-radius: 999px;
+    font-size: .875rem;
+    font-weight: 600;
+    color: var(--djappt-ink-soft);
+    text-decoration: none;
+}
+
+:where(.djappt) .djappt-staff-calendar .fc a.fc-daygrid-day-number:hover {
+    background-color: var(--djappt-accent-soft);
+    color: var(--djappt-accent);
+}
+
+/* Today: a filled day number instead of a tinted cell. */
+:where(.djappt) .djappt-staff-calendar .fc .fc-daygrid-day.fc-day-today {
+    background-color: transparent;
+}
+
+:where(.djappt) .djappt-staff-calendar .fc .fc-day-today .fc-daygrid-day-number {
+    background-color: var(--djappt-accent);
+    color: var(--djappt-accent-contrast);
+}
+
+:where(.djappt) .djappt-staff-calendar .fc .fc-day-other .fc-daygrid-day-number {
+    opacity: .45;
+}
+
+:where(.djappt) .djappt-staff-calendar .fc .fc-daygrid-day.highlight-weekend {
+    background-color: color-mix(in srgb, var(--djappt-line) 30%, transparent);
+}
+
+:where(.djappt) .djappt-staff-calendar .fc .fc-timegrid-slot-label-cushion,
+:where(.djappt) .djappt-staff-calendar .fc .fc-timegrid-axis-cushion,
+:where(.djappt) .djappt-staff-calendar .fc .fc-list-day-cushion a {
+    font-size: .8rem;
+    color: var(--djappt-muted);
+    text-decoration: none;
+}
+
+/* Events: the service colour, rounded, readable. */
+
+:where(.djappt) .djappt-staff-calendar .fc .fc-daygrid-event,
+:where(.djappt) .djappt-staff-calendar .fc .fc-timegrid-event {
+    border-radius: 6px;
+    font-size: .78rem;
+    cursor: pointer;
+}
+
+:where(.djappt) .djappt-staff-calendar .fc .fc-daygrid-block-event {
+    padding: 1px 3px;
+}
+
+:where(.djappt) .djappt-staff-calendar .fc .fc-daygrid-block-event .fc-event-time {
+    flex-shrink: 0;
+    overflow: visible;
+    font-weight: 700;
+}
+
+/* The time always shows in full; a long title ends with an ellipsis. */
+:where(.djappt) .djappt-staff-calendar .fc .fc-daygrid-block-event .fc-event-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+:where(.djappt) .djappt-staff-calendar .fc .fc-daygrid-more-link {
+    font-size: .78rem;
+    font-weight: 600;
+    color: var(--djappt-accent);
+}
+
+:where(.djappt) .djappt-staff-calendar .fc .fc-list-event-title a {
+    color: inherit;
+    text-decoration: none;
+}
+
+/* Phones: appointments shown as coloured dots (staff_index.js), one per appointment. */
+:where(.djappt) .djappt-staff-calendar .fc .fc-daygrid-dot-event .fc-daygrid-event-dot,
+:where(.djappt) .djappt-staff-calendar .fc .fc-daygrid-event > .fc-daygrid-event-dot:only-child {
+    margin: 0 auto;
+    border-width: 4px;
+}
+
+/* ---- Appointments of the clicked day, below the calendar ---- */
+
+:where(.djappt) .djappt-day-list {
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--djappt-line);
+}
+
+:where(.djappt) .djappt-day-list-title {
+    margin: 0 0 .75rem;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--djappt-ink);
+}
+
+:where(.djappt) .djappt-day-list-items {
+    display: grid;
+    gap: .5rem;
+    margin: 0 0 1rem;
+    padding: 0;
+    list-style: none;
+}
+
+:where(.djappt) .djappt-day-list .event-list-item-appt {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: .15rem .75rem;
+    align-items: center;
+    padding: .7rem .9rem;
+    border: 1px solid var(--djappt-line);
+    border-radius: var(--djappt-radius-sm);
+    background-color: var(--djappt-surface);
+    cursor: pointer;
+}
+
+:where(.djappt) .djappt-day-list .event-list-item-appt:hover,
+:where(.djappt) .djappt-day-list .event-list-item-appt:focus-visible {
+    border-color: var(--djappt-accent);
+    background-color: var(--djappt-accent-soft);
+    outline: 0;
+}
+
+:where(.djappt) .djappt-day-list-dot {
+    grid-row: 1 / span 2;
+    width: .7rem;
+    height: .7rem;
+    border-radius: 50%;
+}
+
+:where(.djappt) .djappt-day-list-service {
+    font-weight: 600;
+    color: var(--djappt-ink);
+}
+
+:where(.djappt) .djappt-day-list-meta {
+    font-size: .85rem;
+    color: var(--djappt-muted);
+}
+
+:where(.djappt) .djappt-day-list .djangoAppt_no-events {
+    margin: 0 0 1rem;
+    color: var(--djappt-muted);
+}
+
+/* ---- Right-click menu ---- */
+
+:where(.djappt) .djappt-context-menu {
+    min-width: 12rem;
+    padding: .35rem;
+    border: 1px solid var(--djappt-line);
+    border-radius: var(--djappt-radius-sm);
+    background-color: var(--djappt-surface);
+    box-shadow: var(--djappt-shadow);
+}
+
+:where(.djappt) .djappt-context-menu ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+:where(.djappt) .djappt-context-menu a {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .5rem .75rem;
+    border-radius: 6px;
+    font-size: .9rem;
+    font-weight: 500;
+    color: var(--djappt-ink);
+    text-decoration: none;
+}
+
+:where(.djappt) .djappt-context-menu a:hover,
+:where(.djappt) .djappt-context-menu a:focus-visible {
+    background-color: var(--djappt-accent-soft);
+    color: var(--djappt-accent);
+    outline: 0;
+}
+
+/* ---- Appointment modal: labelled fields, two columns when there is room ---- */
+
+:where(.djappt) .djappt-event-modal .modal-dialog {
+    max-width: 640px;
+}
+
+:where(.djappt) .djappt-event-modal .modal-body {
+    container-type: inline-size;
+}
+
+:where(.djappt) .djappt-modal-fields {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: .9rem 1rem;
+}
+
+@container (min-width: 480px) {
+    :where(.djappt) .djappt-modal-fields {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    :where(.djappt) .djappt-modal-fields > .djappt-field-full {
+        grid-column: 1 / -1;
+    }
+}
+
+:where(.djappt) .djappt-modal-fields .form-label {
+    margin-bottom: .3rem;
+}
+
+/* Read-only view: disabled fields read as text rather than greyed-out inputs. */
+:where(.djappt) .djappt-modal-fields .form-control:disabled,
+:where(.djappt) .djappt-modal-fields .form-select:disabled {
+    background-color: color-mix(in srgb, var(--djappt-line) 35%, var(--djappt-surface));
+    color: var(--djappt-ink);
+    opacity: 1;
+}
+
+:where(.djappt) .djappt-modal-fields .form-check {
+    margin: 0;
+}
+
+:where(.djappt) .djappt-modal-fields .invalid-feedback {
+    display: block;
+}
