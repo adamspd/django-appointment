@@ -105,6 +105,37 @@
     flex-shrink: 0;
 }
 
+/* Staff pages: title on the left, the page's main action on the right. */
+:where(.djappt) .djappt-page-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem 1.5rem;
+    margin-bottom: 1.25rem;
+}
+
+:where(.djappt) .djappt-page-head .djappt-title {
+    margin-bottom: 0;
+}
+
+/* "Back to …" link above a page title. */
+:where(.djappt) .djappt-back {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    margin-bottom: 1rem;
+    font-size: .875rem;
+    font-weight: 600;
+    color: var(--djappt-muted);
+    text-decoration: none;
+}
+
+:where(.djappt) .djappt-back:hover,
+:where(.djappt) .djappt-back:focus-visible {
+    color: var(--djappt-accent);
+}
+
 /* ---- Cards ---- */
 
 :where(.djappt) .djappt-card {
@@ -222,6 +253,18 @@
     font-size: 1.1rem;
     font-weight: 700;
     color: var(--djappt-ink);
+}
+
+/* Free text: the label above, the text below, left-aligned. */
+:where(.djappt) .djappt-summary > .djappt-summary-block {
+    flex-direction: column;
+    align-items: stretch;
+    gap: .35rem;
+}
+
+:where(.djappt) .djappt-summary > .djappt-summary-block dd {
+    font-weight: 400;
+    text-align: left;
 }
 
 /* ---- Buttons (sizes come from Bootstrap's .btn, colours from the package) ---- */

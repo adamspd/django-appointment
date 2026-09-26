@@ -124,6 +124,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 STATIC_URL = "/static/"
+
+# Uploaded files (service images). The demo serves them itself while DEBUG is on, see urls.py.
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "appointment/static")]
 
 # Default primary key field type

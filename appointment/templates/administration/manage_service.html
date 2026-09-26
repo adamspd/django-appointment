@@ -3,54 +3,192 @@
 {% load static %}
 
 {% block customCSS %}
-    <link rel="stylesheet" type="text/css" href="{% static 'css/app_admin/btn.css' %}"/>
-    <link rel="stylesheet" type="text/css" href="{% static 'css/app_admin/service.css' %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/services.css' %}"/>
+{% endblock %}
+{% block title %}
+    {{ page_title }}
+{% endblock %}
+{% block description %}
+    {% if service %}{{ page_title }}: {{ service.name }}{% else %}{{ page_title }}{% endif %}
 {% endblock %}
 
 {% block djappt_content %}
     {% translate "Confirm Deletion" as modal_title %}
     {% translate "Delete" as delete_btn_modal %}
     {% translate "Are you sure you want to delete this service?" as d_modal_message %}
-    <section class="content content-wrapper">
-        <div class="service-form-wrapper">
-            <div class="service-form-content">
-                <h2>{{ page_title }}</h2>
-                <form method="post" enctype="multipart/form-data">
+    <div class="djappt-shell djappt-services djappt-service-page content content-wrapper">
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
+                         role="alert">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <header class="djappt-header">
+            <a class="djappt-back" href="{% url 'appointment:get_service_list' %}">
+                <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                    <path d="M10.354 3.146a.5.5 0 0 1 0 .708L6.207 8l4.147 4.146a.5.5 0 0 1-.708.708l-4.5-4.5a.5.5 0 0 1 0-.708l4.5-4.5a.5.5 0 0 1 .708 0"/>
+                </svg>
+                {% trans 'Back to the services' %}</a>
+        </header>
+
+        {% if btn_text %}
+            {# Add or edit: the form, and a preview of the service's tile that follows the fields #}
+            <div class="djappt-service-editor">
+                <form method="post" enctype="multipart/form-data" class="djappt-card djappt-form djappt-service-form"
+                      id="djappt-service-form">
+                    <h1 class="djappt-card-title">{{ page_title }}</h1>
                     {% csrf_token %}
-                    {{ form.as_p }}
-                    {% if btn_text %}
-                        <button type="submit" class="btn btn-primary">{{ btn_text }}</button>
-                    {% else %}
-                        {% if request.user.is_superuser and service.id %}
-                            <div class="service-btn-container">
-                                <a href="{% url 'appointment:update_service' service_id=service.id %}"
-                                   class="modify-btn button-color-blue service-btn">
-                                    <i class="fas fa-pen"></i>
-                                </a>
-                                <a href="javascript:void(0)"
-                                   onclick="showModal('{{ modal_title|escapejs }}', '{{ d_modal_message|escapejs }}', '{{ delete_btn_modal|escapejs }}', '{% url 'appointment:delete_service' service_id=service.id %}', null)"
-                                   class="modify-btn button-color-red service-btn">
-                                    <i class="fas fa-trash"></i>
-                                </a>
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                    {% endif %}
+                    {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+                    <div class="djappt-form-grid">
+                        {% for field in form.visible_fields %}
+                            <div class="djappt-field djappt-field--{{ field.name }}">
+                                <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                {{ field }}
+                                {% if field.help_text %}
+                                    <div class="djappt-help">{{ field.help_text }}</div>
+                                {% endif %}
+                                {% for error in field.errors %}
+                                    <div class="djappt-field-error">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="djappt-form-actions">
+                        <a class="btn djappt-btn djappt-btn-ghost" href="{% url 'appointment:get_service_list' %}">{% trans 'Cancel' %}</a>
+                        <button type="submit" class="btn djappt-btn djappt-btn-primary">{{ btn_text }}</button>
+                    </div>
+                </form>
+
+                <aside class="djappt-service-preview" aria-hidden="true">
+                    <p class="djappt-service-preview-label">{% trans 'Preview' %}</p>
+                    {% get_current_language as LANGUAGE_CODE %}
+                    <div class="djappt-service-tile" id="djappt-service-preview" data-locale="{{ LANGUAGE_CODE }}"
+                         data-free-text="{% trans 'Free' %}" data-image-url="{{ service.get_image_url }}"
+                         style="--djappt-service-color: {{ form.background_color.value|default:'#00307c' }}">
+                        <div class="djappt-service-cover{% if service.get_image_url %} djappt-service-cover--image{% endif %}">
+                            <img src="{{ service.get_image_url }}" alt=""{% if not service.get_image_url %} hidden{% endif %}>
+                            <span class="djappt-service-initial"{% if service.get_image_url %} hidden{% endif %}>{{ form.name.value|default:''|first|upper }}</span>
+                        </div>
+                        <div class="djappt-service-body">
+                            <h2 class="djappt-service-title" data-placeholder="{% trans 'Name' %}">{{ form.name.value|default:'' }}</h2>
+                            <p class="djappt-service-desc">{{ form.description.value|default:'' }}</p>
+                            <ul class="djappt-service-facts">
+                                <li>
+                                    <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                                        <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71z"/>
+                                        <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0"/>
+                                    </svg>
+                                    <span class="djappt-service-duration">{% if service %}{{ service.get_duration }}{% endif %}</span>
+                                </li>
+                                <li class="djappt-service-price">{% if service %}{{ service.get_price_text }}{% else %}{% trans 'Free' %}{% endif %}</li>
+                            </ul>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        {% else %}
+            {# Read-only view: the picture (or the colour) on the left, what staff need to know on the right #}
+            <article class="djappt-service-detail" style="--djappt-service-color: {{ service.background_color }}">
+                <div class="djappt-service-media">
+                    <div class="djappt-service-cover{% if service.get_image_url %} djappt-service-cover--image{% endif %}">
+                        {# An image that fails to load falls back to the colour and the initial #}
+                        {% if service.get_image_url %}
+                            <img src="{{ service.get_image_url }}" alt="{{ service.name }}"
+                                 onerror="this.parentNode.classList.remove('djappt-service-cover--image'); this.nextElementSibling.hidden = false; this.remove()">
+                        {% endif %}
+                        <span class="djappt-service-initial" aria-hidden="true"{% if service.get_image_url %} hidden{% endif %}>{{ service.name|first|upper }}</span>
+                    </div>
+                </div>
+
+                <div class="djappt-service-info">
+                    <div class="djappt-service-info-head">
+                        <div>
+                            <p class="djappt-eyebrow">{% trans 'Service' %}</p>
+                            <h1 class="djappt-title">{{ service.name }}</h1>
+                        </div>
+                        {% if request.user.is_superuser %}
+                            <div class="djappt-service-actions">
+                                <button type="button" class="btn djappt-btn djappt-btn-ghost djappt-text-danger"
+                                        onclick="showModal('{{ modal_title|escapejs }}', '{{ d_modal_message|escapejs }}', '{{ delete_btn_modal|escapejs }}', '{% url 'appointment:delete_service' service_id=service.id %}', null)">
+                                    {% trans 'Delete' %}</button>
+                                <a class="btn djappt-btn djappt-btn-primary" href="{% url 'appointment:update_service' service_id=service.id %}">{% trans 'Edit' %}</a>
                             </div>
                         {% endif %}
+                    </div>
+
+                    {% if offered_by_me %}
+                        <p class="djappt-service-offered">
+                            <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                                <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0"/>
+                            </svg>
+                            {% trans 'You offer this service' %}</p>
                     {% endif %}
-                </form>
-                <div class="messages" style="margin: 20px 0">
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
-                                 role="alert">{{ message }}</div>
-                        {% endfor %}
+
+                    {% if service.description %}
+                        <p class="djappt-service-about">{{ service.description|linebreaksbr }}</p>
                     {% endif %}
+
+                    <dl class="djappt-service-stats">
+                        <div>
+                            <dt>{% trans 'Duration' %}</dt>
+                            <dd>{{ service.get_duration }}</dd>
+                        </div>
+                        <div>
+                            <dt>{% trans 'Price' %}</dt>
+                            <dd>{{ service.get_price_text }}</dd>
+                        </div>
+                        {% if service.accepts_down_payment %}
+                            <div>
+                                <dt>{% trans 'Down Payment' %}</dt>
+                                <dd>{{ service.get_down_payment_text }}</dd>
+                            </div>
+                        {% endif %}
+                        <div>
+                            <dt>{% trans 'Rescheduling' %}</dt>
+                            <dd>{% if service.allow_rescheduling and service.reschedule_limit %}
+                                {% blocktrans count counter=service.reschedule_limit %}Up to {{ counter }} time{% plural %}Up to {{ counter }} times{% endblocktrans %}
+                            {% else %}{% trans 'Not allowed' %}{% endif %}</dd>
+                        </div>
+                        <div>
+                            <dt>{% trans 'Calendar colour' %}</dt>
+                            <dd><span class="djappt-swatch" aria-hidden="true"></span> {{ form.initial.background_color|default:service.background_color }}</dd>
+                        </div>
+                    </dl>
+
+                    <section class="djappt-service-staff">
+                        <h2 class="djappt-card-title">{% trans 'Offered by' %}</h2>
+                        {% with staff_members=service.staffmember_set.all %}
+                            {% if staff_members %}
+                                <ul class="djappt-people">
+                                    {% for staff_member in staff_members %}
+                                        <li>
+                                            <span class="djappt-avatar" aria-hidden="true">{{ staff_member.get_staff_member_name|first|upper }}</span>
+                                            {{ staff_member.get_staff_member_name }}
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p class="djappt-lead mb-0">{% trans 'No staff member offers this service yet.' %}</p>
+                            {% endif %}
+                        {% endwith %}
+                    </section>
                 </div>
-            </div>
-        </div>
+            </article>
+        {% endif %}
         {% include 'modal/confirm_modal.html' %}
-    </section>
+    </div>
 {% endblock %}
 
 {% block customJS %}
     <script src="{% static 'js/modal/show_modal.js' %}"></script>
     <script src="{% static 'js/js-utils.js' %}"></script>
+    {% if btn_text %}
+        <script src="{% static 'js/app_admin/manage_service.js' %}"></script>
+    {% endif %}
 {% endblock %}

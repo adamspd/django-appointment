@@ -293,6 +293,6 @@ class ServiceForm(forms.ModelForm):
             }),
             'image': forms.ClearableFileInput(attrs={'class': 'form-control'}),
             'currency': forms.Select(choices=[('USD', 'USD'), ('EUR', 'EUR'), ('GBP', 'GBP')],
-                                     attrs={'class': 'form-control'}),
-            'background_color': forms.TextInput(attrs={'class': 'form-control', 'type': 'color'}),
+                                     attrs={'class': 'form-select'}),
+            'background_color': forms.TextInput(attrs={'class': 'form-control form-control-color', 'type': 'color'}),
         }

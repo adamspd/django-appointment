@@ -632,7 +632,10 @@ def get_service_list(request, response_type='html'):
                 'background_color': service.background_color
             })
         return json_response("Successfully fetched services.", custom_data={'services': service_data}, safe=False)
-    context = get_generic_context_with_extra(request=request, extra={'services': services})
+    # The services the user offers, so their tiles can say so
+    offered_ids = set(Service.objects.filter(staffmember__user=request.user).values_list('id', flat=True))
+    context = get_generic_context_with_extra(request=request,
+                                             extra={'services': services, 'offered_service_ids': offered_ids})
     template = get_custom_template('service_list.html', 'administration/service_list.html')
     return render(request, template, context=context)
 
