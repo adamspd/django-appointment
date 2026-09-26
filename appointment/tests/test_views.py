@@ -687,6 +687,34 @@ class AppointmentDisplayViewTestCase(BaseTest):
         self.assertNotContains(response, 'moment.js')
         self.assertNotContains(response, 'fullcalendar')
 
+    def test_display_appointment_links_back_to_the_calendar(self):
+        self.need_staff_login()
+        response = self.client.get(self.url_display_appt)
+        self.assertContains(response, f'href="{reverse("appointment:get_user_appointments")}"')
+        self.assertNotContains(response, 'font-awesome')
+
+    def test_display_appointment_payment_status(self):
+        self.need_staff_login()
+        amount = self.appointment.get_appointment_amount_to_pay_text()
+        response = self.client.get(self.url_display_appt)
+        self.assertContains(response, 'Payment Pending')
+        self.assertContains(response, amount)
+
+        self.appointment.set_appointment_paid_status(True)
+        response = self.client.get(self.url_display_appt)
+        self.assertContains(response, 'Payment Complete')
+        self.assertContains(response, 'Paid in full')
+
+    def test_display_appointment_free_service(self):
+        self.need_staff_login()
+        service = self.appointment.get_service()
+        service.price = 0
+        service.save()
+        response = self.client.get(self.url_display_appt)
+        self.assertContains(response, 'No payment needed')
+        self.assertNotContains(response, 'Payment Pending')
+        self.assertNotContains(response, 'djappt-appt-payment-amount')
+
     def test_display_appointment_unauthenticated_user(self):
         # Attempt access without logging in
         response = self.client.get(self.url_display_appt)
