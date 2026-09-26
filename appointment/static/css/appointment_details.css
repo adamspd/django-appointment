@@ -1,0 +1,142 @@
+/*
+ * django-appointment: appointment details page (administration/display_appointment.html).
+ * Scoped to the .djappt wrapper; colours come from the --djappt-* variables in djappt.css.
+ * djappt.css is linked after this file (by the layout), so a rule changing one of its components repeats the class.
+ */
+
+/* ---- Header ---- */
+
+:where(.djappt) .djappt-back {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    margin-bottom: 1rem;
+    font-size: .875rem;
+    font-weight: 600;
+    color: var(--djappt-muted);
+    text-decoration: none;
+}
+
+:where(.djappt) .djappt-back:hover,
+:where(.djappt) .djappt-back:focus-visible {
+    color: var(--djappt-accent);
+}
+
+:where(.djappt) .djappt-appt-details .messages .alert {
+    margin-bottom: 1.25rem;
+}
+
+/* ---- Details and payment: one column, then the payment card on the right ---- */
+
+:where(.djappt) .djappt-appt-details-layout {
+    display: grid;
+    gap: 1.25rem;
+    align-items: start;
+}
+
+@container (min-width: 820px) {
+    :where(.djappt) .djappt-appt-details-layout {
+        grid-template-columns: minmax(0, 1fr) 300px;
+    }
+
+    :where(.djappt) .djappt-appt-payment {
+        position: sticky;
+        top: 1rem;
+    }
+}
+
+/* ---- Details card: the groups sit side by side when the card is wide enough ---- */
+
+:where(.djappt) .djappt-appt-details-card {
+    container-type: inline-size;
+}
+
+:where(.djappt) .djappt-appt-details-groups {
+    display: grid;
+    gap: .5rem 2rem;
+}
+
+@container (min-width: 560px) {
+    :where(.djappt) .djappt-appt-details-groups {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+:where(.djappt) .djappt-appt-details-group {
+    min-width: 0;
+}
+
+/* The card's padding already closes the last group. */
+:where(.djappt) .djappt-appt-details-group .djappt-summary {
+    margin-bottom: .75rem;
+}
+
+@container (max-width: 559.98px) {
+    :where(.djappt) .djappt-appt-details-group:last-child .djappt-summary {
+        margin-bottom: 0;
+    }
+}
+
+@container (min-width: 560px) {
+    :where(.djappt) .djappt-appt-details-group:nth-last-child(-n+2) .djappt-summary {
+        margin-bottom: 0;
+    }
+}
+
+:where(.djappt) .djappt-appt-details-group .djappt-card-title {
+    font-size: .8rem;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--djappt-accent);
+}
+
+/* Long emails and addresses wrap instead of overflowing the card. */
+:where(.djappt) .djappt-appt-details-group dd {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+:where(.djappt) .djappt-appt-details-group dd a {
+    color: var(--djappt-accent);
+    text-decoration: none;
+}
+
+:where(.djappt) .djappt-appt-details-group dd a:hover {
+    text-decoration: underline;
+}
+
+/* Free text: the label above, the text below, left-aligned. */
+:where(.djappt) .djappt-summary > .djappt-summary-block {
+    flex-direction: column;
+    align-items: stretch;
+    gap: .35rem;
+}
+
+:where(.djappt) .djappt-summary > .djappt-summary-block dd {
+    font-weight: 400;
+    text-align: left;
+}
+
+/* ---- Payment card ---- */
+
+:where(.djappt) .djappt-appt-payment .djappt-card-title {
+    justify-content: center;
+}
+
+:where(.djappt) .djappt-appt-payment-status {
+    margin: 0;
+    font-weight: 700;
+    color: var(--djappt-ink);
+}
+
+:where(.djappt) .djappt-appt-payment-amount {
+    margin: .25rem 0;
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1.2;
+    color: var(--djappt-ink);
+}
+
+:where(.djappt) .djappt-appt-payment.unpaid .djappt-appt-payment-amount {
+    color: var(--djappt-danger);
+}

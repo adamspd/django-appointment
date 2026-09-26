@@ -2439,3 +2439,15 @@ msgstr "Faites un clic droit sur un jour pour en ajouter un."
 #: appointment/templates/administration/staff_index.html
 msgid "Enter a valid email address."
 msgstr "Saisissez une adresse e-mail valide."
+
+#: appointment/templates/administration/display_appointment.html
+msgid "Back to the calendar"
+msgstr "Retour au calendrier"
+
+#: appointment/templates/administration/display_appointment.html
+msgid "No payment needed"
+msgstr "Aucun paiement requis"
+
+#: appointment/templates/administration/display_appointment.html
+msgid "Payment"
+msgstr "Paiement"

@@ -1,3 +1,8 @@
+/*
+ * No longer used by the package pages (the appointment details page uses appointment_details.css). Kept for page
+ * overrides that still link it; it will be removed in a future major version.
+ */
+
 /* Scoped to appointment display only - no global resets */
 .appointment-display-content {
     min-height: 100vh;
