@@ -2,10 +2,7 @@
 {% load i18n %}
 {% load static %}
 {% block customCSS %}
-    <link rel="stylesheet" type="text/css" href="{% static 'css/app_admin/display_appointment.css' %}"/>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-          integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
-          crossorigin="anonymous" referrerpolicy="no-referrer"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/appointment_details.css' %}"/>
 {% endblock %}
 {% block title %}
     {{ page_title }}
@@ -14,140 +11,148 @@
     {{ page_description }}
 {% endblock %}
 {% block djappt_content %}
-    <section class="content content-wrapper">
-        <div class="appointment-display-content">
-            <div class="app-content">
-                <!-- Header -->
-                <div class="appointment-header">
-                    <h1 class="appointment-title">{{ page_title }}</h1>
-                    <p class="appointment-subtitle">{{ page_description }}</p>
-                </div>
+    <div class="djappt-shell djappt-appt-details content content-wrapper">
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
+                         role="alert">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
 
-                <!-- Main content -->
-                <div class="appointment-content">
-                    <!-- Left Panel - Details -->
-                    <div class="details-panel">
-                        <!-- Timing Information -->
-                        <div class="detail-group">
-                            <h3>
-                                <i class="fas fa-calendar-alt"></i>
-                                {% trans 'Schedule' %}
-                            </h3>
-                            <div class="detail-row">
-                                <span class="detail-label">{% trans 'Date' %}</span>
-                                <span class="detail-value">{{ appointment.get_date }}</span>
-                            </div>
-                            <div class="detail-row">
-                                <span class="detail-label">{% trans 'Start time' %}</span>
-                                <span class="detail-value">{{ appointment.get_start_time|time }}</span>
-                            </div>
-                            <div class="detail-row">
-                                <span class="detail-label">{% trans 'End time' %}</span>
-                                <span class="detail-value">{{ appointment.get_end_time|time }}</span>
-                            </div>
-                        </div>
+        <header class="djappt-header">
+            <a class="djappt-back" href="{% url 'appointment:get_user_appointments' %}">
+                <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                    <path d="M10.354 3.146a.5.5 0 0 1 0 .708L6.207 8l4.147 4.146a.5.5 0 0 1-.708.708l-4.5-4.5a.5.5 0 0 1 0-.708l4.5-4.5a.5.5 0 0 1 .708 0"/>
+                </svg>
+                {% trans "Back to the calendar" %}</a>
+            <p class="djappt-eyebrow">{% trans "Appointment" %}</p>
+            <h1 class="djappt-title appointment-title">{{ page_title }}</h1>
+            <p class="djappt-lead appointment-subtitle">{{ page_description }}</p>
+        </header>
 
-                        <!-- Service Information -->
-                        <div class="detail-group">
-                            <h3>
-                                <i class="fas fa-hands-helping"></i>
-                                {% trans 'Service' %}
-                            </h3>
-                            <div class="detail-row">
-                                <span class="detail-label">{% trans 'Service' %}</span>
-                                <span class="detail-value">{{ appointment.get_service_name }}</span>
+        <div class="djappt-appt-details-layout">
+            <div class="djappt-card djappt-appt-details-card">
+                <div class="djappt-appt-details-groups">
+                    <section class="djappt-appt-details-group">
+                        <h2 class="djappt-card-title">{% trans 'Schedule' %}</h2>
+                        <dl class="djappt-summary">
+                            <div>
+                                <dt>{% trans 'Date' %}</dt>
+                                <dd>{{ appointment.get_date }}</dd>
                             </div>
-                        </div>
+                            <div>
+                                <dt>{% trans 'Start time' %}</dt>
+                                <dd>{{ appointment.get_start_time|time }}</dd>
+                            </div>
+                            <div>
+                                <dt>{% trans 'End time' %}</dt>
+                                <dd>{{ appointment.get_end_time|time }}</dd>
+                            </div>
+                        </dl>
+                    </section>
 
-                        <!-- Client Information -->
-                        <div class="detail-group">
-                            <h3>
-                                <i class="fas fa-user"></i>
-                                {% trans 'Client Details' %}
-                            </h3>
-                            <div class="detail-row">
-                                <span class="detail-label">{% trans 'Client' %}</span>
-                                <span class="detail-value">{{ appointment.get_client_name }}</span>
+                    <section class="djappt-appt-details-group">
+                        <h2 class="djappt-card-title">{% trans 'Service' %}</h2>
+                        <dl class="djappt-summary">
+                            <div>
+                                <dt>{% trans 'Service' %}</dt>
+                                <dd>{{ appointment.get_service_name }}</dd>
                             </div>
-                            <div class="detail-row">
-                                <span class="detail-label">{% trans 'Email' %}</span>
-                                <span class="detail-value">{{ appointment.client.email }}</span>
+                            <div>
+                                <dt>{% trans 'Duration' %}</dt>
+                                <dd>{{ appointment.get_service_duration }}</dd>
                             </div>
-                            <div class="detail-row">
-                                <span class="detail-label">{% trans 'Phone' %}</span>
-                                <span class="detail-value">{{ appointment.phone }}</span>
+                            <div>
+                                <dt>{% trans 'Staff Member' %}</dt>
+                                <dd>{{ appointment.get_staff_member_name|default:"—" }}</dd>
                             </div>
-                            <div class="detail-row">
-                                <span class="detail-label">{% trans 'Client address' %}</span>
-                                <span class="detail-value">{{ appointment.address }}</span>
-                            </div>
-                        </div>
+                        </dl>
+                    </section>
 
-                        <!-- Additional Information -->
-                        <div class="detail-group">
-                            <h3>
-                                <i class="fas fa-info-circle"></i>
-                                {% trans 'Notes' %}
-                            </h3>
-                            <div class="detail-row">
-                                <span class="detail-label">{% trans 'Wants reminder' %}</span>
-                                <span class="detail-value">{{ appointment.wants_reminder_text }}</span>
+                    <section class="djappt-appt-details-group">
+                        <h2 class="djappt-card-title">{% trans 'Client Details' %}</h2>
+                        <dl class="djappt-summary">
+                            <div>
+                                <dt>{% trans 'Client' %}</dt>
+                                <dd>{{ appointment.get_client_name|default:"—" }}</dd>
+                            </div>
+                            <div>
+                                <dt>{% trans 'Email' %}</dt>
+                                <dd>{% if appointment.client.email %}
+                                    <a href="mailto:{{ appointment.client.email }}">{{ appointment.client.email }}</a>
+                                {% else %}—{% endif %}</dd>
+                            </div>
+                            <div>
+                                <dt>{% trans 'Phone' %}</dt>
+                                <dd>{% if appointment.phone %}
+                                    <a href="tel:{{ appointment.phone }}">{{ appointment.phone }}</a>
+                                {% else %}—{% endif %}</dd>
+                            </div>
+                            <div>
+                                <dt>{% trans 'Client address' %}</dt>
+                                <dd>{{ appointment.address|default:"—" }}</dd>
+                            </div>
+                        </dl>
+                    </section>
+
+                    <section class="djappt-appt-details-group">
+                        <h2 class="djappt-card-title">{% trans 'Notes' %}</h2>
+                        <dl class="djappt-summary">
+                            <div>
+                                <dt>{% trans 'Wants reminder' %}</dt>
+                                <dd>{{ appointment.wants_reminder_text }}</dd>
                             </div>
                             {% if appointment.additional_info %}
-                                <div class="detail-row">
-                                    <span class="detail-label">{% trans 'Additional Information' %}</span>
-                                    <span class="detail-value">{{ appointment.additional_info }}</span>
+                                <div class="djappt-summary-block">
+                                    <dt>{% trans 'Additional Information' %}</dt>
+                                    <dd>{{ appointment.additional_info|linebreaksbr }}</dd>
                                 </div>
                             {% endif %}
-                        </div>
-                    </div>
-
-                    <!-- Right Panel - Status -->
-                    <div class="status-panel">
-                        <!-- Payment Status -->
-                        <div class="status-card {% if appointment.is_paid %}paid{% else %}unpaid{% endif %}">
-                            <div class="status-icon">
-                                {% if appointment.is_paid %}
-                                    <i class="fas fa-check-circle"></i>
-                                {% else %}
-                                    <i class="fas fa-exclamation-triangle"></i>
-                                {% endif %}
-                            </div>
-                            <div class="status-text">
-                                {% if appointment.is_paid %}
-                                    {% trans 'Payment Complete' %}
-                                {% else %}
-                                    {% trans 'Payment Pending' %}
-                                {% endif %}
-                            </div>
-                            <div class="status-amount">{{ appointment.get_appointment_amount_to_pay_text }}</div>
-                            <p style="opacity: 0.5; margin-top: -1.5rem;">
-                                {% if appointment.is_paid %}
-                                    {% trans 'Paid in full' %}
-                                {% else %}
-                                    {% trans 'Amount due' %}
-                                {% endif %}
-                            </p>
-                        </div>
-                    </div>
+                        </dl>
+                    </section>
                 </div>
-
-                <!-- Messages -->
-                {% if messages %}
-                    <div class="messages">
-                        {% for message in messages %}
-                            <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
-                                 role="alert">
-                                {{ message }}
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
             </div>
+
+            <aside class="djappt-card djappt-center djappt-appt-payment {% if appointment.is_paid %}paid{% else %}unpaid{% endif %}">
+                <h2 class="djappt-card-title">{% trans 'Payment' %}</h2>
+                {% if appointment.is_paid %}
+                    <span class="djappt-status-icon djappt-status-icon--success" aria-hidden="true">
+                        <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0"/>
+                        </svg>
+                    </span>
+                {% else %}
+                    <span class="djappt-status-icon djappt-status-icon--danger" aria-hidden="true">
+                        <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="M8 1.5a.75.75 0 0 1 .75.75v7a.75.75 0 0 1-1.5 0v-7A.75.75 0 0 1 8 1.5M8 11.5a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5"/>
+                        </svg>
+                    </span>
+                {% endif %}
+                <p class="djappt-appt-payment-status status-text">
+                    {% if not appointment.service_is_paid %}
+                        {% trans 'No payment needed' %}
+                    {% elif appointment.is_paid %}
+                        {% trans 'Payment Complete' %}
+                    {% else %}
+                        {% trans 'Payment Pending' %}
+                    {% endif %}
+                </p>
+                {% if appointment.service_is_paid %}
+                    <p class="djappt-appt-payment-amount status-amount">{{ appointment.get_appointment_amount_to_pay_text }}</p>
+                    <p class="djappt-lead mb-0">
+                        {% if appointment.is_paid %}
+                            {% trans 'Paid in full' %}
+                        {% else %}
+                            {% trans 'Amount due' %}
+                        {% endif %}
+                    </p>
+                {% endif %}
+            </aside>
         </div>
-    </section>
+    </div>
 {% endblock %}
 {% block customJS %}
     <script src="{% static 'js/js-utils.js' %}"></script>
-
 {% endblock %}
