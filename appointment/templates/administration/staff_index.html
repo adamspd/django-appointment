@@ -5,281 +5,51 @@
     <meta name="csrf-token" content="{{ csrf_token }}">
 {% endblock %}
 {% block customCSS %}
-    <link rel="stylesheet" type="text/css" href="{% static 'css/appt-common.css' %}"/>
-    <link rel="stylesheet" type="text/css" href="{% static 'css/app_admin/admin.css' %}"/>
-    <style>
-        @media (max-width: 991px) {
-            :where(.djappt) {
-                font-size: 15px; /* Adjust font size for tablets */
-            }
-
-            #calendar {
-                max-width: 800px; /* Adjust calendar width for tablets */
-            }
-        }
-
-        /* Mobile Styles */
-        @media (max-width: 767px) {
-            :where(.djappt) {
-                font-size: 14px; /* Adjust font size for mobiles */
-            }
-
-            #calendar {
-                max-width: 100%; /* Let the calendar take the full width on mobile */
-            }
-
-            :where(.djappt) .fc, :where(.djappt) .fc-toolbar-title, :where(.djappt) h2 {
-                font-size: 15px !important; /* Adjust as needed */
-                margin: 0; /* Remove any default margin */
-            }
-        }
-
-        .calendar-wrapper {
-            display: flex;
-            transition: all 0.3s; /* smooth transition for resizing */
-            width: 100%;
-            flex-direction: column;
-            margin-top: 25px;
-        }
-
-        #calendar {
-            flex-grow: 1; /* Makes the calendar grow to occupy all available space */
-            transition: all 0.3s; /* smooth transition for resizing */
-            width: 100%;
-        }
-
-        #event-details {
-            overflow-y: auto;
-            width: 0; /* initially hidden */
-            transition: all 0.3s; /* smooth transition for resizing */
-            border-left: 1px solid #ccc;
-            flex-shrink: 0; /* Prevents the div from shrinking beyond its content's size */
-        }
-
-        :where(.djappt) .modal-content {
-            background-color: #fff;
-            margin: 10% auto; /* Centering the modal vertically */
-            width: 100%;
-            position: relative; /* For positioning the close button */
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2); /* A little shadow for depth */
-        }
-
-        :where(.djappt) .modal-footer {
-            text-align: right;
-        }
-
-        .close-button {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-        }
-
-        :where(.djappt) .body-blur {
-            filter: blur(2px); /* This will blur the whole body when modal is open */
-        }
-
-        #eventDetailsModal .modal-content {
-            background-color: #f4f4f4;
-            border-radius: 10px;
-        }
-
-        #eventDetailsModal .modal-header,
-        #eventDetailsModal .modal-footer {
-            background-color: #2c3e50;
-            color: #ecf0f1;
-        }
-
-        #eventDetailsModal .modal-title {
-            font-weight: bold;
-        }
-
-        #eventDetailsModal label {
-            display: block;
-            margin-top: 10px;
-        }
-
-        #eventDetailsModal input {
-            width: 100%;
-            padding: 5px;
-            margin: 5px 0;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
-
-        #eventDetailsModal .btn {
-            margin-right: 10px;
-        }
-
-        #serviceSelect, #staffSelect {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            background-color: #f9f9f9;
-            font-size: 14px;
-            transition: background-color 0.3s ease;
-        }
-
-        #serviceSelect:disabled, #staffSelect:disabled {
-            background-color: #e9ecef;
-        }
-
-        #customContextMenu ul {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-        }
-
-        #customContextMenu ul li a {
-            padding: 5px 10px;
-            display: block;
-            text-decoration: none;
-            color: black;
-        }
-
-        #customContextMenu ul li a:hover {
-            background-color: #f0f0f0;
-        }
-
-        #customContextMenu {
-            border: 1px solid #ccc;
-            background-color: #fff;
-            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
-            padding: 5px 0;
-            position: absolute;
-            z-index: 1000;
-            display: none;
-        }
-
-
-        #eventDetailsModal input[type="checkbox"] {
-            width: auto;
-            margin: 0 5px 0 0;
-        }
-
-        /* General styles */
-        .flex-container-appt {
-            display: flex;
-            align-items: center;
-            margin-top: 5px;
-        }
-
-        .flex-container-appt label {
-            flex: 0 0 auto; /* Do not grow, do not shrink, and base width on content */
-            margin-right: 5px;
-            white-space: nowrap; /* Prevent label from wrapping */
-        }
-
-        .flex-container-appt input,
-        .flex-container-appt select {
-            flex: 1 1 auto; /* Grow and shrink based on available space */
-        }
-
-        /* Larger Modal on Desktop */
-        @media (min-width: 850px) {
-            :where(.djappt) .modal-content {
-                /* centering the modal horizontally */
-                margin: 10% auto;
-                left: 0;
-                right: 0;
-            }
-        }
-
-        /* Stack label and input on mobile */
-        @media (max-width: 767px) {
-            .flex-container-appt {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .flex-container-appt label {
-                margin-right: 0;
-                margin-bottom: 5px;
-            }
-        }
-
-        .highlight-weekend {
-            background-color: rgba(155, 155, 155, 0.03); /* Light gray background for weekends */
-        }
-
-        .event-dot {
-            height: 5px;
-            width: 5px;
-            border-radius: 50%;
-            display: inline-block;
-            margin: 2px;
-        }
-
-        /* Hide event list container on larger screens */
-        @media (min-width: 768px) {
-            #event-list-container {
-                display: none; /* Hide the event list container */
-            }
-        }
-
-        /* Show event list container on smaller screens */
-        @media (max-width: 767px) {
-            #event-list-container {
-                /* Styles to display and position the event list container */
-                display: block; /* Show the event list container */
-                margin-top: 20px; /* Space from the calendar */
-            }
-
-            .event-list-item {
-                /* Styles for individual event list items */
-                padding: 10px;
-                border-bottom: 1px solid #ccc;
-            }
-        }
-
-        @media (max-width: 450px) {
-            :where(.djappt) .fc-daygrid-event-harness {
-                width: 5px;
-            }
-
-            :where(.djappt) .fc td, :where(.djappt) .fc th {
-
-            }
-        }
-
-        .event-list-item-appt {
-            /* pointer hand cursor */
-            cursor: pointer;
-        }
-    </style>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/staff_calendar.css' %}"/>
 {% endblock %}
 {% block title %}
-    {{ page_title }}
+    {% if page_title %}{{ page_title }}{% else %}{% trans "Appointments" %}{% endif %}
 {% endblock %}
 {% block description %}
     {{ page_description }}
 {% endblock %}
 {% block djappt_content %}
-    <section class="content content-wrapper">
-        <div class="container">
-            <div class="calendar-wrapper">
-                <div id="calendar" class="calendarbox"></div>
-                <div id="event-list-container" class="event-list-container"></div>
-            </div>
-
-            {% include 'modal/event_details_modal.html' %}
-            {% include 'modal/error_modal.html' %}
-
-            <div class="messages" style="margin: 20px 0">
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
-                             role="alert">{{ message }}</div>
-                    {% endfor %}
-                {% endif %}
-            </div>
+    <div class="djappt-shell djappt-shell--wide djappt-staff-calendar content content-wrapper">
+        <div class="messages">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
+                         role="alert">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
         </div>
-    </section>
-    <div id="customContextMenu" style="display: none; position: absolute; z-index: 1000;">
+
+        <header class="djappt-page-head">
+            <div>
+                <h1 class="djappt-title">{% trans "Appointments" %}</h1>
+                <ul class="djappt-hints">
+                    <li>{% trans "Click an appointment to see or edit it." %}</li>
+                    <li>{% trans "Drag it to another day to move it." %}</li>
+                    <li class="djappt-hint-mouse">{% trans "Right-click a day to add one." %}</li>
+                </ul>
+            </div>
+            <button type="button" class="btn djappt-btn djappt-btn-primary" id="djappt-new-appointment"
+                    onclick="djapptNewAppointment()">
+                <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                    <path d="M8 2a.75.75 0 0 1 .75.75v4.5h4.5a.75.75 0 0 1 0 1.5h-4.5v4.5a.75.75 0 0 1-1.5 0v-4.5h-4.5a.75.75 0 0 1 0-1.5h4.5v-4.5A.75.75 0 0 1 8 2"/>
+                </svg>
+                {% trans "New Appointment" %}</button>
+        </header>
+
+        <div class="djappt-card djappt-calendar-card calendar-wrapper">
+            <div id="calendar" class="calendarbox"></div>
+            <div id="event-list-container" class="event-list-container"></div>
+        </div>
+
+        {% include 'modal/event_details_modal.html' %}
+        {% include 'modal/error_modal.html' %}
+    </div>
+    <div id="customContextMenu" class="djappt-context-menu" style="display: none; position: absolute; z-index: 1000;">
         <ul>
             <li id="newAppointmentOption"><a href="#">{% trans "New Appointment" %}</a></li>
         </ul>
@@ -337,6 +107,7 @@
         const weekBtnText = "{% trans 'Week' %}";
         const dayBtnText = "{% trans 'Day' %}";
         const listBtnText = "{% trans 'List' %}";
+        const invalidEmailTxt = "{% trans 'Enter a valid email address.' %}";
     </script>
 
     <script src="{% static 'js/modal/error_modal.js' %}"></script>
@@ -345,56 +116,53 @@
     <script src="{% static 'js/js-utils.js' %}"></script>
 
     <script>
+        /* The modal body is built from these three functions. staff_index.js reads every <input> in the modal by its
+           name, the dropdowns by their ids (serviceSelect, staffSelect), and hides the end time while editing. */
+        function djapptField(label, control, id, full) {
+            return `<div class="djappt-field${full ? ' djappt-field-full' : ''}">
+                        <label class="form-label" for="${id}">${label}</label>${control}</div>`;
+        }
+
         function createCommonInputFields(appointment, servicesDropdown, isEditMode, defaultStartTime, staffDropdown) {
-            const startTimeValue = isEditMode ? moment(appointment.start_time).format('HH:mm:ss') : defaultStartTime;
+            // A new appointment has no start time yet: it starts at the default time (09:00) of the chosen day
+            const editedStart = appointment.start_time || defaultStartTime;
+            const startTimeValue = isEditMode ? moment(editedStart).format('HH:mm:ss') : defaultStartTime;
             const disabledAttribute = isEditMode ? '' : 'disabled';
 
             let superuserInputField = '';
             if (isUserSuperUser) {
-                superuserInputField = `
-                    <div class="flex-container-appt">
-                    <label>{% trans 'Staff Member' %}:</label>
-                    ${staffDropdown.outerHTML}
-                    </div>
-                `;
+                superuserInputField = djapptField("{% trans 'Staff Member' %}", staffDropdown.outerHTML, 'staffSelect', true);
             }
 
             return `
                 ${superuserInputField}
-                <div class="flex-container-appt">
-                <label>{% trans 'Service Name' %}:</label>
-                ${servicesDropdown.outerHTML}
-                </div>
-                <label for="clientName">{% trans 'Client Name' %}:</label>
-                <input type="text" name="clientName" value="${escapeHtml(appointment.client_name)}" ${disabledAttribute} id="clientName" placeholder="John Doe">
-                <label for="clientEmail">{% trans 'Client Email' %}:</label>
-                <input type="email" name="clientEmail" value="${escapeHtml(appointment.client_email)}" ${disabledAttribute} id="clientEmail" placeholder="john.doe@example.com">
-                <span id="emailError" style="display:none;"></span>
-                <label for="clientPhone">{% trans 'Phone Number' %}:</label>
-                <input type="tel" name="clientPhone" value="${escapeHtml(appointment.client_phone)}" ${disabledAttribute} id="clientPhone" placeholder="+12392350799">
-                <label for="clientAddress">{% trans 'Client address' %}:</label>
-                <input type="text" name="clientAddress" value="${escapeHtml(appointment.client_address)}" ${disabledAttribute} id="clientAddress" placeholder="Naples, Florida">
-                <div class="flex-container-appt">
-                <label for="want_reminder">{% trans 'Wants reminder' %}:</label>
-                <input type="checkbox" name="want_reminder" id="want_reminder" value="true" ${appointment.want_reminder ? 'checked' : ''}  ${disabledAttribute}>
-                </div>
-                <label for="additional_info">{% trans 'Additional Information' %}:</label>
-                <input type="text" name="additional_info" value="${escapeHtml(appointment.additional_info)}" ${disabledAttribute} placeholder="{% trans 'Client wants this and that' %}" id="additional_info">
-                <div class="flex-container-appt">
-                <label for="startTime">{% trans 'Start time' %}:</label>
-                <input type="time" name="startTime" value="${startTimeValue}" ${disabledAttribute}>
-                </div>
+                ${djapptField("{% trans 'Service Name' %}", servicesDropdown.outerHTML, 'serviceSelect', true)}
+                ${djapptField("{% trans 'Client Name' %}", `<input type="text" class="form-control" name="clientName" value="${escapeHtml(appointment.client_name)}" ${disabledAttribute} id="clientName" placeholder="John Doe">`, 'clientName', true)}
+                ${djapptField("{% trans 'Client Email' %}", `<input type="email" class="form-control" name="clientEmail" value="${escapeHtml(appointment.client_email)}" ${disabledAttribute} id="clientEmail" placeholder="john.doe@example.com">
+                    <span id="emailError" class="invalid-feedback" style="display:none;"></span>`, 'clientEmail')}
+                ${djapptField("{% trans 'Phone Number' %}", `<input type="tel" class="form-control" name="clientPhone" value="${escapeHtml(appointment.client_phone)}" ${disabledAttribute} id="clientPhone" placeholder="+12392350799">`, 'clientPhone')}
+                ${djapptField("{% trans 'Client address' %}", `<input type="text" class="form-control" name="clientAddress" value="${escapeHtml(appointment.client_address)}" ${disabledAttribute} id="clientAddress" placeholder="Naples, Florida">`, 'clientAddress', true)}
+                ${djapptField("{% trans 'Additional Information' %}", `<input type="text" class="form-control" name="additional_info" value="${escapeHtml(appointment.additional_info)}" ${disabledAttribute} placeholder="{% trans 'Client wants this and that' %}" id="additional_info">`, 'additional_info', true)}
+                ${djapptField("{% trans 'Start time' %}", `<input type="time" class="form-control" name="startTime" id="startTime" value="${startTimeValue}" ${disabledAttribute}>`, 'startTime')}
             `;
+        }
+
+        function djapptReminderField(appointment, disabledAttribute) {
+            return `<div class="djappt-field djappt-field-full form-check">
+                        <input type="checkbox" class="form-check-input" name="want_reminder" id="want_reminder" value="true" ${appointment.want_reminder ? 'checked' : ''} ${disabledAttribute}>
+                        <label class="form-check-label" for="want_reminder">{% trans 'Wants reminder' %}</label>
+                    </div>`;
         }
 
         function generateModalContent(appointment, servicesDropdown, isEditMode, staffDropdown) {
             const startTimeValue = moment(appointment.start_time).format('HH:mm:ss');
             const commonInputs = createCommonInputFields(appointment, servicesDropdown, isEditMode, startTimeValue, staffDropdown);
+            const disabledAttribute = !isEditMode ? 'disabled' : '';
             return `
+                <div class="djappt-form djappt-modal-fields">
                 ${commonInputs}
-                <div class="flex-container-appt">
-                <label for="endTime">{% trans 'End time' %}:</label>
-                <input type="time" name="endTime" value="${moment(appointment.end_time).format('HH:mm:ss')}" ${!isEditMode ? 'disabled' : ''}>
+                ${djapptField("{% trans 'End time' %}", `<input type="time" class="form-control" name="endTime" id="endTime" value="${moment(appointment.end_time).format('HH:mm:ss')}" ${disabledAttribute}>`, 'endTime')}
+                ${djapptReminderField(appointment, disabledAttribute)}
                 </div>
             `;
         }
@@ -404,10 +172,21 @@
             const commonInputs = createCommonInputFields(appointment, servicesDropdown, true, defaultStartTime, staffDropdown);
 
             return `
+                <div class="djappt-form djappt-modal-fields">
                 ${commonInputs}
-                <label for="date" style="display: none"></label>
+                ${djapptReminderField(appointment, '')}
+                </div>
                 <input type="hidden" name="date" value="${formattedDate}">
             `;
+        }
+
+        // "New Appointment" button: same rule as the right-click menu (only staff members add appointments).
+        function djapptNewAppointment() {
+            if (!AppState.isUserStaffAdmin) {
+                showErrorModal(notStaffMemberTxt);
+                return;
+            }
+            createNewAppointment(new Date());
         }
     </script>
 {% endblock %}

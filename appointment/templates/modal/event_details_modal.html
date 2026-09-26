@@ -1,38 +1,38 @@
 {% load i18n %}
-<!-- Event Details Modal -->
-<div class="modal fade" id="eventDetailsModal" tabindex="-1" role="dialog" aria-labelledby="eventModalLabel"
-     aria-hidden="true">
-    <div class="modal-dialog" role="document">
+<!-- Event Details Modal: view, edit and create an appointment (staff_index.js fills the body and shows the buttons) -->
+<div class="modal fade djappt-event-modal" id="eventDetailsModal" tabindex="-1" role="dialog"
+     aria-labelledby="eventModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="eventModalLabel">{% trans 'Appointment Details' %}</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"
                         onclick="closeModal()"></button>
             </div>
             <div class="modal-body" id="eventModalBody">
                 <!-- Event details will be populated here -->
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-success" id="eventGoBtn"
-                        onclick="goToEvent()">{% trans 'Go' %}</button>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
-                        onclick="closeModal()">{% trans 'Close' %}
-                </button>
-                <button type="button" class="btn btn-secondary" id="eventCancelBtn" style="display: none;"
-                        onclick="cancelEdit()">{% trans 'Cancel' %}
-                </button>
-                <button type="button" class="btn btn-primary" id="eventEditBtn"
-                        onclick="toggleEditMode()">{% trans 'Edit' %}</button>
-                <button type="button" class="btn btn-primary" id="eventSubmitBtn" style="display: none;"
-                        onclick="submitChanges()">{% trans 'Submit' %}
-                </button>
-                <button type="button" class="btn btn-danger" id="eventDeleteBtn"
+                <button type="button" class="btn djappt-btn djappt-btn-ghost djappt-text-danger" id="eventDeleteBtn"
                         onclick="deleteAppointment()" style="display: none;">
                     {% trans 'Delete' %}
                 </button>
-
+                <span class="djappt-footer-spacer"></span>
+                {# staff_index.js finds this button by .btn-secondary[data-bs-dismiss='modal'] #}
+                <button type="button" class="btn djappt-btn djappt-btn-ghost btn-secondary" data-bs-dismiss="modal"
+                        onclick="closeModal()">{% trans 'Close' %}
+                </button>
+                <button type="button" class="btn djappt-btn djappt-btn-ghost" id="eventCancelBtn" style="display: none;"
+                        onclick="cancelEdit()">{% trans 'Cancel' %}
+                </button>
+                <button type="button" class="btn djappt-btn djappt-btn-outline" id="eventEditBtn"
+                        onclick="toggleEditMode()">{% trans 'Edit' %}</button>
+                <button type="button" class="btn djappt-btn djappt-btn-primary" id="eventGoBtn"
+                        onclick="goToEvent()">{% trans 'Go' %}</button>
+                <button type="button" class="btn djappt-btn djappt-btn-primary" id="eventSubmitBtn" style="display: none;"
+                        onclick="submitChanges()">{% trans 'Submit' %}
+                </button>
             </div>
-
         </div>
     </div>
 </div>

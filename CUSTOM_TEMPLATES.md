@@ -236,6 +236,13 @@ picker, or the widget will fall back to a format the server may not parse back.
 > `delete_working_hours`, `remove_staff_member`) and the staff-me toggle (`btn_staff_me_link`) only accept **POST**;
 > a GET returns `405`. Use a small `<form method="post">` with `{% csrf_token %}`, or the default
 > `modal/confirm_modal.html` with `js/modal/show_modal.js`, which submits one for you.
+>
+> `staff_index.html` builds the appointment modal's form in three functions the page defines,
+> `createCommonInputFields`, `generateModalContent` and `prepareCreateAppointmentModalContent`, and
+> `js/app_admin/staff_index.js` calls them. A replacement page must define them too, and keep the inputs' `name`s,
+> the `serviceSelect` / `staffSelect` dropdown ids and the element ids the script uses (`calendar`,
+> `event-list-container`, `customContextMenu`, `newAppointmentOption`, and the modal's `eventModalLabel`,
+> `eventModalBody` and buttons). Copying the packaged template and changing its markup is the easiest start.
 
 ### Email Templates (Emails Directory)
 
