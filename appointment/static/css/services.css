@@ -1,0 +1,803 @@
+/*
+ * django-appointment: service pages (administration/service_list.html and manage_service.html).
+ * Scoped to the .djappt wrapper; colours come from the --djappt-* variables in djappt.css.
+ * djappt.css is linked after this file (by the layout), so a rule changing one of its components repeats the class.
+ *
+ * Each service carries its calendar colour in --djappt-service-color (set inline): it paints the cover when the
+ * service has no image, and the strip under the image when it has one.
+ */
+
+:where(.djappt) .djappt-services .messages .alert {
+    margin-bottom: 1.25rem;
+}
+
+/* Square button holding an icon only (its name is in aria-label and title). */
+:where(.djappt) .djappt-btn.djappt-icon-btn {
+    --bs-btn-padding-x: .55rem;
+    --bs-btn-padding-y: .45rem;
+    line-height: 1;
+}
+
+/* ---- Service tile: cover, name, description, duration and price ---- */
+
+:where(.djappt) .djappt-service-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
+    gap: 1.25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+:where(.djappt) .djappt-service-tile {
+    --djappt-service-color: var(--djappt-accent);
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid var(--djappt-line);
+    border-radius: var(--djappt-radius);
+    background-color: var(--djappt-surface);
+    box-shadow: var(--djappt-shadow);
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+
+:where(.djappt) .djappt-service-grid > .djappt-service-tile:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 1px 2px rgba(12, 27, 51, .05), 0 16px 32px -14px rgba(12, 27, 51, .28);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    :where(.djappt) .djappt-service-tile {
+        transition: none;
+    }
+
+    :where(.djappt) .djappt-service-grid > .djappt-service-tile:hover {
+        transform: none;
+    }
+}
+
+/* No image: a soft tint of the service colour, with the first letter of the name in the colour itself. */
+:where(.djappt) .djappt-service-cover {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 16 / 7;
+    overflow: hidden;
+    background-color: color-mix(in srgb, var(--djappt-service-color) 14%, var(--djappt-surface));
+    text-decoration: none;
+}
+
+/* Image: the picture, with the service colour as a strip under it. */
+:where(.djappt) .djappt-service-cover--image {
+    background: color-mix(in srgb, var(--djappt-service-color) 20%, var(--djappt-surface));
+    border-bottom: 4px solid var(--djappt-service-color);
+}
+
+:where(.djappt) .djappt-service-cover img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+:where(.djappt) .djappt-service-initial {
+    font-size: 3rem;
+    font-weight: 800;
+    line-height: 1;
+    color: color-mix(in srgb, var(--djappt-service-color) 60%, var(--djappt-ink));
+    user-select: none;
+}
+
+:where(.djappt) .djappt-service-body {
+    flex: 1 1 auto;
+    padding: 1rem 1.1rem .75rem;
+}
+
+:where(.djappt) .djappt-service-title {
+    margin: 0 0 .35rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--djappt-ink);
+}
+
+:where(.djappt) .djappt-service-title a {
+    color: inherit;
+    text-decoration: none;
+}
+
+:where(.djappt) .djappt-service-title a:hover,
+:where(.djappt) .djappt-service-title a:focus-visible {
+    color: var(--djappt-accent);
+}
+
+:where(.djappt) .djappt-service-desc {
+    display: -webkit-box;
+    margin: 0 0 .75rem;
+    overflow: hidden;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    font-size: .875rem;
+    color: var(--djappt-muted);
+}
+
+:where(.djappt) .djappt-service-facts {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .4rem 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: .875rem;
+    color: var(--djappt-ink-soft);
+}
+
+:where(.djappt) .djappt-service-facts li {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+}
+
+:where(.djappt) .djappt-service-price {
+    padding: .1rem .55rem;
+    border-radius: 999px;
+    background-color: color-mix(in srgb, var(--djappt-service-color) 14%, var(--djappt-surface));
+    font-weight: 700;
+    color: var(--djappt-ink);
+}
+
+:where(.djappt) .djappt-service-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+    min-height: 3.1rem;
+    padding: .45rem .75rem .45rem 1.1rem;
+    border-top: 1px solid var(--djappt-line);
+}
+
+:where(.djappt) .djappt-service-more {
+    display: inline-flex;
+    align-items: center;
+    gap: .25rem;
+    font-size: .875rem;
+    font-weight: 600;
+    color: var(--djappt-accent);
+    text-decoration: none;
+}
+
+:where(.djappt) .djappt-service-more:hover {
+    text-decoration: underline;
+}
+
+/* On a tile, "You offer this service" sits over the top left of the cover. */
+:where(.djappt) .djappt-service-tile {
+    position: relative;
+}
+
+:where(.djappt) .djappt-service-offered--cover {
+    position: absolute;
+    top: .6rem;
+    left: .6rem;
+    font-size: .75rem;
+    box-shadow: 0 2px 8px rgba(12, 27, 51, .18);
+}
+
+:where(.djappt) .djappt-service-tools {
+    display: inline-flex;
+    gap: .25rem;
+}
+
+/* Phones, as cards: one service per row, with a small square cover on the left, so the page stays short. */
+@container (max-width: 519.98px) {
+    :where(.djappt) .djappt-service-grid:not(.djappt-service-grid--list) {
+        gap: .75rem;
+    }
+
+    :where(.djappt) .djappt-service-grid:not(.djappt-service-grid--list) > .djappt-service-tile:not(.djappt-service-tile--add) {
+        display: grid;
+        grid-template-columns: 5.5rem minmax(0, 1fr);
+    }
+
+    :where(.djappt) .djappt-service-grid:not(.djappt-service-grid--list) .djappt-service-cover {
+        grid-row: 1 / span 2;
+        aspect-ratio: auto;
+        height: 100%;
+    }
+
+    :where(.djappt) .djappt-service-grid:not(.djappt-service-grid--list) .djappt-service-cover--image {
+        border-bottom: 0;
+        border-right: 4px solid var(--djappt-service-color);
+    }
+
+    :where(.djappt) .djappt-service-grid:not(.djappt-service-grid--list) .djappt-service-initial {
+        font-size: 2rem;
+    }
+
+    /* Only the tick fits on the small cover; the text stays for screen readers. */
+    :where(.djappt) .djappt-service-grid:not(.djappt-service-grid--list) .djappt-service-offered--cover {
+        top: .4rem;
+        left: .4rem;
+        padding: .3rem;
+    }
+
+    :where(.djappt) .djappt-service-grid:not(.djappt-service-grid--list) .djappt-service-offered-text {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+    }
+
+    :where(.djappt) .djappt-service-grid:not(.djappt-service-grid--list) .djappt-service-body {
+        padding: .8rem .9rem .5rem;
+    }
+
+    :where(.djappt) .djappt-service-grid:not(.djappt-service-grid--list) .djappt-service-desc {
+        margin-bottom: .5rem;
+        -webkit-line-clamp: 1;
+    }
+
+    :where(.djappt) .djappt-service-grid:not(.djappt-service-grid--list) .djappt-service-foot {
+        min-height: 0;
+        padding: .3rem .5rem .3rem .9rem;
+    }
+
+    :where(.djappt) .djappt-service-grid:not(.djappt-service-grid--list) .djappt-service-tile--add a {
+        flex-direction: row;
+        min-height: 4.5rem;
+    }
+
+    :where(.djappt) .djappt-service-grid:not(.djappt-service-grid--list) .djappt-service-add-icon {
+        width: 2.25rem;
+        height: 2.25rem;
+        font-size: 1.3rem;
+    }
+}
+
+/* "Add Service" tile at the end of the list (superusers). */
+:where(.djappt) .djappt-service-tile.djappt-service-tile--add {
+    border: 2px dashed var(--djappt-line);
+    background-color: transparent;
+    box-shadow: none;
+}
+
+:where(.djappt) .djappt-service-tile--add a {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: .6rem;
+    min-height: 12rem;
+    font-weight: 600;
+    color: var(--djappt-muted);
+    text-decoration: none;
+}
+
+:where(.djappt) .djappt-service-grid > .djappt-service-tile--add:hover {
+    border-color: var(--djappt-accent);
+    box-shadow: none;
+}
+
+:where(.djappt) .djappt-service-tile--add:hover a {
+    color: var(--djappt-accent);
+}
+
+:where(.djappt) .djappt-service-add-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 50%;
+    background-color: var(--djappt-accent-soft);
+    font-size: 1.6rem;
+    font-weight: 400;
+    line-height: 1;
+    color: var(--djappt-accent);
+}
+
+/* ---- Cards or list: the switch in the page head, and the list layout ---- */
+
+:where(.djappt) .djappt-page-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .75rem;
+}
+
+:where(.djappt) .djappt-view-switch:not([hidden]) {
+    display: inline-flex;
+    padding: 3px;
+    border: 1px solid var(--djappt-line);
+    border-radius: calc(var(--djappt-radius) * .75);
+    background-color: var(--djappt-surface);
+}
+
+:where(.djappt) .djappt-view-switch-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.1rem;
+    height: 2rem;
+    padding: 0;
+    border: 0;
+    border-radius: calc(var(--djappt-radius) * .5);
+    background: transparent;
+    color: var(--djappt-muted);
+    cursor: pointer;
+}
+
+:where(.djappt) .djappt-view-switch-btn:hover {
+    color: var(--djappt-ink);
+}
+
+:where(.djappt) .djappt-view-switch-btn:focus-visible {
+    outline: 2px solid var(--djappt-accent);
+    outline-offset: 1px;
+}
+
+:where(.djappt) .djappt-view-switch-btn[aria-pressed="true"] {
+    background-color: var(--djappt-accent-soft);
+    color: var(--djappt-accent);
+}
+
+/* List: one card holding a row per service (a small cover, name and description, duration and price, actions). */
+:where(.djappt) .djappt-service-grid.djappt-service-grid--list {
+    display: block;
+    overflow: hidden;
+    border: 1px solid var(--djappt-line);
+    border-radius: var(--djappt-radius);
+    background-color: var(--djappt-surface);
+    box-shadow: var(--djappt-shadow);
+}
+
+:where(.djappt) .djappt-service-grid--list > .djappt-service-tile {
+    display: grid;
+    grid-template-columns: 3rem minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 1rem;
+    padding: .75rem 1rem;
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+:where(.djappt) .djappt-service-grid--list > .djappt-service-tile + .djappt-service-tile {
+    border-top: 1px solid var(--djappt-line);
+}
+
+:where(.djappt) .djappt-service-grid--list > .djappt-service-tile:hover {
+    transform: none;
+    box-shadow: none;
+    background-color: var(--djappt-accent-soft);
+}
+
+:where(.djappt) .djappt-service-grid--list .djappt-service-cover {
+    width: 3rem;
+    height: 3rem;
+    aspect-ratio: auto;
+    border-radius: calc(var(--djappt-radius) * .6);
+}
+
+:where(.djappt) .djappt-service-grid--list .djappt-service-cover--image {
+    border-bottom: 0;
+    box-shadow: inset 0 -3px 0 var(--djappt-service-color);
+}
+
+:where(.djappt) .djappt-service-grid--list .djappt-service-initial {
+    font-size: 1.35rem;
+}
+
+/* A green tick on the bottom right corner of the small cover; the text stays for screen readers. */
+:where(.djappt) .djappt-service-grid--list .djappt-service-offered--cover {
+    top: calc(50% + .55rem);
+    left: 3.35rem;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    padding: 0;
+    border: 2px solid var(--djappt-surface);
+    background-color: var(--djappt-success);
+    font-size: .65rem;
+    color: #fff;
+    box-shadow: none;
+}
+
+:where(.djappt) .djappt-service-grid--list .djappt-service-offered-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+:where(.djappt) .djappt-service-grid--list .djappt-service-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: center;
+    gap: .15rem 1.5rem;
+    padding: 0;
+}
+
+:where(.djappt) .djappt-service-grid--list .djappt-service-title {
+    margin: 0;
+    font-size: 1rem;
+}
+
+:where(.djappt) .djappt-service-grid--list .djappt-service-desc {
+    margin: 0;
+    -webkit-line-clamp: 1;
+}
+
+:where(.djappt) .djappt-service-grid--list .djappt-service-foot {
+    min-height: 0;
+    gap: .75rem;
+    padding: 0;
+    border-top: 0;
+}
+
+/* Wide enough: duration and price in their own column, lined up from row to row. */
+@container (min-width: 620px) {
+    :where(.djappt) .djappt-service-grid--list .djappt-service-body {
+        grid-template-columns: minmax(0, 1fr) 13rem;
+    }
+
+    :where(.djappt) .djappt-service-grid--list .djappt-service-facts {
+        grid-column: 2;
+        grid-row: 1 / span 2;
+    }
+}
+
+/* Narrow: the facts go under the description, and "View" goes (the name is the link). */
+@container (max-width: 619.98px) {
+    :where(.djappt) .djappt-service-grid--list .djappt-service-facts {
+        margin-top: .3rem;
+    }
+
+    :where(.djappt) .djappt-service-grid--list .djappt-service-more {
+        display: none;
+    }
+}
+
+:where(.djappt) .djappt-service-grid--list > .djappt-service-tile--add {
+    display: block;
+    padding: 0;
+    background-color: transparent;
+}
+
+:where(.djappt) .djappt-service-grid--list > .djappt-service-tile--add:hover {
+    border-color: var(--djappt-line);
+}
+
+:where(.djappt) .djappt-service-grid--list .djappt-service-tile--add a {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 1rem;
+    min-height: 0;
+    padding: .75rem 1rem;
+}
+
+:where(.djappt) .djappt-service-grid--list .djappt-service-add-icon {
+    width: 3rem;
+    height: 3rem;
+    border-radius: calc(var(--djappt-radius) * .6);
+    font-size: 1.4rem;
+}
+
+/* ---- View a service: the picture (or the colour) next to the details ---- */
+
+:where(.djappt) .djappt-shell.djappt-service-page {
+    max-width: 1080px;
+}
+
+:where(.djappt) .djappt-service-detail {
+    display: grid;
+    gap: 1.5rem;
+    align-items: start;
+}
+
+@container (min-width: 760px) {
+    :where(.djappt) .djappt-service-detail {
+        grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+        gap: 2.25rem;
+    }
+
+    :where(.djappt) .djappt-service-media {
+        position: sticky;
+        top: 1rem;
+    }
+}
+
+/* The whole picture, in its own proportions up to a square; without one, a square in the service colour. */
+:where(.djappt) .djappt-service-media .djappt-service-cover {
+    aspect-ratio: 1 / 1;
+    border-radius: var(--djappt-radius);
+    box-shadow: var(--djappt-shadow);
+}
+
+:where(.djappt) .djappt-service-media .djappt-service-cover--image {
+    aspect-ratio: auto;
+    border-bottom: 0;
+    background: var(--djappt-surface);
+    outline: 1px solid var(--djappt-line);
+    outline-offset: -1px;
+}
+
+:where(.djappt) .djappt-service-media .djappt-service-cover--image img {
+    position: static;
+    display: block;
+    height: auto;
+    max-height: 70vh;
+    object-fit: contain;
+}
+
+:where(.djappt) .djappt-service-media .djappt-service-cover--image::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0;
+    height: 5px;
+    background-color: var(--djappt-service-color);
+}
+
+:where(.djappt) .djappt-service-media .djappt-service-initial {
+    font-size: clamp(4rem, 14cqi, 7rem);
+}
+
+@container (max-width: 759.98px) {
+    :where(.djappt) .djappt-service-media .djappt-service-cover {
+        aspect-ratio: 16 / 7;
+    }
+
+    :where(.djappt) .djappt-service-media .djappt-service-cover--image {
+        aspect-ratio: auto;
+    }
+}
+
+:where(.djappt) .djappt-service-info-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: .75rem 1rem;
+}
+
+:where(.djappt) .djappt-service-info-head .djappt-title {
+    margin-bottom: 0;
+}
+
+:where(.djappt) .djappt-service-actions {
+    display: flex;
+    gap: .5rem;
+}
+
+:where(.djappt) .djappt-service-offered {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    padding: .1rem .6rem;
+    border-radius: 999px;
+    background-color: var(--djappt-success-soft);
+    font-weight: 600;
+    color: var(--djappt-success);
+}
+
+:where(.djappt) .djappt-service-info > .djappt-service-offered {
+    margin: .75rem 0 0;
+    font-size: .875rem;
+}
+
+:where(.djappt) .djappt-service-about {
+    margin: 1rem 0 0;
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: var(--djappt-ink-soft);
+}
+
+/* Key facts as small blocks. */
+:where(.djappt) .djappt-service-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .75rem;
+    margin: 1.5rem 0 0;
+}
+
+:where(.djappt) .djappt-service-stats > div {
+    padding: .8rem 1rem;
+    border: 1px solid var(--djappt-line);
+    border-radius: var(--djappt-radius-sm);
+    background-color: var(--djappt-surface);
+}
+
+:where(.djappt) .djappt-service-stats dt {
+    margin-bottom: .2rem;
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--djappt-muted);
+}
+
+:where(.djappt) .djappt-service-stats dd {
+    display: flex;
+    align-items: center;
+    gap: .45rem;
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--djappt-ink);
+}
+
+:where(.djappt) .djappt-service-stats .djappt-swatch {
+    display: inline-block;
+    flex-shrink: 0;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    background-color: var(--djappt-service-color);
+    box-shadow: inset 0 0 0 1px rgba(12, 27, 51, .15);
+}
+
+:where(.djappt) .djappt-service-staff {
+    margin-top: 2rem;
+}
+
+:where(.djappt) .djappt-people {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+:where(.djappt) .djappt-people li {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .3rem .8rem .3rem .3rem;
+    border: 1px solid var(--djappt-line);
+    border-radius: 999px;
+    font-weight: 500;
+    color: var(--djappt-ink);
+}
+
+:where(.djappt) .djappt-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.9rem;
+    height: 1.9rem;
+    border-radius: 50%;
+    background-color: var(--djappt-accent-soft);
+    font-size: .8rem;
+    font-weight: 700;
+    color: var(--djappt-accent);
+}
+
+/* ---- Add and edit: the form, and a live preview of the tile next to it ---- */
+
+:where(.djappt) .djappt-service-editor {
+    display: grid;
+    gap: 1.25rem;
+    align-items: start;
+}
+
+/* The preview only helps next to the form; below it, it would be out of sight while typing. */
+:where(.djappt) .djappt-service-preview {
+    display: none;
+}
+
+@container (min-width: 860px) {
+    :where(.djappt) .djappt-service-editor {
+        grid-template-columns: minmax(0, 1fr) 290px;
+    }
+
+    :where(.djappt) .djappt-service-preview {
+        display: block;
+        position: sticky;
+        top: 1rem;
+    }
+}
+
+:where(.djappt) .djappt-service-preview-label {
+    margin: 0 0 .5rem;
+    font-size: .75rem;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--djappt-muted);
+}
+
+:where(.djappt) .djappt-service-preview .djappt-service-title:empty::before {
+    content: attr(data-placeholder);
+    color: var(--djappt-muted);
+}
+
+:where(.djappt) .djappt-service-form {
+    container-type: inline-size;
+}
+
+:where(.djappt) .djappt-form-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.1rem 1.25rem;
+}
+
+/* Name, description and image take the whole row; price sits next to the down payment, the currency next to the
+   duration. Fields added by a custom form come last. */
+:where(.djappt) .djappt-form-grid > .djappt-field {
+    order: 20;
+    min-width: 0;
+}
+
+:where(.djappt) .djappt-form-grid > .djappt-field--name { order: 1; }
+:where(.djappt) .djappt-form-grid > .djappt-field--description { order: 2; }
+:where(.djappt) .djappt-form-grid > .djappt-field--duration { order: 3; }
+:where(.djappt) .djappt-form-grid > .djappt-field--currency { order: 4; }
+:where(.djappt) .djappt-form-grid > .djappt-field--price { order: 5; }
+:where(.djappt) .djappt-form-grid > .djappt-field--down_payment { order: 6; }
+:where(.djappt) .djappt-form-grid > .djappt-field--background_color { order: 7; }
+:where(.djappt) .djappt-form-grid > .djappt-field--image { order: 8; }
+
+@container (min-width: 520px) {
+    :where(.djappt) .djappt-form-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    :where(.djappt) .djappt-form-grid > .djappt-field--name,
+    :where(.djappt) .djappt-form-grid > .djappt-field--description,
+    :where(.djappt) .djappt-form-grid > .djappt-field--image {
+        grid-column: 1 / -1;
+    }
+}
+
+/* Django renders the description with rows="10"; three or four lines are enough, and it can be resized. */
+:where(.djappt) .djappt-service-form textarea.form-control {
+    height: 6.5rem;
+    min-height: 4rem;
+    resize: vertical;
+}
+
+:where(.djappt) .djappt-service-form .form-control-color {
+    width: 4rem;
+    height: 2.6rem;
+    padding: .3rem;
+}
+
+/* The image field (Django's "Currently / Clear / Change" widget). */
+:where(.djappt) .djappt-field--image {
+    font-size: .9rem;
+    color: var(--djappt-ink-soft);
+}
+
+:where(.djappt) .djappt-field--image a {
+    color: var(--djappt-accent);
+    word-break: break-all;
+}
+
+:where(.djappt) .djappt-field--image input[type="checkbox"] {
+    margin: 0 .3rem 0 .5rem;
+}
+
+:where(.djappt) .djappt-field--image input[type="file"] {
+    margin-top: .35rem;
+}
+
+:where(.djappt) .djappt-form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: .75rem;
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--djappt-line);
+}

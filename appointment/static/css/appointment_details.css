@@ -4,23 +4,7 @@
  * djappt.css is linked after this file (by the layout), so a rule changing one of its components repeats the class.
  */
 
-/* ---- Header ---- */
-
-:where(.djappt) .djappt-back {
-    display: inline-flex;
-    align-items: center;
-    gap: .35rem;
-    margin-bottom: 1rem;
-    font-size: .875rem;
-    font-weight: 600;
-    color: var(--djappt-muted);
-    text-decoration: none;
-}
-
-:where(.djappt) .djappt-back:hover,
-:where(.djappt) .djappt-back:focus-visible {
-    color: var(--djappt-accent);
-}
+/* ---- Header (the back link is .djappt-back, in djappt.css) ---- */
 
 :where(.djappt) .djappt-appt-details .messages .alert {
     margin-bottom: 1.25rem;
@@ -103,18 +87,6 @@
 
 :where(.djappt) .djappt-appt-details-group dd a:hover {
     text-decoration: underline;
-}
-
-/* Free text: the label above, the text below, left-aligned. */
-:where(.djappt) .djappt-summary > .djappt-summary-block {
-    flex-direction: column;
-    align-items: stretch;
-    gap: .35rem;
-}
-
-:where(.djappt) .djappt-summary > .djappt-summary-block dd {
-    font-weight: 400;
-    text-align: left;
 }
 
 /* ---- Payment card ---- */

@@ -2264,3 +2264,46 @@ msgstr "No se requiere pago"
 #: appointment/templates/administration/display_appointment.html
 msgid "Payment"
 msgstr "Pago"
+
+#: appointment/templates/administration/manage_service.html
+msgid "Back to the services"
+msgstr "Volver a los servicios"
+
+#: appointment/templates/administration/manage_service.html
+msgid "Calendar colour"
+msgstr "Color en el calendario"
+
+#: appointment/templates/administration/manage_service.html
+msgid "No staff member offers this service yet."
+msgstr "Ningún miembro del personal ofrece este servicio todavía."
+
+#: appointment/templates/administration/manage_service.html
+msgid "Not allowed"
+msgstr "No permitido"
+
+#: appointment/templates/administration/manage_service.html
+msgid "Preview"
+msgstr "Vista previa"
+
+#: appointment/templates/administration/manage_service.html
+msgid "Up to %(counter)s time"
+msgid_plural "Up to %(counter)s times"
+msgstr[0] "Hasta %(counter)s vez"
+msgstr[1] "Hasta %(counter)s veces"
+
+#: appointment/templates/administration/service_list.html
+msgid "View"
+msgstr "Ver"
+
+#: appointment/templates/administration/manage_service.html
+#: appointment/templates/administration/service_list.html
+msgid "You offer this service"
+msgstr "Ofreces este servicio"
+
+#: appointment/templates/administration/service_list.html
+msgid "Cards"
+msgstr "Tarjetas"
+
+#: appointment/templates/administration/service_list.html
+msgid "Display"
+msgstr "Vista"
