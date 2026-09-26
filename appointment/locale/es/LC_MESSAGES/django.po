@@ -2236,3 +2236,19 @@ msgstr "Su cita"
 #: appointment/templates/appointment/appointments.html
 msgid "Contact information"
 msgstr "Información de contacto"
+
+#: appointment/templates/administration/staff_index.html
+msgid "Click an appointment to see or edit it."
+msgstr "Haga clic en una cita para verla o modificarla."
+
+#: appointment/templates/administration/staff_index.html
+msgid "Drag it to another day to move it."
+msgstr "Arrástrela a otro día para moverla."
+
+#: appointment/templates/administration/staff_index.html
+msgid "Right-click a day to add one."
+msgstr "Haga clic derecho en un día para añadir una."
+
+#: appointment/templates/administration/staff_index.html
+msgid "Enter a valid email address."
+msgstr "Introduzca una dirección de correo electrónico válida."

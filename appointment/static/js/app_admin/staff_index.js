@@ -36,8 +36,23 @@ window.addEventListener('resize', function () {
 
 document.addEventListener("DOMContentLoaded", function () {
     // The day cells need the staff admin flag when they are mounted, so render the calendar once it is known
-    setUserStaffAdminFlag().then(initializeCalendar);
+    setUserStaffAdminFlag().then(initializeCalendar).then(observeCalendarContainer);
 });
+
+// The host page can resize the calendar without resizing the window (a sidebar that opens or closes, for example)
+function observeCalendarContainer() {
+    const calendarEl = document.getElementById('calendar');
+    if (!calendarEl || typeof ResizeObserver === 'undefined') {
+        return;
+    }
+    let lastWidth = calendarEl.offsetWidth;
+    new ResizeObserver(() => {
+        if (AppState.calendar && calendarEl.offsetWidth !== lastWidth) {
+            lastWidth = calendarEl.offsetWidth;
+            AppState.calendar.updateSize();
+        }
+    }).observe(calendarEl);
+}
 
 const AppStateProxy = new Proxy(AppState, {
     set(target, property, value) {
@@ -111,6 +126,18 @@ function handleResize() {
     }
 }
 
+// The modal title says what it is for: "New Appointment" when creating, its template title otherwise
+function setEventModalTitle(title) {
+    const label = document.getElementById('eventModalLabel');
+    if (!label) {
+        return;
+    }
+    if (label.dataset.defaultTitle === undefined) {
+        label.dataset.defaultTitle = label.textContent;
+    }
+    label.textContent = title || label.dataset.defaultTitle;
+}
+
 function getEventDetailsModal() {
     return bootstrap.Modal.getOrCreateInstance(document.getElementById('eventDetailsModal'));
 }
@@ -161,6 +188,8 @@ function getCalendarConfig(events) {
         navLinks: true,
         editable: true,
         dayMaxEvents: true,
+        // Phone day cells are too narrow for "+2 more": show "+2"
+        moreLinkContent: (args) => mobileCheck() ? `+${args.num}` : args.text,
         height: getCalendarHeight(),
         aspectRatio: 1.0,
         themeSystem: 'bootstrap5',
@@ -241,23 +270,38 @@ function escapeHtml(value) {
     return div.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
-function displayEventList(events, date) {
-    let eventListHtml = '<h4 style="font-size: 14px; font-weight: bold;">' + eventsOnTxt + ' ' + moment(date).format('MMMM Do, YYYY') + '</h4>';
-    eventListHtml += '<hr>';
-
-    events.forEach(function (event) {
-        eventListHtml += `<div class="event-list-item-appt" data-event-id="${escapeHtml(event.id)}">${escapeHtml(event.service_name)}</div>`;
-        eventListHtml += `<div><i class="fa fa-clock-o" aria-hidden="true"></i> ${moment(event.start_time).format('h:mm a')} - ${moment(event.end_time).format('h:mm a')}</div>`;
-        eventListHtml += '<hr>';
+function formatDayListDate(date) {
+    return new Date(date).toLocaleDateString(locale || undefined, {
+        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
     });
+}
 
-    const date_obj = new Date(date.toISOString())
+function formatDayListTime(dateTime) {
+    return new Date(dateTime).toLocaleTimeString(locale || undefined, {hour: 'numeric', minute: '2-digit'});
+}
+
+function displayEventList(events, date) {
+    let eventListHtml = '<div class="djappt-day-list">';
+    eventListHtml += `<h2 class="djappt-day-list-title">${escapeHtml(eventsOnTxt)} ${escapeHtml(formatDayListDate(date))}</h2>`;
 
     if (events.length === 0) {
-        eventListHtml += `<div class="djangoAppt_no-events">` + noEventTxt + `</div>`;
+        eventListHtml += `<p class="djangoAppt_no-events">` + noEventTxt + `</p>`;
+    } else {
+        eventListHtml += '<ul class="djappt-day-list-items">';
+        events.forEach(function (event) {
+            const time = `${formatDayListTime(event.start_time)} – ${formatDayListTime(event.end_time)}`;
+            const client = event.client_name ? ` · ${escapeHtml(event.client_name)}` : '';
+            eventListHtml += `<li class="event-list-item-appt" data-event-id="${escapeHtml(event.id)}" tabindex="0" role="button">
+                <span class="djappt-day-list-dot" style="background-color: ${escapeHtml(event.background_color)}"></span>
+                <span class="djappt-day-list-service">${escapeHtml(event.service_name)}</span>
+                <span class="djappt-day-list-meta">${time}${client}</span>
+            </li>`;
+        });
+        eventListHtml += '</ul>';
     }
 
-    eventListHtml += `<button class="btn btn-primary djangoAppt_btn-new-event" onclick="createNewAppointment('${date_obj}')">` + newEventTxt + `</button></div>`;
+    const date_obj = new Date(date.toISOString())
+    eventListHtml += `<button type="button" class="btn djappt-btn djappt-btn-primary djangoAppt_btn-new-event" onclick="createNewAppointment('${date_obj}')">` + newEventTxt + `</button></div>`;
 
     const eventListContainer = document.getElementById('event-list-container');
     eventListContainer.innerHTML = eventListHtml;
@@ -269,6 +313,12 @@ function displayEventList(events, date) {
             const eventId = this.getAttribute('data-event-id');
             AppState.eventIdSelected = eventId;
             showEventModal(eventId, false, false).then(r => r);
+        });
+        item.addEventListener('keydown', function (keyEvent) {
+            if (keyEvent.key === 'Enter' || keyEvent.key === ' ') {
+                keyEvent.preventDefault();
+                this.click();
+            }
         });
     }
 }
@@ -297,13 +347,21 @@ function getHeaderToolbarConfig() {
     }
 }
 
+// The calendar card ends at 95% of the window height, so the whole month shows without scrolling and the list of the
+// clicked day starts in the 5% left below it. It never gets shorter than a readable month.
 function getCalendarHeight() {
-    if (window.innerWidth <= Constants.MOBILE_WIDTH_SMALL) return '400px';
-    if (window.innerWidth <= Constants.MOBILE_WIDTH) return '450px';
-    if (window.innerWidth <= Constants.SMALL_TABLET_WIDTH) return '600px';
-    if (window.innerWidth <= Constants.TABLET_WIDTH) return '650px';
-    if (window.innerWidth <= Constants.MEDIUM_WIDTH) return '767px';
-    return '850px';
+    let minHeight = 560;
+    if (window.innerWidth <= Constants.MOBILE_WIDTH_SMALL) minHeight = 400;
+    else if (window.innerWidth <= Constants.MOBILE_WIDTH) minHeight = 450;
+
+    const calendarEl = document.getElementById('calendar');
+    if (!calendarEl) return `${minHeight}px`;
+    const card = calendarEl.closest('.djappt-calendar-card');
+    const cardStyle = card ? getComputedStyle(card) : null;
+    const cardBottom = cardStyle ? parseFloat(cardStyle.paddingBottom) + parseFloat(cardStyle.borderBottomWidth) : 0;
+    const calendarTop = calendarEl.getBoundingClientRect().top + window.scrollY;
+    const height = Math.floor(window.innerHeight * 0.95 - calendarTop - cardBottom);
+    return `${Math.max(minHeight, height)}px`;
 }
 
 function setUserStaffAdminFlag() {
@@ -396,6 +454,7 @@ async function cancelEdit() {
     endTimeInput.value = endTime;
     endTimeLabel.style.display = "";
     endTimeInput.style.display = "";
+    toggleElementVisibility(endTimeInput.closest('.djappt-field'), true);
 
     // Re-show the event modal with the original data
     await showEventModal(appointment.id, false, false);
@@ -443,7 +502,8 @@ function confirmDeleteAppointment(appointmentId) {
 }
 
 function deleteAppointment() {
-    showModal(confirmDeletionTxt, confirmDeletionTxt, deleteBtnTxt, null, () => confirmDeleteAppointment(AppState.eventIdSelected));
+    const title = typeof confirmDeletionTitleTxt !== 'undefined' ? confirmDeletionTitleTxt : confirmDeletionTxt;
+    showModal(title, confirmDeletionTxt, deleteBtnTxt, null, () => confirmDeleteAppointment(AppState.eventIdSelected));
 }
 
 function fetchServices(isEditMode = false) {
@@ -469,6 +529,7 @@ async function populateServices(selectedServiceId, isEditMode = false) {
         showErrorModal(noServiceOfferedTxt)
     }
     const selectElement = document.createElement('select');
+    selectElement.className = 'form-select';
     services.forEach(service => {
         const option = document.createElement('option');
         option.value = service.id;  // Accessing the id
@@ -487,6 +548,7 @@ async function populateStaffMembers(selectedStaffId, isEditMode = false) {
         showErrorModal(noStaffMemberTxt)
     }
     const selectElement = document.createElement('select');
+    selectElement.className = 'form-select';
     staffMembers.forEach(staff => {
         const option = document.createElement('option');
         option.value = staff.id;  // Accessing the id
@@ -627,6 +689,7 @@ async function showCreateAppointmentModal(defaultStartTime, formattedDate) {
     servicesDropdown.disabled = false; // Enable dropdown
 
     document.getElementById('eventModalBody').innerHTML = prepareCreateAppointmentModalContent(servicesDropdown, staffDropdown, defaultStartTime, formattedDate);
+    setEventModalTitle(newEventTxt);
 
     adjustCreateAppointmentModalButtons();
     AppStateProxy.isCreating = true;
@@ -700,6 +763,7 @@ async function showEventModal(eventId = null, isEditMode, isCreatingMode = false
     }
 
     document.getElementById('eventModalBody').innerHTML = generateModalContent(appointment, servicesDropdown, isEditMode, staffDropdown);
+    setEventModalTitle(null);
     adjustModalButtonsVisibility(isEditMode, isCreatingMode);
     getEventDetailsModal().show();
 }
@@ -761,6 +825,8 @@ function updateModalUIForEditMode(modal, isEditingAppointment) {
     toggleElementVisibility(closeButton, !isEditingAppointment);
     toggleElementVisibility(endTimeLabel, !isEditingAppointment);  // Show end time in view mode
     toggleElementVisibility(endTimeInput, !isEditingAppointment);  // Show end time in view mode
+    // Package template: the label and input sit in a field wrapper, hide it too so no gap is left
+    toggleElementVisibility(endTimeInput && endTimeInput.closest('.djappt-field'), !isEditingAppointment);
     toggleElementVisibility(goButton, !isEditingAppointment);
 }
 
@@ -854,13 +920,12 @@ function validateEmail(email) {
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(emailInput.value)) {
-        emailInput.style.border = "1px solid red";
-        emailError.textContent = "Invalid email address, yeah.";
-        emailError.style.color = "red";
-        emailError.style.display = "inline";
+        emailInput.classList.add('is-invalid');
+        emailError.textContent = typeof invalidEmailTxt !== 'undefined' ? invalidEmailTxt : "Enter a valid email address.";
+        emailError.style.display = "block";
         return false;
     } else {
-        emailInput.style.border = "";
+        emailInput.classList.remove('is-invalid');
         emailError.textContent = "";
         emailError.style.display = "none";
         return true;

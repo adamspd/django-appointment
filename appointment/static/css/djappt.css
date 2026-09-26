@@ -43,6 +43,11 @@
     max-width: 560px;
 }
 
+/* Calendars and tables: use the room the host gives. */
+:where(.djappt) .djappt-shell--wide {
+    max-width: 1440px;
+}
+
 /* ---- Page header ---- */
 
 :where(.djappt) .djappt-header {
@@ -270,6 +275,42 @@
     opacity: .45;
 }
 
+:where(.djappt) .djappt-btn-danger {
+    background-color: var(--djappt-danger);
+    border-color: var(--djappt-danger);
+    color: #fff;
+}
+
+:where(.djappt) .djappt-btn-danger:hover,
+:where(.djappt) .djappt-btn-danger:focus-visible {
+    background-color: color-mix(in srgb, var(--djappt-danger) 85%, #000);
+    border-color: color-mix(in srgb, var(--djappt-danger) 85%, #000);
+    color: #fff;
+}
+
+/* Quiet button: secondary actions (close, cancel, delete next to a main action). */
+:where(.djappt) .djappt-btn-ghost {
+    background-color: transparent;
+    border-color: var(--djappt-line);
+    color: var(--djappt-ink-soft);
+}
+
+:where(.djappt) .djappt-btn-ghost:hover,
+:where(.djappt) .djappt-btn-ghost:focus-visible {
+    background-color: var(--djappt-accent-soft);
+    border-color: var(--djappt-line);
+    color: var(--djappt-ink);
+}
+
+:where(.djappt) .djappt-btn-ghost.djappt-text-danger,
+:where(.djappt) .djappt-btn-ghost.djappt-text-danger:hover {
+    color: var(--djappt-danger);
+}
+
+:where(.djappt) .djappt-btn-ghost.djappt-text-danger:hover {
+    background-color: var(--djappt-danger-soft);
+}
+
 /* ---- Forms (Bootstrap fields, package focus colour) ---- */
 
 :where(.djappt) .djappt-form .form-label {
@@ -388,4 +429,44 @@
     margin-top: .35rem;
     font-size: .875rem;
     color: var(--djappt-danger);
+}
+
+/* ---- Modals (Bootstrap modals included by the package pages) ---- */
+
+:where(.djappt) .modal-content {
+    border: 1px solid var(--djappt-line);
+    border-radius: var(--djappt-radius);
+    background-color: var(--djappt-surface);
+    color: var(--djappt-ink);
+    box-shadow: 0 24px 48px -16px rgba(12, 27, 51, .35);
+}
+
+:where(.djappt) .modal-header {
+    padding: 1.1rem 1.5rem;
+    border-bottom: 1px solid var(--djappt-line);
+}
+
+:where(.djappt) .modal-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--djappt-ink);
+}
+
+:where(.djappt) .modal-body {
+    padding: 1.25rem 1.5rem;
+}
+
+:where(.djappt) .modal-footer {
+    gap: .5rem;
+    padding: .9rem 1.5rem;
+    border-top: 1px solid var(--djappt-line);
+}
+
+:where(.djappt) .modal-footer > * {
+    margin: 0;
+}
+
+/* Pushes the buttons after it to the right, and keeps the ones before it on the left. */
+:where(.djappt) .djappt-footer-spacer {
+    flex: 1 1 auto;
 }

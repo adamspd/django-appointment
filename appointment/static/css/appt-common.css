@@ -1,3 +1,8 @@
+/*
+ * No longer used by the package pages (the staff calendar uses staff_calendar.css). Kept for page overrides that
+ * still link it; it will be removed in a future major version.
+ */
+
 .djangoAppt_main-container {
     margin: 20px auto;
     max-width: 1200px;

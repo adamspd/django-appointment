@@ -2423,3 +2423,19 @@ msgstr "Votre rendez-vous"
 #: appointment/templates/appointment/appointments.html
 msgid "Contact information"
 msgstr "Coordonnées"
+
+#: appointment/templates/administration/staff_index.html
+msgid "Click an appointment to see or edit it."
+msgstr "Cliquez sur un rendez-vous pour le voir ou le modifier."
+
+#: appointment/templates/administration/staff_index.html
+msgid "Drag it to another day to move it."
+msgstr "Faites-le glisser vers un autre jour pour le déplacer."
+
+#: appointment/templates/administration/staff_index.html
+msgid "Right-click a day to add one."
+msgstr "Faites un clic droit sur un jour pour en ajouter un."
+
+#: appointment/templates/administration/staff_index.html
+msgid "Enter a valid email address."
+msgstr "Saisissez une adresse e-mail valide."
