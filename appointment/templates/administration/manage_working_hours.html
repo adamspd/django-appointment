@@ -60,19 +60,13 @@
                     <label class="form-label" for="{{ working_hours_form.start_time.id_for_label }}">{% trans 'Start time' %}</label>
                     <input type="time" class="form-control" id="{{ working_hours_form.start_time.id_for_label }}"
                            name="{{ working_hours_form.start_time.html_name }}"
-                           value="{{ working_hours_form.start_time.value|time:'H:i' }}" required
-                           data-raw-target="{{ working_hours_form.start_time.id_for_label }}_raw" data-raw-format="datetime">
-                    <input type="hidden" name="{{ working_hours_form.start_time.html_name }}_raw"
-                           id="{{ working_hours_form.start_time.id_for_label }}_raw">
+                           value="{{ working_hours_form.start_time.value|time:'H:i' }}" required>
                 </div>
                 <div class="djappt-field">
                     <label class="form-label" for="{{ working_hours_form.end_time.id_for_label }}">{% trans 'End time' %}</label>
                     <input type="time" class="form-control" id="{{ working_hours_form.end_time.id_for_label }}"
                            name="{{ working_hours_form.end_time.html_name }}"
-                           value="{{ working_hours_form.end_time.value|time:'H:i' }}" required
-                           data-raw-target="{{ working_hours_form.end_time.id_for_label }}_raw" data-raw-format="datetime">
-                    <input type="hidden" name="{{ working_hours_form.end_time.html_name }}_raw"
-                           id="{{ working_hours_form.end_time.id_for_label }}_raw">
+                           value="{{ working_hours_form.end_time.value|time:'H:i' }}" required>
                 </div>
             </div>
 

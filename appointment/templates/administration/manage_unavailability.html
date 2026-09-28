@@ -46,25 +46,19 @@
                     <div class="djappt-field djappt-field--wide">
                         <label class="form-label" for="{{ form.date.id_for_label }}">{% trans 'Date' %}</label>
                         <input type="date" class="form-control" id="{{ form.date.id_for_label }}"
-                               name="{{ form.date.html_name }}" value="{{ form.date.value|date:'Y-m-d' }}" required
-                               data-raw-target="{{ form.date.id_for_label }}_raw" data-raw-format="date">
-                        <input type="hidden" name="{{ form.date.html_name }}_raw" id="{{ form.date.id_for_label }}_raw">
+                               name="{{ form.date.html_name }}" value="{{ form.date.value|date:'Y-m-d' }}" required>
                     </div>
                     <div class="djappt-field">
                         <label class="form-label" for="{{ form.start_time.id_for_label }}">{% trans 'Start time' %}</label>
                         <input type="time" class="form-control" id="{{ form.start_time.id_for_label }}"
                                name="{{ form.start_time.html_name }}" value="{{ form.start_time.value|time:'H:i' }}"
-                               required data-raw-target="{{ form.start_time.id_for_label }}_raw" data-raw-format="time">
-                        <input type="hidden" name="{{ form.start_time.html_name }}_raw"
-                               id="{{ form.start_time.id_for_label }}_raw">
+                               required>
                     </div>
                     <div class="djappt-field">
                         <label class="form-label" for="{{ form.end_time.id_for_label }}">{% trans 'End time' %}</label>
                         <input type="time" class="form-control" id="{{ form.end_time.id_for_label }}"
                                name="{{ form.end_time.html_name }}" value="{{ form.end_time.value|time:'H:i' }}"
-                               required data-raw-target="{{ form.end_time.id_for_label }}_raw" data-raw-format="time">
-                        <input type="hidden" name="{{ form.end_time.html_name }}_raw"
-                               id="{{ form.end_time.id_for_label }}_raw">
+                               required>
                     </div>
                     <div class="djappt-field djappt-field--wide">
                         <label class="form-label" for="{{ form.description.id_for_label }}">{% trans 'Description' %}</label>
