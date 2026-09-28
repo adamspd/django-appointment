@@ -68,6 +68,7 @@ def get_generic_context(request, admin=True):
     }
     return {
         'BASE_TEMPLATE': APPOINTMENT_ADMIN_BASE_TEMPLATE if admin else APPOINTMENT_BASE_TEMPLATE,
+        'djappt_admin': admin,
         'user': request.user,
         'is_superuser': request.user.is_superuser,
         'locale': locale,

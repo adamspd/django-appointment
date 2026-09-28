@@ -56,3 +56,18 @@ function submitPostForm(url) {
     document.body.appendChild(form);
     form.submit();
 }
+
+
+// Declarative use, without inline JavaScript:
+// <button type="button" data-djappt-confirm="{% url 'appointment:delete_service' service.id %}"
+//         data-confirm-title="…" data-confirm-message="…" data-confirm-action="Delete">…</button>
+// The modal then POSTs to the data-djappt-confirm URL.
+document.addEventListener('click', function (event) {
+    const trigger = event.target.closest('[data-djappt-confirm]');
+    if (!trigger || !document.getElementById('confirmModal')) {
+        return;
+    }
+    event.preventDefault();
+    showModal(trigger.dataset.confirmTitle || '', trigger.dataset.confirmMessage || '',
+        trigger.dataset.confirmAction || trigger.textContent.trim(), trigger.dataset.djapptConfirm, null);
+});
