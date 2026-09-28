@@ -1,345 +1,348 @@
 {% extends "appointment/layout.html" %}
 {% load i18n %}
+{% load l10n %}
 {% load static %}
 {% block customCSS %}
-    <link rel="stylesheet" type="text/css" href="{% static 'css/app_admin/btn.css' %}"/>
-    <link rel="stylesheet" type="text/css" href="{% static 'css/app_admin/user_profile.css' %}"/>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-          integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
-          crossorigin="anonymous" referrerpolicy="no-referrer"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/staff.css' %}"/>
 {% endblock %}
 {% block title %}
-    {{ page_title }}
+    {{ page_title|default:staff_member.get_staff_member_name }}
 {% endblock %}
 {% block description %}
-    {{ page_description }}
+    {{ page_description|default:staff_member.get_staff_member_name }}
 {% endblock %}
 {% block djappt_content %}
-    <section class="content content-wrapper">
-        <div class="profile-container">
-            <div class="messages" style="padding: 20px 0">
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
-                             role="alert">{{ message }}</div>
-                    {% endfor %}
+    {% translate "Confirm Deletion" as modal_title %}
+    {% translate "Delete" as delete_btn_modal %}
+    {% translate "Edit" as edit_label %}
+    {% translate "Delete" as delete_label %}
+    {% translate "Add" as add_label %}
+    <div class="djappt-shell djappt-staff djappt-profile content content-wrapper">
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
+                         role="alert">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% if superuser %}
+            <a class="djappt-back" href="{% url 'appointment:user_profile' %}">
+                <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                    <path d="M10.354 3.146a.5.5 0 0 1 0 .708L6.207 8l4.147 4.146a.5.5 0 0 1-.708.708l-4.5-4.5a.5.5 0 0 1 0-.708l4.5-4.5a.5.5 0 0 1 .708 0"/>
+                </svg>
+                {% trans 'Back to the staff' %}</a>
+        {% endif %}
+
+        {# Who: name and email, then the appointment settings at a glance #}
+        <section class="djappt-card djappt-profile-hero">
+            <div class="djappt-profile-head">
+                {% with name=staff_member.get_staff_member_name|default:user.get_username %}
+                    <span class="djappt-avatar" aria-hidden="true">{{ name|first|upper }}</span>
+                    <div class="djappt-profile-name">
+                        <p class="djappt-eyebrow">{% trans 'Staff Member' %}</p>
+                        <h1 class="djappt-title">{{ name }}</h1>
+                        <p class="djappt-lead">{{ user.email|default:"N/A" }}</p>
+                    </div>
+                {% endwith %}
+                <a class="btn djappt-btn djappt-btn-outline" href="{% url 'appointment:update_user_info' user.id %}">
+                    <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                        <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325"/>
+                    </svg>
+                    {% trans 'Personal Information' %}</a>
+            </div>
+
+            <div class="djappt-profile-settings">
+                <div class="djappt-card-head">
+                    <h2 class="djappt-card-title">{% trans 'Appointment Information' %}</h2>
+                    {% if staff_member %}
+                        <a class="btn djappt-btn djappt-btn-outline djappt-btn-sm"
+                           href="{% url 'appointment:update_staff_other_info' staff_member.user.id %}">{{ edit_label }}</a>
+                    {% else %}
+                        <a class="btn djappt-btn djappt-btn-primary djappt-btn-sm"
+                           href="{% url 'appointment:update_staff_other_info' user.id %}">{{ add_label }}</a>
+                    {% endif %}
+                </div>
+                {% if staff_member %}
+                    {# Each setting's full explanation is on the edit form; here it shows on hover #}
+                    <dl class="djappt-stats">
+                        <div title="{{ slot_duration_help_text }}">
+                            <dt>{% trans 'Slot duration' %}</dt>
+                            <dd>{{ staff_member.get_slot_duration_text }}</dd>
+                        </div>
+                        <div>
+                            <dt>{% trans 'General start time' %}</dt>
+                            <dd>{{ staff_member.get_lead_time|default:"N/A" }}</dd>
+                        </div>
+                        <div>
+                            <dt>{% trans 'General end time' %}</dt>
+                            <dd>{{ staff_member.get_finish_time|default:"N/A" }}</dd>
+                        </div>
+                        <div>
+                            <dt>{% trans 'Weekend days you work' %}</dt>
+                            <dd>{{ staff_member.get_weekend_days_worked_text }}</dd>
+                        </div>
+                        <div title="{{ buffer_time_help_text }}">
+                            <dt>{% trans 'Appointment buffer time' %}</dt>
+                            <dd>{{ staff_member.get_appointment_buffer_time_text }}</dd>
+                        </div>
+                    </dl>
+                {% else %}
+                    <p class="djappt-empty">{% trans 'No staff member information yet for this user' %}.</p>
                 {% endif %}
             </div>
-            <section class="profile-section">
-                {% translate "Confirm Deletion" as modal_title %}
-                {% translate "Delete" as delete_btn_modal %}
+        </section>
 
-                <h2>{% trans 'Personal Information' %}</h2>
-                <!-- Display fields from PersonalInformationForm -->
-                <div class="section-content">
-                    <p><strong>{% trans 'First name' %}:</strong> {{ user.first_name|default:"N/A" }}</p>
-                    <p><strong>{% trans 'Last name' %}:</strong> {{ user.last_name|default:"N/A" }}</p>
-                    <p><strong>{% trans 'Email' %}:</strong> {{ user.email|default:"N/A" }}</p>
-                </div>
-                <a href="{% url 'appointment:update_user_info' user.id %}"
-                   class="section-content-button modify-btn button-color-blue">
-                    <i class="fas fa-pen"></i>
-                </a>
-            </section>
-
-            <!-- Appointment Information Section -->
-            <section class="profile-section">
-                <h2>{% trans 'Appointment Information' %}</h2>
-                <small>
-                    {{ service_msg }}
-                </small>
-                {% if staff_member %}
-                    <div class="section-content">
-                        <p>
-                            <strong>{% trans 'Slot duration' %}:</strong> {{ staff_member.get_slot_duration_text }}
-                            <i class="fas fa-info-circle" data-toggle="tooltip"
-                               title="{{ slot_duration_help_text }}"></i>
-                        </p>
-                        <p><strong>{% trans 'General start time' %}:</strong> {{ staff_member.get_lead_time }}</p>
-                        <p><strong>{% trans 'General end time' %}:</strong> {{ staff_member.get_finish_time }}</p>
-                        <p>
-                            <strong>{% trans 'Weekend days you work' %}:</strong> {{ staff_member.get_weekend_days_worked_text }}
-                        </p>
-
-                        <p>
-                            <strong>{% trans 'Appointment buffer time' %}:</strong> {{ staff_member.get_appointment_buffer_time_text }}
-                            <i class="fas fa-info-circle" data-toggle="tooltip" title="{{ buffer_time_help_text }}"></i>
-                        </p>
-
+        <div class="djappt-profile-layout">
+            <div class="djappt-profile-column">
+                {# Working hours: the week, each day's hours drawn on a shared time axis #}
+                <section class="djappt-card">
+                    <div class="djappt-card-head">
+                        <h2 class="djappt-card-title">{% trans 'Working Hours' %}</h2>
+                        <a class="btn djappt-btn djappt-btn-primary djappt-btn-sm"
+                           href="{% url 'appointment:add_working_hours_id' user.id %}">
+                            <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                                <path d="M8 2a.75.75 0 0 1 .75.75v4.5h4.5a.75.75 0 0 1 0 1.5h-4.5v4.5a.75.75 0 0 1-1.5 0v-4.5h-4.5a.75.75 0 0 1 0-1.5h4.5v-4.5A.75.75 0 0 1 8 2"/>
+                            </svg>
+                            {{ add_label }}</a>
                     </div>
-                    <a href="{% url 'appointment:update_staff_other_info' staff_member.user.id %}"
-                       class="section-content-button modify-btn button-color-blue">
-                        <i class="fas fa-pen"></i>
-                    </a>
-                {% else %}
-                    <div class="section-content">
-                        <p>{% trans 'No staff member information yet for this user' %}.</p>
+                    <p class="djappt-help">
+                        {% trans "Note: If you are a staff member, your working hours will be used to determine when you are available for appointments." %}
+                    </p>
+                    {% translate "Are you sure you want to delete this working hours?" as w_modal_message %}
+                    <div class="djappt-week">
+                        <div class="djappt-week-axis" aria-hidden="true">
+                            <div class="djappt-week-ticks">
+                                {% for tick in working_week.ticks %}
+                                    <span style="left: {{ tick.left|unlocalize }}%">{{ tick.time|time }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <ul class="djappt-week-days">
+                            {% for day in working_week.days %}
+                                {% with working_hour=day.working_hours %}
+                                    <li class="djappt-week-day{% if not working_hour %} djappt-week-day--off{% endif %}">
+                                        <div class="djappt-week-label">
+                                            <span class="djappt-week-name">{{ day.name }}</span>
+                                            <span class="djappt-week-hours">
+                                                {% if working_hour %}{{ working_hour.start_time }} – {{ working_hour.end_time }}{% else %}{% trans 'Off' context 'day without working hours' %}{% endif %}
+                                            </span>
+                                        </div>
+                                        <div class="djappt-week-track" aria-hidden="true">
+                                            {% if working_hour %}
+                                                <span class="djappt-week-bar" style="left: {{ day.left|unlocalize }}%; width: {{ day.width|unlocalize }}%"></span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="djappt-row-actions">
+                                            {% if working_hour %}
+                                                {% if superuser %}
+                                                    {% url 'appointment:update_working_hours_id' working_hours_id=working_hour.id staff_user_id=user.id as edit_url %}
+                                                    {% url 'appointment:delete_working_hours_id' working_hours_id=working_hour.id staff_user_id=user.id as delete_url %}
+                                                {% else %}
+                                                    {% url 'appointment:update_working_hours' working_hours_id=working_hour.id as edit_url %}
+                                                    {% url 'appointment:delete_working_hours' working_hours_id=working_hour.id as delete_url %}
+                                                {% endif %}
+                                                <a class="btn djappt-btn djappt-btn-ghost djappt-icon-btn" href="{{ edit_url }}"
+                                                   title="{{ edit_label }}" aria-label="{{ edit_label }} · {{ day.name }}">
+                                                    <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                                                        <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325"/>
+                                                    </svg>
+                                                </a>
+                                                <button type="button" class="btn djappt-btn djappt-btn-ghost djappt-icon-btn djappt-text-danger"
+                                                        title="{{ delete_label }}" aria-label="{{ delete_label }} · {{ day.name }}"
+                                                        onclick="showModal('{{ modal_title|escapejs }}', '{{ w_modal_message|escapejs }}', '{{ delete_btn_modal|escapejs }}', '{{ delete_url }}', null)">
+                                                    <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                                                        <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
+                                                        <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
+                                                    </svg>
+                                                </button>
+                                            {% endif %}
+                                        </div>
+                                    </li>
+                                {% endwith %}
+                            {% endfor %}
+                        </ul>
                     </div>
-                    <a href="{% url 'appointment:update_staff_other_info' user.id %}"
-                       class="section-content-button modify-btn button-color-green">
-                        <i class="fas fa-add"></i>
-                    </a>
-                {% endif %}
-
-            </section>
-
-            <!-- Days Off Information Section -->
-            <section class="profile-section">
-                <h2>{% trans 'Days Off' %}</h2>
-                <a href="{% url 'appointment:add_day_off_id' staff_user_id=user.id %}"
-                   class="section-content-button modify-btn button-color-green">
-                    <i class="fas fa-add"></i>
-                </a>
-                <small>
-                    {% trans "Days off are days you're not working, you need to set them for holidays as well so clients don't book you those days." %}
-                </small>
-                <div class="responsive-table-container">
-                    <table>
-                        <thead>
-                        <tr>
-                            <th>{% trans 'Start date' %}</th>
-                            <th>{% trans 'End date' %}</th>
-                            <th>{% trans 'Description' %}</th>
-                            <th>{% trans 'Action' %}</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {% for day_off in days_off %}
-                            <tr>
-                                <td>{{ day_off.start_date }}</td>
-                                <td>{{ day_off.end_date }}</td>
-                                <td>{{ day_off.description }}</td>
-                                <td>
-                                    <div class="buttons-container">
-                                        {% if superuser %}
-                                            <a href="{% url 'appointment:update_day_off_id' day_off_id=day_off.id staff_user_id=user.id %}"
-                                               class="modify-btn button-color-blue">
-                                                <i class="fas fa-pen"></i>
-                                            </a>
-                                        {% else %}
-                                            <a href="{% url 'appointment:update_day_off' day_off_id=day_off.id %}"
-                                               class="modify-btn button-color-blue">
-                                                <i class="fas fa-pen"></i>
-                                            </a>
-                                        {% endif %}
-                                        {% translate "Are you sure you want to delete this day off?" as d_modal_message %}
-                                        {% if superuser %}
-                                            <a href="javascript:void(0)"
-                                               onclick="showModal('{{ modal_title|escapejs }}', '{{ d_modal_message|escapejs }}', '{{ delete_btn_modal|escapejs }}', '{% url 'appointment:delete_day_off_id' day_off_id=day_off.id staff_user_id=user.id %}', null)"
-                                               class="modify-btn button-color-red">
-                                                <i class="fas fa-trash"></i>
-                                            </a>
-                                        {% else %}
-                                            <a href="javascript:void(0)"
-                                               onclick="showModal('{{ modal_title|escapejs }}', '{{ d_modal_message|escapejs }}', '{{ delete_btn_modal|escapejs }}', '{% url 'appointment:delete_day_off' day_off_id=day_off.id %}', null)"
-                                               class="modify-btn button-color-red">
-                                                <i class="fas fa-trash"></i>
-                                            </a>
-                                        {% endif %}
-                                    </div>
-                                </td>
-                            </tr>
-                        {% empty %}
-                            <tr>
-                                <td colspan="4">{% trans 'No days off have been set' %}.</td>
-                            </tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
-            <!-- Unavailability Information Section -->
-            <section class="profile-section">
-                <h2>{% trans 'Unavailabilities' %}</h2>
-                <a href="{% url 'appointment:add_unavailability_id' staff_user_id=user.id %}"
-                   class="section-content-button modify-btn button-color-green">
-                    <i class="fas fa-add"></i>
-                </a>
-                <small>
-                    {% trans "Unavailabilities are periods when you're not available on a specific day. Use them to block time slots you don't want to make available." %}
-                </small>
-                <div class="responsive-table-container">
-                    <table>
-                        <thead>
-                        <tr>
-                            <th>{% trans 'Date' %}</th>
-                            <th>{% trans 'Start time' %}</th>
-                            <th>{% trans 'End time' %}</th>
-                            <th>{% trans 'Description' %}</th>
-                            <th>{% trans 'Action' %}</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {% for unavailability in unavailabilities %}
-                            <tr>
-                                <td>{{ unavailability.date }}</td>
-                                <td>{{ unavailability.start_time }}</td>
-                                <td>{{ unavailability.end_time }}</td>
-                                <td>{{ unavailability.description }}</td>
-                                <td>
-                                    <div class="buttons-container">
-                                        {% if superuser %}
-                                            <a href="{% url 'appointment:update_unavailability_id' unavailability_id=unavailability.id staff_user_id=user.id %}"
-                                               class="modify-btn button-color-blue">
-                                                <i class="fas fa-pen"></i>
-                                            </a>
-                                        {% else %}
-                                            <a href="{% url 'appointment:update_unavailability' unavailability_id=unavailability.id %}"
-                                               class="modify-btn button-color-blue">
-                                                <i class="fas fa-pen"></i>
-                                            </a>
-                                        {% endif %}
-                                        {% translate "Are you sure you want to delete this unavailability?" as d_modal_message %}
-                                        {% if superuser %}
-                                            <a href="javascript:void(0)"
-                                               onclick="showModal('{{ modal_title|escapejs }}', '{{ d_modal_message|escapejs }}', '{{ delete_btn_modal|escapejs }}', '{% url 'appointment:delete_unavailability_id' unavailability_id=unavailability.id staff_user_id=user.id %}', null)"
-                                               class="modify-btn button-color-red">
-                                                <i class="fas fa-trash"></i>
-                                            </a>
-                                        {% else %}
-                                            <a href="javascript:void(0)"
-                                               onclick="showModal('{{ modal_title|escapejs }}', '{{ d_modal_message|escapejs }}', '{{ delete_btn_modal|escapejs }}', '{% url 'appointment:delete_unavailability' unavailability_id=unavailability.id %}', null)"
-                                               class="modify-btn button-color-red">
-                                                <i class="fas fa-trash"></i>
-                                            </a>
-                                        {% endif %}
-                                    </div>
-                                </td>
-                            </tr>
-                        {% empty %}
-                            <tr>
-                                <td colspan="5">{% trans 'No unavailabilities have been set' %}.</td>
-                            </tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
-            <!-- Working Hours Information Section -->
-            <section class="profile-section">
-                <h2>{% trans 'Working Hours' %}</h2>
-                <a href="{% url 'appointment:add_working_hours_id' user.id %}"
-                   class="section-content-button modify-btn button-color-green">
-                    <i class="fas fa-add"></i>
-                </a>
-                <small>
-                    {% trans "Note: If you are a staff member, your working hours will be used to determine when you are available for appointments." %}
-                </small>
-                <div class="responsive-table-container">
-                    <table>
-                        <thead>
-                        <tr>
-                            <th>{% trans 'Day' %}</th>
-                            <th>{% trans 'Start time' %}</th>
-                            <th>{% trans 'End time' %}</th>
-                            <th>{% trans 'Action' %}</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {% for working_hour in working_hours %}
-                            <tr>
-                                <td>{{ working_hour.get_day_of_week_str }}</td>
-                                <td>{{ working_hour.start_time }}</td>
-                                <td>{{ working_hour.end_time }}</td>
-                                <td>
-                                    <div class="buttons-container">
-                                        {% if superuser %}
-                                            <a href="{% url 'appointment:update_working_hours_id' working_hours_id=working_hour.id staff_user_id=user.id %}"
-                                               class="modify-btn button-color-blue">
-                                                <i class="fas fa-pen"></i>
-                                            </a>
-                                        {% else %}
-                                            <a href="{% url 'appointment:update_working_hours' working_hours_id=working_hour.id %}"
-                                               class="modify-btn button-color-blue">
-                                                <i class="fas fa-pen"></i>
-                                            </a>
-                                        {% endif %}
-                                        {% translate "Are you sure you want to delete this working hours?" as w_modal_message %}
-                                        {% if superuser %}
-                                            <a href="javascript:void(0)"
-                                               onclick="showModal('{{ modal_title|escapejs }}', '{{ w_modal_message|escapejs }}', '{{ delete_btn_modal|escapejs }}', '{% url 'appointment:delete_working_hours_id' working_hours_id=working_hour.id staff_user_id=user.id %}', null)"
-                                               class="modify-btn button-color-red">
-                                                <i class="fas fa-trash"></i>
-                                            </a>
-                                        {% else %}
-                                            <a href="javascript:void(0)"
-                                               onclick="showModal('{{ modal_title|escapejs }}', '{{ w_modal_message|escapejs }}', '{{ delete_btn_modal|escapejs }}', '{% url 'appointment:delete_working_hours' working_hours_id=working_hour.id %}', null)"
-                                               class="modify-btn button-color-red">
-                                                <i class="fas fa-trash"></i>
-                                            </a>
-                                        {% endif %}
-                                    </div>
-                                </td>
-                            </tr>
-                        {% empty %}
-                            <tr>
-                                <td colspan="4">{% trans 'No working hours have been set' %}.</td>
-                            </tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
-            <!-- Service Information Section -->
-            <section class="profile-section">
-                <h2>{% trans 'Service Offered' %}</h2>
-                <small>
-                    {% if not superuser %}
-                        {% trans "To add/modify a new service, make a request to an admin." %}
-                        {% trans "Changes made in one service will change it for every staff member." %}
+                    {% if not working_hours %}
+                        <p class="djappt-empty mt-3">{% trans 'No working hours have been set' %}.</p>
                     {% endif %}
-                </small>
-                <div class="responsive-table-container">
-                    <table>
-                        <thead>
-                        <tr>
-                            <th>{% trans 'Name' %}</th>
-                            <th>{% trans 'Description' %}</th>
-                            <th>{% trans 'Duration' %}</th>
-                            <th>{% trans 'Price' %}</th>
-                            <th>{% trans 'Down payment' %}</th>
-                        </tr>
-                        </thead>
-                        <tbody>
+                </section>
+
+                {# Services: changed through the appointment information above #}
+                <section class="djappt-card">
+                    <div class="djappt-card-head">
+                        <h2 class="djappt-card-title">{% trans 'Service Offered' %}</h2>
+                    </div>
+                    <p class="djappt-help">
+                        {{ service_msg }}
+                        {% if not superuser %}
+                            {% trans "To add/modify a new service, make a request to an admin." %}
+                            {% trans "Changes made in one service will change it for every staff member." %}
+                        {% endif %}
+                    </p>
+                    <ul class="djappt-rows djappt-profile-services">
                         {% for service in services_offered %}
-                            <tr>
-                                <td>{{ service.name }}</td>
-                                <td>{{ service.description|default:"N/A" }}</td>
-                                <td>{{ service.get_duration }}</td>
-                                <td>{{ service.get_price_text }}</td>
-                                <td>{{ service.get_down_payment_text }}</td>
-                            </tr>
+                            <li class="djappt-row" style="--djappt-service-color: {{ service.background_color }}">
+                                <span class="djappt-swatch" aria-hidden="true"></span>
+                                <div class="djappt-row-main">
+                                    <p class="djappt-row-title">
+                                        <a href="{% url 'appointment:view_service' service_id=service.id view=1 %}">{{ service.name }}</a>
+                                    </p>
+                                    {% if service.description %}
+                                        <p class="djappt-row-meta djappt-clamp">{{ service.description }}</p>
+                                    {% endif %}
+                                </div>
+                                <div class="djappt-row-facts">
+                                    <span class="djappt-row-price">{{ service.get_price_text }}</span>
+                                    <span>{{ service.get_duration }}</span>
+                                    {% if service.accepts_down_payment %}
+                                        <span>{% trans 'Down payment' %}: {{ service.get_down_payment_text }}</span>
+                                    {% endif %}
+                                </div>
+                            </li>
                         {% empty %}
-                            <tr>
-                                <td colspan="5">{% trans 'No service offered yet' %}.</td>
-                            </tr>
+                            <li class="djappt-row">
+                                <p class="djappt-empty">{% trans 'No service offered yet' %}.</p>
+                            </li>
                         {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </section>
+                    </ul>
+                </section>
+            </div>
+
+            <div class="djappt-profile-column">
+                {# Days off: whole days, with a calendar badge; past ones are greyed #}
+                <section class="djappt-card">
+                    <div class="djappt-card-head">
+                        <h2 class="djappt-card-title">{% trans 'Days Off' %}</h2>
+                        <a class="btn djappt-btn djappt-btn-primary djappt-btn-sm"
+                           href="{% url 'appointment:add_day_off_id' staff_user_id=user.id %}">
+                            <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                                <path d="M8 2a.75.75 0 0 1 .75.75v4.5h4.5a.75.75 0 0 1 0 1.5h-4.5v4.5a.75.75 0 0 1-1.5 0v-4.5h-4.5a.75.75 0 0 1 0-1.5h4.5v-4.5A.75.75 0 0 1 8 2"/>
+                            </svg>
+                            {{ add_label }}</a>
+                    </div>
+                    <p class="djappt-help">
+                        {% trans "Days off are days you're not working, you need to set them for holidays as well so clients don't book you those days." %}
+                    </p>
+                    {% translate "Are you sure you want to delete this day off?" as d_modal_message %}
+                    <ul class="djappt-rows">
+                        {% for day_off in days_off %}
+                            {% if superuser %}
+                                {% url 'appointment:update_day_off_id' day_off_id=day_off.id staff_user_id=user.id as edit_url %}
+                                {% url 'appointment:delete_day_off_id' day_off_id=day_off.id staff_user_id=user.id as delete_url %}
+                            {% else %}
+                                {% url 'appointment:update_day_off' day_off_id=day_off.id as edit_url %}
+                                {% url 'appointment:delete_day_off' day_off_id=day_off.id as delete_url %}
+                            {% endif %}
+                            <li class="djappt-row{% if today and day_off.end_date < today %} djappt-row--past{% endif %}">
+                                <span class="djappt-date-badge" aria-hidden="true">
+                                    <span>{{ day_off.start_date|date:"M" }}</span>
+                                    <strong>{{ day_off.start_date|date:"j" }}</strong>
+                                </span>
+                                <div class="djappt-row-main">
+                                    <p class="djappt-row-title">
+                                        {{ day_off.start_date }}{% if day_off.end_date != day_off.start_date %} – {{ day_off.end_date }}{% endif %}
+                                        {% if today and day_off.end_date < today %}<span class="djappt-tag">{% trans 'Past' %}</span>{% endif %}
+                                    </p>
+                                    {% if day_off.description %}
+                                        <p class="djappt-row-meta">{{ day_off.description }}</p>
+                                    {% endif %}
+                                </div>
+                                <div class="djappt-row-actions">
+                                    <a class="btn djappt-btn djappt-btn-ghost djappt-icon-btn" href="{{ edit_url }}"
+                                       title="{{ edit_label }}" aria-label="{{ edit_label }}">
+                                        <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                                            <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325"/>
+                                        </svg>
+                                    </a>
+                                    <button type="button" class="btn djappt-btn djappt-btn-ghost djappt-icon-btn djappt-text-danger"
+                                            title="{{ delete_label }}" aria-label="{{ delete_label }}"
+                                            onclick="showModal('{{ modal_title|escapejs }}', '{{ d_modal_message|escapejs }}', '{{ delete_btn_modal|escapejs }}', '{{ delete_url }}', null)">
+                                        <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                                            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
+                                            <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </li>
+                        {% empty %}
+                            <li class="djappt-row">
+                                <p class="djappt-empty">{% trans 'No days off have been set' %}.</p>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </section>
+
+                {# Unavailabilities: hours blocked on a given day #}
+                <section class="djappt-card">
+                    <div class="djappt-card-head">
+                        <h2 class="djappt-card-title">{% trans 'Unavailabilities' %}</h2>
+                        <a class="btn djappt-btn djappt-btn-primary djappt-btn-sm"
+                           href="{% url 'appointment:add_unavailability_id' staff_user_id=user.id %}">
+                            <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                                <path d="M8 2a.75.75 0 0 1 .75.75v4.5h4.5a.75.75 0 0 1 0 1.5h-4.5v4.5a.75.75 0 0 1-1.5 0v-4.5h-4.5a.75.75 0 0 1 0-1.5h4.5v-4.5A.75.75 0 0 1 8 2"/>
+                            </svg>
+                            {{ add_label }}</a>
+                    </div>
+                    <p class="djappt-help">
+                        {% trans "Unavailabilities are periods when you're not available on a specific day. Use them to block time slots you don't want to make available." %}
+                    </p>
+                    {% translate "Are you sure you want to delete this unavailability?" as u_modal_message %}
+                    <ul class="djappt-rows">
+                        {% for unavailability in unavailabilities %}
+                            {% if superuser %}
+                                {% url 'appointment:update_unavailability_id' unavailability_id=unavailability.id staff_user_id=user.id as edit_url %}
+                                {% url 'appointment:delete_unavailability_id' unavailability_id=unavailability.id staff_user_id=user.id as delete_url %}
+                            {% else %}
+                                {% url 'appointment:update_unavailability' unavailability_id=unavailability.id as edit_url %}
+                                {% url 'appointment:delete_unavailability' unavailability_id=unavailability.id as delete_url %}
+                            {% endif %}
+                            <li class="djappt-row{% if today and unavailability.date < today %} djappt-row--past{% endif %}">
+                                <span class="djappt-date-badge" aria-hidden="true">
+                                    <span>{{ unavailability.date|date:"M" }}</span>
+                                    <strong>{{ unavailability.date|date:"j" }}</strong>
+                                </span>
+                                <div class="djappt-row-main">
+                                    <p class="djappt-row-title">
+                                        {{ unavailability.date }}
+                                        {% if today and unavailability.date < today %}<span class="djappt-tag">{% trans 'Past' %}</span>{% endif %}
+                                    </p>
+                                    <p class="djappt-row-meta">
+                                        {{ unavailability.start_time }} – {{ unavailability.end_time }}{% if unavailability.description %} · {{ unavailability.description }}{% endif %}
+                                    </p>
+                                </div>
+                                <div class="djappt-row-actions">
+                                    <a class="btn djappt-btn djappt-btn-ghost djappt-icon-btn" href="{{ edit_url }}"
+                                       title="{{ edit_label }}" aria-label="{{ edit_label }}">
+                                        <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                                            <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325"/>
+                                        </svg>
+                                    </a>
+                                    <button type="button" class="btn djappt-btn djappt-btn-ghost djappt-icon-btn djappt-text-danger"
+                                            title="{{ delete_label }}" aria-label="{{ delete_label }}"
+                                            onclick="showModal('{{ modal_title|escapejs }}', '{{ u_modal_message|escapejs }}', '{{ delete_btn_modal|escapejs }}', '{{ delete_url }}', null)">
+                                        <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                                            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
+                                            <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </li>
+                        {% empty %}
+                            <li class="djappt-row">
+                                <p class="djappt-empty">{% trans 'No unavailabilities have been set' %}.</p>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </section>
+            </div>
         </div>
 
         {% include 'modal/confirm_modal.html' %}
-    </section>
+    </div>
 {% endblock %}
 {% block customJS %}
-    <!-- Bootstrap's JS and CSS (if not already included) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
-            integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
-            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.8/umd/popper.min.js"
-            integrity="sha512-TPh2Oxlg1zp+kz3nFA0C5vVC6leG/6mm1z9+mA81MI5eaUVqasPLO8Cuk4gMF4gUfP5etR73rgU/8PNMsSesoQ=="
-            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.min.js"
-            integrity="sha512-WW8/jxkELe2CAiE4LvQfwm1rajOS8PHasCCx+knHG0gBHt8EXxS6T6tJRTGuDQVnluuAvMxWF4j8SNFDKceLFg=="
-            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-
-    <!-- Our custom modal JS -->
     <script src="{% static 'js/modal/show_modal.js' %}"></script>
-
     <script src="{% static 'js/js-utils.js' %}"></script>
 {% endblock %}

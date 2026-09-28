@@ -11,13 +11,6 @@
     margin-bottom: 1.25rem;
 }
 
-/* Square button holding an icon only (its name is in aria-label and title). */
-:where(.djappt) .djappt-btn.djappt-icon-btn {
-    --bs-btn-padding-x: .55rem;
-    --bs-btn-padding-y: .45rem;
-    line-height: 1;
-}
-
 /* ---- Service tile: cover, name, description, duration and price ---- */
 
 :where(.djappt) .djappt-service-grid {
@@ -305,13 +298,6 @@
 }
 
 /* ---- Cards or list: the switch in the page head, and the list layout ---- */
-
-:where(.djappt) .djappt-page-tools {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: .75rem;
-}
 
 :where(.djappt) .djappt-view-switch:not([hidden]) {
     display: inline-flex;
@@ -671,19 +657,6 @@
     color: var(--djappt-ink);
 }
 
-:where(.djappt) .djappt-avatar {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 1.9rem;
-    height: 1.9rem;
-    border-radius: 50%;
-    background-color: var(--djappt-accent-soft);
-    font-size: .8rem;
-    font-weight: 700;
-    color: var(--djappt-accent);
-}
-
 /* ---- Add and edit: the form, and a live preview of the tile next to it ---- */
 
 :where(.djappt) .djappt-service-editor {
@@ -791,14 +764,4 @@
 
 :where(.djappt) .djappt-field--image input[type="file"] {
     margin-top: .35rem;
-}
-
-:where(.djappt) .djappt-form-actions {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: .75rem;
-    margin-top: 1.5rem;
-    padding-top: 1.25rem;
-    border-top: 1px solid var(--djappt-line);
 }

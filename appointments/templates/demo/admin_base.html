@@ -142,7 +142,7 @@
                                 <i class="bi bi-calendar3"></i><span class="demo-label">{% trans "Calendar" %}</span></a>
                         </li>
                         <li class="nav-item">
-                            {% if user.is_superuser %}
+                            {% if request.user.is_superuser %}
                                 <a class="nav-link{% if request.path == profile_url %} active{% endif %}"
                                    href="{{ profile_url }}" title="{% trans 'Staff' %}">
                                     <i class="bi bi-people"></i><span class="demo-label">{% trans "Staff" %}</span></a>
@@ -157,7 +157,7 @@
                                href="{{ services_url }}" title="{% trans 'Services' %}">
                                 <i class="bi bi-briefcase"></i><span class="demo-label">{% trans "Services" %}</span></a>
                         </li>
-                        {% if user.is_superuser %}
+                        {% if request.user.is_superuser %}
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'admin:index' %}" title="{% trans 'Django admin' %}">
                                     <i class="bi bi-gear"></i><span class="demo-label">{% trans "Django admin" %}</span></a>
@@ -172,8 +172,8 @@
                     <hr class="border-secondary">
                     <div class="d-flex flex-column gap-2">
                         <div class="demo-hide-collapsed">{% include "demo/language_form.html" %}</div>
-                        {% if user.is_authenticated %}
-                            <span class="small demo-user demo-label"><i class="bi bi-person-circle me-1"></i>{{ user.get_username }}</span>
+                        {% if request.user.is_authenticated %}
+                            <span class="small demo-user demo-label"><i class="bi bi-person-circle me-1"></i>{{ request.user.get_username }}</span>
                             <form action="{% url 'admin:logout' %}" method="post">
                                 {% csrf_token %}
                                 <input name="next" type="hidden" value="{{ home_url }}">
