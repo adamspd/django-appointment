@@ -16,14 +16,18 @@
     <div class="djappt-shell djappt-shell--narrow djappt-staff content content-wrapper">
         {% include "appointment/_messages.html" %}
 
+        {% block djappt_back %}
         <a class="djappt-back" href="{{ back_url }}">
             <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
                 <path d="M10.354 3.146a.5.5 0 0 1 0 .708L6.207 8l4.147 4.146a.5.5 0 0 1-.708.708l-4.5-4.5a.5.5 0 0 1 0-.708l4.5-4.5a.5.5 0 0 1 .708 0"/>
             </svg>
             {% trans 'Back' %}</a>
+        {% endblock %}
 
         <form id="updatePersonalInfoForm" method="post" action="" class="djappt-card djappt-form djappt-staff-form">
+            {% block djappt_heading %}
             <h1 class="djappt-card-title">{% trans 'Staff Personal Information' %}</h1>
+            {% endblock %}
             {% csrf_token %}
             {% if form.non_field_errors %}
                 <div class="alert alert-danger">{{ form.non_field_errors }}</div>
