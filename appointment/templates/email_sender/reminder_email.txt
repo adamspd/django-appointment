@@ -1,0 +1,19 @@
+{% load i18n %}{% autoescape off %}{% translate 'Appointment Reminder' %}
+
+{% if recipient_type == 'client' %}{% if first_name %}{% blocktranslate trimmed %}Dear {{ first_name }},{% endblocktranslate %}{% else %}{% translate 'Hi' %},{% endif %}{% else %}{% translate 'Dear Administrator,' %}{% endif %}
+
+{% translate 'This is a reminder for your upcoming appointment.' %}
+
+{% translate 'Appointment Details' %}
+- {% translate 'Service' %}: {{ appointment.get_service_name }}
+- {% translate 'Date' %}: {{ appointment.appointment_request.date|date:"l, d F Y" }}
+- {% translate 'Time' %}: {{ appointment.appointment_request.start_time|time }} – {{ appointment.appointment_request.end_time|time }}
+{% if appointment.address %}- {% translate 'Location' %}: {{ appointment.address }}
+{% endif %}
+{% if recipient_type == 'client' %}{% translate 'If you need to reschedule, please click the button below or contact us for further assistance.' %}
+{% if reschedule_link %}{{ reschedule_link }}
+{% endif %}
+{% translate 'Thank you for choosing us!' %}{% else %}{% translate 'Please ensure the appointment setup is complete and ready for the client.' %}{% endif %}
+
+{% translate 'This is an automated message. Please do not reply directly to this email.' %}
+{% endautoescape %}
