@@ -75,7 +75,8 @@
     border-bottom: 4px solid var(--djappt-service-color);
 }
 
-:where(.djappt) .djappt-service-cover img {
+:where(.djappt) .djappt-service-cover img,
+:where(.djappt) .djappt-service-cover canvas {
     position: absolute;
     inset: 0;
     width: 100%;
