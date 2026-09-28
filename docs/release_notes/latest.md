@@ -1,184 +1,242 @@
 # django-appointment 📦
 
-**v3.11.0 🆕**
+**v3.12.0 🆕**
 
-## ___Release Notes for Version 3.11.0___
+## ___Release Notes for Version 3.12.0___
 
 ## Introduction 📜
 
-Version 3.11.0 is a feature release on top of 3.10.1. It adds **unavailabilities** — a way for a staff member to
-block part of a single day without losing the whole day — brings Django 6.0 and 6.1 support, and finishes the
-localization work so dates, times and prices follow the visitor's locale everywhere instead of only in some places.
+Version 3.12.0 is a feature release on top of 3.11.0, and its main change is a new look for every page the package
+ships: booking, confirmation and error pages, the staff calendar and appointment details, the service, staff and
+profile pages, the working hours, day off and unavailability forms, and the emails. The pages now fit into any site
+without restyling it, adapt to the room your layout gives them, and can be re-coloured with one CSS variable. The
+release also makes booking smoother for logged-in clients, formats prices for the visitor's language, sends every
+email with a plain-text part, completes the French and Spanish translations, and closes two security holes: a script
+injection in the staff calendar and open access to the default thank-you page.
 
-It also drops Python 3.8 and 3.9. See [Breaking Changes](#breaking-changes) before upgrading.
+There is no database change. Read the [migration guide](../migration_guides/latest.md) if you override the
+package's templates, link its stylesheets, or call its delete URLs yourself.
 
 ## New Features ✨
 
-### Unavailabilities 🗓️
+### Redesigned pages and emails 🎨
 
-A staff member can now record an *unavailability*: a start time, an end time and a date, with an optional reason. A
-lunch break, a meeting, an errand — anything that makes them unavailable for part of a day. Slots overlapping one
-disappear from the booking page while the rest of that day stays bookable.
+The slot picker, the client information page, the verification code page and the thank-you pages have a new look:
+white cards with a navy accent, numbered steps, and a "Your appointment" summary next to the form.
 
-This is the short-range counterpart to a day off, which keeps removing whole days.
+The staff calendar has the same look: a page header with a **New Appointment** button (appointments could only be
+added by right-clicking a day before) and short hints, the calendar in a card with quiet toolbar buttons and today
+marked, readable event labels (the time is never cut), a height that fits the window so the whole month shows
+without scrolling, the clicked day's appointments listed below it (with each one's colour, time and client, on every
+screen size, not only phones), and a cleaner appointment modal with labelled fields in two columns. It follows its
+container, so opening or closing a sidebar in your staff area resizes it. The confirmation and error modals of every
+staff page share the new style; the confirmation's action button is red, since every use of it deletes or removes
+something.
 
-The feature ships as:
+The appointment details page (`display-appointment/<id>/`) follows it too: a link back to the calendar, the
+schedule, service, client and notes in one card (two columns when there is room), the email and phone as links, a dash
+for empty fields, and the payment status in its own card next to it, with "No payment needed" for a free service. It
+no longer loads Font Awesome.
 
-- a new `Unavailability` model, registered in the Django admin;
-- add, update and delete pages under `app-admin/`, reachable from the staff member's profile, with the same
-  ownership rules as days off — staff members manage their own, superusers manage anyone's;
-- slot filtering, so an unavailability is honoured by the booking page, the reschedule page and the
-  next-available-date lookup alike — including the slots rendered with the booking page itself, not only those
-  fetched afterwards when the client picks a date. It is applied by the same pass that removes slots taken by
-  existing appointments, so the service's real duration and `slot_gap_time` are respected around it too.
+The service pages have it as well, and use each service's picture and colour. The list shows every service as a
+tile: its image on top, or its calendar colour with its first letter when it has none, then its name, description,
+duration and price, with an **Add Service** button and tile for superusers and edit and delete buttons; on a phone
+the tiles become short rows. A switch next to the title shows the services as a compact list instead (a row each,
+with a small picture), and the browser remembers the choice. The services you offer are marked "You offer this
+service", on their tile and on their page. Viewing a service (staff members can too) shows its whole picture, or its
+colour, next to its duration, price, down payment, rescheduling rule, calendar colour and the staff members who
+offer it. Adding and editing use one form with labelled fields side by side and the errors under each field, next to
+a preview of the tile that follows what you type, the colour you pick and the image you choose. They no longer load
+Font Awesome.
 
-See [the model reference](../models.md#unavailability) and [the admin views](../admin_views.md).
+The staff pages have it too. The staff list shows each member with their initial, name and email, a link to their
+profile and a remove button, under **Staff me** and **Add staff member** buttons. A profile opens with a card
+holding the member's name and email, a button to change them, and their appointment settings as small tiles (each
+setting's explanation shows on hover and stays on the form). Below it, the working hours show the whole week, in
+your `FIRST_DAY_OF_WEEK` order: each day's hours as a bar on a shared time axis, and the days without hours marked
+off. The services they offer show their colour, price and duration and link to their page; days off and
+unavailabilities have a small calendar badge, and past ones are greyed and marked "Past"; every row keeps its edit
+and delete buttons, and a superuser gets a link back to the staff list. The staff settings form says whose settings
+they are, shows a checkbox per service in the service's colour instead of a list that needed Ctrl or Cmd to pick
+several, and puts each schedule setting on a row with its explanation: time pickers for the start and end of the
+day, minute fields for the slot duration and the buffer, and switches for the weekends, with the errors under each
+field and a cancel button. The personal information form and the email-change code page have the same look. None of
+them load Font Awesome any more.
 
-### Django 6.0 and 6.1 support 🐍
+The working hours, day off and unavailability forms have it too: one card with a link back to the profile, the
+browser's own date and time pickers (shown in the visitor's language and format), the day of the week as a row of
+buttons in your `FIRST_DAY_OF_WEEK` order, and an end date that can't be set before the start date. They no longer
+load Bootstrap 4, whose stylesheet restyled the whole host page, nor the tempusdominus picker, moment.js, jQuery UI
+or Font Awesome. They still send the same data to the same URLs, and show the server's errors in the error modal.
 
-Django 6.0 and 6.1 are supported and covered by the [compatibility matrix](../compatibility.md), which was reworked
-at the same time. The declared range moves from `Django>=4.2,<6.0` to `Django>=4.2,<7.0`, tested across Python 3.10
-to 3.14.
+The set-password page and the error pages (`304`, `403`, `403` for rescheduling, `404`) follow the same design: one
+centred card, keeping the old illustrations. They no longer load Tailwind (whose reset restyled the whole host page),
+Font Awesome, Google Fonts or a background image from imgur, and they no longer paint the page behind them.
 
-`CheckConstraint`'s `check` argument was renamed to `condition` in Django 5.1 and removed in Django 6.0, which no
-single spelling can satisfy across the supported range. A small `appointment/compat.py` shim now picks the keyword
-the running Django accepts, so the package's check constraints work from 4.2 to 6.1 without a version-specific
-branch in every model.
+- **Scoped to the package.** Every package page now extends `appointment/layout.html`, which wraps the content in a
+  `<div class="djappt">`. All the package CSS applies inside that wrapper only, so it never restyles your navbar,
+  footer or other pages. The pages don't set a page background either: they sit on your site's own.
+- **Responsive to the space it gets.** The layout uses container queries, so it adapts to the width your base
+  template gives it (a sidebar included), not only to the window. On a small screen the staff member is chosen first,
+  then the date, then the time.
+- **All the time slots are visible** at once, without scrolling inside the list.
+- **Your colours.** One variable re-colours buttons, links, the selected day and slot and the highlights; the hover
+  and light shades are computed from it:
 
-### Localization everywhere 🌍
+    ```css
+    .djappt {
+        --djappt-accent: #17799c;
+    }
+    ```
 
-Dates, times and prices now follow the active locale consistently, rather than falling back to a US format in the
-places the earlier work had not reached:
+    The other `--djappt-*` variables (text, borders, card background, error and success colours, radius, shadow) can
+    be set the same way, including for a dark site. See [Colours](../custom-templates.md#colours).
 
-- the booking calendar starts the week on the locale's first day, via Django's `FIRST_DAY_OF_WEEK`;
-- the chosen date and the offered time slots are rendered through Django's localization rather than a hardcoded
-  format, and the slots are sent to the browser as `[iso_datetime, localized_time]` pairs so the page can display one
-  and submit the other;
-- the down payment is localized like the price already was;
-- the date and time pickers in the administration pages get their format from the locale. Two new helpers,
-  `js_timepicker_display_format()` and `js_datepicker_display_format()`, translate Django's format characters into
-  their Moment.js equivalents, since the widgets cannot read Django's. They reach the templates through
-  `localized_formats` in the generic context.
-- the working hours form splits each field into a localized one the user sees and a hidden pre-formatted one it
-  submits, so what is displayed and what is parsed can differ without ambiguity;
-- the default email templates use the full weekday name instead of a locale-dependent abbreviation, and the admin
-  appointment view shows a localized time rather than a whole datetime.
+### Smoother booking for logged-in clients
 
-The French catalogue was refreshed to match. Spanish is still looking for a maintainer — see the
-[internationalization guide](../internationalization.md).
+- The name is pre-filled but stays editable, and a changed name is saved to the account.
+- The email is the account's: it is shown as "You're booking as …" instead of an editable field, and the booking
+  always goes to that account.
+- An account without a name can book again: it used to get an empty, locked, required name field.
 
-### Smoother booking for logged-in users
+### Prices in the visitor's language 💶
 
-- A logged-in user booking an appointment no longer goes through email verification.
-- `ClientDataForm` pre-fills and disables the identity fields for a logged-in user, and the appointment is created
-  from `request.user` rather than from the submitted data.
-- The address field is no longer required.
-- Django messages stay on screen 5 seconds longer.
+Prices, down payments and amounts to pay are formatted with Babel for the active language, with the currency symbol
+where that language puts it: `$150` in English, `150 $US` in French. Whole amounts are shown without decimals.
+`Service.get_price_text()`, `get_down_payment_text()` and `Appointment.get_appointment_amount_to_pay_text()` all
+use it, and "Free" is now translated everywhere.
 
-### Template overrides that survive a mistake
+### Emails with a plain-text part 📧
 
-The custom template lookup added in 3.10 now accepts more than one name per template, and skips a candidate that
-exists but fails to compile — an unclosed `{% if %}`, an unknown tag, a bad `{% load %}` — falling back to the
-packaged default instead of taking the page down with it. Compile failures are logged with a warning naming the
-template, so a silently ignored override is visible in the logs.
+Every HTML email is now also sent with a plain-text version, for mail clients that don't show HTML and for spam
+filters. It is rendered from a `.txt` template next to the HTML one when there is one (`emails/thank_you.txt` for
+`emails/thank_you.html`, with the same context), and derived from the HTML otherwise. See [Custom
+templates](../custom-templates.md). The package's four emails (booking confirmation, new appointment request,
+reminder and reschedule) now come with their own `.txt` version.
 
-The two reschedule emails are the first to use the multiple-name lookup: `reschedule.html` and
-`reschedule_admin.html` are accepted alongside their older internal names. See
-[Custom templates](../custom-templates.md).
+The same four emails have a new look: a white card on a light background with a navy header, the details in a
+bordered table, and real buttons for setting a password, rescheduling and confirming a reschedule; the booking
+confirmation keeps its calendar leaf with the day. They are styled inline, so mail clients that drop `<style>`
+blocks show them the same, and they no longer load a background image that most clients blocked. The email's
+language (`<html lang>`) follows the active language, and the sentences that were built from pieces ("Dear" + name,
+"An appointment with" + client + "for the service" + service…) are now whole sentences, so they translate properly.
+They extend the new `email_sender/base_email.html`; your own templates in `templates/emails/` are used as before.
 
-### Context processors in verification emails
+## Good to Know 📝
 
-`send_verification_email` now accepts the `request`, and it is passed to every renderer, so a custom email template
-can use your context processors.
+- **Page overrides.** The package pages now put their content in `{% block djappt_content %}` of
+  `appointment/layout.html`. Your own overrides that extend `BASE_TEMPLATE` with `{% block body %}` keep working as
+  before; extend `appointment/layout.html` instead if you want the wrapper and the package styles. See
+  [Custom templates](../custom-templates.md).
+
+- **The profile page's `user`.** Like before, the profile page (`user-profile/<id>/`) sets `user` in its context to
+  the staff member whose profile it is, which hides the logged-in user of the same name. If your base template shows
+  the logged-in user or picks links with `user`, use `request.user` there. The demo bases now do.
+
+- **icalendar 7.** The package now requires `icalendar>=7.3,<8.0` (3.11 required 6.3.x); `pip` upgrades it for you.
+  Check your own code if it uses icalendar too.
 
 ## Deprecations ⚠️
 
-`convert_12_hour_time_to_24_hour_time()` and `convert_24_hour_time_to_12_hour_time()` are deprecated. Both now emit a
-`DeprecationWarning` and **will be removed in 4.0.0**. Neither is used internally any more: times are formatted
-through Django's localization framework. If you call them from your own code, move to
-`django.utils.formats.time_format()` or the `time` template filter.
-
-`exclude_booked_slots()` is deprecated in favour of `exclude_unavailable_slots()`, which replaced it. It still works
-and still emits a `DeprecationWarning`, but it keeps the old argument order and hardcodes the newer parameters to
-`None`, so it cannot exclude unavailabilities, account for a service longer than the slot step, or apply the rest
-time between appointments. See [`db_helpers.py`](../utils/db_helpers.md#slot-calculations).
-
-Nothing was removed in this release.
+`appointments.css`, `appointments-user-details.css`, `thank_you.css`, `app_admin/admin.css`, `appt-common.css`,
+`app_admin/display_appointment.css`, `app_admin/service.css`, `app_admin/btn.css`, `app_admin/user_profile.css`,
+`app_admin/staff_member.css`, `app_admin/working_hours.css`, `app_admin/days_off.css`,
+`app_admin/unavailabilities.css` and `verification_code.css` are no longer used by the package pages (they use
+`djappt.css` and a stylesheet per page). They are kept for overrides that still link them and will be removed in a
+future major version.
 
 ## Bug Fixes 🐛
 
-- The daily cleanup task is now scheduled after `migrate` (from a `post_migrate` handler) rather than when the app
-  loads. On a fresh install, any management command — `makemigrations` included — used to log
-  `no such table: django_q_schedule`, because the schedule was queried before Django-Q's tables existed.
-- Fixed a `500` on the reschedule page when no `Config` row exists. Whether clients may change staff member on
-  reschedule now falls back to the field's default instead of dereferencing `None`.
-- The cached `Config` is now dropped whenever it is saved or deleted. An edit made in the admin previously took up to
-  an hour to reach the booking pages, for as long as the stale entry survived.
-- Django-Q is only considered available when it is both installed **and** listed in `INSTALLED_APPS`. It was
-  previously enough for the package to be importable, so a project that had it installed as an indirect dependency
-  could have reminders scheduled against a cluster that was never going to run.
-- The appointment buffer time is applied as a rolling window — no appointment may start before *now plus the buffer*,
-  whatever the day — rather than only on the current day.
-- Slots no longer extend past closing time: the service duration is subtracted from the end of the working day before
-  candidate slots are generated.
-- Fixed several `gettext` aliases shadowed by `gettext_lazy`, and a local variable named `_` shadowing `gettext`'s
-  `_` in the cleanup task and in `views_admin.py`. Affected strings were always rendered in the source language.
-- Fixed the guard in `appointment.js` that ran when no date had been selected.
-- Fixed date formatting arguments in the email templates.
-- Fixed the name of the `areRequiredFieldsFilled()` JavaScript function.
-- Fixed a CodeQL finding about clear-text logging of sensitive information.
-- Creating a `StaffMember` now grants that user Django's `is_staff` flag, whichever way the record was created — the
-  Django admin, the staff settings form, a fixture. Previously only the "create new staff member" flow set it, so a
-  staff member created any other way was locked out of the very pages they had been created for. Superusers are left
-  untouched.
-- `Unavailability.clean()` compared a `date` against a `datetime` and raised `TypeError` instead of validating.
-  Anything calling `full_clean()` — the Django admin's add and change forms among them — hit the error.
-- Removed leftover debug `print()` calls from `views_admin.py`.
-- The booking page rendered its first batch of slots without consulting unavailabilities, so a slot blocked by one
-  was offered until the client picked a date and the ajax lookup replaced the list. Both paths now agree.
-- The unavailability and working hours forms answer malformed input with a `400` and the `INVALID_DATA` error code
-  instead of raising. Their submitted values are also converted to `date` and `time` before reaching the model,
-  rather than being handed whole `datetime` objects.
-- Several helpers used a mutable list as a default argument (`unavailabilities=[]`, `appointments=[]`); they now
-  default to `None`. Calling them without those arguments is unchanged.
-
-## Improvements 📈
-
-- The documentation site lives in this repository under `docs/` and is built with MkDocs Material. The reference
-  pages are now generated from, and checked against, the code they describe.
-- Slot availability tests no longer depend on the date they are run on, or on state cached by an earlier test.
-- Dependency updates across the board: Django, Pillow, phonenumbers, django-phonenumber-field, icalendar, django-q2,
-  python-dotenv, requests, setuptools and the CI actions.
+- The default thank-you page (`thank-you/<appointment_id>/`) could be opened by anyone for any appointment, by trying
+  ids in turn, and every visit sent the thank-you email again. It is now shown only to the browser that booked or
+  rescheduled the appointment, the client's account, the appointment's staff member and superusers (anyone else gets
+  a `404`), and the email is sent on the first visit after a booking or a reschedule only.
+- The time on the default thank-you page showed the date again; it now shows the time only.
+- The "Go home" button of the `404` page went to the home page and then straight back to the previous page.
+- Staff calendar: a new appointment started at the current time, seconds included, instead of 09:00; its modal was
+  titled "Appointment Details"; the delete confirmation used its question as the title too; an invalid email showed
+  "Invalid email address, yeah." in English; and the day list on phones showed its date and times in English.
+- **Security:** the staff calendar printed the appointments' data into the page without escaping it for a `<script>`
+  tag, so a client could inject a script through a booking field (their name, for example) that ran when a staff
+  member opened the calendar. The data is now escaped.
+- Emails sent without Django-Q lost their attachments, the `.ics` calendar invite included. They are now sent with
+  the same parts as the ones sent from the Django-Q task.
+- The "New appointment request" and "Reschedule request" email subjects were built from two pieces, so they could
+  not be translated as a whole. The month in the thank-you email also stayed in English; it now follows the active
+  language.
+- A staff member listed in `ADMINS` got the reschedule notification twice.
+- With Django 6's form of `ADMINS`, a list of email addresses (`ADMINS = ['admin@example.com']`), booking an
+  appointment or rescheduling one failed with "too many values to unpack": the package only read the older `('Name',
+  'email')` pairs. Both forms work now; an address given alone is also used as the name in the email's greeting.
+- Adding or editing a service: an invalid form now comes back with the input and the field errors instead of an empty
+  form, and a saved or deleted service leads to the service list instead of the profile page.
+- Services created before 3.12 had an `rgb(...)` colour that the colour picker showed, and saved back, as black. The
+  colour is now converted to `#rrggbb`, which new services use as well.
+- Staff members can open the read-only page of a service (`view-service/<id>/1/`); it was superuser-only, although
+  the service list links to it for everyone. Editing a service stays superuser-only.
+- Opening a user's staff settings page made them a staff member even if the form was never saved. Only saving it
+  does now, and an unknown user id gives a `404` instead of a server error.
+- A staff member deleting their own day off, unavailability or working hours through the short URL (without the
+  staff user id) was refused. It works now, and each delete, like each save, shows a success message.
+- Updating another staff member's personal information sent the superuser back to their own profile afterwards, and
+  an error sent them to their own form; both now stay on the staff member they were editing.
+- Staff calendar and schedule pages:
+    - the day-off form lost its staff member field and its errors (a wrong variable name in the template), and a
+      day off the server refused to save showed no error message;
+    - empty day-off, unavailability and working hours forms showed the text "None" in their fields;
+    - the calendar and confirmation modals used Bootstrap 4 markup (`data-dismiss`) and jQuery calls; they now use
+      Bootstrap 5's (`data-bs-dismiss` and its own modal API);
+    - resizing the window reset the calendar to the current month; it now keeps the view and date you were on, and
+      only re-renders fully when switching between the phone, tablet and desktop layouts;
+    - the appointment detail page has a description ("Service on date") for the browser and search engines.
+- The published package no longer includes the `appointments` demo project.
+- The booking page crashed ("'NoneType' object has no attribute 'hour'") once a `Config` existed without a start
+  time, end time, slot duration or buffer. The package creates such a `Config` itself the first time a client
+  reschedules, so every booking page failed from then on. Each empty setting now falls back to its `APPOINTMENT_*`
+  value from your settings.
+- The default thank-you page had no title in the browser tab, and its heading added " !" after the translated "See
+  you soon", which is only right in French. The heading is now one translated sentence.
+- Picking a day a staff member doesn't work said "Not a working day for ." when the staff user had no first name; it
+  now uses their full display name then.
+- The published package left out the illustration of the `403` rescheduling page (a `.webp` image): only `.jpg`
+  images were packaged. It now includes it, and the new `.txt` email templates.
+- Missing translations: about thirty Spanish strings (unavailabilities, the slot duration settings, several error
+  messages, the staff password email) and a dozen French ones (Description, Image, Services, Email, the slot
+  duration settings…) were shown in English. Both languages are now complete.
+- "Today" now always means today in your `TIME_ZONE`. The past-date checks (appointment requests, reschedules,
+  unavailabilities, the date validator), the booking page's default date and slots, the unavailability form's initial
+  date and the year in emails used the server process's date instead, which differs from `TIME_ZONE` wherever Django
+  can't set the process timezone (on Windows, for example). The test suite also used UTC dates, so it failed after
+  midnight in any timezone ahead of UTC; it now runs on `TIME_ZONE` too, whatever it is set to.
 
 ## Breaking Changes 🚨
 
-- **Python 3.8 and 3.9 are no longer supported.** `python_requires` is now `>=3.10`. Both are past end of life; if
-  you are still on either, stay on 3.10.1 until you can upgrade.
-- **A migration is required.** The new `Unavailability` model has to be created in your database. No existing field
-  changes meaning and no data is rewritten — see the [migration guide](../migration_guides/latest.md).
-- Projects that create `StaffMember` rows directly and deliberately relied on those users *not* being Django staff
-  should be aware of the `is_staff` change described under Bug Fixes.
+- **Possibly breaking, and only if something calls these URLs with a GET.** Every delete and remove action of the
+  staff pages now accepts **POST** only, and answers a GET with `405`: `delete_service`, `delete_appointment`,
+  `delete_day_off`, `delete_unavailability`, `delete_working_hours`, `remove_staff_member`, and the "make me a staff
+  member" / "remove me" buttons of the staff list. A plain link was enough to delete data, so a page elsewhere could
+  do it on a staff member's behalf. The package's own pages already send a POST; we don't expect anyone to link to
+  these actions directly, but if a custom template of yours does, use a small `<form method="post">` with
+  `{% csrf_token %}`, or the default `modal/confirm_modal.html` with `js/modal/show_modal.js`, which submits one for
+  you. See [Custom templates](../custom-templates.md).
+
+- **Linking to the default thank-you page yourself.** If you send people to `thank-you/<appointment_id>/` from
+  somewhere else (an email, or a payment view reached in another browser), a visitor who isn't logged in as the
+  client now gets a `404` there. The package's own redirects, and a payment view that sends the client back in the
+  same browser, are unaffected.
 
 ## Getting Started 🚀
 
 ### Installation 📥:
 
 ```bash
-pip install django-appointment==3.11.0
-```
-
-### Database Migration 🔧:
-
-```bash
-python manage.py makemigrations appointment
-python manage.py migrate
+pip install django-appointment==3.12.0
 ```
 
 ## Previous Version Highlights 🔙
 
+- [Release notes for version 3.11.0](v3_11_0.md)
 - [Release notes for the 3.10 series](v3_10_1.md)
-- [Release notes for version 3.0.1](v3_0_1.md)
-- [Release notes for version 3.0.0](v3_0_0.md)
 
 ## Support & Feedback 📞
 
