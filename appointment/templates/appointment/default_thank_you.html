@@ -41,12 +41,7 @@
                     <dd>{{ appointment.get_service_duration }}</dd>
                 </div>
             </dl>
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="alert alert-dismissible text-start mt-3 mb-0 {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
-                         role="alert">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
+            {% include "appointment/_messages.html" with alert_class="text-start mt-3 mb-0" %}
         </div>
     </div>
 {% endblock %}

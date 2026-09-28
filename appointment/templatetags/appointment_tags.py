@@ -62,3 +62,18 @@ def money(amount, currency='USD'):
     if amount in (None, ''):
         return ''
     return format_price(amount, currency)
+
+
+@register.simple_tag(takes_context=True)
+def first_time(context, key):
+    """True the first time it runs with ``key`` in a request, False after: to render a shared element only once."""
+    request = context.get('request')
+    if request is None:
+        return True
+    seen = getattr(request, '_djappt_rendered_once', None)
+    if seen is None:
+        seen = request._djappt_rendered_once = set()
+    if key in seen:
+        return False
+    seen.add(key)
+    return True

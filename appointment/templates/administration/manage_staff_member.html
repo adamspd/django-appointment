@@ -14,14 +14,7 @@
 
 {% block djappt_content %}
     <div class="djappt-shell djappt-staff djappt-staff-form-page content content-wrapper">
-        {% if messages %}
-            <div class="messages">
-                {% for message in messages %}
-                    <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
-                         role="alert">{{ message }}</div>
-                {% endfor %}
-            </div>
-        {% endif %}
+        {% include "appointment/_messages.html" %}
 
         <a class="djappt-back" href="{{ back_url }}">
             <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">

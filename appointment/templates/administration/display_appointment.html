@@ -12,14 +12,7 @@
 {% endblock %}
 {% block djappt_content %}
     <div class="djappt-shell djappt-appt-details content content-wrapper">
-        {% if messages %}
-            <div class="messages">
-                {% for message in messages %}
-                    <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
-                         role="alert">{{ message }}</div>
-                {% endfor %}
-            </div>
-        {% endif %}
+        {% include "appointment/_messages.html" %}
 
         <header class="djappt-header">
             <a class="djappt-back" href="{% url 'appointment:get_user_appointments' %}">
