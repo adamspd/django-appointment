@@ -69,6 +69,20 @@ class SlotTestCase(BaseTest):
         self.assertEqual(response.json()['message'], 'Date is in the past')
 
 
+    def test_not_a_working_day_names_a_staff_member_without_first_name(self):
+        """The 'not a working day' message falls back to the full display name when there is no first name."""
+        user = self.staff_member1.user
+        user.first_name = ''
+        user.save()
+        future = (timezone.localdate() + timedelta(days=3)).isoformat()
+        response = self.client.get(self.url, {'selected_date': future, 'staff_member': self.staff_member1.id},
+                                   HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        message = response.json()['message']
+        self.assertIn('Not a working day for', message)
+        self.assertIn(self.staff_member1.get_staff_member_name(), message)
+        self.assertNotIn('for .', message)
+
+
 class AppointmentRequestTestCase(BaseTest):
     def setUp(self):
         super().setUp()
