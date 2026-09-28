@@ -3,240 +3,113 @@
 {% load static %}
 
 {% block customCSS %}
-    <link rel="stylesheet" type="text/css" href="{% static 'css/app_admin/working_hours.css' %}"/>
-    <!-- additional CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-          integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
-          crossorigin="anonymous" referrerpolicy="no-referrer"/>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/css/bootstrap.min.css"
-          integrity="sha512-rt/SrQ4UNIaGfDyEXZtNcyWvQeOq0QLygHluFQcSjaGB04IxWhal71tKuzP6K8eYXYB6vJV4pHkXcmFGGQ1/0w=="
-          crossorigin="anonymous" referrerpolicy="no-referrer"/>
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.39.0/css/tempusdominus-bootstrap-4.min.css"
-          integrity="sha512-3JRrEUwaCkFUBLK1N8HehwQgu8e23jTH4np5NHOmQOobuC4ROQxFwFgBLTnhcnQRMs84muMh0PnnwXlPq5MGjg=="
-          crossorigin="anonymous" referrerpolicy="no-referrer"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/staff.css' %}"/>
+{% endblock %}
+{% block title %}
+    {% trans "Manage Working Hours" %}
+{% endblock %}
+{% block description %}
+    {% trans "Manage Working Hours" %}
 {% endblock %}
 
 {% block djappt_content %}
-    <section class="content content-wrapper">
-        <div class="working-hours-form-wrapper">
-            <div class="wh-form-content">
-                <h2>{% trans "Manage Working Hours" %}</h2>
-                <form method="post" action="" id="workingHoursForm"
-                      data-action="{% if entity_instance %}update{% else %}create{% endif %}"
-                      data-working-hours-id="
-                          {% if entity_instance %}{{ entity_instance.id }}{% else %}0{% endif %}"
-                      data-staff-user-id="{% if staff_user_id %}{{ staff_user_id }}{% else %}0{% endif %}">
-                    {% csrf_token %}
-
-                    {% if error_message %}
-                        <script type="text/javascript">
-                            document.addEventListener("DOMContentLoaded", function () {
-                                showErrorModal("{{ error_message }}");
-                            });
-                        </script>
-                    {% endif %}
-                    <!-- Staff Member -->
-                    {% if working_hours_form.staff_member %}
-                        <div class="form-group">
-                            <label for="{{ working_hours_form.staff_member.id_for_label }}">{% trans 'Staff Member' %}:</label>
-                            {{ working_hours_form.staff_member }}
-                        </div>
-                    {% endif %}
-
-                    <div class="form-group">
-                        <label for="{{ working_hours_form.day_of_week.id_for_label }}">{% trans 'Day of Week' %}:</label>
-                        {{ working_hours_form.day_of_week }}
-                    </div>
-
-                    <div class="form-group">
-                        <label for="{{ working_hours_form.start_time.id_for_label }}">{% trans 'Start time' %}:</label>
-                        <div class="input-group date" id="start-timepicker" data-target-input="nearest">
-                            <input type="text" class="form-control datetimepicker-input" data-toggle="datetimepicker"
-                                   data-target="#start-timepicker" name="{{ working_hours_form.start_time.name }}"
-                                   value="{{ working_hours_form.start_time.value|default_if_none:'' }}"
-                                   id="{{ working_hours_form.start_time.id_for_label }}">
-                            <div class="input-group-append" data-toggle="datetimepicker"
-                                 data-target="#start-timepicker">
-                                <div class="input-group-text"><i class="far fa-clock"></i></div>
-                            </div>
-                        </div>
-                        <input type="hidden" name="{{ working_hours_form.start_time.name }}_raw"
-                               value="{{ working_hours_form.start_time.value|default_if_none:'' }}"
-                               id="{{ working_hours_form.start_time.id_for_label }}_raw">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="{{ working_hours_form.end_time.id_for_label }}">{% trans 'End time' %}:</label>
-                        <div class="input-group date" id="end-timepicker" data-target-input="nearest">
-                            <input type="text" class="form-control datetimepicker-input" data-toggle="datetimepicker"
-                                   data-target="#end-timepicker" name="{{ working_hours_form.end_time.name }}"
-                                   value="{{ working_hours_form.end_time.value|default_if_none:'' }}"
-                                   id="{{ working_hours_form.end_time.id_for_label }}">
-                            <div class="input-group-append" data-toggle="datetimepicker" data-target="#end-timepicker">
-                                <div class="input-group-text"><i class="far fa-clock"></i></div>
-                            </div>
-                        </div>
-                        <input type="hidden" name="{{ working_hours_form.end_time.name }}_raw"
-                               value="{{ working_hours_form.end_time.value|default_if_none:'' }}"
-                               id="{{ working_hours_form.end_time.id_for_label }}_raw">
-                    </div>
-
-                    <button type="submit" class="btn btn-primary">{{ button_text }}</button>
-                    <input type="hidden" id="addWorkingHoursUrl"
-                           value="{% url 'appointment:add_working_hours_id' staff_user_id|default:user.id %}">
-                    <input type="hidden" id="updateWorkingHoursUrl"
-                           value="{% url 'appointment:update_working_hours_id' entity_id|default:0 staff_user_id|default:user.id %}">
-
-                </form>
-                <div class="messages" style="margin: 20px 0">
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
-                                 role="alert">{{ message }}</div>
-                        {% endfor %}
-                    {% endif %}
-                </div>
-                {% include 'modal/error_modal.html' %}
+    {% if staff_user_id %}
+        {% url 'appointment:user_profile' staff_user_id=staff_user_id as back_url %}
+    {% else %}
+        {% url 'appointment:user_profile' as back_url %}
+    {% endif %}
+    <div class="djappt-shell djappt-shell--narrow djappt-staff content content-wrapper">
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
+                         role="alert">{{ message }}</div>
+                {% endfor %}
             </div>
-        </div>
-    </section>
+        {% endif %}
+
+        <a class="djappt-back" href="{{ back_url }}">
+            <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                <path d="M10.354 3.146a.5.5 0 0 1 0 .708L6.207 8l4.147 4.146a.5.5 0 0 1-.708.708l-4.5-4.5a.5.5 0 0 1 0-.708l4.5-4.5a.5.5 0 0 1 .708 0"/>
+            </svg>
+            {% trans 'Back' %}</a>
+
+        {# Sent in the background by schedule_form.js, to the add or the update URL #}
+        {% if entity_instance %}
+            {% url 'appointment:update_working_hours_id' entity_id|default:entity_instance.id staff_user_id|default:user.id as post_url %}
+        {% else %}
+            {% url 'appointment:add_working_hours_id' staff_user_id|default:user.id as post_url %}
+        {% endif %}
+        <form method="post" action="" id="workingHoursForm" class="djappt-card djappt-form djappt-staff-form"
+              data-schedule-form data-post-url="{{ post_url }}"
+              data-action="{% if entity_instance %}update{% else %}create{% endif %}"
+              data-working-hours-id="{% if entity_instance %}{{ entity_instance.id }}{% else %}0{% endif %}"
+              data-staff-user-id="{% if staff_user_id %}{{ staff_user_id }}{% else %}0{% endif %}">
+            <h1 class="djappt-card-title">{% trans "Manage Working Hours" %}</h1>
+            {% csrf_token %}
+
+            {% if working_hours_form.staff_member %}
+                <div class="djappt-field mb-3">
+                    <label class="form-label" for="{{ working_hours_form.staff_member.id_for_label }}">{% trans 'Staff Member' %}</label>
+                    {{ working_hours_form.staff_member }}
+                </div>
+            {% endif %}
+
+            {# The day as a row of chips, in the site's week order #}
+            <fieldset class="djappt-form-section mb-4">
+                <legend class="form-label">{% trans 'Day of Week' %}</legend>
+                <div class="djappt-day-chips">
+                    {% for day in week_days %}
+                        <label class="djappt-day-chip">
+                            <input type="radio" name="{{ working_hours_form.day_of_week.html_name }}" value="{{ day.value }}"
+                                   {% if day.selected %}checked{% endif %} required>
+                            <span>{{ day.label }}</span>
+                        </label>
+                    {% endfor %}
+                </div>
+            </fieldset>
+
+            <div class="djappt-staff-fields">
+                <div class="djappt-field">
+                    <label class="form-label" for="{{ working_hours_form.start_time.id_for_label }}">{% trans 'Start time' %}</label>
+                    <input type="time" class="form-control" id="{{ working_hours_form.start_time.id_for_label }}"
+                           name="{{ working_hours_form.start_time.html_name }}"
+                           value="{{ working_hours_form.start_time.value|time:'H:i' }}" required
+                           data-raw-target="{{ working_hours_form.start_time.id_for_label }}_raw" data-raw-format="datetime">
+                    <input type="hidden" name="{{ working_hours_form.start_time.html_name }}_raw"
+                           id="{{ working_hours_form.start_time.id_for_label }}_raw">
+                </div>
+                <div class="djappt-field">
+                    <label class="form-label" for="{{ working_hours_form.end_time.id_for_label }}">{% trans 'End time' %}</label>
+                    <input type="time" class="form-control" id="{{ working_hours_form.end_time.id_for_label }}"
+                           name="{{ working_hours_form.end_time.html_name }}"
+                           value="{{ working_hours_form.end_time.value|time:'H:i' }}" required
+                           data-raw-target="{{ working_hours_form.end_time.id_for_label }}_raw" data-raw-format="datetime">
+                    <input type="hidden" name="{{ working_hours_form.end_time.html_name }}_raw"
+                           id="{{ working_hours_form.end_time.id_for_label }}_raw">
+                </div>
+            </div>
+
+            <div class="djappt-form-actions">
+                <a class="btn djappt-btn djappt-btn-ghost" href="{{ back_url }}">{% trans 'Cancel' %}</a>
+                <button type="submit" class="btn djappt-btn djappt-btn-primary">{{ button_text }}</button>
+            </div>
+        </form>
+        {% include 'modal/error_modal.html' %}
+    </div>
 {% endblock %}
 {% block customJS %}
-    <!-- JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
-            integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
-            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.8/umd/popper.min.js"
-            integrity="sha512-TPh2Oxlg1zp+kz3nFA0C5vVC6leG/6mm1z9+mA81MI5eaUVqasPLO8Cuk4gMF4gUfP5etR73rgU/8PNMsSesoQ=="
-            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/js/bootstrap.min.js"
-            integrity="sha512-7rusk8kGPFynZWu26OKbTeI+QPoYchtxsmPeBqkHIEXJxeun4yJ4ISYe7C6sz9wdxeE1Gk3VxsIWgCZTc+vX3g=="
-            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.30.1/moment.js"
-            integrity="sha512-3CuraBvy05nIgcoXjVN33mACRyI89ydVHg7y/HMN9wcTVbHeur0SeBzweSd/rxySapO7Tmfu68+JlKkLTnDFNg=="
-            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.39.0/js/tempusdominus-bootstrap-4.min.js"
-            integrity="sha512-k6/Bkb8Fxf/c1Tkyl39yJwcOZ1P4cRrJu77p83zJjN2Z55prbFHxPs9vN7q3l3+tSMGPDdoH51AEU8Vgo1cgAA=="
-            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script type="text/javascript">
-        function ensureMomentLocale(distant_locale) {
-            distant_locale = distant_locale.toLowerCase();
-
-            //Ensure the locale need to be loaded
-            if (moment.locales().includes(distant_locale)) {
-                moment.locale(distant_locale);
-                return Promise.resolve();
-            }
-
-            return new Promise((resolve, reject) => {
-                const script = document.createElement('script');
-
-                script.src =
-                    `https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.30.1/locale/${distant_locale}.js`;
-
-                script.onload = () => {
-                    moment.locale(distant_locale);
-                    resolve();
-                };
-
-                script.onerror = () => {
-                    reject(new Error(`Locale Moment.js inconnue : ${distant_locale}`));
-                };
-
-                document.head.appendChild(script);
-            });
-        }
-
+    <script>
         const errorTxt = "{% trans 'Error' %}";
-        const addWorkingHoursUrl = $('#addWorkingHoursUrl').val();
-        const updateWorkingHoursUrl = $('#updateWorkingHoursUrl').val();
-
-        const timepicker_display_format = '{{ localized_formats.js_timepicker_display_format }}';
-        const timepicker_locale = '{{ locale }}';
-
-        $(async function () {
-            try {
-                await ensureMomentLocale(timepicker_locale);
-            } catch (error) {
-                console.warn('Invalid locale for Moment.js :', error);
-                console.warn('Fallback to \'En\' locale.');
-                moment.locale('en');
-            }
-
-            const startTimeInput = $('#{{ working_hours_form.start_time.id_for_label }}');
-            const startTimeInputRaw = $('#{{ working_hours_form.start_time.id_for_label }}_raw');
-            const endTimeInput = $('#{{ working_hours_form.end_time.id_for_label }}');
-            const endTimeInputRaw = $('#{{ working_hours_form.end_time.id_for_label }}_raw');
-            const startTimePicker = $('#start-timepicker');
-            const endTimePicker = $('#end-timepicker');
-            const defaultStartTime = startTimeInput.val() ? moment(startTimeInput.val(), timepicker_display_format) : moment().hour(12).minute(0);
-            const defaultEndTime = endTimeInput.val() ? moment(endTimeInput.val(), timepicker_display_format) : moment().hour(13).minute(0);
-            startTimeInputRaw.val(defaultStartTime.format("YYYY-MM-DDTHH:mm:ss"));
-            endTimeInputRaw.val(defaultEndTime.format("YYYY-MM-DDTHH:mm:ss"));
-
-            startTimePicker.datetimepicker({
-                locale: timepicker_locale,
-                format: timepicker_display_format,
-                icons: {
-                    time: 'far fa-clock'
-                },
-                pickSeconds: false,
-                defaultDate: defaultStartTime
-            });
-
-            endTimePicker.datetimepicker({
-                locale: timepicker_locale,
-                format: timepicker_display_format,
-                icons: {
-                    time: 'far fa-clock'
-                },
-                pickSeconds: false,
-                defaultDate: defaultEndTime
-            });
-
-            startTimePicker.on('change.datetimepicker', function (e) {
-                startTimeInput.val(e.date.format(timepicker_display_format));
-                startTimeInputRaw.val(e.date.format("YYYY-MM-DDTHH:mm:ss"));
-            });
-
-            endTimePicker.on('change.datetimepicker', function (e) {
-                endTimeInput.val(e.date.format(timepicker_display_format));
-                endTimeInputRaw.val(e.date.format("YYYY-MM-DDTHH:mm:ss"));
-            });
-        });
-
-        $(document).on('submit', '#workingHoursForm', function (e) {
-            e.preventDefault();
-
-            const form = $(this);
-            const action = form.data('action');
-            let postUrl = '';
-
-            if (action === 'create') {
-                postUrl = addWorkingHoursUrl;
-            } else if (action === 'update') {
-                postUrl = updateWorkingHoursUrl;
-            }
-
-            $.ajax({
-                url: postUrl,
-                type: 'POST',
-                data: form.serialize(),
-                success: function (response) {
-                    if (response.success) {
-                        window.location.href = response.redirect_url;
-                    } else {
-                        showErrorModal(response.message)
-                    }
-                },
-                error: function (error) {
-                    showErrorModal(error.responseJSON.message)
-                }
-            });
-        });
     </script>
     <script src="{% static 'js/modal/error_modal.js' %}"></script>
+    <script src="{% static 'js/app_admin/schedule_form.js' %}"></script>
     <script src="{% static 'js/js-utils.js' %}"></script>
+    {% if error_message %}
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                showErrorModal("{{ error_message|escapejs }}");
+            });
+        </script>
+    {% endif %}
 {% endblock %}
-
