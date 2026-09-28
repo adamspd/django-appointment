@@ -47,18 +47,28 @@
                         </p>
                     {% endif %}
 
+                    {% if form.errors or client_data_form.errors %}
+                        {# Shown until the form is fixed, unlike the messages above, which fade out. #}
+                        <div class="alert alert-danger djappt-form-errors" role="alert">
+                            {% trans "Please correct the errors below." %}
+                            {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+                            {% for error in client_data_form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+                        </div>
+                    {% endif %}
                     <div class="djappt-fields-wrap user-info" id="user-info">
                         <div class="djappt-fields name-email">
                             <div class="name{% if user.is_authenticated %} djappt-field-full{% endif %}">
                                 <label for="{{ client_data_form.name.id_for_label }}" class="form-label">
                                     {% trans "Full Name" %} *</label>
                                 {{ client_data_form.name }}
+                                {% for error in client_data_form.name.errors %}<div class="djappt-field-error" id="{{ client_data_form.name.auto_id }}-error">{{ error }}</div>{% endfor %}
                             </div>
                             {% if not user.is_authenticated %}
                                 <div class="email">
                                     <label for="{{ client_data_form.email.id_for_label }}" class="form-label">
                                         {% trans "Email" %} *</label>
                                     {{ client_data_form.email }}
+                                    {% for error in client_data_form.email.errors %}<div class="djappt-field-error" id="{{ client_data_form.email.auto_id }}-error">{{ error }}</div>{% endfor %}
                                 </div>
                             {% endif %}
                             <div class="djappt-field-full phone-number">
@@ -66,16 +76,19 @@
                                 <div class="djappt-phone phone-input-container">
                                     {{ form.phone }}
                                 </div>
+                                {% for error in form.phone.errors %}<div class="djappt-field-error" id="{{ form.phone.auto_id }}-error">{{ error }}</div>{% endfor %}
                             </div>
                             <div class="djappt-field-full address">
                                 <label for="{{ form.address.id_for_label }}" class="form-label">
                                     {% trans "City and State" %}</label>
                                 {{ form.address }}
+                                {% for error in form.address.errors %}<div class="djappt-field-error" id="{{ form.address.auto_id }}-error">{{ error }}</div>{% endfor %}
                             </div>
                             <div class="djappt-field-full additional-information">
                                 <label for="{{ form.additional_info.id_for_label }}" class="form-label">
                                     {% trans 'Additional Information' %}</label>
                                 {{ form.additional_info }}
+                                {% for error in form.additional_info.errors %}<div class="djappt-field-error" id="{{ form.additional_info.auto_id }}-error">{{ error }}</div>{% endfor %}
                             </div>
                             {% if has_required_email_reminder_config %}
                                 <div class="djappt-field-full receive-email">
