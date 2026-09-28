@@ -21,19 +21,23 @@
 
         <header class="djappt-page-head">
             <div>
+                {% block djappt_heading %}
                 <h1 class="djappt-title">{% trans "Appointments" %}</h1>
+                {% endblock %}
                 <ul class="djappt-hints">
                     <li>{% trans "Click an appointment to see or edit it." %}</li>
                     <li>{% trans "Drag it to another day to move it." %}</li>
                     <li class="djappt-hint-mouse">{% trans "Right-click a day to add one." %}</li>
                 </ul>
             </div>
+            {% block djappt_actions %}
             <button type="button" class="btn djappt-btn djappt-btn-primary" id="djappt-new-appointment"
                     onclick="djapptNewAppointment()">
                 <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
                     <path d="M8 2a.75.75 0 0 1 .75.75v4.5h4.5a.75.75 0 0 1 0 1.5h-4.5v4.5a.75.75 0 0 1-1.5 0v-4.5h-4.5a.75.75 0 0 1 0-1.5h4.5v-4.5A.75.75 0 0 1 8 2"/>
                 </svg>
                 {% trans "New Appointment" %}</button>
+            {% endblock %}
         </header>
 
         <div class="djappt-card djappt-calendar-card calendar-wrapper">

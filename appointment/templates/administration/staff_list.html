@@ -19,8 +19,11 @@
 
         <header class="djappt-page-head">
             <div>
+                {% block djappt_heading %}
                 <h1 class="djappt-title">{% trans 'Staff Members' %}</h1>
+                {% endblock %}
             </div>
+            {% block djappt_actions %}
             <div class="djappt-page-tools">
                 {# Adds (or removes) the logged-in superuser as a staff member #}
                 <form method="post" action="{{ btn_staff_me_link }}">
@@ -33,6 +36,7 @@
                     </svg>
                     {% trans 'Add staff member' %}</a>
             </div>
+            {% endblock %}
         </header>
 
         <div class="djappt-card">
