@@ -1,5 +1,8 @@
-{% load i18n %}
-<!-- Generic Confirmation Modal (every use confirms a deletion or a removal) -->
+{% load i18n appointment_tags %}
+{# Generic Confirmation Modal (every use confirms a deletion or a removal). The layout adds it to every staff page; #}
+{# including it again (older overrides do) renders nothing, so the page keeps a single #confirmModal. #}
+{% first_time 'confirm_modal' as first %}
+{% if first %}
 {% csrf_token %}
 <div class="modal fade" id="confirmModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
@@ -20,3 +23,4 @@
         </div>
     </div>
 </div>
+{% endif %}

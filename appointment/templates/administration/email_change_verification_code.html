@@ -21,12 +21,7 @@
             <h1 class="djappt-title">{% trans 'Enter Verification Code' %}</h1>
             <p class="djappt-lead mb-4">{% trans "We've sent a verification code to your email. Please enter it below" %}:</p>
 
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="alert {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}alert-danger{% else %}alert-{{ message.tags|default:'info' }}{% endif %} text-start"
-                         role="alert">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
+            {% include "appointment/_messages.html" with alert_class="text-start" dismissible=False %}
 
             <form method="post" action="{% url 'appointment:email_change_verification_code' %}">
                 {% csrf_token %}

@@ -21,12 +21,7 @@
             <h1 class="djappt-title">{% trans "Rescheduling Successful" %}</h1>
             <p class="djappt-lead mb-4">{% trans "Your appointment rescheduling request has been successfully submitted. Please check your email and click on the confirmation link to finalize the rescheduling process." %}</p>
             <a class="btn djappt-btn djappt-btn-primary" href="/">{% trans "Go to Homepage" %}</a>
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="alert alert-dismissible text-start mt-3 mb-0 {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
-                         role="alert">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
+            {% include "appointment/_messages.html" with alert_class="text-start mt-3 mb-0" %}
         </div>
     </div>
 {% endblock %}

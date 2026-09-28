@@ -2019,3 +2019,36 @@ class AdminPageContextTests(BaseTest):
                 self.assertEqual(response.context['form_action'], action)
                 self.assertEqual(response.context['back_url'], profile)
                 self.assertContains(response, profile)
+
+
+class SharedPagePartsTests(BaseTest):
+    """Messages come from one include, and staff pages get exactly one confirmation modal."""
+
+    def test_staff_pages_have_one_confirm_modal(self):
+        self.need_superuser_login()
+        for url in [reverse('appointment:get_service_list'), reverse('appointment:user_profile'),
+                    reverse('appointment:get_user_appointments'),
+                    reverse('appointment:user_profile', args=[self.staff_member1.user.id])]:
+            with self.subTest(url=url):
+                response = self.client.get(url)
+                self.assertContains(response, 'id="confirmModal"', count=1)
+                self.assertContains(response, 'js/modal/show_modal.js', count=1)
+
+    def test_delete_buttons_use_data_attributes(self):
+        self.need_superuser_login()
+        response = self.client.get(reverse('appointment:get_service_list'))
+        self.assertContains(response,
+                            f'data-djappt-confirm="{reverse("appointment:delete_service", args=[self.service1.id])}"')
+        self.assertNotContains(response, 'onclick="showModal(')
+
+    def test_client_pages_have_no_confirm_modal(self):
+        response = self.client.get(reverse('appointment:appointment_request', args=[self.service1.id]))
+        self.assertNotContains(response, 'id="confirmModal"')
+
+    def test_messages_come_from_the_shared_include(self):
+        self.need_superuser_login()
+        self.client.post(reverse('appointment:delete_service', args=[self.service2.id]))
+        response = self.client.get(reverse('appointment:get_service_list'))
+        self.assertTemplateUsed(response, 'appointment/_messages.html')
+        self.assertContains(response, 'djappt-messages')
+        self.assertContains(response, 'Service deleted successfully!')
