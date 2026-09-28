@@ -18,14 +18,7 @@
     {% translate "Delete" as delete_label %}
     {% translate "Add" as add_label %}
     <div class="djappt-shell djappt-staff djappt-profile content content-wrapper">
-        {% if messages %}
-            <div class="messages">
-                {% for message in messages %}
-                    <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
-                         role="alert">{{ message }}</div>
-                {% endfor %}
-            </div>
-        {% endif %}
+        {% include "appointment/_messages.html" %}
 
         {% if superuser %}
             <a class="djappt-back" href="{% url 'appointment:user_profile' %}">
@@ -151,7 +144,7 @@
                                                 </a>
                                                 <button type="button" class="btn djappt-btn djappt-btn-ghost djappt-icon-btn djappt-text-danger"
                                                         title="{{ delete_label }}" aria-label="{{ delete_label }} · {{ day.name }}"
-                                                        onclick="showModal('{{ modal_title|escapejs }}', '{{ w_modal_message|escapejs }}', '{{ delete_btn_modal|escapejs }}', '{{ delete_url }}', null)">
+                                                        data-djappt-confirm="{{ delete_url }}" data-confirm-title="{{ modal_title }}" data-confirm-message="{{ w_modal_message }}" data-confirm-action="{{ delete_btn_modal }}">
                                                     <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
                                                         <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
                                                         <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
@@ -258,7 +251,7 @@
                                     </a>
                                     <button type="button" class="btn djappt-btn djappt-btn-ghost djappt-icon-btn djappt-text-danger"
                                             title="{{ delete_label }}" aria-label="{{ delete_label }}"
-                                            onclick="showModal('{{ modal_title|escapejs }}', '{{ d_modal_message|escapejs }}', '{{ delete_btn_modal|escapejs }}', '{{ delete_url }}', null)">
+                                            data-djappt-confirm="{{ delete_url }}" data-confirm-title="{{ modal_title }}" data-confirm-message="{{ d_modal_message }}" data-confirm-action="{{ delete_btn_modal }}">
                                         <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
                                             <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
                                             <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
@@ -321,7 +314,7 @@
                                     </a>
                                     <button type="button" class="btn djappt-btn djappt-btn-ghost djappt-icon-btn djappt-text-danger"
                                             title="{{ delete_label }}" aria-label="{{ delete_label }}"
-                                            onclick="showModal('{{ modal_title|escapejs }}', '{{ u_modal_message|escapejs }}', '{{ delete_btn_modal|escapejs }}', '{{ delete_url }}', null)">
+                                            data-djappt-confirm="{{ delete_url }}" data-confirm-title="{{ modal_title }}" data-confirm-message="{{ u_modal_message }}" data-confirm-action="{{ delete_btn_modal }}">
                                         <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
                                             <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
                                             <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
@@ -339,10 +332,8 @@
             </div>
         </div>
 
-        {% include 'modal/confirm_modal.html' %}
     </div>
 {% endblock %}
 {% block customJS %}
-    <script src="{% static 'js/modal/show_modal.js' %}"></script>
     <script src="{% static 'js/js-utils.js' %}"></script>
 {% endblock %}

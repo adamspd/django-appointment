@@ -16,12 +16,7 @@
 {% block djappt_content %}
     <div class="djappt-shell djappt-shell--wide djappt-staff-calendar content content-wrapper">
         <div class="messages">
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
-                         role="alert">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
+            {% include "appointment/_messages.html" %}
         </div>
 
         <header class="djappt-page-head">
@@ -55,7 +50,6 @@
         </ul>
     </div>
 
-    {% include 'modal/confirm_modal.html' %}
 {% endblock %}
 
 
@@ -112,7 +106,6 @@
 
     <script src="{% static 'js/modal/error_modal.js' %}"></script>
     <script src="{% static 'js/app_admin/staff_index.js' %}"></script>
-    <script src="{% static 'js/modal/show_modal.js' %}"></script>
     <script src="{% static 'js/js-utils.js' %}"></script>
 
     <script>
