@@ -1240,6 +1240,19 @@ class TestGetTimesFromConfig(TestCase):
         self.assertEqual(slot_duration, datetime.timedelta(minutes=30))
         self.assertEqual(buff_time, datetime.timedelta(minutes=60))
 
+    def test_empty_config_fields_fall_back_to_the_settings(self):
+        """A Config with empty times (Config.get_instance() creates one when a client reschedules) must not crash."""
+        Config.get_instance()
+        start_time, end_time, slot_duration, buff_time = get_times_from_config(self.sample_date)
+        self.assertEqual(start_time, datetime.datetime(2023, 10, 9, 7, 0))
+        self.assertEqual(end_time, datetime.datetime(2023, 10, 9, 15, 0))
+        self.assertEqual(slot_duration, datetime.timedelta(minutes=30))
+        self.assertEqual(buff_time, datetime.timedelta(minutes=60))
+
+    def test_a_zero_buffer_in_config_is_kept(self):
+        Config.objects.create(appointment_buffer_time=0)
+        self.assertEqual(get_times_from_config(self.sample_date)[3], datetime.timedelta(0))
+
 
 class CreateNewUserTest(TestCase):
     def test_create_new_user_unique_username(self):
