@@ -143,22 +143,13 @@ class StaffAppointmentInformationForm(forms.ModelForm):
                   'appointment_buffer_time', 'work_on_saturday', 'work_on_sunday']
         widgets = {
             'services_offered': forms.SelectMultiple(attrs={'class': 'form-control'}),
-            'slot_duration': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'placeholder': _('Example value: 30, 60, 90, 120... (in minutes)')
-            }),
-            'lead_time': forms.TimeInput(attrs={
-                'class': 'form-control',
-                'placeholder': _('Example value: 08:00:00, 09:00:00... (24-hour format)')
-            }),
-            'finish_time': forms.TimeInput(attrs={
-                'class': 'form-control',
-                'placeholder': _('Example value: 17:00:00, 18:00:00... (24-hour format)')
-            }),
-            'appointment_buffer_time': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'placeholder': _('Example value: 15, 30, 45, 60... (in minutes)')
-            }),
+            # Minutes: a short example fits the small field next to its "min" unit
+            'slot_duration': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '30', 'min': 0}),
+            # The browser's time picker; it sends HH:MM, which TimeField accepts
+            'lead_time': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}, format='%H:%M'),
+            'finish_time': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}, format='%H:%M'),
+            'appointment_buffer_time': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '0',
+                                                                'min': 0}),
             'work_on_saturday': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'work_on_sunday': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
@@ -172,22 +163,13 @@ class StaffMemberForm(forms.ModelForm):
         widgets = {
             'user': forms.Select(attrs={'class': 'form-control'}),
             'services_offered': forms.SelectMultiple(attrs={'class': 'form-control'}),
-            'slot_duration': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'placeholder': _('Example value: 30, 60, 90, 120... (in minutes)')
-            }),
-            'lead_time': forms.TimeInput(attrs={
-                'class': 'form-control',
-                'placeholder': _('Example value: 08:00:00, 09:00:00... (24-hour format)')
-            }),
-            'finish_time': forms.TimeInput(attrs={
-                'class': 'form-control',
-                'placeholder': _('Example value: 17:00:00, 18:00:00... (24-hour format)')
-            }),
-            'appointment_buffer_time': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'placeholder': _('Example value: 15, 30, 45, 60... (in minutes)')
-            }),
+            # Minutes: a short example fits the small field next to its "min" unit
+            'slot_duration': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '30', 'min': 0}),
+            # The browser's time picker; it sends HH:MM, which TimeField accepts
+            'lead_time': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}, format='%H:%M'),
+            'finish_time': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}, format='%H:%M'),
+            'appointment_buffer_time': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '0',
+                                                                'min': 0}),
             'work_on_saturday': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'work_on_sunday': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }

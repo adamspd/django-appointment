@@ -313,12 +313,3 @@
     }
 }
 
-/* ---- Verification code ---- */
-
-:where(.djappt) .djappt-booking .djappt-code-input {
-    font-size: 1.5rem;
-    font-weight: 600;
-    letter-spacing: .35em;
-    text-align: center;
-    text-transform: uppercase;
-}

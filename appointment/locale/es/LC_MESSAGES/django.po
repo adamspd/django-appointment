@@ -2307,3 +2307,30 @@ msgstr "Tarjetas"
 #: appointment/templates/administration/service_list.html
 msgid "Display"
 msgstr "Vista"
+
+#: appointment/templates/administration/staff_list.html
+msgid "Add staff member"
+msgstr "Añadir miembro del personal"
+
+#: appointment/templates/administration/user_profile.html
+msgid "Back to the staff"
+msgstr "Volver al personal"
+
+#: appointment/templates/administration/manage_staff_member.html
+#: appointment/templates/administration/manage_staff_personal_info.html
+msgid "Back"
+msgstr "Volver"
+
+#: appointment/templates/administration/manage_staff_member.html
+msgctxt "minutes, short"
+msgid "min"
+msgstr "min"
+
+#: appointment/templates/administration/user_profile.html
+msgctxt "day without working hours"
+msgid "Off"
+msgstr "Libre"
+
+#: appointment/templates/administration/user_profile.html
+msgid "Past"
+msgstr "Pasado"

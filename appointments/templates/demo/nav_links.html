@@ -14,11 +14,11 @@
 
 <div class="d-flex flex-wrap align-items-center gap-2">
     {% include "demo/language_form.html" %}
-    {% if user.is_authenticated %}
-        {% if user.is_staff or user.is_superuser %}
+    {% if request.user.is_authenticated %}
+        {% if request.user.is_staff or request.user.is_superuser %}
             <a class="btn btn-sm btn-primary" href="{{ calendar_url }}">{% trans "Staff area" %}</a>
         {% endif %}
-        <span class="navbar-text small">{{ user.get_username }}</span>
+        <span class="navbar-text small">{{ request.user.get_username }}</span>
         <form action="{% url 'admin:logout' %}" method="post" class="d-flex">
             {% csrf_token %}
             <input name="next" type="hidden" value="{{ home_url }}">
