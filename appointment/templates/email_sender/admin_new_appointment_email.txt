@@ -1,0 +1,22 @@
+{% load i18n %}{% autoescape off %}{% translate 'New Appointment Request' %}
+
+{% blocktranslate trimmed %}Dear {{ recipient_name }},{% endblocktranslate %}
+
+{% if is_staff_member %}{% translate 'You have received a new appointment request. Here are the details:' %}{% else %}{% blocktranslate trimmed %}
+    A new appointment request has been received for {{ staff_member_name }}. Here are the details:
+{% endblocktranslate %}{% endif %}
+
+- {% translate 'Client Name' %}: {{ client_name }}
+- {% translate 'Service Requested' %}: {{ appointment.get_service_name }}
+- {% translate 'Appointment Date' %}: {{ appointment.appointment_request.date|date:"l, d F Y" }}
+- {% translate 'Time' %}: {{ appointment.appointment_request.start_time|time }} – {{ appointment.appointment_request.end_time|time }}
+- {% translate 'Contact Details' %}: {% if appointment.phone %}{{ appointment.phone }} | {% endif %}{{ appointment.client.email }}
+- {% translate 'Additional Info' %}: {{ appointment.additional_info|default:"N/A" }}
+
+{% if is_staff_member %}{% translate 'Please review the appointment request and take the necessary action.' %}{% else %}{% blocktranslate trimmed %}
+    Please ensure that {{ staff_member_name }} reviews this appointment request and takes the necessary
+    action.
+{% endblocktranslate %}{% endif %}
+
+{% translate 'This is an automated message. Please do not reply directly to this email.' %}
+{% endautoescape %}

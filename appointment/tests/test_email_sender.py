@@ -1,11 +1,15 @@
 # test_email_sender.py
 # Path: appointment/tests/test_email_sender.py
 
+import datetime
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from django.core import mail
 from django.template import TemplateDoesNotExist
+from django.template.loader import render_to_string
 from django.test import SimpleTestCase, override_settings
+from django.utils import translation
 
 from appointment.email_sender import notify_admin, send_email
 from appointment.email_sender.email_sender import html_to_text, render_text_body
@@ -83,3 +87,48 @@ class SendEmailTaskTests(SimpleTestCase):
         send_email_task(['jack@sgc.mil'], 'Hi', 'Plain text', None, 'noreply@sgc.mil')
         self.assertEqual(mail.outbox[0].body, 'Plain text')
         self.assertEqual(mail.outbox[0].alternatives, [])
+
+
+class PackageEmailTemplatesTests(SimpleTestCase):
+    """The package's own email templates render in HTML and text, with whole sentences translated."""
+
+    def render_all(self, lang):
+        ar = SimpleNamespace(date=datetime.date(2030, 10, 14), start_time=datetime.time(10, 30),
+                             end_time=datetime.time(11, 30))
+        appointment = SimpleNamespace(get_service_name='Stargate Diagnostics', appointment_request=ar, phone='',
+                                      client=SimpleNamespace(email='jack@sgc.mil'), additional_info='',
+                                      address='')
+        contexts = {
+            'thank_you_email': {'first_name': 'Jack', 'company': 'SGC', 'more_details': {'Service': 'Gate'},
+                                'month_year': 'OCT 2030', 'day': '14', 'main_title': 'Booked',
+                                'reschedule_link': 'https://sgc.mil/r/1'},
+            'admin_new_appointment_email': {'recipient_name': 'George', 'client_name': 'Jack',
+                                            'appointment': appointment, 'staff_member_name': 'Sam'},
+            'reminder_email': {'first_name': 'Jack', 'appointment': appointment, 'recipient_type': 'client'},
+            'reschedule_email': {'is_confirmation': False, 'client_name': 'Jack', 'service_name': 'Gate',
+                                 'old_date': ar.date, 'reschedule_date': ar.date, 'old_start_time': ar.start_time,
+                                 'start_time': ar.start_time, 'old_end_time': ar.end_time,
+                                 'end_time': ar.end_time, 'company': 'SGC'},
+        }
+        rendered = {}
+        with translation.override(lang):
+            for name, context in contexts.items():
+                for ext in ('html', 'txt'):
+                    rendered[f'{name}.{ext}'] = render_to_string(f'email_sender/{name}.{ext}', context)
+        return rendered
+
+    def test_every_template_renders_in_html_and_text(self):
+        for name, text in self.render_all('en').items():
+            self.assertTrue(text.strip(), name)
+            if name.endswith('.txt'):
+                self.assertNotIn('<', text, name)
+
+    def test_sentences_with_names_are_translated_whole(self):
+        rendered = self.render_all('fr')
+        self.assertIn('Bonjour Jack,', rendered['reminder_email.txt'])
+        self.assertIn('Bonjour George,', rendered['admin_new_appointment_email.html'])
+        self.assertIn('Une nouvelle demande de rendez-vous a été reçue pour Sam.',
+                      rendered['admin_new_appointment_email.txt'])
+        self.assertIn('Un rendez-vous avec Jack pour le service Gate a été reprogrammé.',
+                      rendered['reschedule_email.txt'])
+        self.assertIn('lang="fr"', rendered['thank_you_email.html'])

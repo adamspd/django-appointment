@@ -1,93 +1,68 @@
+{% extends "email_sender/base_email.html" %}
 {% load i18n %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>{% trans "Appointment Reschedule Confirmation" %}</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-        }
+{% block title %}{% trans "Appointment Reschedule" %}{% endblock %}
+{% block preheader %}{{ old_date|date:"l, d F Y" }} → {{ reschedule_date|date:"l, d F Y" }}{% endblock %}
+{% block heading %}{% trans "Appointment Reschedule" %}{% endblock %}
 
-        .email-container {
-            max-width: 600px;
-            background: #ffffff;
-            margin: 20px auto;
-            padding: 20px;
-            border: 1px solid #dddddd;
-        }
-
-        .email-content {
-            margin: 20px 0;
-        }
-
-        .fallback-link {
-            margin-top: 20px;
-        }
-
-        a {
-            color: #007bff;
-            text-decoration: none;
-        }
-    </style>
-</head>
-<body>
-<!-- email_template.html -->
-<div class="email-container">
-    <h2>{% trans "Appointment Reschedule" %}</h2>
-    <div class="email-content">
-        {% if is_confirmation %}
-            <p>{% trans "Dear" %} {{ first_name }},</p>
-        {% else %}
-            <p>{% trans "Hi" %},</p>
-        {% endif %}
-
-        {% if is_confirmation %}
-            <p>
-                {% trans "You have requested to reschedule your appointment. Please review the changes below and confirm:" %}
-            </p>
-        {% else %}
-            <p>
-                {% trans "An appointment with" %} <b>{{ client_name }}</b> {% trans "for the service" %}
-                <b>{{ service_name }}</b> {% trans "has been rescheduled." %}
-                {% if reason_for_rescheduling %}
-                    <br><b>{% trans "Reason for rescheduling:" %}</b>
-                    {{ reason_for_rescheduling }}{% endif %}
-            </p>
-        {% endif %}
-
-        <p>
-            <b>{% trans "Original Appointment:" %}</b><br>
-            {% trans "Date" %}: {{ old_date|date:"l, d F Y" }}<br>
-            {% trans "Time" %}: {{ old_start_time|time }} {% trans ' to ' %} {{ old_end_time|time }}
+{% block content %}
+    {% if is_confirmation %}
+        <p style="margin: 0 0 12px;">{% if first_name %}{% blocktrans trimmed %}Dear {{ first_name }},{% endblocktrans %}{% else %}{% trans "Hi" %},{% endif %}</p>
+        <p style="margin: 0 0 24px;">{% trans "You have requested to reschedule your appointment. Please review the changes below and confirm:" %}</p>
+    {% else %}
+        <p style="margin: 0 0 12px;">{% trans "Hi" %},</p>
+        <p style="margin: 0 0 24px;">
+            {% blocktrans trimmed %}
+                An appointment with {{ client_name }} for the service {{ service_name }} has been
+                rescheduled.
+            {% endblocktrans %}
         </p>
-        <p>
-            <b>{% trans "Rescheduled Appointment:" %}</b><br>
-            {% trans "Date" %}: {{ reschedule_date|date:"l, d F Y" }}<br>
-            {% trans "Time" %}: {{ start_time|time }} {% trans ' to ' %} {{ end_time|time }}
-        </p>
-
-        {% if is_confirmation %}
-            <p>
-                {% trans "This link will expire in 5 minutes. If you do not confirm within this time frame, you will need to submit a new reschedule request." %}
+        {% if reason_for_rescheduling %}
+            <p style="margin: -12px 0 24px; padding: 12px 14px; background-color: #f4f6fa; border-radius: 8px;">
+                <b>{% trans "Reason for rescheduling:" %}</b> {{ reason_for_rescheduling }}
             </p>
-            <a href="{{ confirmation_link }}"
-               style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
-                {% trans "Confirm Appointment" %}
-            </a>
-            <div class="fallback-link">
-                {% trans "If the button above does not work, please copy and paste the following link into your browser:" %}
-                <br>
-                <a href="{{ confirmation_link }}">{{ confirmation_link }}</a>
-            </div>
         {% endif %}
-    </div>
-    <div class="email-footer">
-        <p>{% trans "Thank you," %}<br>{{ company }}</p>
-    </div>
-</div>
-</body>
-</html>
+    {% endif %}
+
+    {# The old and the new time side by side (one under the other on narrow screens) #}
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 0 0 24px;">
+        <tr>
+            <td valign="top" width="50%" style="padding: 0 6px 12px 0;">
+                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="border: 1px solid #e3e8ef; border-radius: 8px; border-collapse: separate;">
+                    <tr>
+                        <td style="padding: 12px 14px; font-size: 14px; color: #64748b;">
+                            <div style="margin-bottom: 4px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px;">{% trans "Original Appointment:" %}</div>
+                            <div style="text-decoration: line-through;">{{ old_date|date:"l, d F Y" }}</div>
+                            <div style="text-decoration: line-through;">{{ old_start_time|time }} – {{ old_end_time|time }}</div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td valign="top" width="50%" style="padding: 0 0 12px 6px;">
+                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="border: 1px solid #00307c; border-radius: 8px; border-collapse: separate; background-color: #e6ebf3;">
+                    <tr>
+                        <td style="padding: 12px 14px; font-size: 14px; color: #0c1b33;">
+                            <div style="margin-bottom: 4px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: #00307c;">{% trans "Rescheduled Appointment:" %}</div>
+                            <div style="font-weight: 600;">{{ reschedule_date|date:"l, d F Y" }}</div>
+                            <div style="font-weight: 600;">{{ start_time|time }} – {{ end_time|time }}</div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    {% if is_confirmation %}
+        <p style="margin: 0 0 16px;">
+            <a href="{{ confirmation_link }}" style="display: inline-block; padding: 12px 22px; background-color: #00307c; border-radius: 8px; font-weight: 600; color: #ffffff; text-decoration: none;">{% trans "Confirm Appointment" %}</a>
+        </p>
+        <p style="margin: 0 0 16px; font-size: 14px; color: #33415c;">
+            {% trans "This link will expire in 5 minutes. If you do not confirm within this time frame, you will need to submit a new reschedule request." %}
+        </p>
+        <p style="margin: 0 0 24px; font-size: 13px; color: #64748b;">
+            {% trans "If the button above does not work, please copy and paste the following link into your browser:" %}<br>
+            <a href="{{ confirmation_link }}" style="color: #00307c; word-break: break-all;">{{ confirmation_link }}</a>
+        </p>
+    {% endif %}
+
+    <p style="margin: 0;">{% trans "Thank you," %}<br>{{ company }}</p>
+{% endblock %}

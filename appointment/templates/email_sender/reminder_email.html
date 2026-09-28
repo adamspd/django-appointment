@@ -1,160 +1,50 @@
+{% extends "email_sender/base_email.html" %}
 {% load i18n %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% translate 'Appointment Reminder' %}</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-            color: #333333;
-        }
+{% block title %}{% translate 'Appointment Reminder' %}{% endblock %}
+{% block preheader %}{{ appointment.get_service_name }} · {{ appointment.appointment_request.date|date:"l, d F Y" }} · {{ appointment.appointment_request.start_time|time }}{% endblock %}
+{% block heading %}{% translate 'Appointment Reminder' %}{% endblock %}
 
-        .email-container {
-            max-width: 600px;
-            margin: 0 auto;
-            background: #ffffff;
-        }
-
-        .email-header {
-            background-color: #2c3e50;
-            color: #ffffff;
-            padding: 20px 15px;
-            text-align: center;
-        }
-
-        .email-header h2 {
-            margin: 0;
-            font-size: 22px;
-            font-weight: 600;
-        }
-
-        .email-body {
-            padding: 20px 15px;
-            line-height: 1.5;
-        }
-
-        .email-body p {
-            margin-bottom: 15px;
-        }
-
-        .appointment-info {
-            background-color: #f8f8f8;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 20px;
-        }
-
-        .appointment-info h3 {
-            margin-top: 0;
-            color: #2c3e50;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 10px;
-            margin-bottom: 15px;
-            font-size: 20px;
-        }
-
-        .info-row {
-            margin-bottom: 15px;
-        }
-
-        .info-label {
-            font-weight: 600;
-            color: #7f8c8d;
-            display: block;
-            margin-bottom: 5px;
-            font-size: 14px;
-        }
-
-        .info-value {
-            display: block;
-            font-size: 16px;
-            color: #2c3e50;
-        }
-
-        .email-footer {
-            background-color: #f8f8f8;
-            padding: 15px;
-            font-size: 12px;
-            color: #7f8c8d;
-            text-align: center;
-            border-top: 1px solid #e0e0e0;
-        }
-
-        .button {
-            display: block;
-            background-color: #3498db;
-            color: #ffffff;
-            padding: 12px 20px;
-            border-radius: 5px;
-            text-decoration: none;
-            font-weight: 600;
-            margin-top: 20px;
-            text-align: center;
-        }
-
-        .button:hover {
-            background-color: #2980b9;
-        }
-
-        @media only screen and (max-width: 480px) {
-            .email-container {
-                width: 100%;
-            }
-        }
-    </style>
-</head>
-<body>
-<div class="email-container">
-    <div class="email-header">
-        <h2>{% translate 'Appointment Reminder' %}</h2>
-    </div>
-    <div class="email-body">
-        <p>
-            {% if recipient_type == 'client' %}
-                {% translate 'Dear' %} {{ first_name }},
-            {% else %}
-                {% translate 'Dear Administrator,' %}
-            {% endif %}
-        </p>
-        <p>{% translate 'This is a reminder for your upcoming appointment.' %}</p>
-
-        <div class="appointment-info">
-            <h3>{% translate 'Appointment Details' %}</h3>
-            <div class="info-row">
-                <span class="info-label">{% translate 'Service' %}</span>
-                <span class="info-value">{{ appointment.get_service_name }}</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">{% translate 'Date' %}</span>
-                <span class="info-value">{{ appointment.appointment_request.date|date:"l, d F Y" }}</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">{% translate 'Time' %}</span>
-                <span class="info-value">{{ appointment.appointment_request.start_time|time }} - {{ appointment.appointment_request.end_time|time }}</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">{% translate 'Location' %}</span>
-                <span class="info-value">{{ appointment.address }}</span>
-            </div>
-        </div>
-
+{% block content %}
+    <p style="margin: 0 0 12px;">
         {% if recipient_type == 'client' %}
-            <p>{% translate 'If you need to reschedule, please click the button below or contact us for further assistance.' %}</p>
-            <a href="{{ reschedule_link }}" class="button">{% translate 'Reschedule Appointment' %}</a>
-            <p>{% translate 'Thank you for choosing us!' %}</p>
+            {% if first_name %}{% blocktranslate trimmed %}Dear {{ first_name }},{% endblocktranslate %}{% else %}{% translate 'Hi' %},{% endif %}
         {% else %}
-            <p>{% translate 'Please ensure the appointment setup is complete and ready for the client.' %}</p>
+            {% translate 'Dear Administrator,' %}
         {% endif %}
-    </div>
-    <div class="email-footer">
-        {% translate 'This is an automated message. Please do not reply directly to this email.' %}
-    </div>
-</div>
-</body>
-</html>
+    </p>
+    <p style="margin: 0 0 24px;">{% translate 'This is a reminder for your upcoming appointment.' %}</p>
+
+    <h2 style="margin: 0 0 10px; font-size: 16px; font-weight: 700; color: #0c1b33;">{% translate 'Appointment Details' %}</h2>
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 0 0 24px; border: 1px solid #e3e8ef; border-radius: 8px; border-collapse: separate;">
+        <tr>
+            <td valign="top" style="padding: 10px 14px; width: 40%; font-size: 14px; color: #64748b; border-bottom: 1px solid #e3e8ef;">{% translate 'Service' %}</td>
+            <td valign="top" style="padding: 10px 14px; font-size: 14px; font-weight: 600; border-bottom: 1px solid #e3e8ef;">{{ appointment.get_service_name }}</td>
+        </tr>
+        <tr>
+            <td valign="top" style="padding: 10px 14px; font-size: 14px; color: #64748b; border-bottom: 1px solid #e3e8ef;">{% translate 'Date' %}</td>
+            <td valign="top" style="padding: 10px 14px; font-size: 14px; font-weight: 600; border-bottom: 1px solid #e3e8ef;">{{ appointment.appointment_request.date|date:"l, d F Y" }}</td>
+        </tr>
+        <tr>
+            <td valign="top" style="padding: 10px 14px; font-size: 14px; color: #64748b;{% if appointment.address %} border-bottom: 1px solid #e3e8ef;{% endif %}">{% translate 'Time' %}</td>
+            <td valign="top" style="padding: 10px 14px; font-size: 14px; font-weight: 600;{% if appointment.address %} border-bottom: 1px solid #e3e8ef;{% endif %}">{{ appointment.appointment_request.start_time|time }} – {{ appointment.appointment_request.end_time|time }}</td>
+        </tr>
+        {% if appointment.address %}
+            <tr>
+                <td valign="top" style="padding: 10px 14px; font-size: 14px; color: #64748b;">{% translate 'Location' %}</td>
+                <td valign="top" style="padding: 10px 14px; font-size: 14px; font-weight: 600;">{{ appointment.address }}</td>
+            </tr>
+        {% endif %}
+    </table>
+
+    {% if recipient_type == 'client' %}
+        <p style="margin: 0 0 12px;">{% translate 'If you need to reschedule, please click the button below or contact us for further assistance.' %}</p>
+        {% if reschedule_link %}
+            <p style="margin: 0 0 24px;">
+                <a href="{{ reschedule_link }}" style="display: inline-block; padding: 12px 22px; background-color: #00307c; border-radius: 8px; font-weight: 600; color: #ffffff; text-decoration: none;">{% translate 'Reschedule Appointment' %}</a>
+            </p>
+        {% endif %}
+        <p style="margin: 0;">{% translate 'Thank you for choosing us!' %}</p>
+    {% else %}
+        <p style="margin: 0;">{% translate 'Please ensure the appointment setup is complete and ready for the client.' %}</p>
+    {% endif %}
+{% endblock %}
