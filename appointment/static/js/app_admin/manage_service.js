@@ -11,8 +11,9 @@ document.addEventListener('DOMContentLoaded', function () {
     let image = cover.querySelector('img');
     // The saved picture's element, swapped back in when the upload is undone (its address is never copied around)
     let savedImage = cover.classList.contains('djappt-service-cover--image') ? image : null;
-    const uploadImage = document.createElement('img');
-    uploadImage.alt = '';
+    // A new upload is drawn here rather than loaded from a URL
+    const uploadImage = document.createElement('canvas');
+    let uploadCount = 0;
     const initial = cover.querySelector('.djappt-service-initial');
     const title = preview.querySelector('.djappt-service-title');
     const description = preview.querySelector('.djappt-service-desc');
@@ -20,7 +21,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const price = preview.querySelector('.djappt-service-price');
     const locale = preview.dataset.locale || undefined;
     const field = (name) => form.elements.namedItem(name);
-    let objectUrl = null;
 
     function formatNumber(value, options) {
         try {
@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // Show a picture (an <img>) in the cover, or the colour and the initial when there is none
+    // Show a picture (an <img> or a <canvas>) in the cover, or the colour and the initial when there is none
     function showImage(picture) {
         if (picture && picture !== image) {
             image.replaceWith(picture);
@@ -94,14 +94,24 @@ document.addEventListener('DOMContentLoaded', function () {
     function updateImage() {
         const input = field('image');
         const file = input && input.files && input.files[0];
-        if (objectUrl) {
-            URL.revokeObjectURL(objectUrl);
-            objectUrl = null;
-        }
+        const count = ++uploadCount;
         if (file) {
-            objectUrl = URL.createObjectURL(file);
-            uploadImage.src = objectUrl;
-            showImage(uploadImage);
+            createImageBitmap(file).then((bitmap) => {
+                if (count !== uploadCount) {
+                    return;  // Another file was picked since
+                }
+                // No bigger than the tile needs, so a large photo doesn't hold a large canvas
+                const scale = Math.min(1, 800 / bitmap.width);
+                uploadImage.width = Math.round(bitmap.width * scale);
+                uploadImage.height = Math.round(bitmap.height * scale);
+                uploadImage.getContext('2d').drawImage(bitmap, 0, 0, uploadImage.width, uploadImage.height);
+                bitmap.close();
+                showImage(uploadImage);
+            }).catch(() => {
+                if (count === uploadCount) {
+                    showImage(null);
+                }
+            });
             return;
         }
         const clear = field('image-clear');
@@ -109,14 +119,13 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // An image that fails to load falls back to the colour and the initial, as on the service list
-    [image, uploadImage].forEach((picture) => picture.addEventListener('error', function () {
-        if (picture === savedImage) {
-            savedImage = null;
-        }
-        if (picture === image) {
+    const pageImage = image;
+    pageImage.addEventListener('error', function () {
+        savedImage = null;
+        if (image === pageImage) {
             showImage(null);
         }
-    }));
+    });
 
     form.addEventListener('input', updateText);
     form.addEventListener('change', function (event) {
