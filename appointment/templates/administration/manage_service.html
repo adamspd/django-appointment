@@ -69,7 +69,7 @@
                     <p class="djappt-service-preview-label">{% trans 'Preview' %}</p>
                     {% get_current_language as LANGUAGE_CODE %}
                     <div class="djappt-service-tile" id="djappt-service-preview" data-locale="{{ LANGUAGE_CODE }}"
-                         data-free-text="{% trans 'Free' %}" data-image-url="{{ service.get_image_url }}"
+                         data-free-text="{% trans 'Free' %}"
                          style="--djappt-service-color: {{ form.background_color.value|default:'#00307c' }}">
                         <div class="djappt-service-cover{% if service.get_image_url %} djappt-service-cover--image{% endif %}">
                             <img src="{{ service.get_image_url }}" alt=""{% if not service.get_image_url %} hidden{% endif %}>
