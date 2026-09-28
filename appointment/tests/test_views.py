@@ -1273,7 +1273,46 @@ class ScheduleFormsTemplateTests(BaseTest):
         self.assertContains(response, 'type="time"', count=2)
         self.assertEqual(len(response.context['week_days']), 7)
 
+    def test_iso_fields_without_raw_copies_are_saved(self):
+        """The forms post the model's field names with the pickers' ISO values; no _raw copies are needed."""
+        self.need_staff_login()
+        user_id = self.staff_member1.user.id
+        response = self.client.post(reverse('appointment:add_working_hours_id', args=[user_id]),
+                                    {'day_of_week': '0', 'start_time': '08:30', 'end_time': '12:00'})
+        self.assertEqual(response.status_code, 200, response.content)
+        wh = WorkingHours.objects.get(staff_member=self.staff_member1, day_of_week=0)
+        self.assertEqual((wh.start_time, wh.end_time), (time(8, 30), time(12, 0)))
+
+        day = timezone.localdate() + datetime.timedelta(days=4)
+        response = self.client.post(reverse('appointment:add_unavailability_id', args=[user_id]),
+                                    {'date': day.isoformat(), 'start_time': '13:00', 'end_time': '14:00'})
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertTrue(Unavailability.objects.filter(staff_member=self.staff_member1, date=day).exists())
+
+    def test_invalid_schedule_forms_answer_with_field_errors(self):
+        self.need_staff_login()
+        user_id = self.staff_member1.user.id
+        response = self.client.post(reverse('appointment:add_working_hours_id', args=[user_id]),
+                                    {'day_of_week': '1', 'start_time': '17:00', 'end_time': '09:00'})
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('end_time', response.json()['errors'])
+
+        response = self.client.post(reverse('appointment:add_unavailability_id', args=[user_id]),
+                                    {'date': 'not a date', 'start_time': '10:00', 'end_time': ''})
+        errors = response.json()['errors']
+        self.assertEqual(set(errors), {'date', 'end_time'})
+        self.assertTrue(response.json()['message'])
+
+
+    def test_schedule_templates_send_no_raw_copies(self):
+        self.need_staff_login()
+        user_id = self.staff_member1.user.id
+        for name in ['add_working_hours_id', 'add_unavailability_id']:
+            with self.subTest(name=name):
+                self.assertNotContains(self.client.get(reverse(f'appointment:{name}', args=[user_id])), '_raw')
+
     def test_working_hours_payload_is_saved(self):
+        """Templates written before 3.13 still send *_raw copies, which are still read."""
         self.need_staff_login()
         user_id = self.staff_member1.user.id
         data = {'day_of_week': '1', 'start_time': '09:00', 'start_time_raw': '1970-01-01T09:00:00',
