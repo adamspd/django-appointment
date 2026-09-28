@@ -119,6 +119,14 @@
     margin-bottom: 0;
 }
 
+/* The page head's buttons (and switches), side by side. */
+:where(.djappt) .djappt-page-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .75rem;
+}
+
 /* "Back to …" link above a page title. */
 :where(.djappt) .djappt-back {
     display: inline-flex;
@@ -354,6 +362,27 @@
     background-color: var(--djappt-danger-soft);
 }
 
+/* Square button holding an icon only (its name is in aria-label and title). */
+:where(.djappt) .djappt-btn.djappt-icon-btn {
+    --bs-btn-padding-x: .55rem;
+    --bs-btn-padding-y: .45rem;
+    line-height: 1;
+}
+
+/* A person's initial in a circle. */
+:where(.djappt) .djappt-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.9rem;
+    height: 1.9rem;
+    border-radius: 50%;
+    background-color: var(--djappt-accent-soft);
+    font-size: .8rem;
+    font-weight: 700;
+    color: var(--djappt-accent);
+}
+
 /* ---- Forms (Bootstrap fields, package focus colour) ---- */
 
 :where(.djappt) .djappt-form .form-label {
@@ -472,6 +501,26 @@
     margin-top: .35rem;
     font-size: .875rem;
     color: var(--djappt-danger);
+}
+
+/* Cancel and save, under a form. */
+:where(.djappt) .djappt-form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: .75rem;
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--djappt-line);
+}
+
+/* One-time code field (booking and email change). */
+:where(.djappt) .djappt-code-input {
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: .35em;
+    text-align: center;
+    text-transform: uppercase;
 }
 
 /* ---- Modals (Bootstrap modals included by the package pages) ---- */

@@ -3,83 +3,153 @@
 {% load static %}
 
 {% block customCSS %}
-    <link rel="stylesheet" type="text/css" href="{% static 'css/app_admin/staff_member.css' %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/staff.css' %}"/>
+{% endblock %}
+{% block title %}
+    {% trans 'Staff Appointment Information' %}
+{% endblock %}
+{% block description %}
+    {% trans 'Staff Appointment Information' %}
 {% endblock %}
 
 {% block djappt_content %}
-    <section class="content content-wrapper">
-        <div class="staff-form-wrapper">
-            <div class="staff-form-content">
-                <h3>{% trans 'Staff Appointment Information' %}</h3>
-                <form method="post">
-                    {% csrf_token %}
-                    {% if form.user %}
-                        <div class="form-group">
-                            {{ form.user.label_tag }}
-                            {{ form.user.errors }}
-                            {{ form.user }}
-                        </div>
-                        <div class="user-not-found">
-                            <small>
-                                {% translate 'User not found' %} ? <a href="{% url 'appointment:add_staff_member_personal_info' %}">{% translate 'Create staff member manually' %}</a>
-                            </small>
-                        </div>
-                    {% endif %}
-
-                    <div class="form-group">
-                        {{ form.services_offered.label_tag }}
-                        {{ form.services_offered.errors }}
-                        {{ form.services_offered }}
-                        <br><small>{% trans 'Hold down “Control”, or “Command” on a Mac, to select more than one.' %}</small>
-                    </div>
-
-                    <div class="form-group">
-                        {{ form.slot_duration.label_tag }} 
-                        {{ form.slot_duration }}
-                        <small>{{ form.slot_duration.help_text }}</small>
-                    </div>
-
-                    <div class="form-group">
-                        {{ form.lead_time.label_tag }}
-                        {{ form.lead_time }}
-                        <small>{{ form.lead_time.help_text }}</small>
-                    </div>
-
-                    <div class="form-group">
-                        {{ form.finish_time.label_tag }}
-                        {{ form.finish_time }}
-                        <small>{{ form.finish_time.help_text }}</small>
-                    </div>
-
-                    <div class="form-group">
-                        {{ form.appointment_buffer_time.label_tag }}
-                        {{ form.appointment_buffer_time }}
-                        <small>{{ form.appointment_buffer_time.help_text }}</small>
-                    </div>
-
-                    <div class="form-check">
-                        {{ form.work_on_saturday }}
-                        {{ form.work_on_saturday.label_tag }}
-                    </div>
-
-                    <div class="form-check">
-                        {{ form.work_on_sunday }}
-                        {{ form.work_on_sunday.label_tag }}
-                    </div>
-
-                    <button type="submit" class="btn btn-primary">{% trans 'Save' %}</button>
-                </form>
-                <div class="messages" style="margin: 20px 0">
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
-                                 role="alert">{{ message }}</div>
-                        {% endfor %}
-                    {% endif %}
+    {# Back to the profile being edited; adding a staff member goes back to the staff list #}
+    {% with user_id=request.resolver_match.kwargs.user_id %}
+        {% if user_id %}
+            {% url 'appointment:user_profile' staff_user_id=user_id as back_url %}
+        {% else %}
+            {% url 'appointment:user_profile' as back_url %}
+        {% endif %}
+        <div class="djappt-shell djappt-staff djappt-staff-form-page content content-wrapper">
+            {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                        <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
+                             role="alert">{{ message }}</div>
+                    {% endfor %}
                 </div>
-            </div>
+            {% endif %}
+
+            <a class="djappt-back" href="{{ back_url }}">
+                <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                    <path d="M10.354 3.146a.5.5 0 0 1 0 .708L6.207 8l4.147 4.146a.5.5 0 0 1-.708.708l-4.5-4.5a.5.5 0 0 1 0-.708l4.5-4.5a.5.5 0 0 1 .708 0"/>
+                </svg>
+                {% trans 'Back' %}</a>
+
+            {# Whose settings these are; a new staff member has no user yet #}
+            <header class="djappt-profile-head">
+                {% if form.instance.user_id %}
+                    {% with name=form.instance.get_staff_member_name %}
+                        <span class="djappt-avatar" aria-hidden="true">{{ name|first|upper }}</span>
+                        <div class="djappt-profile-name">
+                            <p class="djappt-eyebrow">{% trans 'Staff Appointment Information' %}</p>
+                            <h1 class="djappt-title">{{ name }}</h1>
+                        </div>
+                    {% endwith %}
+                {% else %}
+                    <div class="djappt-profile-name">
+                        <p class="djappt-eyebrow">{% trans 'Staff Appointment Information' %}</p>
+                        <h1 class="djappt-title">{% trans 'Add staff member' %}</h1>
+                    </div>
+                {% endif %}
+            </header>
+
+            <form method="post" class="djappt-card djappt-form djappt-staff-form">
+                {% csrf_token %}
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                {% endif %}
+
+                {% if form.user %}
+                    <section class="djappt-form-section">
+                        <label class="djappt-card-title" for="{{ form.user.id_for_label }}">{{ form.user.label }}</label>
+                        {{ form.user }}
+                        {% for error in form.user.errors %}
+                            <div class="djappt-field-error">{{ error }}</div>
+                        {% endfor %}
+                        <p class="djappt-note">
+                            {% translate 'User not found' %} ? <a href="{% url 'appointment:add_staff_member_personal_info' %}">{% translate 'Create staff member manually' %}</a>
+                        </p>
+                    </section>
+                {% endif %}
+
+                {# One checkbox per service, in the service's colour; they post the same values as the multiple select did #}
+                <fieldset class="djappt-form-section">
+                    <legend class="djappt-card-title">{{ form.services_offered.label }}</legend>
+                    <ul class="djappt-choices">
+                        {% for choice in form.services_offered %}
+                            <li>
+                                <label class="djappt-choice" for="{{ choice.id_for_label }}"
+                                       style="--djappt-service-color: {{ choice.data.value.instance.background_color }}">
+                                    <input type="checkbox" class="form-check-input" id="{{ choice.id_for_label }}"
+                                           name="{{ choice.data.name }}" value="{{ choice.data.value }}"{% if choice.data.selected %} checked{% endif %}>
+                                    <span class="djappt-swatch" aria-hidden="true"></span>
+                                    <span>{{ choice.choice_label }}</span>
+                                </label>
+                            </li>
+                        {% empty %}
+                            <li class="djappt-empty">{% trans 'No service offered yet' %}.</li>
+                        {% endfor %}
+                    </ul>
+                    {% for error in form.services_offered.errors %}
+                        <div class="djappt-field-error">{{ error }}</div>
+                    {% endfor %}
+                </fieldset>
+
+                {# The working day, the slots and the weekends: the label and its explanation, the field on the right #}
+                <section class="djappt-form-section">
+                    <h2 class="djappt-card-title">{% trans 'Schedule' %}</h2>
+                    <div class="djappt-settings">
+                        {% for field in form %}
+                            {% if field.name == 'lead_time' or field.name == 'finish_time' or field.name == 'slot_duration' or field.name == 'appointment_buffer_time' %}
+                                <div class="djappt-setting djappt-field--{{ field.name }}">
+                                    <div class="djappt-setting-text">
+                                        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                        {% if field.help_text %}
+                                            <div class="djappt-help">{{ field.help_text }}</div>
+                                        {% endif %}
+                                        {% for error in field.errors %}
+                                            <div class="djappt-field-error">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                    <div class="djappt-setting-control">
+                                        {% if field.name == 'slot_duration' or field.name == 'appointment_buffer_time' %}
+                                            <div class="input-group">
+                                                {{ field }}
+                                                <span class="input-group-text">{% trans 'min' context 'minutes, short' %}</span>
+                                            </div>
+                                        {% else %}
+                                            {{ field }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                        {% for field in form %}
+                            {% if field.name == 'work_on_saturday' or field.name == 'work_on_sunday' %}
+                                <div class="djappt-setting djappt-field--{{ field.name }}">
+                                    <div class="djappt-setting-text">
+                                        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                        {% for error in field.errors %}
+                                            <div class="djappt-field-error">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                    <div class="djappt-setting-control form-check form-switch">
+                                        {{ field }}
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </section>
+
+                <div class="djappt-form-actions">
+                    <a class="btn djappt-btn djappt-btn-ghost" href="{{ back_url }}">{% trans 'Cancel' %}</a>
+                    <button type="submit" class="btn djappt-btn djappt-btn-primary">{% trans 'Save' %}</button>
+                </div>
+            </form>
         </div>
-    </section>
+    {% endwith %}
 {% endblock %}
 
 {% block customJS %}

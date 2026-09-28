@@ -1112,6 +1112,110 @@ class ServicePagesTemplateTests(BaseTest):
         self.assertContains(response, 'class="djappt-field-error"')
 
 
+class StaffPagesTemplateTests(BaseTest):
+    """The staff list, profile and staff member forms link to the right pages for each user, without Font Awesome."""
+
+    def test_staff_list_links_to_each_profile_and_removal(self):
+        self.need_superuser_login()
+        response = self.client.get(reverse('appointment:user_profile'))
+        user_id = self.staff_member1.user.id
+        self.assertContains(response, reverse('appointment:user_profile', args=[user_id]))
+        self.assertContains(response, reverse('appointment:remove_staff_member', args=[user_id]))
+        self.assertContains(response, reverse('appointment:add_staff_member_info'))
+        self.assertContains(response, reverse('appointment:make_superuser_staff_member'))
+        self.assertNotContains(response, 'font-awesome')
+
+    def test_own_profile_links_to_own_availability_pages(self):
+        self.need_staff_login()
+        day_off = DayOff.objects.create(staff_member=self.staff_member1, start_date=datetime.date(2030, 1, 1),
+                                        end_date=datetime.date(2030, 1, 2), description='Holiday')
+        response = self.client.get(reverse('appointment:user_profile'))
+        self.assertContains(response, self.staff_member1.get_staff_member_name())
+        self.assertContains(response, 'Holiday')
+        self.assertContains(response, reverse('appointment:update_day_off', args=[day_off.id]))
+        self.assertContains(response, reverse('appointment:delete_day_off', args=[day_off.id]))
+        self.assertContains(response, reverse('appointment:view_service', args=[self.service1.id, 1]))
+        self.assertNotContains(response, 'Back to the staff')
+        self.assertNotContains(response, 'font-awesome')
+
+    def test_profile_shows_the_whole_week_with_days_off_marked(self):
+        self.need_staff_login()
+        WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=2, start_time=time(9, 0),
+                                    end_time=time(13, 0))
+        response = self.client.get(reverse('appointment:user_profile'))
+        days = response.context['working_week']['days']
+        self.assertEqual(len(days), 7)
+        tuesday = next(day for day in days if day['day_of_week'] == 2)
+        # The axis runs from 6:00 to 20:00 (14 hours): 9:00 is 3/14 of the way, and 4 hours are 4/14 of it
+        self.assertEqual((tuesday['left'], tuesday['width']), (21.43, 28.57))
+        self.assertEqual(sum(1 for day in days if day['working_hours'] is None), 6)
+        self.assertContains(response, 'djappt-week-day--off', count=6)
+
+    def test_profile_greys_past_days_off(self):
+        self.need_staff_login()
+        today = timezone.localdate()
+        DayOff.objects.create(staff_member=self.staff_member1, start_date=today - datetime.timedelta(days=3),
+                              end_date=today - datetime.timedelta(days=2))
+        DayOff.objects.create(staff_member=self.staff_member1, start_date=today + datetime.timedelta(days=2),
+                              end_date=today + datetime.timedelta(days=2))
+        response = self.client.get(reverse('appointment:user_profile'))
+        self.assertContains(response, 'djappt-row--past', count=1)
+
+    def test_superuser_sees_a_staff_profile_with_links_for_that_member(self):
+        self.need_superuser_login()
+        user_id = self.staff_member1.user.id
+        day_off = DayOff.objects.create(staff_member=self.staff_member1, start_date=datetime.date(2030, 1, 1),
+                                        end_date=datetime.date(2030, 1, 1))
+        response = self.client.get(reverse('appointment:user_profile', args=[user_id]))
+        self.assertContains(response, 'Back to the staff')
+        self.assertContains(response, reverse('appointment:update_day_off_id', args=[day_off.id, user_id]))
+        self.assertContains(response, reverse('appointment:delete_day_off_id', args=[day_off.id, user_id]))
+        self.assertContains(response, reverse('appointment:update_staff_other_info', args=[user_id]))
+
+    def test_staff_form_shows_a_checkbox_per_service(self):
+        self.need_superuser_login()
+        user_id = self.staff_member1.user.id
+        response = self.client.get(reverse('appointment:update_staff_other_info', args=[user_id]))
+        self.assertContains(response, f'name="services_offered" value="{self.service1.id}" checked>')
+        self.assertContains(response, f'name="services_offered" value="{self.service2.id}">')
+        self.assertContains(response, reverse('appointment:user_profile', args=[user_id]))
+        self.assertNotContains(response, 'Hold down')
+
+    def test_staff_form_uses_time_pickers_and_says_whose_settings(self):
+        self.need_superuser_login()
+        self.staff_member1.lead_time = time(9, 0)
+        self.staff_member1.save()
+        response = self.client.get(reverse('appointment:update_staff_other_info', args=[self.staff_member1.user.id]))
+        self.assertContains(response, 'type="time" name="lead_time" value="09:00"')
+        self.assertContains(response, self.staff_member1.get_staff_member_name())
+        response = self.client.get(reverse('appointment:add_staff_member_info'))
+        self.assertContains(response, 'Add staff member')
+        self.assertContains(response, 'name="user"')
+
+    def test_staff_form_checkboxes_save_several_services(self):
+        self.need_superuser_login()
+        user_id = self.staff_member1.user.id
+        data = {'services_offered': [self.service1.id, self.service2.id], 'slot_duration': 30,
+                'appointment_buffer_time': 0}
+        response = self.client.post(reverse('appointment:update_staff_other_info', args=[user_id]), data=data)
+        self.assertRedirects(response, reverse('appointment:user_profile', args=[user_id]),
+                             fetch_redirect_response=False)
+        self.assertEqual(set(self.staff_member1.get_services_offered()), {self.service1, self.service2})
+
+    def test_personal_info_form_goes_back_to_the_profile(self):
+        self.need_superuser_login()
+        user_id = self.staff_member1.user.id
+        response = self.client.get(reverse('appointment:update_user_info', args=[user_id]))
+        self.assertContains(response, reverse('appointment:user_profile', args=[user_id]))
+        self.assertContains(response, 'id="id_email"')
+
+    def test_email_change_code_page_has_the_code_field(self):
+        self.need_staff_login()
+        response = self.client.get(reverse('appointment:email_change_verification_code'))
+        self.assertContains(response, 'djappt-code-input')
+        self.assertContains(response, 'autocomplete="one-time-code"')
+
+
 class CalendarScriptEscapingTests(BaseTest):
     """Client-supplied appointment data is printed inside a <script> on the staff calendar."""
 

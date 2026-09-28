@@ -14,12 +14,13 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.formats import localize
+from django.utils.formats import get_format, localize
 from django.utils.translation import gettext as _
 
 from appointment.forms import PersonalInformationForm, ServiceForm, StaffDaysOffForm, StaffUnavailabilityForm, \
     StaffWorkingHoursForm
 from appointment.messages_ import appt_updated_successfully
+from appointment.models import DAYS_OF_WEEK
 from appointment.settings import APPOINTMENT_PAYMENT_URL
 from appointment.utils.date_time import (
     convert_str_to_date, convert_str_to_time, get_ar_end_time)
@@ -85,6 +86,40 @@ def prepare_appointment_display_data(user, appointment_id):
     return appointment, page_title, None, 200
 
 
+def get_working_week(working_hours):
+    """The staff member's week for the profile page: a day per entry, in the site's week order (FIRST_DAY_OF_WEEK),
+    with its working hours (or None) and where to draw them on a shared time axis.
+
+    :param working_hours: The staff member's WorkingHours.
+    :return: A dictionary with 'days' (name, working_hours, left and width in % of the axis) and 'ticks' (hour
+             labels with their position in %).
+    """
+    by_day = {wh.day_of_week: wh for wh in working_hours}
+    # The axis covers 6:00 to 20:00, stretched to fit hours that start earlier or end later.
+    first_hour = min([6] + [wh.start_time.hour for wh in by_day.values()])
+    last_hour = max([20] + [wh.end_time.hour + (1 if wh.end_time.minute else 0) for wh in by_day.values()])
+    span = (last_hour - first_hour) * 60
+
+    def position(value):
+        return round((value.hour * 60 + value.minute - first_hour * 60) * 100 / span, 2)
+
+    first_day = int(get_format("FIRST_DAY_OF_WEEK"))
+    names = dict(DAYS_OF_WEEK)
+    days = []
+    for offset in range(7):
+        day = (first_day + offset) % 7
+        wh = by_day.get(day)
+        entry = {'day_of_week': day, 'name': names[day], 'working_hours': wh}
+        if wh:
+            entry['left'] = position(wh.start_time)
+            entry['width'] = round(position(wh.end_time) - entry['left'], 2)
+        days.append(entry)
+    step = 3 if last_hour - first_hour <= 15 else 4
+    ticks = [{'time': datetime.time(hour), 'left': position(datetime.time(hour))}
+             for hour in range(first_hour, last_hour, step)]
+    return {'days': days, 'ticks': ticks}
+
+
 def prepare_user_profile_data(user, staff_user_id):
     """Prepare the data for the user profile page.
 
@@ -145,6 +180,8 @@ def prepare_user_profile_data(user, staff_user_id):
             'days_off': staff_member.get_days_off().order_by('start_date') if staff_member else [],
             'unavailabilities': staff_member.get_unavailabilities().order_by('date') if staff_member else [],
             'working_hours': staff_member.get_working_hours() if staff_member else [],
+            'working_week': get_working_week(staff_member.get_working_hours() if staff_member else []),
+            'today': timezone.localdate(),
             'services_offered': staff_member.get_services_offered() if staff_member else [],
             'staff_member_not_found': not bool(staff_member),
             'buffer_time_help_text': bt_help_text,

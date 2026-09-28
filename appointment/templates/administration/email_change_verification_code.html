@@ -2,7 +2,7 @@
 {% load i18n %}
 {% load static %}
 {% block customCSS %}
-    <link rel="stylesheet" type="text/css" href="{% static 'css/verification_code.css' %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/staff.css' %}"/>
 {% endblock %}
 {% block title %}
     {% trans 'Enter Verification Code' %}
@@ -11,30 +11,35 @@
     {% trans 'Enter Verification Code' %}
 {% endblock %}
 {% block djappt_content %}
-    <section class="content content-wrapper">
-        <div class="main-container">
-            <div class="body-container">
-                <h1>{% trans 'Enter Verification Code' %}</h1>
-                <p>{% trans "We've sent a verification code to your email. Please enter it below" %}:</p>
-                <form method="post"
-                      action="{% url 'appointment:email_change_verification_code' %}">
-                    {% csrf_token %}
-                    <label>{% trans 'Code' %}:
-                        <input type="text" name="code" placeholder="X1Y2Z3" required>
-                    </label>
-                    <button class="btn btn-primary" type="submit">{% trans 'Submit' %}</button>
-                </form>
-            </div>
-        </div>
-        <div class="messages" style="margin: 20px 0">
+    <div class="djappt-shell djappt-shell--narrow djappt-staff content content-wrapper">
+        <div class="djappt-card djappt-card--roomy djappt-form djappt-center">
+            <span class="djappt-status-icon" aria-hidden="true">
+                <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1zm13 2.383-4.708 2.825L15 11.105zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741M1 11.105l4.708-2.897L1 5.383z"/>
+                </svg>
+            </span>
+            <h1 class="djappt-title">{% trans 'Enter Verification Code' %}</h1>
+            <p class="djappt-lead mb-4">{% trans "We've sent a verification code to your email. Please enter it below" %}:</p>
+
             {% if messages %}
                 {% for message in messages %}
-                    <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
+                    <div class="alert {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}alert-danger{% else %}alert-{{ message.tags|default:'info' }}{% endif %} text-start"
                          role="alert">{{ message }}</div>
                 {% endfor %}
             {% endif %}
+
+            <form method="post" action="{% url 'appointment:email_change_verification_code' %}">
+                {% csrf_token %}
+                <div class="mb-3 text-start">
+                    <label for="email-change-code" class="form-label">{% trans 'Code' %}</label>
+                    <input type="text" id="email-change-code" name="code" class="form-control djappt-code-input"
+                           autocomplete="one-time-code" autocapitalize="characters" spellcheck="false"
+                           autofocus required>
+                </div>
+                <button class="btn djappt-btn djappt-btn-primary w-100" type="submit">{% trans 'Submit' %}</button>
+            </form>
         </div>
-    </section>
+    </div>
 {% endblock %}
 {% block customJS %}
     <script src="{% static 'js/js-utils.js' %}"></script>
