@@ -274,8 +274,8 @@ def delete_working_hours(request, working_hours_id, staff_user_id=None):
 def add_or_update_staff_info(request, user_id=None):
     user = request.user
 
-    # Only allow superusers or the authenticated user to edit his staff info
-    if not check_permissions(staff_user_id=user_id, user=user):
+    # Only allow superusers or the authenticated user to edit their staff info; the short URL is the user's own
+    if not check_permissions(staff_user_id=user_id or user.pk, user=user):
         return json_response(_("Not authorized."), status=403, success=False, error_code=ErrorCode.NOT_AUTHORIZED)
 
     target_user = get_object_or_404(get_user_model(), pk=user_id) if user_id else user
@@ -419,9 +419,8 @@ def update_appt_date_time(request):
 @require_user_authenticated
 @require_staff_or_superuser
 def update_personal_info(request, staff_user_id=None):
-    # only superuser or the staff member itself can update the personal info
-    if not check_permissions(staff_user_id=staff_user_id, user=request.user) or (
-            not staff_user_id and not request.user.is_superuser):
+    # Only superusers or the staff member themselves can update the personal info; the short URL is the user's own
+    if not check_permissions(staff_user_id=staff_user_id or request.user.pk, user=request.user):
         return json_response(_("Not authorized."), status=403, success=False, error_code=ErrorCode.NOT_AUTHORIZED)
 
     if request.method == 'POST':
