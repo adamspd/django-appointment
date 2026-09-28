@@ -8,7 +8,11 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     const cover = preview.querySelector('.djappt-service-cover');
-    const image = cover.querySelector('img');
+    let image = cover.querySelector('img');
+    // The saved picture's element, swapped back in when the upload is undone (its address is never copied around)
+    let savedImage = cover.classList.contains('djappt-service-cover--image') ? image : null;
+    const uploadImage = document.createElement('img');
+    uploadImage.alt = '';
     const initial = cover.querySelector('.djappt-service-initial');
     const title = preview.querySelector('.djappt-service-title');
     const description = preview.querySelector('.djappt-service-desc');
@@ -55,13 +59,15 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    function showImage(url) {
-        image.hidden = !url;
-        initial.hidden = !!url;
-        cover.classList.toggle('djappt-service-cover--image', !!url);
-        if (url) {
-            image.src = url;
+    // Show a picture (an <img>) in the cover, or the colour and the initial when there is none
+    function showImage(picture) {
+        if (picture && picture !== image) {
+            image.replaceWith(picture);
+            image = picture;
         }
+        image.hidden = !picture;
+        initial.hidden = !!picture;
+        cover.classList.toggle('djappt-service-cover--image', !!picture);
     }
 
     function updateText() {
@@ -94,15 +100,23 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         if (file) {
             objectUrl = URL.createObjectURL(file);
-            showImage(objectUrl);
+            uploadImage.src = objectUrl;
+            showImage(uploadImage);
             return;
         }
         const clear = field('image-clear');
-        showImage(clear && clear.checked ? '' : preview.dataset.imageUrl);
+        showImage(clear && clear.checked ? null : savedImage);
     }
 
     // An image that fails to load falls back to the colour and the initial, as on the service list
-    image.addEventListener('error', () => showImage(''));
+    [image, uploadImage].forEach((picture) => picture.addEventListener('error', function () {
+        if (picture === savedImage) {
+            savedImage = null;
+        }
+        if (picture === image) {
+            showImage(null);
+        }
+    }));
 
     form.addEventListener('input', updateText);
     form.addEventListener('change', function (event) {
