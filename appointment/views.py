@@ -97,7 +97,8 @@ def get_available_slots_ajax(request):
     custom_data['staff_member'] = sm.get_staff_member_name()
     if not is_working_day_:
         message = _("Not a working day for {staff_member}. Please select another date!").format(
-                staff_member=sm.get_staff_member_first_name())
+                # A staff user may have no first name; the full display name always has something
+                staff_member=sm.get_staff_member_first_name() or sm.get_staff_member_name())
         custom_data['available_slots'] = []
         custom_data['no_availability'] = True
         custom_data['date_iso'] = selected_date.isoformat()
