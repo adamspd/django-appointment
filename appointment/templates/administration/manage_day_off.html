@@ -3,152 +3,96 @@
 {% load static %}
 
 {% block customCSS %}
-    <link rel="stylesheet" type="text/css" href="{% static 'css/app_admin/days_off.css' %}"/>
-    <!-- jQuery UI CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/themes/base/jquery-ui.css"
-          integrity="sha512-lCk0aEL6CvAGQvaZ47hoq1v/hNsunE8wD4xmmBelkJjg51DauW6uVdaWEJlwgAE6PxcY7/SThs1T4+IMwwpN7w=="
-          crossorigin="anonymous" referrerpolicy="no-referrer"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/staff.css' %}"/>
+{% endblock %}
+{% block title %}
+    {% trans "Manage Days Off" %}
+{% endblock %}
+{% block description %}
+    {% trans "Manage Days Off" %}
 {% endblock %}
 
 {% block djappt_content %}
-    <section class="content content-wrapper">
-        <div class="days-off-form-wrapper">
-            <div class="do-form-content">
-                <h2>{% trans "Manage Days Off" %}</h2>
+    {% with staff_user_id=request.resolver_match.kwargs.staff_user_id %}
+        {% if staff_user_id %}
+            {% url 'appointment:user_profile' staff_user_id=staff_user_id as back_url %}
+        {% else %}
+            {% url 'appointment:user_profile' as back_url %}
+        {% endif %}
+        <div class="djappt-shell djappt-shell--narrow djappt-staff content content-wrapper">
+            {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                        <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
+                             role="alert">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
 
-                <form method="post" action="">
-                    {% csrf_token %}
-                    <!-- Staff Member -->
-                    {% if error_message %}
-                        <script type="text/javascript">
-                            document.addEventListener("DOMContentLoaded", function () {
-                                showErrorModal("{{ error_message }}");
-                            });
-                        </script>
-                    {% endif %}
+            <a class="djappt-back" href="{{ back_url }}">
+                <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                    <path d="M10.354 3.146a.5.5 0 0 1 0 .708L6.207 8l4.147 4.146a.5.5 0 0 1-.708.708l-4.5-4.5a.5.5 0 0 1 0-.708l4.5-4.5a.5.5 0 0 1 .708 0"/>
+                </svg>
+                {% trans 'Back' %}</a>
 
-                    {% if day_off_form.staff_member %}
-                        <div class="form-group">
-                            <label for="{{ day_off_form.staff_member.id_for_label }}">{% trans 'Staff Member' %}:</label>
-                            {{ day_off_form.staff_member }}
-                        </div>
-                    {% endif %}
+            {# Sent in the background by schedule_form.js, to this page's URL #}
+            <form method="post" action="" class="djappt-card djappt-form djappt-staff-form" data-schedule-form>
+                <h1 class="djappt-card-title">{% trans "Manage Days Off" %}</h1>
+                {% csrf_token %}
+                {% if day_off_form.errors %}
+                    <div class="alert alert-danger">{{ day_off_form.errors }}</div>
+                {% endif %}
 
-                    <!-- Start Date Display (read-only) -->
-                    <div class="form-group">
-                        <label for="{{ day_off_form.start_date.id_for_label }}_display">{% trans 'Start date' %}:</label>
-                        <input type="text" id="{{ day_off_form.start_date.id_for_label }}_display"
-                               class="datepicker-display"
-                               value="{{ day_off_form.start_date.value|default_if_none:'' }}" readonly>
-                        <!-- Actual value to be submitted -->
-                        <input type="hidden" id="{{ day_off_form.start_date.id_for_label }}"
-                               name="{{ day_off_form.start_date.name }}" class="datepicker-actual"
-                               value="{{ day_off_form.start_date.value|default_if_none:'' }}">
+                {% if day_off_form.staff_member %}
+                    <div class="djappt-field mb-3">
+                        <label class="form-label" for="{{ day_off_form.staff_member.id_for_label }}">{% trans 'Staff Member' %}</label>
+                        {{ day_off_form.staff_member }}
                     </div>
+                {% endif %}
 
-                    <!-- End Date Display (read-only) -->
-                    <div class="form-group">
-                        <label for="{{ day_off_form.end_date.id_for_label }}_display">{% trans 'End date' %}:</label>
-                        <input type="text" id="{{ day_off_form.end_date.id_for_label }}_display"
-                               class="datepicker-display"
-                               value="{{ day_off_form.end_date.value|default_if_none:'' }}" readonly>
-                        <!-- Actual value to be submitted -->
-                        <input type="hidden" id="{{ day_off_form.end_date.id_for_label }}"
-                               name="{{ day_off_form.end_date.name }}" class="datepicker-actual"
-                               value="{{ day_off_form.end_date.value|default_if_none:'' }}">
+                <div class="djappt-staff-fields">
+                    <div class="djappt-field">
+                        <label class="form-label" for="{{ day_off_form.start_date.id_for_label }}">{% trans 'Start date' %}</label>
+                        <input type="date" class="form-control" id="{{ day_off_form.start_date.id_for_label }}"
+                               name="{{ day_off_form.start_date.html_name }}"
+                               value="{{ day_off_form.start_date.value|date:'Y-m-d' }}" required data-start-date>
                     </div>
-
-
-                    <div class="form-group">
-                        <label for="{{ day_off_form.description.id_for_label }}">{% trans 'Description' %}:</label>
-                        <input type="text" id="{{ day_off_form.description.id_for_label }}"
-                               name="{{ day_off_form.description.name }}"
+                    <div class="djappt-field">
+                        <label class="form-label" for="{{ day_off_form.end_date.id_for_label }}">{% trans 'End date' %}</label>
+                        <input type="date" class="form-control" id="{{ day_off_form.end_date.id_for_label }}"
+                               name="{{ day_off_form.end_date.html_name }}"
+                               value="{{ day_off_form.end_date.value|date:'Y-m-d' }}" required data-end-date>
+                    </div>
+                    <div class="djappt-field djappt-field--wide">
+                        <label class="form-label" for="{{ day_off_form.description.id_for_label }}">{% trans 'Description' %}</label>
+                        <input type="text" class="form-control" id="{{ day_off_form.description.id_for_label }}"
+                               name="{{ day_off_form.description.html_name }}" maxlength="255"
                                value="{{ day_off_form.description.value|default_if_none:'' }}">
                     </div>
-
-
-                    <button type="submit" class="btn btn-primary">{% trans "Submit" %}</button>
-                </form>
-                <div class="row-form-errors" style="margin: 10px 0">
-                    {% if day_off_form.errors %}
-                        <div class="alert alert-danger">
-                            {{ day_off_form.errors }}
-                        </div>
-                    {% endif %}
                 </div>
 
-                <div class="messages" style="margin: 20px 0">
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
-                                 role="alert">{{ message }}</div>
-                        {% endfor %}
-                    {% endif %}
+                <div class="djappt-form-actions">
+                    <a class="btn djappt-btn djappt-btn-ghost" href="{{ back_url }}">{% trans 'Cancel' %}</a>
+                    <button type="submit" class="btn djappt-btn djappt-btn-primary">{% trans "Submit" %}</button>
                 </div>
-                {% include 'modal/error_modal.html' %}
-            </div>
+            </form>
+            {% include 'modal/error_modal.html' %}
         </div>
-    </section>
+    {% endwith %}
 {% endblock %}
 
 {% block customJS %}
-    <!-- JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
-            integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
-            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/jquery-ui.js"
-            integrity="sha512-ynDTbjF5rUHsWBjz7nsljrrSWqLTPJaORzSe5aGCFxOigRZRmwM05y+kuCtxaoCSzVGB1Ky3XeRZsDhbSLdzXQ=="
-            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script type="text/javascript">
+    <script>
         const errorTxt = "{% trans 'Error' %}";
-        $(document).ready(function () {
-            $.datepicker._defaults.monthNamesShort = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"];
-
-            function updateHiddenField(displayElement, hiddenElement) {
-                const displayedDate = displayElement.val();
-                if (displayedDate) {
-                    const parsedDate = $.datepicker.parseDate('M. dd, yy', displayedDate);
-                    hiddenElement.val($.datepicker.formatDate('yy-mm-dd', parsedDate));
-                }
-            }
-
-            // Initialize datepicker
-            $("#id_start_date_display, #id_end_date_display").datepicker({
-                dateFormat: 'M. dd, yy',
-                onSelect: function () {
-                    const hiddenElementId = $(this).attr('id').replace('_display', '');
-                    updateHiddenField($(this), $('#' + hiddenElementId));
-                }
-            });
-
-            // Format the hidden fields correctly on page load
-            updateHiddenField($("#id_start_date_display"), $("#id_start_date"));
-            updateHiddenField($("#id_end_date_display"), $("#id_end_date"));
-        });
-
-        $('form').on('submit', function (event) {
-            event.preventDefault();
-
-            const formData = $(this).serialize();
-
-            $.ajax({
-                url: $(this).attr('action'),
-                type: 'POST',
-                data: formData,
-                dataType: 'json',
-                success: function (response) {
-                    if (response.success) {
-                        window.location.href = response.redirect_url;
-                    } else {
-                        showErrorModal(response.message);
-                    }
-                },
-                error: function (error) {
-                    showErrorModal(error.responseJSON.message);
-                }
-            });
-        });
     </script>
     <script src="{% static 'js/modal/error_modal.js' %}"></script>
+    <script src="{% static 'js/app_admin/schedule_form.js' %}"></script>
     <script src="{% static 'js/js-utils.js' %}"></script>
+    {% if error_message %}
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                showErrorModal("{{ error_message|escapejs }}");
+            });
+        </script>
+    {% endif %}
 {% endblock %}

@@ -434,6 +434,15 @@ def get_entity_management_context(request, btn_txt, form_name, form, user_id=Non
         context.update({
             'entity_id': entity_id,
         })
+    if 'day_of_week' in form.fields:
+        # The days as chips in the site's week order (FIRST_DAY_OF_WEEK), the form's day selected
+        selected = str(form['day_of_week'].value())
+        first_day = int(get_format("FIRST_DAY_OF_WEEK"))
+        names = dict(DAYS_OF_WEEK)
+        context['week_days'] = [
+            {'value': day, 'label': names[day], 'selected': str(day) == selected}
+            for day in ((first_day + offset) % 7 for offset in range(7))
+        ]
     return context
 
 

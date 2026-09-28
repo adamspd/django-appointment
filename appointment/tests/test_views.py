@@ -1216,6 +1216,55 @@ class StaffPagesTemplateTests(BaseTest):
         self.assertContains(response, 'autocomplete="one-time-code"')
 
 
+class ScheduleFormsTemplateTests(BaseTest):
+    """The working hours, day off and unavailability forms use the browser's pickers, and the data their script sends
+    (the same as schedule_form.js builds) is saved."""
+
+    def test_forms_use_native_pickers_without_bootstrap_4(self):
+        self.need_staff_login()
+        user_id = self.staff_member1.user.id
+        for name in ('add_working_hours_id', 'add_day_off_id', 'add_unavailability_id'):
+            response = self.client.get(reverse(f'appointment:{name}', args=[user_id]))
+            self.assertContains(response, 'js/app_admin/schedule_form.js')
+            self.assertNotContains(response, 'bootstrap/4.6.2')
+            self.assertNotContains(response, 'tempusdominus')
+            self.assertNotContains(response, 'jqueryui')
+        response = self.client.get(reverse('appointment:add_working_hours_id', args=[user_id]))
+        self.assertContains(response, 'type="time"', count=2)
+        self.assertEqual(len(response.context['week_days']), 7)
+
+    def test_working_hours_payload_is_saved(self):
+        self.need_staff_login()
+        user_id = self.staff_member1.user.id
+        data = {'day_of_week': '1', 'start_time': '09:00', 'start_time_raw': '1970-01-01T09:00:00',
+                'end_time': '17:00', 'end_time_raw': '1970-01-01T17:00:00'}
+        response = self.client.post(reverse('appointment:add_working_hours_id', args=[user_id]), data=data)
+        self.assertEqual(response.status_code, 200, response.content)
+        wh = WorkingHours.objects.get(staff_member=self.staff_member1, day_of_week=1)
+        self.assertEqual((wh.start_time, wh.end_time), (time(9, 0), time(17, 0)))
+
+    def test_unavailability_payload_is_saved(self):
+        self.need_staff_login()
+        user_id = self.staff_member1.user.id
+        day = timezone.localdate() + datetime.timedelta(days=5)
+        data = {'date': day.isoformat(), 'date_raw': day.isoformat(), 'start_time': '10:00',
+                'start_time_raw': '10:00:00', 'end_time': '11:30', 'end_time_raw': '11:30:00', 'description': 'Dentist'}
+        response = self.client.post(reverse('appointment:add_unavailability_id', args=[user_id]), data=data)
+        self.assertEqual(response.status_code, 200, response.content)
+        unavailability = Unavailability.objects.get(staff_member=self.staff_member1, date=day)
+        self.assertEqual((unavailability.start_time, unavailability.end_time), (time(10, 0), time(11, 30)))
+
+    def test_day_off_payload_is_saved(self):
+        self.need_staff_login()
+        user_id = self.staff_member1.user.id
+        start = timezone.localdate() + datetime.timedelta(days=10)
+        data = {'start_date': start.isoformat(), 'end_date': (start + datetime.timedelta(days=1)).isoformat(),
+                'description': 'Trip'}
+        response = self.client.post(reverse('appointment:add_day_off_id', args=[user_id]), data=data)
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertTrue(DayOff.objects.filter(staff_member=self.staff_member1, start_date=start).exists())
+
+
 class CalendarScriptEscapingTests(BaseTest):
     """Client-supplied appointment data is printed inside a <script> on the staff calendar."""
 
