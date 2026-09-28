@@ -19,8 +19,11 @@
 
         <header class="djappt-page-head">
             <div>
+                {% block djappt_heading %}
                 <h1 class="djappt-title">{% trans 'Service List' %}</h1>
+                {% endblock %}
             </div>
+            {% block djappt_actions %}
             <div class="djappt-page-tools">
                 {# Cards or list; shown by service_list.js, which remembers the choice in this browser #}
                 {% if services %}
@@ -49,6 +52,7 @@
                         {% trans 'Add Service' %}</a>
                 {% endif %}
             </div>
+            {% endblock %}
         </header>
 
         {% if services %}
