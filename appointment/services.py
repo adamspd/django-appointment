@@ -244,8 +244,11 @@ def handle_entity_management_request(request, staff_member, entity_type, instanc
 
     if request.method == 'POST' and entity_type == 'day_off':
         day_off_form = StaffDaysOffForm(request.POST, instance=instance)
-        start_date = request.POST.get('start_date')
-        end_date = request.POST.get('end_date')
+        # Validate first: the overlap check needs real dates
+        if not day_off_form.is_valid():
+            return form_errors_response(day_off_form)
+        start_date = day_off_form.cleaned_data['start_date']
+        end_date = day_off_form.cleaned_data['end_date']
 
         if day_off_exists_for_date_range(staff_member, start_date, end_date, getattr(instance, 'id', None)):
             return json_response(_("Days off for this date range already exist."), status=400, success=False,
