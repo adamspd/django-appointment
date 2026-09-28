@@ -30,6 +30,7 @@ recursive-include appointment/templates/ *.html *.txt
 recursive-include appointment/tests *.py
 recursive-include appointment/utils *.py
 recursive-include appointment/management *.py
+recursive-include appointment/templatetags *.py
 recursive-include appointment/locale *.po *.mo
 
 # Exclusions
