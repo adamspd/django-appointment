@@ -106,3 +106,36 @@ class AdministrationTemplateOverrideTests(BaseTest):
             response = self.client.get(
                 reverse('appointment:user_profile', kwargs={'staff_user_id': self.staff_user_id}))
             self.assertEqual(response.content, b'from my_templates')
+
+
+def page_context(response):
+    context = {}
+    for part in response.context:
+        context.update(part.flatten())
+    return context
+
+
+class NamedBlocksTests(BaseTest):
+    """An override can extend a default staff page and replace only its heading, back link or actions."""
+
+    def test_extending_a_default_page_replaces_only_the_heading_and_actions(self):
+        from django.template import engines
+        self.need_superuser_login()
+        response = self.client.get(reverse('appointment:get_service_list'))
+        source = ('{% extends "administration/service_list.html" %}'
+                  '{% block djappt_heading %}<h1>Our treatments</h1>{% endblock %}'
+                  '{% block djappt_actions %}<p>no actions</p>{% endblock %}')
+        html = engines['django'].from_string(source).render(page_context(response), response.wsgi_request)
+        self.assertIn('<h1>Our treatments</h1>', html)
+        self.assertIn('<p>no actions</p>', html)
+        self.assertEqual(html.count('<h1'), 1)
+        self.assertIn(self.service1.name, html)
+
+    def test_back_block_on_a_schedule_form(self):
+        from django.template import engines
+        self.need_staff_login()
+        response = self.client.get(reverse('appointment:add_day_off_id', args=[self.staff_member1.user.id]))
+        source = ('{% extends "administration/manage_day_off.html" %}'
+                  '{% block djappt_back %}<a href="{{ back_url }}">Return</a>{% endblock %}')
+        html = engines['django'].from_string(source).render(page_context(response), response.wsgi_request)
+        self.assertIn(f'<a href="{response.context["back_url"]}">Return</a>', html)
