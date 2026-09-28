@@ -63,14 +63,11 @@ and like this when a slot is selected, there, the next button is no longer grayi
 ![ar_selected_slot.png](images/ar_selected_slot.png)
 
 !!! warning
-    In the images shown, days highlighted in dark gray represent dates that are not selectable. This
-    unavailability is due to the staff member's decision not to work on those days, thus precluding any appointments. For
-    instance, in the displayed example, a specific staff member has chosen to start their workday at 5 pm (17:00) and
-    conclude at 7:30 pm (19:30), although on other days, their schedule may begin as early as wanted. Importantly, clients
-    cannot select past dates for appointments. After a client completes the booking process, the occupied slot(s) are
-    immediately removed from the availability list. If, for example, the service duration is one hour with slots proposed
-    in 30-minute increments, and an appointment is scheduled at 5 pm (17:00), two slots will be deducted for subsequent
-    clients, making the next available start time 6 pm (18:00).
+    In the calendar, days shown in light gray can't be selected: past dates, and the days the chosen staff member
+    doesn't work or has taken off. The available slots of a day come from that staff member's start and end times and
+    the slot duration. After a client completes the booking, the occupied slot(s) are removed from the list: if the
+    service lasts one hour, slots are proposed every 30 minutes and an appointment is booked at 5 pm (17:00), the next
+    available start time for other clients is 6 pm (18:00).
 
 ### Personal information and payment options
 
