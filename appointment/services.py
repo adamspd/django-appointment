@@ -18,7 +18,7 @@ from django.utils.formats import get_format, localize
 from django.utils.translation import gettext as _
 
 from appointment.forms import PersonalInformationForm, ServiceForm, StaffDaysOffForm, StaffUnavailabilityForm, \
-    StaffWorkingHoursForm
+    StaffWorkingHoursForm, UnavailabilityDataForm, WorkingHoursDataForm
 from appointment.messages_ import appt_updated_successfully
 from appointment.models import DAYS_OF_WEEK
 from appointment.settings import APPOINTMENT_PAYMENT_URL
@@ -254,30 +254,46 @@ def handle_entity_management_request(request, staff_member, entity_type, instanc
         return handle_day_off_form(day_off_form, staff_member, request=request)
 
     elif request.method == 'POST' and entity_type == 'unavailability':
-        try:
-            date = datetime.datetime.strptime(request.POST.get('date_raw'), "%Y-%m-%d").date()
-            start_time = datetime.datetime.strptime(request.POST.get('start_time_raw'), "%H:%M:%S").time()
-            end_time = datetime.datetime.strptime(request.POST.get('end_time_raw'), "%H:%M:%S").time()
-            description = request.POST.get('description')
-        except (TypeError, ValueError):
-            return json_response(_("Invalid data."), status=400, success=False, error_code=ErrorCode.INVALID_DATA)
-
-        return handle_unavailability_form(staff_member, date, start_time, end_time, description, add, instance_id,
-                                          request=request)
+        data_form = UnavailabilityDataForm(schedule_post_data(request.POST, ['date', 'start_time', 'end_time']))
+        if not data_form.is_valid():
+            return form_errors_response(data_form)
+        data = data_form.cleaned_data
+        return handle_unavailability_form(staff_member, data['date'], data['start_time'], data['end_time'],
+                                          data['description'], add, instance_id, request=request)
 
     elif request.method == 'POST' and entity_type == 'working_hours':
-        try:
-            day_of_week = request.POST.get('day_of_week')
-            # get js string start and end times formatted as YYYY-MM-DDTHH:mm:ss and parse it.
-            start_time = datetime.datetime.strptime(request.POST.get('start_time_raw'), "%Y-%m-%dT%H:%M:%S")
-            end_time = datetime.datetime.strptime(request.POST.get('end_time_raw'), "%Y-%m-%dT%H:%M:%S")
-        except (TypeError, ValueError):
-            return json_response(_("Invalid data."), status=400, success=False, error_code=ErrorCode.INVALID_DATA)
-
-        return handle_working_hours_form(staff_member, day_of_week, start_time, end_time, add, instance_id,
-                                         request=request)
+        data_form = WorkingHoursDataForm(schedule_post_data(request.POST, ['start_time', 'end_time']))
+        if not data_form.is_valid():
+            return form_errors_response(data_form)
+        data = data_form.cleaned_data
+        return handle_working_hours_form(staff_member, data['day_of_week'], data['start_time'], data['end_time'], add,
+                                         instance_id, request=request)
 
     return render(request, template, context, status=200)
+
+
+def schedule_post_data(post, fields):
+    """The posted schedule fields, in the ISO format the data forms read.
+
+    The forms send each field under its model name (``date``, ``start_time``, ``end_time``) as the browser's pickers
+    give it: ``YYYY-MM-DD`` and ``HH:MM``. Templates written before 3.13 also send ``<name>_raw`` copies
+    (``HH:MM:SS``, or ``YYYY-MM-DDTHH:MM:SS`` for working hours); when one is there, it is used, since the field
+    itself may hold a localized value.
+    """
+    data = post.copy()
+    for name in fields:
+        raw = post.get(f'{name}_raw')
+        if raw:
+            data[name] = raw.split('T', 1)[1] if 'T' in raw else raw
+    return data
+
+
+def form_errors_response(form):
+    """The JSON answer to an invalid schedule form: a message, and the errors of each field under ``errors``."""
+    errors = {field: [str(error) for error in field_errors] for field, field_errors in form.errors.items()}
+    message = " ".join(" ".join(field_errors) for field_errors in errors.values())
+    return json_response(message or _("Invalid data."), status=400, success=False, error_code=ErrorCode.INVALID_DATA,
+                         custom_data={'errors': errors})
 
 
 def schedule_form_action(request, entity_type, staff_member, instance=None):
@@ -331,9 +347,7 @@ def handle_day_off_form(day_off_form, staff_member, request=None):
             'appointment:user_profile')
         return saved_json_response(request, _("Day off saved successfully."), redirect_url)
     else:
-        message = "Invalid data:"
-        message += get_error_message_in_form(form=day_off_form)
-        return json_response(message, status=400, success=False, error_code=ErrorCode.INVALID_DATA)
+        return form_errors_response(day_off_form)
 
 
 def handle_unavailability_form(staff_member, date, start_time, end_time, description, add, unav_id=None,
@@ -402,7 +416,8 @@ def handle_working_hours_form(staff_member, day_of_week, start_time, end_time, a
     :return: A JsonResponse instance.
     """
     # Validate inputs
-    if not (staff_member and day_of_week and start_time and end_time):
+    # day_of_week can be 0 (Sunday), so it is checked against None
+    if not (staff_member and day_of_week not in (None, '') and start_time and end_time):
         return json_response(_("Invalid data."), status=400, success=False, error_code=ErrorCode.INVALID_DATA)
 
     # Ensure start time is before end time
