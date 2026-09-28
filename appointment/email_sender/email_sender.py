@@ -287,6 +287,22 @@ def schedule_email_sending(
     )
 
 
+def get_admins():
+    """The ``ADMINS`` setting as (name, email) pairs.
+
+    Django 6.0 made ``ADMINS`` a list of email addresses; before, it was a list of (name, email) pairs, which Django 6
+    still accepts. Both forms work here: an address given alone is also used as the name.
+    """
+    admins = []
+    for admin in settings.ADMINS:
+        if isinstance(admin, str):
+            admins.append((admin, admin))
+        else:
+            name, email = admin
+            admins.append((name, email))
+    return admins
+
+
 def notify_admin(subject: str, template_url: str = "", context: Optional[dict] = None, message: str = "",
                  recipient_email: str = "", attachments=None, request=None):
     """Email the admins using either a template by providing its URL or using a custom message.
@@ -308,7 +324,7 @@ def notify_admin(subject: str, template_url: str = "", context: Optional[dict] =
     if template_url:
         message = render_text_body(template_url, context, html_message, request)
 
-    recipients = [recipient_email] if recipient_email else [email for name, email in settings.ADMINS]
+    recipients = [recipient_email] if recipient_email else [email for name, email in get_admins()]
 
     if get_use_django_q_for_emails() and check_q_cluster() and DJANGO_Q_AVAILABLE:
         # Asynchronously send the email using Django-Q

@@ -184,6 +184,25 @@ class EmailSubjectAndRecipientTests(BaseTest):
         mock_send_email.assert_called_once()
 
     @patch('appointment.utils.email_ops.send_email')
+    @patch('appointment.utils.email_ops.notify_admin')
+    def test_admins_as_plain_email_addresses_are_notified(self, mock_notify_admin, mock_send_email):
+        # Django 6.0's form of ADMINS: email addresses only
+        with self.settings(ADMINS=['george@sgc.mil']):
+            notify_admin_about_appointment(self.appointment, "Jack")
+            notify_admin_about_reschedule(self.reschedule_history, self.appointment_request, "Jack")
+        self.assertEqual(mock_notify_admin.call_args_list[0].kwargs['recipient_email'], 'george@sgc.mil')
+        self.assertEqual(mock_notify_admin.call_args_list[0].kwargs['context']['recipient_name'], 'george@sgc.mil')
+        self.assertEqual(mock_send_email.call_count, 2)  # the staff member, once per notification
+
+    @patch('appointment.utils.email_ops.send_email')
+    @patch('appointment.utils.email_ops.notify_admin')
+    def test_staff_member_listed_as_a_plain_admin_address_is_not_emailed_twice(self, mock_notify_admin,
+                                                                              mock_send_email):
+        with self.settings(ADMINS=[self.staff_member1.user.email]):
+            notify_admin_about_reschedule(self.reschedule_history, self.appointment_request, "Jack")
+        mock_send_email.assert_not_called()
+
+    @patch('appointment.utils.email_ops.send_email')
     def test_new_appointment_subject_is_one_translatable_string(self, mock_send_email):
         with self.settings(ADMINS=[]):
             notify_admin_about_appointment(self.appointment, "Jack O'Neill")

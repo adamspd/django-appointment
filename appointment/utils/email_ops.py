@@ -6,7 +6,6 @@ Author: Adams Pierre David
 Since: 1.1.0
 """
 
-from django.conf import settings
 from django.template.exceptions import TemplateDoesNotExist
 from django.urls import reverse
 from django.utils import timezone
@@ -16,7 +15,7 @@ from django.utils.http import urlsafe_base64_encode
 from django.utils.translation import gettext as _
 
 from appointment import messages_ as email_messages
-from appointment.email_sender import notify_admin, send_email
+from appointment.email_sender import get_admins, notify_admin, send_email
 from appointment.logger_config import get_logger
 from appointment.models import Appointment, AppointmentRequest, EmailVerificationCode, PasswordResetToken
 from appointment.settings import APPOINTMENT_PAYMENT_URL
@@ -220,7 +219,7 @@ def notify_admin_about_appointment(appointment, client_name: str):
     }
 
     # Notify admins
-    for admin_name, admin_email in settings.ADMINS:
+    for admin_name, admin_email in get_admins():
         if admin_email in notified_emails:
             continue  # Skip if this email has already been notified
 
@@ -371,8 +370,8 @@ def notify_admin_about_reschedule(reschedule_history, appointment_request, clien
     notify_admin(subject=subject, template_url=template_path, context=email_context,
                  attachments=[('appointment.ics', ics_file, 'text/calendar')])
 
-    # ADMINS holds (name, email) pairs; the staff member already got the admin email if they are one
-    if staff_member.user.email not in [email for name, email in settings.ADMINS]:
+    # The staff member already got the admin email if they are one
+    if staff_member.user.email not in [email for name, email in get_admins()]:
         send_email(recipient_list=[staff_member.user.email], subject=subject, context=email_context,
                    template_url=template_path,
                    attachments=[('appointment.ics', ics_file, 'text/calendar')])
