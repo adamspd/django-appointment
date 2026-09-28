@@ -11,7 +11,7 @@ from django.template.loader import render_to_string
 from django.test import SimpleTestCase, override_settings
 from django.utils import translation
 
-from appointment.email_sender import notify_admin, send_email
+from appointment.email_sender import get_admins, notify_admin, send_email
 from appointment.email_sender.email_sender import html_to_text, render_text_body
 from appointment.tasks import send_email_task
 
@@ -132,3 +132,17 @@ class PackageEmailTemplatesTests(SimpleTestCase):
         self.assertIn('Un rendez-vous avec Jack pour le service Gate a été reprogrammé.',
                       rendered['reschedule_email.txt'])
         self.assertIn('lang="fr"', rendered['thank_you_email.html'])
+
+
+class AdminsSettingTests(SimpleTestCase):
+    """ADMINS works in both of Django's forms: (name, email) pairs, and email addresses alone (Django 6.0+)."""
+
+    @override_settings(ADMINS=[('George', 'george@sgc.mil'), 'walter@sgc.mil'])
+    def test_both_forms_give_name_and_email(self):
+        self.assertEqual(get_admins(), [('George', 'george@sgc.mil'), ('walter@sgc.mil', 'walter@sgc.mil')])
+
+    @override_settings(ADMINS=['george@sgc.mil'])
+    @patch('appointment.email_sender.email_sender.get_use_django_q_for_emails', return_value=False)
+    def test_notify_admin_sends_to_plain_addresses(self, *_):
+        notify_admin(subject='New', message='Hello')
+        self.assertEqual(mail.outbox[0].to, ['george@sgc.mil'])
