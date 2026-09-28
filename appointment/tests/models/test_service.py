@@ -1,13 +1,19 @@
+import base64
+import tempfile
 from copy import deepcopy
 from datetime import timedelta
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import override_settings
 
 from appointment.forms import ServiceForm, color_to_hex
 from appointment.models import Service, generate_rgb_color
 from appointment.tests.base.base_test import BaseTest
+
+ONE_PIXEL_PNG = base64.b64decode(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==')
 
 
 class ServiceCreationAndBasicAttributesTests(BaseTest):
@@ -161,11 +167,11 @@ class ServiceRepresentationAndMiscTests(BaseTest):
 
     def test_image_url_with_attached_image(self):
         """Service should return the correct URL for the image if provided."""
-        # Create an image and attach it to the service
-        image_path = settings.BASE_DIR / 'appointment/static/img/texture.webp'  # Adjust the path as necessary
-        image = SimpleUploadedFile(name='test_image.png', content=open(image_path, 'rb').read(),
-                                   content_type='image/png')
-        service = Service.objects.create(name="Service with Image", duration=timedelta(hours=1), price=50, image=image)
+        # A 1x1 PNG, saved to a temporary media folder so the test leaves no file behind
+        image = SimpleUploadedFile(name='test_image.png', content=ONE_PIXEL_PNG, content_type='image/png')
+        with tempfile.TemporaryDirectory() as media_root, override_settings(MEDIA_ROOT=media_root):
+            service = Service.objects.create(name="Service with Image", duration=timedelta(hours=1), price=50,
+                                             image=image)
 
         # Assuming you have MEDIA_URL set in your settings for development like '/media/'
         expected_url = f"{settings.MEDIA_URL}{service.image}"
