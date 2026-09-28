@@ -2334,3 +2334,276 @@ msgstr "Libre"
 #: appointment/templates/administration/user_profile.html
 msgid "Past"
 msgstr "Pasado"
+
+#: appointment/forms.py
+msgid "Service does not exist"
+msgstr "El servicio no existe"
+
+#: appointment/models.py
+msgid "Use Service Duration as Slot"
+msgstr "Usar la duración del servicio como franja"
+
+#: appointment/models.py
+msgid ""
+"If enabled, the service's actual duration is used when checking slot "
+"availability, preventing overlaps for services longer than the default slot "
+"duration. Only evaluated when 'Default to service duration' is disabled in "
+"Config."
+msgstr ""
+"Si se activa, se usa la duración real del servicio al comprobar la "
+"disponibilidad de franjas, lo que evita solapamientos en servicios más largos"
+" que la duración de franja predeterminada. Solo se tiene en cuenta cuando "
+"'Usar por defecto la duración del servicio' está desactivado en la "
+"configuración."
+
+#: appointment/models.py
+msgid "Slot Gap Time"
+msgstr "Tiempo entre citas"
+
+#: appointment/models.py
+msgid ""
+"Required rest time in minutes between the end of one appointment and the "
+"start of the next. Overrides the global Config setting for this staff member."
+msgstr ""
+"Tiempo de descanso obligatorio, en minutos, entre el final de una cita y el "
+"inicio de la siguiente. Sustituye el ajuste global de la configuración para "
+"este miembro del personal."
+
+#: appointment/models.py
+msgid "Default to Service Duration"
+msgstr "Usar por defecto la duración del servicio"
+
+#: appointment/models.py
+msgid ""
+"When enabled, all services automatically use their own duration when checking"
+" slot availability, preventing overlaps for longer services. When disabled, "
+"each service's individual 'Use Service Duration as Slot' setting is respected"
+" instead."
+msgstr ""
+"Si se activa, todos los servicios usan su propia duración al comprobar la "
+"disponibilidad de franjas, lo que evita solapamientos en servicios más "
+"largos. Si se desactiva, se respeta el ajuste 'Usar la duración del servicio "
+"como franja' de cada servicio."
+
+#: appointment/models.py
+msgid ""
+"Required rest time in minutes between the end of one appointment and the "
+"start of the next. Applies to all staff members unless overridden per staff "
+"member."
+msgstr ""
+"Tiempo de descanso obligatorio, en minutos, entre el final de una cita y el "
+"inicio de la siguiente. Se aplica a todo el personal salvo que se cambie para"
+" un miembro concreto."
+
+#: appointment/models.py
+msgid "Unavailability"
+msgstr "Indisponibilidad"
+
+#: appointment/models.py appointment/templates/administration/user_profile.html
+msgid "Unavailabilities"
+msgstr "Indisponibilidades"
+
+#: appointment/models.py
+msgid "Start datetime must be before end datetime"
+msgstr "La fecha y hora de inicio debe ser anterior a la de fin"
+
+#: appointment/models.py
+msgid "Cannot create unavailabilities for past dates"
+msgstr "No se pueden crear indisponibilidades en fechas pasadas"
+
+#: appointment/services.py
+msgid "by"
+msgstr "por"
+
+#: appointment/services.py
+msgid "Invalid or no unavailability id provided."
+msgstr "No se ha indicado un id de indisponibilidad válido."
+
+#: appointment/services.py
+msgid "Unavailability does not exist."
+msgstr "La indisponibilidad no existe."
+
+#: appointment/services.py
+msgid "Unavailability saved successfully."
+msgstr "Indisponibilidad guardada correctamente."
+
+#: appointment/services.py appointment/tests/test_views.py
+msgid "You can only update your own appointments."
+msgstr "Solo puede modificar sus propias citas."
+
+#: appointment/templates/administration/manage_unavailability.html
+msgid "Manage Unavailabilities"
+msgstr "Gestionar indisponibilidades"
+
+#: appointment/templates/administration/staff_list.html
+msgid "Confirm Removal"
+msgstr "Confirmar la eliminación"
+
+#: appointment/templates/administration/staff_list.html
+msgid "Are you sure you want to remove this staff member?"
+msgstr "¿Seguro que quiere quitar a este miembro del personal?"
+
+#: appointment/templates/administration/user_profile.html
+msgid "Are you sure you want to delete this day off?"
+msgstr "¿Seguro que quiere eliminar este día libre?"
+
+#: appointment/templates/administration/user_profile.html
+msgid ""
+"Unavailabilities are periods when you're not available on a specific day. Use"
+" them to block time slots you don't want to make available."
+msgstr ""
+"Las indisponibilidades son periodos en los que no está disponible un día "
+"concreto. Úselas para bloquear las franjas que no quiere ofrecer."
+
+#: appointment/templates/administration/user_profile.html
+msgid "Are you sure you want to delete this unavailability?"
+msgstr "¿Seguro que quiere eliminar esta indisponibilidad?"
+
+#: appointment/templates/administration/user_profile.html
+msgid "No unavailabilities have been set"
+msgstr "No se ha definido ninguna indisponibilidad"
+
+#: appointment/templates/email_sender/admin_new_appointment_email.html
+#: appointment/templates/email_sender/admin_new_appointment_email.txt
+#, python-format
+msgid "Dear %(recipient_name)s,"
+msgstr "Estimado/a %(recipient_name)s:"
+
+#: appointment/templates/email_sender/admin_new_appointment_email.html
+#: appointment/templates/email_sender/admin_new_appointment_email.txt
+#, python-format
+msgid ""
+"A new appointment request has been received for %(staff_member_name)s. Here "
+"are the details:"
+msgstr ""
+"Se ha recibido una nueva solicitud de cita para %(staff_member_name)s. Estos "
+"son los detalles:"
+
+#: appointment/templates/email_sender/admin_new_appointment_email.html
+#: appointment/templates/email_sender/admin_new_appointment_email.txt
+#, python-format
+msgid ""
+"Please ensure that %(staff_member_name)s reviews this appointment request and"
+" takes the necessary action."
+msgstr ""
+"Asegúrese de que %(staff_member_name)s revise esta solicitud de cita y tome "
+"las medidas necesarias."
+
+#: appointment/templates/email_sender/reminder_email.html
+#: appointment/templates/email_sender/reminder_email.txt
+#: appointment/templates/email_sender/reschedule_email.html
+#: appointment/templates/email_sender/reschedule_email.txt
+#, python-format
+msgid "Dear %(first_name)s,"
+msgstr "Estimado/a %(first_name)s:"
+
+#: appointment/templates/email_sender/reschedule_email.html
+#: appointment/templates/email_sender/reschedule_email.txt
+#, python-format
+msgid ""
+"An appointment with %(client_name)s for the service %(service_name)s has been"
+" rescheduled."
+msgstr ""
+"Se ha reprogramado una cita con %(client_name)s para el servicio "
+"%(service_name)s."
+
+#: appointment/templates/email_sender/thank_you_email.html
+#: appointment/templates/email_sender/thank_you_email.txt
+#, python-format
+msgid "Hi %(first_name)s,"
+msgstr "Hola %(first_name)s:"
+
+#: appointment/templates/email_sender/thank_you_email.html
+#: appointment/templates/email_sender/thank_you_email.txt
+msgid ""
+"To activate your account and set your password, use the link below. For your "
+"security, it expires in 2 days."
+msgstr ""
+"Para activar su cuenta y establecer su contraseña, use el enlace de abajo. "
+"Por su seguridad, caduca en 2 días."
+
+#: appointment/templates/email_sender/thank_you_email.html
+msgid "Set Your Password"
+msgstr "Establecer su contraseña"
+
+#: appointment/templates/email_sender/thank_you_email.html
+#: appointment/templates/email_sender/thank_you_email.txt
+msgid ""
+"Should you have any inquiries or require further assistance, our support team"
+" is here to help. You can reach us anytime."
+msgstr ""
+"Si tiene preguntas o necesita ayuda, nuestro equipo de soporte está aquí para"
+" ayudarle. Puede contactarnos en cualquier momento."
+
+#: appointment/utils/email_ops.py
+msgid "To login, use username '{username}' or your email address."
+msgstr ""
+"Para iniciar sesión, use el nombre de usuario '{username}' o su correo "
+"electrónico."
+
+#: appointment/utils/email_ops.py
+msgid "To login, use your email address."
+msgstr "Para iniciar sesión, use su correo electrónico."
+
+#: appointment/utils/email_ops.py
+msgid ""
+"\n"
+"            Hello {first_name},\n"
+"\n"
+"            A request has been received to set a password for your staff account for the year {current_year} at {company}.\n"
+"\n"
+"            Please click the link below to set up your new password:\n"
+"            {activation_link}\n"
+"\n"
+"            {login_instruction}\n"
+"\n"
+"            If you did not request this, please ignore this email.\n"
+"\n"
+"            {account_details}\n"
+"\n"
+"            Regards,\n"
+"            {company}\n"
+"            "
+msgstr ""
+"\n"
+"            Hola {first_name}:\n"
+"\n"
+"            Hemos recibido una solicitud para establecer una contraseña para su cuenta de personal del año {current_year} en {company}.\n"
+"\n"
+"            Haga clic en el enlace de abajo para establecer su nueva contraseña:\n"
+"            {activation_link}\n"
+"\n"
+"            {login_instruction}\n"
+"\n"
+"            Si no ha hecho esta solicitud, ignore este correo.\n"
+"\n"
+"            {account_details}\n"
+"\n"
+"            Saludos,\n"
+"            {company}\n"
+"            "
+
+#: appointment/utils/session.py
+msgid ""
+"Email '{email}' already exists. Please verify your email to Login to your "
+"account."
+msgstr ""
+"El correo '{email}' ya existe. Verifique su correo para iniciar sesión en su "
+"cuenta."
+
+#: appointment/views.py
+msgid "No availability in the next 90 days for this staff member"
+msgstr ""
+"Este miembro del personal no tiene disponibilidad en los próximos 90 días"
+
+#: appointment/views_admin.py
+msgid "You can only add your own unavailabilities."
+msgstr "Solo puede añadir sus propias indisponibilidades."
+
+#: appointment/views_admin.py
+msgid "You can only update your own unavailabilities."
+msgstr "Solo puede modificar sus propias indisponibilidades."
+
+#: appointment/views_admin.py
+msgid "You can only delete your own unavailabilities."
+msgstr "Solo puede eliminar sus propias indisponibilidades."

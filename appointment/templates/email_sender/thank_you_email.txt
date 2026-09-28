@@ -1,0 +1,33 @@
+{% load i18n %}{% autoescape off %}{{ main_title }}
+
+{% if first_name %}{% blocktrans trimmed %}Hi {{ first_name }},{% endblocktrans %}{% else %}{% trans "Hi" %},{% endif %}
+
+{% if message_1 %}{{ message_1 }}
+
+{% endif %}{% if more_details %}{% trans "Appointment Details" %}
+{% for label, value in more_details.items %}- {{ label }}: {{ value }}
+{% endfor %}
+{% endif %}{% if account_details %}{% trans "Account Information" %}
+{% if message_2 %}{{ message_2 }}
+{% endif %}{% for label, value in account_details.items %}- {{ label }}: {{ value }}
+{% endfor %}{% if activation_link %}
+{% blocktranslate trimmed %}
+    To activate your account and set your password, use the link below. For your security, it
+    expires in 2 days.
+{% endblocktranslate %}
+{{ activation_link }}
+{% endif %}
+{% endif %}{% if reschedule_link %}{% trans 'Rescheduling' %}
+{% translate 'If your plans change and you need to reschedule your appointment, you can easily do so by following this link: ' %}
+{{ reschedule_link }}
+
+{% endif %}{% blocktranslate trimmed %}
+    Should you have any inquiries or require further assistance, our support team is here to help. You can
+    reach us anytime.
+{% endblocktranslate %} {% trans "We look forward to serving you and ensuring that your experience with us is both rewarding and satisfactory." %}
+
+{% trans "Warm regards" %},
+{% if company %}{{ company }}{% else %}{% trans "The Team" %}{% endif %}
+
+© {{ current_year }} {{ company }}. {% trans "All rights reserved" %}.
+{% endautoescape %}

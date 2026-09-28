@@ -199,7 +199,7 @@ msgstr "Nom"
 #: .\appointment\templates\administration\user_profile.html:169
 #: .\appointment\templates\administration\user_profile.html:300
 msgid "Description"
-msgstr ""
+msgstr "Description"
 
 #: .\appointment\models.py:71
 #: .\appointment\templates\administration\service_list.html:29
@@ -222,7 +222,7 @@ msgstr "Acompte"
 
 #: .\appointment\models.py:86
 msgid "Image"
-msgstr ""
+msgstr "Image"
 
 #: .\appointment\models.py:91
 msgid "Currency"
@@ -250,7 +250,7 @@ msgstr "Permettre la reprogrammation"
 
 #: .\appointment\models.py:112
 msgid "Use Service Duration as Slot"
-msgstr ""
+msgstr "Utiliser la durée du service comme créneau"
 
 #: .\appointment\models.py:114
 msgid ""
@@ -259,6 +259,11 @@ msgid ""
 "duration. Only evaluated when 'Default to service duration' is disabled in "
 "Config."
 msgstr ""
+"Si cette option est activée, la durée réelle du service est utilisée pour "
+"vérifier la disponibilité des créneaux, ce qui évite les chevauchements pour"
+" les services plus longs que la durée de créneau par défaut. Prise en compte"
+" uniquement quand « Utiliser par défaut la durée du service » est désactivé "
+"dans la configuration."
 
 #: .\appointment\models.py:121 .\appointment\models.py:273
 #: .\appointment\models.py:425 .\appointment\models.py:551
@@ -289,7 +294,7 @@ msgstr "Service"
 
 #: .\appointment\models.py:126
 msgid "Services"
-msgstr ""
+msgstr "Services"
 
 #: .\appointment\models.py:158 .\appointment\utils\date_time.py:160
 #, python-format
@@ -578,7 +583,7 @@ msgstr "La date n'est pas valide"
 #: .\appointment\models.py:600
 #: .\appointment\templates\administration\display_appointment.html:69
 msgid "Client"
-msgstr ""
+msgstr "Client"
 
 #: .\appointment\models.py:601
 msgid "The user who made the appointment request."
@@ -744,7 +749,7 @@ msgstr ""
 
 #: .\appointment\models.py:884
 msgid "Default to Service Duration"
-msgstr ""
+msgstr "Utiliser par défaut la durée du service"
 
 #: .\appointment\models.py:886
 msgid ""
@@ -753,6 +758,10 @@ msgid ""
 "disabled, each service's individual 'Use Service Duration as Slot' setting "
 "is respected instead."
 msgstr ""
+"Si cette option est activée, tous les services utilisent leur propre durée "
+"pour vérifier la disponibilité des créneaux, ce qui évite les chevauchements"
+" pour les services plus longs. Sinon, le réglage « Utiliser la durée du "
+"service comme créneau » de chaque service est respecté."
 
 #: .\appointment\models.py:894
 msgid ""
@@ -760,14 +769,17 @@ msgid ""
 "start of the next. Applies to all staff members unless overridden per staff "
 "member."
 msgstr ""
+"Temps de repos obligatoire, en minutes, entre la fin d'un rendez-vous et le "
+"début du suivant. S'applique à tout le personnel, sauf réglage propre à un "
+"membre."
 
 #: .\appointment\models.py:903
 msgid "Config"
-msgstr ""
+msgstr "Configuration"
 
 #: .\appointment\models.py:904
 msgid "Configs"
-msgstr ""
+msgstr "Configurations"
 
 #: .\appointment\models.py:909
 msgid "You can only create one Config object"
@@ -1072,7 +1084,7 @@ msgstr "Détails du client"
 #: .\appointment\templates\administration\user_profile.html:37
 #: .\appointment\templates\appointment\appointment_client_information.html:52
 msgid "Email"
-msgstr ""
+msgstr "E-mail"
 
 #: .\appointment\templates\administration\display_appointment.html:77
 #: .\appointment\templates\appointment\appointment_client_information.html:66
@@ -1086,7 +1098,7 @@ msgstr "Adresse du client"
 
 #: .\appointment\templates\administration\display_appointment.html:90
 msgid "Notes"
-msgstr ""
+msgstr "Notes"
 
 #: .\appointment\templates\administration\display_appointment.html:93
 #: .\appointment\templates\administration\staff_index.html:379
@@ -2521,3 +2533,83 @@ msgstr "Repos"
 #: appointment/templates/administration/user_profile.html
 msgid "Past"
 msgstr "Passé"
+
+#: appointment/templates/administration/staff_list.html
+msgid "Confirm Removal"
+msgstr "Confirmer le retrait"
+
+#: appointment/templates/administration/staff_list.html
+msgid "Are you sure you want to remove this staff member?"
+msgstr "Voulez-vous vraiment retirer ce membre du personnel ?"
+
+#: appointment/templates/email_sender/admin_new_appointment_email.html
+#: appointment/templates/email_sender/admin_new_appointment_email.txt
+#, python-format
+msgid "Dear %(recipient_name)s,"
+msgstr "Bonjour %(recipient_name)s,"
+
+#: appointment/templates/email_sender/admin_new_appointment_email.html
+#: appointment/templates/email_sender/admin_new_appointment_email.txt
+#, python-format
+msgid ""
+"A new appointment request has been received for %(staff_member_name)s. Here "
+"are the details:"
+msgstr ""
+"Une nouvelle demande de rendez-vous a été reçue pour %(staff_member_name)s. "
+"Voici les détails :"
+
+#: appointment/templates/email_sender/admin_new_appointment_email.html
+#: appointment/templates/email_sender/admin_new_appointment_email.txt
+#, python-format
+msgid ""
+"Please ensure that %(staff_member_name)s reviews this appointment request and"
+" takes the necessary action."
+msgstr ""
+"Veuillez vous assurer que %(staff_member_name)s examine cette demande de "
+"rendez-vous et prend les mesures nécessaires."
+
+#: appointment/templates/email_sender/reminder_email.html
+#: appointment/templates/email_sender/reminder_email.txt
+#: appointment/templates/email_sender/reschedule_email.html
+#: appointment/templates/email_sender/reschedule_email.txt
+#, python-format
+msgid "Dear %(first_name)s,"
+msgstr "Bonjour %(first_name)s,"
+
+#: appointment/templates/email_sender/reschedule_email.html
+#: appointment/templates/email_sender/reschedule_email.txt
+#, python-format
+msgid ""
+"An appointment with %(client_name)s for the service %(service_name)s has been"
+" rescheduled."
+msgstr ""
+"Un rendez-vous avec %(client_name)s pour le service %(service_name)s a été "
+"reprogrammé."
+
+#: appointment/templates/email_sender/thank_you_email.html
+#: appointment/templates/email_sender/thank_you_email.txt
+#, python-format
+msgid "Hi %(first_name)s,"
+msgstr "Bonjour %(first_name)s,"
+
+#: appointment/templates/email_sender/thank_you_email.html
+#: appointment/templates/email_sender/thank_you_email.txt
+msgid ""
+"To activate your account and set your password, use the link below. For your "
+"security, it expires in 2 days."
+msgstr ""
+"Pour activer votre compte et définir votre mot de passe, utilisez le lien ci-"
+"dessous. Pour votre sécurité, il expire dans 2 jours."
+
+#: appointment/templates/email_sender/thank_you_email.html
+msgid "Set Your Password"
+msgstr "Définir votre mot de passe"
+
+#: appointment/templates/email_sender/thank_you_email.html
+#: appointment/templates/email_sender/thank_you_email.txt
+msgid ""
+"Should you have any inquiries or require further assistance, our support team"
+" is here to help. You can reach us anytime."
+msgstr ""
+"Si vous avez des questions ou besoin d'aide, notre équipe est là pour vous. "
+"Vous pouvez nous contacter à tout moment."

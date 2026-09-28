@@ -1,83 +1,58 @@
+{% extends "email_sender/base_email.html" %}
 {% load i18n %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% translate 'Appointment Request Notification' %}</title>
-    <style>
-        body {
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            background-color: #f5f5f5;
-            color: #333;
-            padding: 20px;
-            margin: 0;
-        }
+{% block title %}{% translate 'New Appointment Request' %}{% endblock %}
+{% block preheader %}{{ client_name }} · {{ appointment.get_service_name }} · {{ appointment.appointment_request.date|date:"l, d F Y" }}{% endblock %}
+{% block heading %}{% translate 'New Appointment Request' %}{% endblock %}
 
-        .email-container {
-            background-color: #ffffff;
-            padding: 25px;
-            margin: 0 auto;
-            max-width: 650px;
-            border-radius: 5px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-        }
+{% block content %}
+    <p style="margin: 0 0 12px;">{% blocktranslate trimmed %}Dear {{ recipient_name }},{% endblocktranslate %}</p>
+    <p style="margin: 0 0 24px;">
+        {% if is_staff_member %}
+            {% translate 'You have received a new appointment request. Here are the details:' %}
+        {% else %}
+            {% blocktranslate trimmed %}
+                A new appointment request has been received for {{ staff_member_name }}. Here are the details:
+            {% endblocktranslate %}
+        {% endif %}
+    </p>
 
-        h1 {
-            color: #333;
-            font-size: 24px;
-        }
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 0 0 24px; border: 1px solid #e3e8ef; border-radius: 8px; border-collapse: separate;">
+        <tr>
+            <td valign="top" style="padding: 10px 14px; width: 40%; font-size: 14px; color: #64748b; border-bottom: 1px solid #e3e8ef;">{% translate 'Client Name' %}</td>
+            <td valign="top" style="padding: 10px 14px; font-size: 14px; font-weight: 600; border-bottom: 1px solid #e3e8ef;">{{ client_name }}</td>
+        </tr>
+        <tr>
+            <td valign="top" style="padding: 10px 14px; font-size: 14px; color: #64748b; border-bottom: 1px solid #e3e8ef;">{% translate 'Service Requested' %}</td>
+            <td valign="top" style="padding: 10px 14px; font-size: 14px; font-weight: 600; border-bottom: 1px solid #e3e8ef;">{{ appointment.get_service_name }}</td>
+        </tr>
+        <tr>
+            <td valign="top" style="padding: 10px 14px; font-size: 14px; color: #64748b; border-bottom: 1px solid #e3e8ef;">{% translate 'Appointment Date' %}</td>
+            <td valign="top" style="padding: 10px 14px; font-size: 14px; font-weight: 600; border-bottom: 1px solid #e3e8ef;">{{ appointment.appointment_request.date|date:"l, d F Y" }}</td>
+        </tr>
+        <tr>
+            <td valign="top" style="padding: 10px 14px; font-size: 14px; color: #64748b; border-bottom: 1px solid #e3e8ef;">{% translate 'Time' %}</td>
+            <td valign="top" style="padding: 10px 14px; font-size: 14px; font-weight: 600; border-bottom: 1px solid #e3e8ef;">{{ appointment.appointment_request.start_time|time }} – {{ appointment.appointment_request.end_time|time }}</td>
+        </tr>
+        <tr>
+            <td valign="top" style="padding: 10px 14px; font-size: 14px; color: #64748b; border-bottom: 1px solid #e3e8ef;">{% translate 'Contact Details' %}</td>
+            <td valign="top" style="padding: 10px 14px; font-size: 14px; font-weight: 600; word-break: break-word; border-bottom: 1px solid #e3e8ef;">
+                {% if appointment.phone %}{{ appointment.phone }}<br>{% endif %}{{ appointment.client.email }}
+            </td>
+        </tr>
+        <tr>
+            <td valign="top" style="padding: 10px 14px; font-size: 14px; color: #64748b;">{% translate 'Additional Info' %}</td>
+            <td valign="top" style="padding: 10px 14px; font-size: 14px; font-weight: 600;">{{ appointment.additional_info|default:"N/A" }}</td>
+        </tr>
+    </table>
 
-        p {
-            font-size: 16px;
-            line-height: 1.6;
-        }
-
-        .appointment-details {
-            background-color: #f9f9f9;
-            padding: 15px;
-            margin-top: 20px;
-            border-left: 5px solid #007bff;
-        }
-
-        .footer {
-            margin-top: 30px;
-            font-size: 14px;
-            text-align: left;
-            color: #999;
-        }
-    </style>
-</head>
-<body>
-<div class="email-container">
-    <h1>{% translate 'New Appointment Request' %}</h1>
-    <p>{% translate 'Dear' %} {{ recipient_name }},</p>
-    {% if is_staff_member %}
-        <p>{% translate 'You have received a new appointment request. Here are the details:' %}</p>
-    {% else %}
-        <p>{% translate 'A new appointment request has been received for' %} {{ staff_member_name }}. {% translate 'Here are the details:' %}</p>
-    {% endif %}
-
-    <div class="appointment-details">
-        <p><strong>{% translate 'Client Name' %}:</strong> {{ client_name }}</p>
-        <p><strong>{% translate 'Service Requested' %}:</strong> {{ appointment.get_service_name }}</p>
-        <p><strong>{% translate 'Appointment Date' %}:</strong> {{ appointment.appointment_request.date|date:"l, d F Y" }}</p>
-        <p><strong>{% translate 'Time' %}:</strong> {{ appointment.appointment_request.start_time|time }}
-            - {{ appointment.appointment_request.end_time|time }}</p>
-        <p><strong>{% translate 'Contact Details' %}:</strong> {{ appointment.phone }} | {{ appointment.client.email }}
-        </p>
-        <p><strong>{% translate 'Additional Info' %}:</strong> {{ appointment.additional_info|default:"N/A" }}</p>
-    </div>
-
-    {% if is_staff_member %}
-        <p>{% translate 'Please review the appointment request and take the necessary action.' %}</p>
-    {% else %}
-        <p>{% translate 'Please ensure that' %} {{ staff_member_name }} {% translate 'reviews this appointment request and takes the necessary action.' %}</p>
-    {% endif %}
-
-    <div class="footer">
-        <p>{% translate 'This is an automated message. Please do not reply directly to this email.' %}</p>
-    </div>
-</div>
-</body>
-</html>
+    <p style="margin: 0;">
+        {% if is_staff_member %}
+            {% translate 'Please review the appointment request and take the necessary action.' %}
+        {% else %}
+            {% blocktranslate trimmed %}
+                Please ensure that {{ staff_member_name }} reviews this appointment request and takes the necessary
+                action.
+            {% endblocktranslate %}
+        {% endif %}
+    </p>
+{% endblock %}

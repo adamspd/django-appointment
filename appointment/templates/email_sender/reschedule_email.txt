@@ -1,0 +1,22 @@
+{% load i18n %}{% autoescape off %}{% trans "Appointment Reschedule" %}
+
+{% if is_confirmation %}{% if first_name %}{% blocktrans trimmed %}Dear {{ first_name }},{% endblocktrans %}{% else %}{% trans "Hi" %},{% endif %}
+
+{% trans "You have requested to reschedule your appointment. Please review the changes below and confirm:" %}{% else %}{% trans "Hi" %},
+
+{% blocktrans trimmed %}
+    An appointment with {{ client_name }} for the service {{ service_name }} has been
+    rescheduled.
+{% endblocktrans %}{% if reason_for_rescheduling %}
+{% trans "Reason for rescheduling:" %} {{ reason_for_rescheduling }}{% endif %}{% endif %}
+
+{% trans "Original Appointment:" %} {{ old_date|date:"l, d F Y" }}, {{ old_start_time|time }} – {{ old_end_time|time }}
+{% trans "Rescheduled Appointment:" %} {{ reschedule_date|date:"l, d F Y" }}, {{ start_time|time }} – {{ end_time|time }}
+{% if is_confirmation %}
+{% trans "Confirm Appointment" %}: {{ confirmation_link }}
+
+{% trans "This link will expire in 5 minutes. If you do not confirm within this time frame, you will need to submit a new reschedule request." %}
+{% endif %}
+{% trans "Thank you," %}
+{{ company }}
+{% endautoescape %}
