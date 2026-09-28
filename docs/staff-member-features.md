@@ -19,9 +19,9 @@ Staff members have access to a personalized dashboard with the following capabil
 5. **Delete Appointments**: Remove their own appointments with a confirmation prompt.
 
 6. **Add New Appointments**:
-   - On desktop: Right-click a day and select "New Appointment."
+   - On desktop: Click "New Appointment" above the calendar, or right-click a day.
      ![New Appointment Desktop](images/sm_new_appointment.png)
-   - On mobile: Tap a day and select "New Event."
+   - On mobile: Tap "New Appointment" (tapping a day opens that day's schedule).
      ![New Appointment Mobile](images/sm_new_appointment_mobile.png)
 
 7. **Block Part of a Day**: Record an *unavailability* — a start and end time on a single date, with an optional

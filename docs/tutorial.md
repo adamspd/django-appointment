@@ -25,7 +25,7 @@ If you attempt to create an appointment request now, it's still not possible as 
 
 ![Appointment Request without Staff Member](screenshots/appointment_request_w_sm.png)
 
-Similarly, if you check the list of appointments, it will be empty and you'll get a warning:
+Similarly, the staff calendar is empty:
 
 ![Appointment List without Staff Member](screenshots/appointment_list_admin.png)
 
@@ -35,7 +35,7 @@ To add a staff member, visit:
 
 ![Staff Member List](screenshots/staff_member_list.png)
 
-You can either add a new staff member or assign yourself as a staff member, especially if you are a superuser. In this example, I will demonstrate using the `Staff me` button.
+You can either add a new staff member or assign yourself as a staff member, especially if you are a superuser. In this example, I will use the `Staff me` button.
 
 ### Updating Your Profile
 
@@ -43,13 +43,13 @@ Once you have created a staff member profile, you need to specify the services y
 
 ![Initial Profile](screenshots/initial_profile.png)
 
-To edit your appointment information, such as the services you offer, click on the edit icon next to `Appointment Information`:
+To edit your appointment information, such as the services you offer, click `Edit` next to `Appointment Information`. Each service is a checkbox:
 
 ![Profile Edit](screenshots/adding_service_to_profile.png)
 
 After selecting the services you offer, you may leave other fields blank if desired, and then click `Save`.
 
-Additionally, select the days you wish to work by clicking the `add icon` next to `Working Hours`. For demonstration purposes, I have chosen Saturdays and Sundays from 9 AM to 5 PM.
+Additionally, add the days you wish to work with the `Add` button next to `Working Hours`. For demonstration purposes, I have chosen Saturdays and Sundays from 9 AM to 5 PM. The profile shows the whole week, with each day's hours as a bar.
 
 Your updated profile should look like this:
 
@@ -63,7 +63,7 @@ Now, users can start creating appointments. The interface for clients would appe
 
 Notice that only Saturdays and Sundays are selectable, with the only staff member (you) selected by default.
 
-Let's create an appointment request for Saturday, January 13th, 2024, at 3:00 PM:
+Let's pick a Saturday and the 3 PM slot. The summary on the right follows the choice, and `Next` becomes clickable:
 
 ![Creating Appointment Request](screenshots/creating_appt_request.png)
 
