@@ -1600,6 +1600,17 @@ class AppointmentClientInformationTest(BaseTest):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'appointment/appointment_client_information.html')
 
+    def test_invalid_phone_shows_its_error(self):
+        """A rejected phone number comes back with its error on the page, not silently."""
+        data = dict(self.valid_form_data, phone_0='US', phone_1='123')
+        del data['phone']
+        response = self.client.post(self.url, data)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('phone', response.context['form'].errors)
+        self.assertContains(response, 'djappt-field-error')
+        self.assertContains(response, response.context['form'].errors['phone'][0])
+        self.assertContains(response, 'Please correct the errors below.')
+
     def test_already_submitted_session(self):
         """Test the view when the appointment has already been submitted."""
         session = self.client.session
