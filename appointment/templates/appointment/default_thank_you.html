@@ -5,7 +5,7 @@
     <link rel="stylesheet" type="text/css" href="{% static 'css/booking.css' %}"/>
 {% endblock %}
 {% block title %}
-    {{ page_title }}
+    {{ page_title|default:_("See you soon") }}
 {% endblock %}
 {% block description %}
     {{ page_description }}
@@ -19,7 +19,7 @@
                     <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0"/>
                 </svg>
                 </span>
-                <h1 class="djappt-title thank-you-title">{% trans "See you soon" %} !</h1>
+                <h1 class="djappt-title thank-you-title">{% trans "See you soon!" %}</h1>
                 <p class="djappt-lead mb-4 thank-you-message">{% trans "We've successfully scheduled your appointment! Please check your email for all the details" %}.</p>
             </div>
             <h2 class="djappt-card-title appointment-details-title">{% trans "Appointment details" %}</h2>
