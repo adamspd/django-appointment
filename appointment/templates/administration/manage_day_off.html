@@ -13,72 +13,65 @@
 {% endblock %}
 
 {% block djappt_content %}
-    {% with staff_user_id=request.resolver_match.kwargs.staff_user_id %}
-        {% if staff_user_id %}
-            {% url 'appointment:user_profile' staff_user_id=staff_user_id as back_url %}
-        {% else %}
-            {% url 'appointment:user_profile' as back_url %}
+    <div class="djappt-shell djappt-shell--narrow djappt-staff content content-wrapper">
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
+                         role="alert">{{ message }}</div>
+                {% endfor %}
+            </div>
         {% endif %}
-        <div class="djappt-shell djappt-shell--narrow djappt-staff content content-wrapper">
-            {% if messages %}
-                <div class="messages">
-                    {% for message in messages %}
-                        <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
-                             role="alert">{{ message }}</div>
-                    {% endfor %}
+
+        <a class="djappt-back" href="{{ back_url }}">
+            <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                <path d="M10.354 3.146a.5.5 0 0 1 0 .708L6.207 8l4.147 4.146a.5.5 0 0 1-.708.708l-4.5-4.5a.5.5 0 0 1 0-.708l4.5-4.5a.5.5 0 0 1 .708 0"/>
+            </svg>
+            {% trans 'Back' %}</a>
+
+        {# Sent in the background by schedule_form.js, to this page's URL #}
+        <form method="post" action="" class="djappt-card djappt-form djappt-staff-form" data-schedule-form>
+            <h1 class="djappt-card-title">{% trans "Manage Days Off" %}</h1>
+            {% csrf_token %}
+            {% if day_off_form.errors %}
+                <div class="alert alert-danger">{{ day_off_form.errors }}</div>
+            {% endif %}
+
+            {% if day_off_form.staff_member %}
+                <div class="djappt-field mb-3">
+                    <label class="form-label" for="{{ day_off_form.staff_member.id_for_label }}">{% trans 'Staff Member' %}</label>
+                    {{ day_off_form.staff_member }}
                 </div>
             {% endif %}
 
-            <a class="djappt-back" href="{{ back_url }}">
-                <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-                    <path d="M10.354 3.146a.5.5 0 0 1 0 .708L6.207 8l4.147 4.146a.5.5 0 0 1-.708.708l-4.5-4.5a.5.5 0 0 1 0-.708l4.5-4.5a.5.5 0 0 1 .708 0"/>
-                </svg>
-                {% trans 'Back' %}</a>
-
-            {# Sent in the background by schedule_form.js, to this page's URL #}
-            <form method="post" action="" class="djappt-card djappt-form djappt-staff-form" data-schedule-form>
-                <h1 class="djappt-card-title">{% trans "Manage Days Off" %}</h1>
-                {% csrf_token %}
-                {% if day_off_form.errors %}
-                    <div class="alert alert-danger">{{ day_off_form.errors }}</div>
-                {% endif %}
-
-                {% if day_off_form.staff_member %}
-                    <div class="djappt-field mb-3">
-                        <label class="form-label" for="{{ day_off_form.staff_member.id_for_label }}">{% trans 'Staff Member' %}</label>
-                        {{ day_off_form.staff_member }}
-                    </div>
-                {% endif %}
-
-                <div class="djappt-staff-fields">
-                    <div class="djappt-field">
-                        <label class="form-label" for="{{ day_off_form.start_date.id_for_label }}">{% trans 'Start date' %}</label>
-                        <input type="date" class="form-control" id="{{ day_off_form.start_date.id_for_label }}"
-                               name="{{ day_off_form.start_date.html_name }}"
-                               value="{{ day_off_form.start_date.value|date:'Y-m-d' }}" required data-start-date>
-                    </div>
-                    <div class="djappt-field">
-                        <label class="form-label" for="{{ day_off_form.end_date.id_for_label }}">{% trans 'End date' %}</label>
-                        <input type="date" class="form-control" id="{{ day_off_form.end_date.id_for_label }}"
-                               name="{{ day_off_form.end_date.html_name }}"
-                               value="{{ day_off_form.end_date.value|date:'Y-m-d' }}" required data-end-date>
-                    </div>
-                    <div class="djappt-field djappt-field--wide">
-                        <label class="form-label" for="{{ day_off_form.description.id_for_label }}">{% trans 'Description' %}</label>
-                        <input type="text" class="form-control" id="{{ day_off_form.description.id_for_label }}"
-                               name="{{ day_off_form.description.html_name }}" maxlength="255"
-                               value="{{ day_off_form.description.value|default_if_none:'' }}">
-                    </div>
+            <div class="djappt-staff-fields">
+                <div class="djappt-field">
+                    <label class="form-label" for="{{ day_off_form.start_date.id_for_label }}">{% trans 'Start date' %}</label>
+                    <input type="date" class="form-control" id="{{ day_off_form.start_date.id_for_label }}"
+                           name="{{ day_off_form.start_date.html_name }}"
+                           value="{{ day_off_form.start_date.value|date:'Y-m-d' }}" required data-start-date>
                 </div>
-
-                <div class="djappt-form-actions">
-                    <a class="btn djappt-btn djappt-btn-ghost" href="{{ back_url }}">{% trans 'Cancel' %}</a>
-                    <button type="submit" class="btn djappt-btn djappt-btn-primary">{% trans "Submit" %}</button>
+                <div class="djappt-field">
+                    <label class="form-label" for="{{ day_off_form.end_date.id_for_label }}">{% trans 'End date' %}</label>
+                    <input type="date" class="form-control" id="{{ day_off_form.end_date.id_for_label }}"
+                           name="{{ day_off_form.end_date.html_name }}"
+                           value="{{ day_off_form.end_date.value|date:'Y-m-d' }}" required data-end-date>
                 </div>
-            </form>
-            {% include 'modal/error_modal.html' %}
-        </div>
-    {% endwith %}
+                <div class="djappt-field djappt-field--wide">
+                    <label class="form-label" for="{{ day_off_form.description.id_for_label }}">{% trans 'Description' %}</label>
+                    <input type="text" class="form-control" id="{{ day_off_form.description.id_for_label }}"
+                           name="{{ day_off_form.description.html_name }}" maxlength="255"
+                           value="{{ day_off_form.description.value|default_if_none:'' }}">
+                </div>
+            </div>
+
+            <div class="djappt-form-actions">
+                <a class="btn djappt-btn djappt-btn-ghost" href="{{ back_url }}">{% trans 'Cancel' %}</a>
+                <button type="submit" class="btn djappt-btn djappt-btn-primary">{% trans "Submit" %}</button>
+            </div>
+        </form>
+        {% include 'modal/error_modal.html' %}
+    </div>
 {% endblock %}
 
 {% block customJS %}

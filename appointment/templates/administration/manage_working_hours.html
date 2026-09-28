@@ -13,11 +13,6 @@
 {% endblock %}
 
 {% block djappt_content %}
-    {% if staff_user_id %}
-        {% url 'appointment:user_profile' staff_user_id=staff_user_id as back_url %}
-    {% else %}
-        {% url 'appointment:user_profile' as back_url %}
-    {% endif %}
     <div class="djappt-shell djappt-shell--narrow djappt-staff content content-wrapper">
         {% if messages %}
             <div class="messages">
@@ -34,14 +29,8 @@
             </svg>
             {% trans 'Back' %}</a>
 
-        {# Sent in the background by schedule_form.js, to the add or the update URL #}
-        {% if entity_instance %}
-            {% url 'appointment:update_working_hours_id' entity_id|default:entity_instance.id staff_user_id|default:user.id as post_url %}
-        {% else %}
-            {% url 'appointment:add_working_hours_id' staff_user_id|default:user.id as post_url %}
-        {% endif %}
         <form method="post" action="" id="workingHoursForm" class="djappt-card djappt-form djappt-staff-form"
-              data-schedule-form data-post-url="{{ post_url }}"
+              data-schedule-form data-post-url="{{ form_action }}"
               data-action="{% if entity_instance %}update{% else %}create{% endif %}"
               data-working-hours-id="{% if entity_instance %}{{ entity_instance.id }}{% else %}0{% endif %}"
               data-staff-user-id="{% if staff_user_id %}{{ staff_user_id }}{% else %}0{% endif %}">
