@@ -1304,6 +1304,14 @@ class ScheduleFormsTemplateTests(BaseTest):
         self.assertTrue(response.json()['message'])
 
 
+    def test_day_off_with_an_empty_date_answers_with_its_error(self):
+        """An empty date used to crash the overlap check (500); the form is now checked first."""
+        self.need_staff_login()
+        user_id = self.staff_member1.user.id
+        response = self.client.post(reverse('appointment:add_day_off_id', args=[user_id]), {'start_date': ''})
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('start_date', response.json()['errors'])
+
     def test_schedule_templates_send_no_raw_copies(self):
         self.need_staff_login()
         user_id = self.staff_member1.user.id
