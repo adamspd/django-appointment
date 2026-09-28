@@ -1223,6 +1223,32 @@ class StaffPagesTemplateTests(BaseTest):
         self.assertContains(response, reverse('appointment:user_profile', args=[user_id]))
         self.assertContains(response, 'id="id_email"')
 
+    def test_staff_opens_own_settings_and_info_through_the_short_urls(self):
+        """add-staff-member/ and update-user-info/ without an id are the logged-in staff member's own pages."""
+        self.need_staff_login()
+        response = self.client.get(reverse('appointment:add_staff_other_info'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['form'].instance.user, self.staff)
+        response = self.client.get(reverse('appointment:update_user_info'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.staff.email)
+
+    def test_staff_saves_own_info_through_the_short_url(self):
+        self.need_staff_login()
+        data = {'first_name': 'Teal', 'last_name': "c", 'email': self.staff.email}
+        response = self.client.post(reverse('appointment:update_user_info'), data)
+        self.assertRedirects(response, reverse('appointment:user_profile'), fetch_redirect_response=False)
+        self.staff.refresh_from_db()
+        self.assertEqual(self.staff.first_name, 'Teal')
+
+    def test_staff_still_cannot_open_someone_elses_settings(self):
+        self.need_staff_login()
+        other = self.users['staff2']
+        response = self.client.get(reverse('appointment:update_staff_other_info', args=[other.pk]))
+        self.assertEqual(response.status_code, 403)
+        response = self.client.get(reverse('appointment:update_user_info', args=[other.pk]))
+        self.assertEqual(response.status_code, 403)
+
     def test_email_change_code_page_has_the_code_field(self):
         self.need_staff_login()
         response = self.client.get(reverse('appointment:email_change_verification_code'))
