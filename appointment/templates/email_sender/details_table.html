@@ -1,0 +1,9 @@
+{# Label and value rows in a bordered box; `details` is a dict of label → value. #}
+<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 0 0 24px; border: 1px solid #e3e8ef; border-radius: 8px; border-collapse: separate;">
+    {% for label, value in details.items %}
+        <tr>
+            <td valign="top" style="padding: 10px 14px; width: 40%; font-size: 14px; color: #64748b;{% if not forloop.last %} border-bottom: 1px solid #e3e8ef;{% endif %}">{{ label }}</td>
+            <td valign="top" style="padding: 10px 14px; font-size: 14px; font-weight: 600; color: #0c1b33; word-break: break-word;{% if not forloop.last %} border-bottom: 1px solid #e3e8ef;{% endif %}">{{ value }}</td>
+        </tr>
+    {% endfor %}
+</table>
