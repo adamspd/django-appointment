@@ -15,13 +15,17 @@
         {% include "appointment/_messages.html" %}
 
         <header class="djappt-header">
+            {% block djappt_back %}
             <a class="djappt-back" href="{% url 'appointment:get_user_appointments' %}">
                 <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
                     <path d="M10.354 3.146a.5.5 0 0 1 0 .708L6.207 8l4.147 4.146a.5.5 0 0 1-.708.708l-4.5-4.5a.5.5 0 0 1 0-.708l4.5-4.5a.5.5 0 0 1 .708 0"/>
                 </svg>
                 {% trans "Back to the calendar" %}</a>
+            {% endblock %}
             <p class="djappt-eyebrow">{% trans "Appointment" %}</p>
+            {% block djappt_heading %}
             <h1 class="djappt-title appointment-title">{{ page_title }}</h1>
+            {% endblock %}
             <p class="djappt-lead appointment-subtitle">{{ page_description }}</p>
         </header>
 
