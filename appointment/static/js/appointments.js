@@ -325,7 +325,9 @@ function getAvailableSlots(selectedDate, staffId = null) {
 
                     // Continue with the existing logic
                     const selectedSlot = $(this);
-                    $('#service-datetime-chosen').text(data.date_chosen + ' ' + selectedSlot.text());
+                    // The time on its own line, so a long date doesn't split it
+                    $('#service-datetime-chosen').text(data.date_chosen)
+                        .append($('<span class="djappt-summary-time">').text(selectedSlot.text()));
                     // Pass isoformat datetime from selected timeslot
                     $('#service-datetime-chosen').data('timeslot', selectedSlot.data("timeslot"));
                 });

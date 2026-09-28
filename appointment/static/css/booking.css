@@ -178,9 +178,10 @@
     cursor: default;
 }
 
+/* Same as a day off, so a past working day doesn't look bookable. */
 :where(.djappt) .djappt-booking .fc .fc-day-past .fc-daygrid-day-number {
     color: var(--djappt-muted);
-    opacity: .5;
+    opacity: .35;
 }
 
 /* Selected day (set by appointments.js). */
@@ -199,6 +200,10 @@
 :where(.djappt) .djappt-booking .fc .disabled-day .fc-daygrid-day-number {
     color: var(--djappt-muted);
     opacity: .35;
+}
+
+:where(.djappt) .djappt-booking .djappt-summary-time {
+    display: block;
 }
 
 /* ---- Time slots ---- */
