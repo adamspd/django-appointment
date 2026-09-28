@@ -1934,3 +1934,88 @@ class CreateAppointmentTests(BaseTest):
     #
     #     # Verify that the redirect_to_payment_or_thank_you_page was called with the created appointment
     #     mock_redirect.assert_called_once_with(mock_appointment)
+
+
+class AdminPageContextTests(BaseTest):
+    """Every staff page gets the same context keys, so overrides don't have to work them out."""
+
+    def admin_pages(self):
+        user_id = self.staff_member1.user.id
+        appt = self.create_appt_for_sm1()
+        wh = WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=1, start_time=time(9),
+                                         end_time=time(17))
+        return [
+            reverse('appointment:get_user_appointments'),
+            reverse('appointment:display_appointment', args=[appt.id]),
+            reverse('appointment:get_service_list'),
+            reverse('appointment:add_service'),
+            reverse('appointment:update_service', args=[self.service1.id]),
+            reverse('appointment:view_service', args=[self.service1.id, 1]),
+            reverse('appointment:user_profile'),
+            reverse('appointment:user_profile', args=[user_id]),
+            reverse('appointment:update_user_info', args=[user_id]),
+            reverse('appointment:update_staff_other_info', args=[user_id]),
+            reverse('appointment:add_staff_member_info'),
+            reverse('appointment:add_staff_member_personal_info'),
+            reverse('appointment:add_working_hours_id', args=[user_id]),
+            reverse('appointment:update_working_hours_id', args=[wh.id, user_id]),
+            reverse('appointment:add_day_off_id', args=[user_id]),
+            reverse('appointment:add_unavailability_id', args=[user_id]),
+            reverse('appointment:email_change_verification_code'),
+        ]
+
+    def test_every_admin_page_has_a_title_and_description(self):
+        self.need_superuser_login()
+        for url in self.admin_pages():
+            with self.subTest(url=url):
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, 200)
+                self.assertTrue(response.context['page_title'])
+                self.assertTrue(response.context['page_description'])
+
+    def test_profile_page_has_profile_user_and_keeps_user(self):
+        self.need_superuser_login()
+        member = self.staff_member1.user
+        response = self.client.get(reverse('appointment:user_profile', args=[member.id]))
+        self.assertEqual(response.context['profile_user'], member)
+        self.assertEqual(response.context['user'], member)
+        self.assertEqual(response.wsgi_request.user, self.superuser)
+
+    def test_staff_list_says_whether_the_admin_is_staff(self):
+        self.need_superuser_login()
+        response = self.client.get(reverse('appointment:user_profile'))
+        self.assertFalse(response.context['admin_is_staff'])
+        self.create_staff_member_(user=self.superuser, service=self.service1)
+        response = self.client.get(reverse('appointment:user_profile'))
+        self.assertTrue(response.context['admin_is_staff'])
+
+    def test_service_pages_pass_their_mode(self):
+        self.need_superuser_login()
+        for url, mode in [(reverse('appointment:add_service'), 'create'),
+                          (reverse('appointment:update_service', args=[self.service1.id]), 'edit'),
+                          (reverse('appointment:view_service', args=[self.service1.id, 1]), 'view')]:
+            with self.subTest(mode=mode):
+                self.assertEqual(self.client.get(url).context['mode'], mode)
+
+    def test_schedule_forms_pass_their_post_and_back_urls(self):
+        self.need_staff_login()
+        user_id = self.staff_member1.user.id
+        wh = WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=2, start_time=time(9),
+                                         end_time=time(17))
+        profile = reverse('appointment:user_profile', args=[user_id])
+        cases = [
+            (reverse('appointment:add_working_hours_id', args=[user_id]),
+             reverse('appointment:add_working_hours_id', args=[user_id])),
+            (reverse('appointment:update_working_hours', args=[wh.id]),
+             reverse('appointment:update_working_hours_id', args=[wh.id, user_id])),
+            (reverse('appointment:add_unavailability_id', args=[user_id]),
+             reverse('appointment:add_unavailability_id', args=[user_id])),
+            (reverse('appointment:add_day_off_id', args=[user_id]),
+             reverse('appointment:add_day_off_id', args=[user_id])),
+        ]
+        for url, action in cases:
+            with self.subTest(url=url):
+                response = self.client.get(url)
+                self.assertEqual(response.context['form_action'], action)
+                self.assertEqual(response.context['back_url'], profile)
+                self.assertContains(response, profile)

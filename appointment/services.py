@@ -140,7 +140,11 @@ def prepare_user_profile_data(user, staff_user_id):
             'extra_context': {
                 'staff_members': staff_members,
                 'btn_staff_me': btn_staff_me,
-                'btn_staff_me_link': btn_staff_me_link
+                'btn_staff_me_link': btn_staff_me_link,
+                # Whether the superuser is a staff member themselves, so templates don't compare links
+                'admin_is_staff': btn_staff_me_link == reverse('appointment:remove_superuser_staff_member'),
+                'page_title': _("Staff members"),
+                'page_description': _("Everyone clients can book with."),
             }
         }
         return data
@@ -175,7 +179,12 @@ def prepare_user_profile_data(user, staff_user_id):
         'template': get_custom_template('user_profile.html', 'administration/user_profile.html'),
         'extra_context': {
             'superuser': user if user.is_superuser else None,
+            # `user` is kept for existing templates, but hides the logged-in user; use `profile_user` instead
             'user': staff_member.user if staff_member else user,
+            'profile_user': staff_member.user if staff_member else user,
+            'page_title': staff_member.get_staff_member_name(),
+            'page_description': _("Services, working hours and time off of %(name)s") % {
+                'name': staff_member.get_staff_member_name()},
             'staff_member': staff_member,
             'days_off': staff_member.get_days_off().order_by('start_date') if staff_member else [],
             'unavailabilities': staff_member.get_unavailabilities().order_by('date') if staff_member else [],
@@ -212,6 +221,8 @@ def handle_entity_management_request(request, staff_member, entity_type, instanc
                              error_code=ErrorCode.NOT_AUTHORIZED)
 
     button_text = _('Update') if instance else _('Add')
+    urls = {'form_action': schedule_form_action(request, entity_type, staff_member, instance),
+            'back_url': reverse('appointment:user_profile', kwargs={'staff_user_id': staff_member.user_id})}
     if entity_type == 'day_off':
         form = StaffDaysOffForm(instance=instance)
         context = get_entity_management_context(request, button_text, 'day_off_form', form)
@@ -228,6 +239,8 @@ def handle_entity_management_request(request, staff_member, entity_type, instanc
                                                 staff_user_id, instance,
                                                 instance_id)
         template = get_custom_template('manage_working_hours.html', 'administration/manage_working_hours.html')
+    context.update(urls)
+    context.update(schedule_form_titles(entity_type, instance, staff_member))
 
     if request.method == 'POST' and entity_type == 'day_off':
         day_off_form = StaffDaysOffForm(request.POST, instance=instance)
@@ -265,6 +278,30 @@ def handle_entity_management_request(request, staff_member, entity_type, instanc
                                          request=request)
 
     return render(request, template, context, status=200)
+
+
+def schedule_form_action(request, entity_type, staff_member, instance=None):
+    """The URL a working hours, day off or unavailability form posts to."""
+    if entity_type == 'day_off':
+        # The day off views read the form on the URL that shows it
+        return request.path
+    name = {'unavailability': 'unavailability', 'working_hours': 'working_hours'}[entity_type]
+    if instance:
+        return reverse(f'appointment:update_{name}_id', args=[instance.pk, staff_member.user_id])
+    return reverse(f'appointment:add_{name}_id', args=[staff_member.user_id])
+
+
+def schedule_form_titles(entity_type, instance, staff_member):
+    """``page_title`` and ``page_description`` of a working hours, day off or unavailability form."""
+    titles = {
+        'day_off': (_("Edit day off"), _("Add day off")),
+        'unavailability': (_("Edit unavailability"), _("Add unavailability")),
+        'working_hours': (_("Edit working hours"), _("Add working hours")),
+    }[entity_type]
+    return {
+        'page_title': titles[0] if instance else titles[1],
+        'page_description': _("Schedule of %(name)s") % {'name': staff_member.get_staff_member_name()},
+    }
 
 
 def saved_json_response(request, message, redirect_url):
