@@ -507,7 +507,7 @@
     grid-column: 1 / -1;
 }
 
-@container (min-width: 520px) {
+@container (min-width: 400px) {
     :where(.djappt) .djappt-staff-fields {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -684,4 +684,51 @@
 
 :where(.djappt) label.djappt-card-title {
     display: block;
+}
+
+/* ---- Working hours, day off and unavailability forms ---- */
+
+/* The day of the week as a row of chips (radio buttons). */
+:where(.djappt) .djappt-day-chips {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(6.25rem, 1fr));
+    gap: .4rem;
+}
+
+:where(.djappt) .djappt-day-chip {
+    position: relative;
+    margin: 0;
+    cursor: pointer;
+}
+
+:where(.djappt) .djappt-day-chip input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+:where(.djappt) .djappt-day-chip span {
+    display: block;
+    padding: .55rem .5rem;
+    border: 1px solid var(--djappt-line);
+    border-radius: var(--djappt-radius-sm);
+    font-size: .9rem;
+    font-weight: 600;
+    text-align: center;
+    color: var(--djappt-ink-soft);
+    transition: border-color .15s, background-color .15s, color .15s;
+}
+
+:where(.djappt) .djappt-day-chip:hover span {
+    border-color: color-mix(in srgb, var(--djappt-accent) 40%, var(--djappt-line));
+}
+
+:where(.djappt) .djappt-day-chip input:checked + span {
+    border-color: var(--djappt-accent);
+    background-color: var(--djappt-accent);
+    color: var(--djappt-accent-contrast);
+}
+
+:where(.djappt) .djappt-day-chip input:focus-visible + span {
+    box-shadow: 0 0 0 .2rem var(--djappt-accent-soft);
 }
