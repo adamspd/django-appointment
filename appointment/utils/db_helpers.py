@@ -715,20 +715,18 @@ def get_times_from_config(date):
     :return: The start time, end time, slot duration, and buffer time.
     """
     config = get_config()
-    if config:
-        start_time = datetime.datetime.combine(date, datetime.time(hour=config.lead_time.hour,
-                                                                   minute=config.lead_time.minute))
-        end_time = datetime.datetime.combine(date, datetime.time(hour=config.finish_time.hour,
-                                                                 minute=config.finish_time.minute))
-        slot_duration = datetime.timedelta(minutes=config.slot_duration)
-        buff_time = datetime.timedelta(minutes=config.appointment_buffer_time)
-    else:
-        start_hour, start_minute = APPOINTMENT_LEAD_TIME
-        start_time = datetime.datetime.combine(date, datetime.time(hour=start_hour, minute=start_minute))
-        finish_hour, finish_minute = APPOINTMENT_FINISH_TIME
-        end_time = datetime.datetime.combine(date, datetime.time(hour=finish_hour, minute=finish_minute))
-        slot_duration = datetime.timedelta(minutes=APPOINTMENT_SLOT_DURATION)
-        buff_time = datetime.timedelta(minutes=APPOINTMENT_BUFFER_TIME)
+    # Each value falls back to the settings file on its own: a Config can exist with empty fields (for example the
+    # one Config.get_instance() creates when a client reschedules).
+    lead_time = getattr(config, 'lead_time', None) or datetime.time(*APPOINTMENT_LEAD_TIME)
+    finish_time = getattr(config, 'finish_time', None) or datetime.time(*APPOINTMENT_FINISH_TIME)
+    slot_minutes = getattr(config, 'slot_duration', None) or APPOINTMENT_SLOT_DURATION
+    buffer_minutes = getattr(config, 'appointment_buffer_time', None)
+    if buffer_minutes is None:
+        buffer_minutes = APPOINTMENT_BUFFER_TIME
+    start_time = datetime.datetime.combine(date, datetime.time(hour=lead_time.hour, minute=lead_time.minute))
+    end_time = datetime.datetime.combine(date, datetime.time(hour=finish_time.hour, minute=finish_time.minute))
+    slot_duration = datetime.timedelta(minutes=slot_minutes)
+    buff_time = datetime.timedelta(minutes=buffer_minutes)
     return start_time, end_time, slot_duration, buff_time
 
 
