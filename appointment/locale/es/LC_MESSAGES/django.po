@@ -2607,3 +2607,7 @@ msgstr "Solo puede modificar sus propias indisponibilidades."
 #: appointment/views_admin.py
 msgid "You can only delete your own unavailabilities."
 msgstr "Solo puede eliminar sus propias indisponibilidades."
+
+#: appointment/templates/appointment/default_thank_you.html
+msgid "See you soon!"
+msgstr "¡Hasta pronto!"

@@ -2613,3 +2613,7 @@ msgid ""
 msgstr ""
 "Si vous avez des questions ou besoin d'aide, notre équipe est là pour vous. "
 "Vous pouvez nous contacter à tout moment."
+
+#: appointment/templates/appointment/default_thank_you.html
+msgid "See you soon!"
+msgstr "À bientôt !"
