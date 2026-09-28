@@ -1,0 +1,687 @@
+/*
+ * django-appointment: staff pages (staff list, profile, staff member forms, email change code).
+ * Shared pieces (cards, buttons, forms, avatar) live in djappt.css.
+ */
+
+:where(.djappt) .djappt-staff .messages .alert {
+    margin-bottom: 1.25rem;
+}
+
+/* ---- Card head: the section title on the left, its action on the right ---- */
+
+:where(.djappt) .djappt-card-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem 1rem;
+    margin-bottom: 1rem;
+    padding-bottom: .75rem;
+    border-bottom: 1px solid var(--djappt-line);
+}
+
+:where(.djappt) .djappt-card-head .djappt-card-title {
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+:where(.djappt) .djappt-card .djappt-card-head + .djappt-help {
+    margin: -.4rem 0 1rem;
+}
+
+/* Small button in a card head or a row. */
+:where(.djappt) .djappt-btn.djappt-btn-sm {
+    --bs-btn-padding-x: .7rem;
+    --bs-btn-padding-y: .3rem;
+    --bs-btn-font-size: .85rem;
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+}
+
+/* ---- Rows: one item per line (a staff member, working hours, a day off…), actions on the right ---- */
+
+:where(.djappt) .djappt-rows {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+:where(.djappt) .djappt-row {
+    display: flex;
+    align-items: center;
+    gap: .75rem 1rem;
+    padding: .75rem 0;
+    border-top: 1px solid var(--djappt-line);
+}
+
+:where(.djappt) .djappt-row:first-child {
+    border-top: 0;
+    padding-top: 0;
+}
+
+:where(.djappt) .djappt-row:last-child {
+    padding-bottom: 0;
+}
+
+:where(.djappt) .djappt-row-main {
+    flex: 1;
+    min-width: 0;
+}
+
+:where(.djappt) .djappt-row-title {
+    margin: 0;
+    font-weight: 600;
+    color: var(--djappt-ink);
+    overflow-wrap: anywhere;
+}
+
+:where(.djappt) .djappt-row-title a {
+    color: inherit;
+    text-decoration: none;
+}
+
+:where(.djappt) .djappt-row-title a:hover,
+:where(.djappt) .djappt-row-title a:focus-visible {
+    color: var(--djappt-accent);
+}
+
+:where(.djappt) .djappt-row-meta {
+    margin: .1rem 0 0;
+    font-size: .875rem;
+    color: var(--djappt-muted);
+    overflow-wrap: anywhere;
+}
+
+:where(.djappt) .djappt-row-actions {
+    display: flex;
+    flex-shrink: 0;
+    gap: .35rem;
+}
+
+:where(.djappt) .djappt-empty {
+    margin: 0;
+    color: var(--djappt-muted);
+}
+
+/* ---- Staff list ---- */
+
+:where(.djappt) .djappt-staff-list .djappt-avatar {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: .95rem;
+}
+
+:where(.djappt) .djappt-staff-list .djappt-row {
+    padding: 1rem 0;
+}
+
+:where(.djappt) .djappt-staff-list .djappt-row:first-child {
+    padding-top: 0;
+}
+
+:where(.djappt) .djappt-staff-list .djappt-row:last-child {
+    padding-bottom: 0;
+}
+
+:where(.djappt) .djappt-staff-list + .djappt-help {
+    margin-top: 1rem;
+}
+
+/* Narrow: the buttons go under the name. */
+@container (max-width: 519.98px) {
+    :where(.djappt) .djappt-staff-list .djappt-row {
+        flex-wrap: wrap;
+    }
+
+    :where(.djappt) .djappt-staff-list .djappt-row-actions {
+        width: 100%;
+        padding-left: 3.25rem;
+    }
+}
+
+/* ---- Profile ---- */
+
+/* Header card: who (avatar, name, email) and their appointment settings at a glance. */
+:where(.djappt) .djappt-card.djappt-profile-hero {
+    margin-bottom: 1.25rem;
+    padding: 0;
+    overflow: hidden;
+}
+
+:where(.djappt) .djappt-profile-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem 1.25rem;
+    margin-bottom: 1.75rem;
+}
+
+:where(.djappt) .djappt-profile-hero .djappt-profile-head {
+    margin: 0;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, var(--djappt-accent-soft), var(--djappt-surface) 70%);
+}
+
+:where(.djappt) .djappt-profile-head .djappt-avatar {
+    width: 4rem;
+    height: 4rem;
+    font-size: 1.5rem;
+}
+
+:where(.djappt) .djappt-profile-hero .djappt-avatar {
+    width: 4.5rem;
+    height: 4.5rem;
+    background-color: var(--djappt-accent);
+    box-shadow: 0 0 0 4px var(--djappt-surface);
+    color: var(--djappt-accent-contrast);
+}
+
+:where(.djappt) .djappt-profile-name {
+    flex: 1;
+    min-width: 12rem;
+}
+
+:where(.djappt) .djappt-profile-name .djappt-title {
+    margin-bottom: .1rem;
+    overflow-wrap: anywhere;
+}
+
+:where(.djappt) .djappt-profile-name .djappt-lead {
+    overflow-wrap: anywhere;
+}
+
+:where(.djappt) .djappt-profile-settings {
+    padding: 1.25rem 1.5rem 1.5rem;
+    border-top: 1px solid var(--djappt-line);
+}
+
+@container (max-width: 479.98px) {
+    :where(.djappt) .djappt-profile-hero .djappt-profile-head,
+    :where(.djappt) .djappt-profile-settings {
+        padding-right: 1.1rem;
+        padding-left: 1.1rem;
+    }
+}
+
+/* The settings as small tiles; a tile with an explanation shows it on hover. */
+:where(.djappt) .djappt-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+    gap: .75rem;
+    margin: 0;
+}
+
+:where(.djappt) .djappt-stats > div {
+    padding: .8rem 1rem;
+    border: 1px solid var(--djappt-line);
+    border-radius: var(--djappt-radius-sm);
+    background-color: color-mix(in srgb, var(--djappt-accent-soft) 45%, var(--djappt-surface));
+}
+
+:where(.djappt) .djappt-stats > div[title] {
+    cursor: help;
+}
+
+:where(.djappt) .djappt-stats dt {
+    margin-bottom: .25rem;
+    font-size: .75rem;
+    font-weight: 600;
+    letter-spacing: .02em;
+    color: var(--djappt-muted);
+}
+
+:where(.djappt) .djappt-stats dd {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--djappt-ink);
+}
+
+:where(.djappt) .djappt-profile-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.25rem;
+    align-items: start;
+}
+
+:where(.djappt) .djappt-profile-column {
+    display: grid;
+    gap: 1.25rem;
+    min-width: 0;
+}
+
+/* Wide enough: the week and the services on the left, days off and unavailabilities on the right. */
+@container (min-width: 900px) {
+    :where(.djappt) .djappt-profile-layout {
+        grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    }
+}
+
+/* ---- The week: a row per day, the hours as a bar on a shared axis ---- */
+
+:where(.djappt) .djappt-week {
+    --djappt-week-columns: 8.5rem minmax(0, 1fr) 4.6rem;
+}
+
+:where(.djappt) .djappt-week-axis {
+    display: grid;
+    grid-template-columns: var(--djappt-week-columns);
+    column-gap: .75rem;
+    margin-bottom: .25rem;
+}
+
+:where(.djappt) .djappt-week-ticks {
+    position: relative;
+    grid-column: 2;
+    height: 1.1rem;
+}
+
+:where(.djappt) .djappt-week-ticks span {
+    position: absolute;
+    top: 0;
+    transform: translateX(-50%);
+    font-size: .7rem;
+    white-space: nowrap;
+    color: var(--djappt-muted);
+}
+
+:where(.djappt) .djappt-week-ticks span:first-child {
+    transform: none;
+}
+
+:where(.djappt) .djappt-week-days {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+:where(.djappt) .djappt-week-day {
+    display: grid;
+    grid-template-columns: var(--djappt-week-columns);
+    align-items: center;
+    column-gap: .75rem;
+    padding: .55rem 0;
+    border-top: 1px solid var(--djappt-line);
+}
+
+:where(.djappt) .djappt-week-label {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+:where(.djappt) .djappt-week-name {
+    font-weight: 600;
+    color: var(--djappt-ink);
+}
+
+:where(.djappt) .djappt-week-track {
+    position: relative;
+    height: .7rem;
+    border-radius: 999px;
+    background-color: color-mix(in srgb, var(--djappt-line) 60%, var(--djappt-surface));
+}
+
+:where(.djappt) .djappt-week-bar {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    border-radius: 999px;
+    background-color: var(--djappt-accent);
+}
+
+:where(.djappt) .djappt-week-hours {
+    font-size: .8rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--djappt-ink-soft);
+    white-space: nowrap;
+}
+
+:where(.djappt) .djappt-week-day .djappt-row-actions {
+    justify-content: flex-end;
+}
+
+:where(.djappt) .djappt-week-day--off .djappt-week-name,
+:where(.djappt) .djappt-week-day--off .djappt-week-hours {
+    font-weight: 400;
+    color: var(--djappt-muted);
+}
+
+:where(.djappt) .djappt-week-day--off .djappt-week-track {
+    background: repeating-linear-gradient(-45deg, transparent 0 4px, var(--djappt-line) 4px 5px);
+}
+
+/* Narrow: no axis labels, a thinner bar. */
+@container (max-width: 559.98px) {
+    :where(.djappt) .djappt-week {
+        --djappt-week-columns: 7rem minmax(0, 1fr) auto;
+    }
+
+    :where(.djappt) .djappt-week-axis {
+        display: none;
+    }
+
+    :where(.djappt) .djappt-week-track {
+        height: .45rem;
+    }
+}
+
+/* ---- Services, days off, unavailabilities ---- */
+
+/* The service colour as a dot before its name. */
+:where(.djappt) .djappt-swatch {
+    display: inline-block;
+    flex-shrink: 0;
+    width: .75rem;
+    height: .75rem;
+    border-radius: 50%;
+    background-color: var(--djappt-service-color);
+    box-shadow: inset 0 0 0 1px rgba(12, 27, 51, .15);
+}
+
+:where(.djappt) .djappt-profile-services .djappt-row {
+    align-items: flex-start;
+}
+
+:where(.djappt) .djappt-profile-services .djappt-swatch {
+    margin-top: .45rem;
+}
+
+:where(.djappt) .djappt-clamp {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+}
+
+:where(.djappt) .djappt-row-facts {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    flex-shrink: 0;
+    gap: .1rem;
+    font-size: .8rem;
+    color: var(--djappt-muted);
+    text-align: right;
+}
+
+:where(.djappt) .djappt-row-price {
+    font-size: .9rem;
+    font-weight: 700;
+    color: var(--djappt-ink);
+}
+
+/* A day as a small calendar leaf: the month over the day number. */
+:where(.djappt) .djappt-date-badge {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+    width: 3rem;
+    overflow: hidden;
+    border: 1px solid var(--djappt-line);
+    border-radius: var(--djappt-radius-sm);
+    background-color: var(--djappt-surface);
+    line-height: 1;
+    text-align: center;
+}
+
+:where(.djappt) .djappt-date-badge span {
+    width: 100%;
+    padding: .2rem 0;
+    background-color: var(--djappt-accent);
+    font-size: .65rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--djappt-accent-contrast);
+}
+
+:where(.djappt) .djappt-date-badge strong {
+    padding: .3rem 0 .35rem;
+    font-size: 1.15rem;
+    color: var(--djappt-ink);
+}
+
+:where(.djappt) .djappt-tag {
+    display: inline-block;
+    margin-left: .35rem;
+    padding: .1rem .45rem;
+    border-radius: 999px;
+    background-color: var(--djappt-line);
+    font-size: .7rem;
+    font-weight: 600;
+    vertical-align: middle;
+    color: var(--djappt-muted);
+}
+
+/* Past days off and unavailabilities stay listed, greyed. */
+:where(.djappt) .djappt-row--past .djappt-date-badge span {
+    background-color: var(--djappt-muted);
+}
+
+:where(.djappt) .djappt-row--past .djappt-row-title,
+:where(.djappt) .djappt-row--past .djappt-date-badge strong {
+    color: var(--djappt-muted);
+}
+
+/* Edit and delete icons in a row: quiet until hovered. */
+:where(.djappt) .djappt-row-actions .djappt-icon-btn {
+    color: var(--djappt-muted);
+}
+
+:where(.djappt) .djappt-row-actions .djappt-icon-btn:hover,
+:where(.djappt) .djappt-row-actions .djappt-icon-btn:focus-visible {
+    color: var(--djappt-accent);
+}
+
+:where(.djappt) .djappt-row-actions .djappt-icon-btn.djappt-text-danger:hover,
+:where(.djappt) .djappt-row-actions .djappt-icon-btn.djappt-text-danger:focus-visible {
+    color: var(--djappt-danger);
+}
+
+/* ---- Staff member forms ---- */
+
+:where(.djappt) .djappt-shell.djappt-staff-form-page {
+    max-width: 820px;
+}
+
+:where(.djappt) .djappt-staff-form {
+    container-type: inline-size;
+}
+
+/* Personal information: first and last name side by side, the email under them. */
+:where(.djappt) .djappt-staff-fields {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.1rem 1.25rem;
+}
+
+:where(.djappt) .djappt-staff-fields > * {
+    min-width: 0;
+}
+
+:where(.djappt) .djappt-field--wide {
+    grid-column: 1 / -1;
+}
+
+@container (min-width: 520px) {
+    :where(.djappt) .djappt-staff-fields {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+:where(.djappt) .djappt-staff-form .djappt-card-title {
+    margin-bottom: 1.1rem;
+}
+
+/* Sections of the staff settings form: user, services, schedule. */
+:where(.djappt) .djappt-form-section {
+    min-width: 0;
+    margin: 0 0 2rem;
+    padding: 0;
+    border: 0;
+}
+
+:where(.djappt) .djappt-form-section > legend {
+    float: none;
+    width: 100%;
+}
+
+/* Services offered: a checkbox per service instead of a multiple select, with the service's colour. */
+:where(.djappt) .djappt-choices {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+    gap: .5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+:where(.djappt) .djappt-choice {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    height: 100%;
+    margin: 0;
+    padding: .65rem .8rem;
+    border: 1px solid var(--djappt-line);
+    border-radius: var(--djappt-radius-sm);
+    background-color: var(--djappt-surface);
+    font-size: .925rem;
+    font-weight: 500;
+    line-height: 1.3;
+    color: var(--djappt-ink);
+    cursor: pointer;
+    overflow-wrap: anywhere;
+    transition: border-color .15s, background-color .15s;
+}
+
+:where(.djappt) .djappt-choice:hover {
+    border-color: color-mix(in srgb, var(--djappt-accent) 40%, var(--djappt-line));
+}
+
+:where(.djappt) .djappt-choice:has(input:checked) {
+    border-color: var(--djappt-accent);
+    background-color: var(--djappt-accent-soft);
+}
+
+:where(.djappt) .djappt-choice:has(input:focus-visible) {
+    box-shadow: 0 0 0 .2rem var(--djappt-accent-soft);
+}
+
+:where(.djappt) .djappt-choice .form-check-input {
+    flex-shrink: 0;
+    margin: 0;
+}
+
+:where(.djappt) .djappt-choice .form-check-input:focus {
+    box-shadow: none;
+}
+
+/* Settings: the label and its explanation on the left, the field on the right. */
+:where(.djappt) .djappt-setting {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 10rem;
+    align-items: center;
+    gap: .5rem 2rem;
+    padding: 1rem 0;
+    border-top: 1px dashed var(--djappt-line);
+}
+
+/* The working day first, then the slots, then the weekends. */
+:where(.djappt) .djappt-settings {
+    display: flex;
+    flex-direction: column;
+}
+
+:where(.djappt) .djappt-settings > .djappt-setting { order: 20; }
+:where(.djappt) .djappt-settings > .djappt-field--lead_time { order: 1; }
+:where(.djappt) .djappt-settings > .djappt-field--finish_time { order: 2; }
+:where(.djappt) .djappt-settings > .djappt-field--slot_duration { order: 3; }
+:where(.djappt) .djappt-settings > .djappt-field--appointment_buffer_time { order: 4; }
+:where(.djappt) .djappt-settings > .djappt-field--work_on_saturday { order: 5; }
+:where(.djappt) .djappt-settings > .djappt-field--work_on_sunday { order: 6; }
+
+:where(.djappt) .djappt-settings > .djappt-field--lead_time {
+    padding-top: 0;
+    border-top: 0;
+}
+
+:where(.djappt) .djappt-setting .form-label {
+    margin: 0;
+    font-size: .95rem;
+    color: var(--djappt-ink);
+}
+
+:where(.djappt) .djappt-setting .djappt-help {
+    margin-top: .2rem;
+    max-width: 34rem;
+}
+
+:where(.djappt) .djappt-setting .input-group-text {
+    border-color: var(--djappt-line);
+    border-radius: 0 var(--djappt-radius-sm) var(--djappt-radius-sm) 0;
+    background-color: var(--djappt-accent-soft);
+    font-size: .85rem;
+    color: var(--djappt-ink-soft);
+}
+
+:where(.djappt) .djappt-form .djappt-setting .input-group > .form-control {
+    border-radius: var(--djappt-radius-sm) 0 0 var(--djappt-radius-sm);
+}
+
+/* The weekend switches sit at the right edge of the field column. */
+:where(.djappt) .djappt-setting-control.form-switch {
+    display: flex;
+    justify-content: flex-end;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+}
+
+:where(.djappt) .djappt-setting-control.form-switch .form-check-input {
+    width: 2.6em;
+    height: 1.4em;
+    margin: 0;
+    float: none;
+    cursor: pointer;
+}
+
+/* Narrow: the field goes under its label. */
+@container (max-width: 479.98px) {
+    :where(.djappt) .djappt-setting {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    :where(.djappt) .djappt-setting-control:not(.form-switch) {
+        max-width: 12rem;
+    }
+
+    :where(.djappt) .djappt-field--work_on_saturday,
+    :where(.djappt) .djappt-field--work_on_sunday {
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+}
+
+:where(.djappt) .djappt-staff-form .djappt-note {
+    margin: .5rem 0 0;
+    font-size: .875rem;
+    color: var(--djappt-muted);
+}
+
+:where(.djappt) .djappt-staff-form .djappt-note a {
+    color: var(--djappt-accent);
+    font-weight: 600;
+}
+
+/* The last section's margin already spaces the buttons. */
+:where(.djappt) .djappt-form-section + .djappt-form-actions {
+    margin-top: 0;
+}
+
+:where(.djappt) label.djappt-card-title {
+    display: block;
+}

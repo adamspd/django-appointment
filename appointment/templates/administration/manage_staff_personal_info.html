@@ -3,45 +3,68 @@
 {% load static %}
 
 {% block customCSS %}
-    <link rel="stylesheet" type="text/css" href="{% static 'css/app_admin/staff_member.css' %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/staff.css' %}"/>
+{% endblock %}
+{% block title %}
+    {% trans 'Staff Personal Information' %}
+{% endblock %}
+{% block description %}
+    {% trans 'Staff Personal Information' %}
 {% endblock %}
 
 {% block djappt_content %}
-    <section class="content content-wrapper">
-        <div class="staff-form-wrapper">
-            <div class="staff-form-content">
-                <h3>{% trans 'Staff Personal Information' %}</h3>
-                <form id="updatePersonalInfoForm" method="post" action="">
-                    {% csrf_token %}
-
-                    <div class="form-group">
-                        {{ form.first_name.label_tag }}
-                        {{ form.first_name }}
-                    </div>
-
-                    <div class="form-group">
-                        {{ form.last_name.label_tag }}
-                        {{ form.last_name }}
-                    </div>
-
-                    <div class="form-group">
-                        {{ form.email.label_tag }}
-                        {{ form.email }}
-                    </div>
-
-                    <button type="submit" class="btn btn-primary">{{ btn_text }}</button>
-                </form>
-                <div class="messages" style="margin: 20px 0">
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
-                                 role="alert">{{ message }}</div>
-                        {% endfor %}
-                    {% endif %}
+    {# Back to the profile being edited; creating a staff member goes back to the staff list #}
+    {% with user_id=request.resolver_match.kwargs.staff_user_id %}
+        {% if user_id %}
+            {% url 'appointment:user_profile' staff_user_id=user_id as back_url %}
+        {% else %}
+            {% url 'appointment:user_profile' as back_url %}
+        {% endif %}
+        <div class="djappt-shell djappt-shell--narrow djappt-staff content content-wrapper">
+            {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                        <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
+                             role="alert">{{ message }}</div>
+                    {% endfor %}
                 </div>
-            </div>
+            {% endif %}
+
+            <a class="djappt-back" href="{{ back_url }}">
+                <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                    <path d="M10.354 3.146a.5.5 0 0 1 0 .708L6.207 8l4.147 4.146a.5.5 0 0 1-.708.708l-4.5-4.5a.5.5 0 0 1 0-.708l4.5-4.5a.5.5 0 0 1 .708 0"/>
+                </svg>
+                {% trans 'Back' %}</a>
+
+            <form id="updatePersonalInfoForm" method="post" action="" class="djappt-card djappt-form djappt-staff-form">
+                <h1 class="djappt-card-title">{% trans 'Staff Personal Information' %}</h1>
+                {% csrf_token %}
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                {% endif %}
+
+                <div class="djappt-staff-fields">
+                    {% for field in form.visible_fields %}
+                        <div class="djappt-field djappt-field--{{ field.name }}{% if field.name == 'email' %} djappt-field--wide{% endif %}">
+                            <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.help_text %}
+                                <div class="djappt-help">{{ field.help_text }}</div>
+                            {% endif %}
+                            {% for error in field.errors %}
+                                <div class="djappt-field-error">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="djappt-form-actions">
+                    <a class="btn djappt-btn djappt-btn-ghost" href="{{ back_url }}">{% trans 'Cancel' %}</a>
+                    <button type="submit" class="btn djappt-btn djappt-btn-primary">{{ btn_text }}</button>
+                </div>
+            </form>
         </div>
-    </section>
+    {% endwith %}
 {% endblock %}
 
 {% block customJS %}

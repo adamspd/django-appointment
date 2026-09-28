@@ -2494,3 +2494,30 @@ msgstr "Cartes"
 #: appointment/templates/administration/service_list.html
 msgid "Display"
 msgstr "Affichage"
+
+#: appointment/templates/administration/staff_list.html
+msgid "Add staff member"
+msgstr "Ajouter un membre du personnel"
+
+#: appointment/templates/administration/user_profile.html
+msgid "Back to the staff"
+msgstr "Retour au personnel"
+
+#: appointment/templates/administration/manage_staff_member.html
+#: appointment/templates/administration/manage_staff_personal_info.html
+msgid "Back"
+msgstr "Retour"
+
+#: appointment/templates/administration/manage_staff_member.html
+msgctxt "minutes, short"
+msgid "min"
+msgstr "min"
+
+#: appointment/templates/administration/user_profile.html
+msgctxt "day without working hours"
+msgid "Off"
+msgstr "Repos"
+
+#: appointment/templates/administration/user_profile.html
+msgid "Past"
+msgstr "Passé"
