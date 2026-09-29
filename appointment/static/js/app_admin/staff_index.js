@@ -143,8 +143,9 @@ function getEventDetailsModal() {
 }
 
 function getModalCloseButton(modal) {
-    // data-dismiss is kept for custom templates written for Bootstrap 4
-    return modal.querySelector(".btn-secondary[data-bs-dismiss='modal'], .btn-secondary[data-dismiss='modal']");
+    // data-djappt="close" is the hook to use; the Bootstrap classes are kept for older custom templates
+    return modal.querySelector("[data-djappt='close']")
+        || modal.querySelector(".btn-secondary[data-bs-dismiss='modal'], .btn-secondary[data-dismiss='modal']");
 }
 
 function formatAppointmentsForCalendar(appointments) {
@@ -179,7 +180,7 @@ function getEventDisplayedStyle() {
 }
 
 function getCalendarConfig(events) {
-    return {
+    const config = {
         initialView: 'dayGridMonth',
         headerToolbar: getHeaderToolbarConfig(),
         buttonText: {
@@ -262,6 +263,7 @@ function getCalendarConfig(events) {
             }
         },
     };
+    return Object.assign(config, getFullCalendarOptions());
 }
 
 function escapeHtml(value) {
@@ -347,21 +349,58 @@ function getHeaderToolbarConfig() {
     }
 }
 
-// The calendar card ends at 95% of the window height, so the whole month shows without scrolling and the list of the
-// clicked day starts in the 5% left below it. It never gets shorter than a readable month.
+// Options from the APPOINTMENT_CALENDAR_OPTIONS setting, printed by the template with json_script. A custom
+// template without that tag gets the defaults.
+let calendarOptionsCache = null;
+
+function getCalendarOptions() {
+    if (calendarOptionsCache === null) {
+        calendarOptionsCache = {};
+        const el = document.getElementById('djappt-calendar-options');
+        if (el) {
+            try {
+                calendarOptionsCache = JSON.parse(el.textContent) || {};
+            } catch (e) {
+                console.error('Invalid calendar options', e);
+            }
+        }
+    }
+    return calendarOptionsCache;
+}
+
+// The options the page uses itself; everything else is passed to FullCalendar as is
+const PAGE_OPTIONS = ['height', 'fillRatio', 'bottomOffset', 'minHeight'];
+
+function getFullCalendarOptions() {
+    const options = Object.assign({}, getCalendarOptions());
+    PAGE_OPTIONS.forEach(key => delete options[key]);
+    return options;
+}
+
+// height is 'fill' (the default), 'auto', a number of pixels or any CSS height.
+// With 'fill', the calendar card ends at fillRatio (95%) of the window height, minus bottomOffset pixels (a footer,
+// for example), so the whole month shows without scrolling. It never gets shorter than minHeight.
 function getCalendarHeight() {
+    const options = getCalendarOptions();
+    const height = options.height === undefined ? 'fill' : options.height;
+    if (typeof height === 'number') return `${height}px`;
+    if (height !== 'fill') return height;
+
     let minHeight = 560;
     if (window.innerWidth <= Constants.MOBILE_WIDTH_SMALL) minHeight = 400;
     else if (window.innerWidth <= Constants.MOBILE_WIDTH) minHeight = 450;
+    if (typeof options.minHeight === 'number') minHeight = options.minHeight;
+    const fillRatio = typeof options.fillRatio === 'number' ? options.fillRatio : 0.95;
+    const bottomOffset = typeof options.bottomOffset === 'number' ? options.bottomOffset : 0;
 
     const calendarEl = document.getElementById('calendar');
     if (!calendarEl) return `${minHeight}px`;
-    const card = calendarEl.closest('.djappt-calendar-card');
+    const card = calendarEl.closest('.djappt-calendar-card') || calendarEl.parentElement;
     const cardStyle = card ? getComputedStyle(card) : null;
     const cardBottom = cardStyle ? parseFloat(cardStyle.paddingBottom) + parseFloat(cardStyle.borderBottomWidth) : 0;
     const calendarTop = calendarEl.getBoundingClientRect().top + window.scrollY;
-    const height = Math.floor(window.innerHeight * 0.95 - calendarTop - cardBottom);
-    return `${Math.max(minHeight, height)}px`;
+    const available = Math.floor(window.innerHeight * fillRatio - calendarTop - cardBottom - bottomOffset);
+    return `${Math.max(minHeight, available)}px`;
 }
 
 function setUserStaffAdminFlag() {
@@ -454,7 +493,7 @@ async function cancelEdit() {
     endTimeInput.value = endTime;
     endTimeLabel.style.display = "";
     endTimeInput.style.display = "";
-    toggleElementVisibility(endTimeInput.closest('.djappt-field'), true);
+    toggleElementVisibility(endTimeInput.closest("[data-djappt='field'], .djappt-field"), true);
 
     // Re-show the event modal with the original data
     await showEventModal(appointment.id, false, false);
@@ -826,7 +865,7 @@ function updateModalUIForEditMode(modal, isEditingAppointment) {
     toggleElementVisibility(endTimeLabel, !isEditingAppointment);  // Show end time in view mode
     toggleElementVisibility(endTimeInput, !isEditingAppointment);  // Show end time in view mode
     // Package template: the label and input sit in a field wrapper, hide it too so no gap is left
-    toggleElementVisibility(endTimeInput && endTimeInput.closest('.djappt-field'), !isEditingAppointment);
+    toggleElementVisibility(endTimeInput && endTimeInput.closest("[data-djappt='field'], .djappt-field"), !isEditingAppointment);
     toggleElementVisibility(goButton, !isEditingAppointment);
 }
 
