@@ -3,7 +3,7 @@ from copy import deepcopy
 from datetime import timedelta
 
 from django.db import IntegrityError
-from django.forms import SelectMultiple
+from django.forms import CheckboxSelectMultiple
 from django.utils.translation import gettext as _
 
 from appointment.forms import StaffAppointmentInformationForm, StaffMemberForm
@@ -337,5 +337,5 @@ class StaffMemberFormWidgetTests(BaseTest):
     def test_services_offered_widget_is_applied(self):
         for form_class in (StaffAppointmentInformationForm, StaffMemberForm):
             widget = form_class().fields['services_offered'].widget
-            self.assertIsInstance(widget, SelectMultiple)
-            self.assertEqual(widget.attrs.get('class'), 'form-control')
+            self.assertIsInstance(widget, CheckboxSelectMultiple)
+            self.assertEqual(widget.attrs.get('class'), 'form-check-input')
