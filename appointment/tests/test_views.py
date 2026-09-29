@@ -2123,3 +2123,47 @@ class CalendarOptionsTests(BaseTest):
     def test_close_button_has_its_hook(self):
         response = self.client.get(reverse('appointment:get_user_appointments'))
         self.assertContains(response, 'data-djappt="close"')
+
+
+class EmailPreviewTests(BaseTest):
+    """The email preview is for superusers, and only with DEBUG on."""
+
+    def setUp(self):
+        super().setUp()
+        self.appointment = self.create_appt_for_sm1()
+
+    def test_not_found_without_debug(self):
+        self.need_superuser_login()
+        response = self.client.get(reverse('appointment:email_preview'))
+        self.assertEqual(response.status_code, 404)
+
+    @override_settings(DEBUG=True)
+    def test_staff_cannot_see_it(self):
+        self.need_staff_login()
+        response = self.client.get(reverse('appointment:email_preview'))
+        self.assertEqual(response.status_code, 403)
+
+    @override_settings(DEBUG=True)
+    def test_list_and_every_email_render(self):
+        self.need_superuser_login()
+        response = self.client.get(reverse('appointment:email_preview'))
+        self.assertEqual(response.status_code, 200)
+        keys = [email['key'] for email in response.context['emails']]
+        self.assertIn('thank_you', keys)
+        self.assertIn('verification', keys)
+        for key in keys:
+            with self.subTest(email=key):
+                url = reverse('appointment:email_preview_detail', args=[key])
+                html = self.client.get(url)
+                self.assertEqual(html.status_code, 200)
+                self.assertIn(b'<html', html.content)
+                text = self.client.get(url, {'format': 'text'})
+                self.assertEqual(text['Content-Type'], 'text/plain; charset=utf-8')
+                self.assertNotIn(b'<html', text.content)
+                self.assertTrue(text.content.strip())
+
+    @override_settings(DEBUG=True)
+    def test_unknown_email_is_not_found(self):
+        self.need_superuser_login()
+        response = self.client.get(reverse('appointment:email_preview_detail', args=['nope']))
+        self.assertEqual(response.status_code, 404)
