@@ -13,14 +13,17 @@ import json
 from django.conf import settings
 from django.contrib import messages
 from django.core.exceptions import ValidationError
+from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.formats import date_format
 from django.utils.translation import gettext as _
+from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.views.decorators.http import require_POST
 
 from appointment.decorators import (
     require_ajax, require_staff_or_superuser, require_superuser, require_user_authenticated)
+from appointment.email_sender.email_sender import render_email_template, render_subject, render_text_body
 from appointment.forms import PersonalInformationForm, ServiceForm, StaffAppointmentInformationForm, StaffMemberForm
 from appointment.messages_ import appt_updated_successfully
 from appointment.models import Appointment, DayOff, Unavailability, StaffMember, WorkingHours
@@ -32,6 +35,7 @@ from appointment.services import (
 from appointment.utils.db_helpers import (
     Service, get_day_off_by_id, get_unavailability_by_id, get_staff_member_by_user_id, get_user_model,
     get_working_hours_by_id)
+from appointment.utils.email_ops import get_preview_emails
 from appointment.utils.error_codes import ErrorCode
 from appointment.utils.json_context import (
     convert_appointment_to_json, get_generic_context, get_generic_context_with_extra, handle_unauthorized_response,
@@ -731,3 +735,46 @@ def is_user_staff_admin(request):
         if not user.is_superuser:
             return json_response(_("User is not a staff member."), custom_data={'is_staff_admin': False})
         return json_response(_("User is a superuser."), custom_data={'is_staff_admin': True})
+
+
+@xframe_options_sameorigin
+@require_user_authenticated
+@require_superuser
+def email_preview(request, email_key=None):
+    """
+    DEBUG only: every email the package sends, built for the latest appointment, to check custom email templates.
+
+    Without ``email_key``, a page lists the emails with their subjects. With it, the email itself is returned: the
+    HTML part, or the text part with ``?format=text``.
+    """
+    if not settings.DEBUG:
+        raise Http404
+    appointment = Appointment.objects.select_related('appointment_request').order_by('-id').first()
+    if appointment is None:
+        context = get_generic_context_with_extra(request, {
+            'page_title': _("Email preview"), 'emails': [], 'back_url': reverse('appointment:get_user_appointments'),
+        })
+        return render(request, get_custom_template('email_preview.html', 'administration/email_preview.html'),
+                      context)
+    emails = get_preview_emails(appointment, request)
+    if email_key is None:
+        for key, email in emails.items():
+            email['key'] = key
+            email['subject'] = render_subject(email['template'], email['context'], email['subject'], request)
+        context = get_generic_context_with_extra(request, {
+            'page_title': _("Email preview"),
+            'page_description': _("Each email as it would be sent for appointment #%(id)s.") % {'id': appointment.id},
+            'emails': list(emails.values()),
+            'appointment': appointment,
+            'back_url': reverse('appointment:get_user_appointments'),
+        })
+        return render(request, get_custom_template('email_preview.html', 'administration/email_preview.html'),
+                      context)
+    if email_key not in emails:
+        raise Http404
+    email = emails[email_key]
+    html = render_email_template(email['template'], email['context'], request)
+    if request.GET.get('format') == 'text':
+        return HttpResponse(render_text_body(email['template'], email['context'], html, request),
+                            content_type='text/plain; charset=utf-8')
+    return HttpResponse(html)
