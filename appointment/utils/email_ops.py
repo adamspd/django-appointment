@@ -427,3 +427,82 @@ def notify_admin_about_reschedule(reschedule_history, appointment_request, clien
                    attachments=[('appointment.ics', ics_file, 'text/calendar')])
 
     logger.info(f"Reschedule notifications sent for appointment {appointment_request.id}")
+
+
+def get_preview_emails(appointment, request):
+    """
+    Every email the package sends, built for ``appointment`` as it would be sent, for the preview page.
+
+    :return: ``{key: {'label', 'template', 'subject', 'context'}}``, in the order the emails are sent.
+    """
+    ar = appointment.appointment_request
+    client = appointment.client
+    base = get_email_context(appointment=appointment, request=request)
+    staff_name = ar.staff_member.get_staff_member_name()
+    sample_link = build_absolute_url(reverse('appointment:get_user_appointments'), request)
+    new_date = ar.date + timezone.timedelta(days=1)
+    reschedule = {
+        'old_date': ar.date, 'reschedule_date': new_date, 'old_start_time': ar.start_time,
+        'start_time': ar.start_time, 'old_end_time': ar.end_time, 'end_time': ar.end_time,
+    }
+
+    def email(label, names, default, subject, context):
+        return {'label': label, 'template': get_email_template(names, default), 'subject': subject,
+                'context': {**base, **context}}
+
+    return {
+        'thank_you': email(
+            _("Booking confirmation (client)"), 'thank_you.html', 'email_sender/thank_you_email.html',
+            _("Thank you for booking us."), {
+                'first_name': client.first_name, 'message_1': get_thank_you_message(ar),
+                'more_details': {_('Service'): appointment.get_service_name(),
+                                 _('Appointment Date'): appointment.get_appointment_date(),
+                                 _('Appointment Time'): ar.start_time,
+                                 _('Duration'): appointment.get_service_duration()},
+                'account_details': {_('Email address'): client.email},
+                'month_year': date_format(ar.date, "M Y").upper(), 'day': ar.date.strftime("%d"),
+                'activation_link': sample_link, 'main_title': _("Appointment successfully scheduled"),
+                'reschedule_link': base['reschedule_url'],
+            }),
+        'new_appointment': email(
+            _("New appointment (staff)"), 'new_appointment_admin_notification.html',
+            'email_sender/admin_new_appointment_email.html',
+            _("New Appointment Request for %(client_name)s") % {'client_name': base['client_name']}, {
+                'recipient_name': staff_name, 'is_staff_member': True, 'staff_member_name': staff_name,
+            }),
+        'reminder': email(
+            _("Reminder (client)"), 'reminder_email.html', 'email_sender/reminder_email.html',
+            _("Reminder: Upcoming Appointment"), {
+                'first_name': client.first_name, 'reschedule_link': base['reschedule_url'],
+                'recipient_type': 'client',
+            }),
+        'reminder_admin': email(
+            _("Reminder (admin)"), 'reminder_email.html', 'email_sender/reminder_email.html',
+            _("Admin Reminder: Upcoming Appointment"), {
+                'first_name': '', 'client_first_name': client.first_name, 'recipient_type': 'admin',
+            }),
+        'reschedule_confirmation': email(
+            _("Reschedule confirmation (client)"), ('reschedule_confirmation_email.html', 'reschedule.html'),
+            'email_sender/reschedule_email.html', _("Confirm Your Appointment Rescheduling"), {
+                **reschedule, 'is_confirmation': True, 'first_name': client.first_name,
+                'confirmation_link': sample_link,
+            }),
+        'reschedule_admin': email(
+            _("Reschedule (staff)"), ('notify_admin_about_reschedule_email.html', 'reschedule_admin.html'),
+            'email_sender/reschedule_email.html',
+            _("Reschedule Request for %(client_name)s") % {'client_name': base['client_name']}, {
+                **reschedule, 'is_confirmation': False, 'reason_for_rescheduling': _("Example reason"),
+            }),
+        'password_reset': email(
+            _("Set a password (staff)"), 'password_reset.html', 'email_sender/password_reset_email.html',
+            _("Set Your Password for {company}").format(company=base['company']), {
+                'first_name': ar.staff_member.user.first_name, 'activation_link': sample_link,
+                'login_instruction': _("To login, use your email address."), 'user': ar.staff_member.user,
+                'account_details': _("No additional details provided."), 'website_name': base['company'],
+            }),
+        'verification': email(
+            _("Verification code (client)"), 'verification.html', 'email_sender/verification_email.html',
+            _("Email Verification"), {
+                'first_name': client.first_name, 'user': client, 'verification_code': 'A1B2C3',
+            }),
+    }
