@@ -12,7 +12,7 @@ from django.contrib.messages import get_messages
 from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.http import HttpResponseRedirect
-from django.test import Client
+from django.test import Client, override_settings
 from django.test.client import RequestFactory
 from django.urls import reverse
 from django.utils import timezone
@@ -2099,3 +2099,27 @@ class SharedPagePartsTests(BaseTest):
         self.assertTemplateUsed(response, 'appointment/_messages.html')
         self.assertContains(response, 'djappt-messages')
         self.assertContains(response, 'Service deleted successfully!')
+
+
+class CalendarOptionsTests(BaseTest):
+    """APPOINTMENT_CALENDAR_OPTIONS reaches the calendar page as JSON the script reads."""
+
+    def setUp(self):
+        super().setUp()
+        self.need_superuser_login()
+
+    def test_no_setting_prints_an_empty_object(self):
+        response = self.client.get(reverse('appointment:get_user_appointments'))
+        self.assertEqual(response.context['calendar_options'], {})
+        self.assertContains(response, '<script id="djappt-calendar-options" type="application/json">{}</script>',
+                            html=False)
+
+    @override_settings(APPOINTMENT_CALENDAR_OPTIONS={'height': 'auto', 'initialView': 'timeGridWeek'})
+    def test_setting_is_printed_as_json(self):
+        response = self.client.get(reverse('appointment:get_user_appointments'))
+        self.assertContains(response, '"initialView": "timeGridWeek"')
+        self.assertContains(response, '"height": "auto"')
+
+    def test_close_button_has_its_hook(self):
+        response = self.client.get(reverse('appointment:get_user_appointments'))
+        self.assertContains(response, 'data-djappt="close"')
