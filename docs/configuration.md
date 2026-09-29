@@ -42,6 +42,14 @@ APPOINTMENT_CUSTOM_EMAILS_DIR = 'emails'  # Directory (inside your templates dir
 See [Custom templates](custom-templates.md) for the list of template names you can override and the context each one
 receives.
 
+These are optional too, and new in 3.13.0. [Custom templates](custom-templates.md) explains each one:
+
+```python
+APPOINTMENT_SITE_URL = 'https://www.example.com'  # Start of the links in emails; else the request's or the Site's address
+APPOINTMENT_CALENDAR_OPTIONS = {}  # Staff calendar: 'height', 'fillRatio', 'bottomOffset', 'minHeight', FullCalendar options
+APPOINTMENT_FORM_CLASSES = {}  # Swap the Bootstrap classes of the form fields, e.g. {'form-control': 'input'}
+```
+
 ## Cleanup Configuration:
 
 Appointment requests that never became an appointment (a client picked a slot, then abandoned the flow) pile up over
