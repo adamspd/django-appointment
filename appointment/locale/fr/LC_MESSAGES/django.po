@@ -2617,3 +2617,166 @@ msgstr ""
 #: appointment/templates/appointment/default_thank_you.html
 msgid "See you soon!"
 msgstr "À bientôt !"
+# Added in 3.13.0
+
+msgid "Hours"
+msgstr "Heures"
+
+msgid "Minutes"
+msgstr "Minutes"
+
+msgid "Length of each slot, in minutes."
+msgstr "Durée de chaque créneau, en minutes."
+
+msgid "Minutes between now and the first slot of today. Other days are not changed."
+msgstr "Minutes entre maintenant et le premier créneau d'aujourd'hui. Les autres jours ne changent pas."
+
+msgid "Everyone clients can book with."
+msgstr "Toutes les personnes que les clients peuvent réserver."
+
+#, python-format
+msgid "Services, working hours and time off of %(name)s"
+msgstr "Services, heures de travail et congés de %(name)s"
+
+msgid "Edit day off"
+msgstr "Modifier le jour de congé"
+
+msgid "Add day off"
+msgstr "Ajouter un jour de congé"
+
+msgid "Subject"
+msgstr "Objet"
+
+msgid "Template"
+msgstr "Modèle"
+
+msgid "HTML"
+msgstr "HTML"
+
+msgid "Text"
+msgstr "Texte"
+
+msgid "Please correct the errors below."
+msgstr "Veuillez corriger les erreurs ci-dessous."
+
+msgctxt "hours, short"
+msgid "h"
+msgstr "h"
+
+#, python-format
+msgid "Your staff account at %(company)s is ready."
+msgstr "Votre compte à %(company)s est prêt."
+
+#, python-format
+msgid "A staff account was created for you at %(company)s. Click the button below to set your password."
+msgstr "Un compte a été créé pour vous à %(company)s. Cliquez sur le bouton ci-dessous pour choisir votre mot de passe."
+
+msgid "If you did not expect this email, you can ignore it."
+msgstr "Si vous n'attendiez pas cet e-mail, vous pouvez l'ignorer."
+
+msgid "Enter this code to confirm your email address:"
+msgstr "Saisissez ce code pour confirmer votre adresse e-mail :"
+
+msgid "Booking confirmation (client)"
+msgstr "Confirmation de réservation (client)"
+
+msgid "Reminder (client)"
+msgstr "Rappel (client)"
+
+msgid "Reminder (admin)"
+msgstr "Rappel (admin)"
+
+msgid "Example reason"
+msgstr "Raison d'exemple"
+
+#, python-format
+msgid "Name and email of %(name)s"
+msgstr "Nom et e-mail de %(name)s"
+
+msgid "Verify your email"
+msgstr "Vérifiez votre e-mail"
+
+msgid "A new service clients can book."
+msgstr "Un nouveau service que les clients peuvent réserver."
+
+msgid "The services clients can book."
+msgstr "Les services que les clients peuvent réserver."
+
+#, python-format
+msgid "Each email as it would be sent for appointment #%(id)s."
+msgstr "Chaque e-mail tel qu'il serait envoyé pour le rendez-vous n°%(id)s."
+
+msgid "Staff members"
+msgstr "Membres du personnel"
+
+msgid "Edit unavailability"
+msgstr "Modifier l'indisponibilité"
+
+msgid "Add unavailability"
+msgstr "Ajouter une indisponibilité"
+
+msgid "Edit working hours"
+msgstr "Modifier les heures de travail"
+
+msgid "Add working hours"
+msgstr "Ajouter des heures de travail"
+
+#, python-format
+msgid "Schedule of %(name)s"
+msgstr "Planning de %(name)s"
+
+msgid "Book an appointment first: the preview uses the latest one."
+msgstr "Réservez d'abord un rendez-vous : l'aperçu utilise le plus récent."
+
+msgid "View Appointment"
+msgstr "Voir le rendez-vous"
+
+#, python-format
+msgid "Your verification code is %(verification_code)s."
+msgstr "Votre code de vérification est %(verification_code)s."
+
+msgid "New appointment (staff)"
+msgstr "Nouveau rendez-vous (personnel)"
+
+msgid "Reschedule confirmation (client)"
+msgstr "Confirmation de report (client)"
+
+msgid "Reschedule (staff)"
+msgstr "Report (personnel)"
+
+msgid "Set a password (staff)"
+msgstr "Choisir un mot de passe (personnel)"
+
+msgid "Verification code (client)"
+msgstr "Code de vérification (client)"
+
+msgid "All staff members' appointments."
+msgstr "Les rendez-vous de tous les membres du personnel."
+
+msgid "Your appointments."
+msgstr "Vos rendez-vous."
+
+msgid "Appointment settings"
+msgstr "Paramètres de rendez-vous"
+
+#, python-format
+msgid "Appointment settings of %(name)s"
+msgstr "Paramètres de rendez-vous de %(name)s"
+
+msgid "Personal information"
+msgstr "Informations personnelles"
+
+msgid "Enter the code sent to your new email address."
+msgstr "Saisissez le code envoyé à votre nouvelle adresse e-mail."
+
+msgid "Make an existing user a staff member."
+msgstr "Faire d'un utilisateur existant un membre du personnel."
+
+msgid "New staff member"
+msgstr "Nouveau membre du personnel"
+
+msgid "Create a user account for a new staff member."
+msgstr "Créer un compte pour un nouveau membre du personnel."
+
+msgid "Email preview"
+msgstr "Aperçu des e-mails"
