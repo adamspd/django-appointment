@@ -45,6 +45,11 @@
         {% endif %}
         <p style="margin: 0;">{% translate 'Thank you for choosing us!' %}</p>
     {% else %}
+        {% if appointment_url %}
+            <p style="margin: 0 0 24px;">
+                <a href="{{ appointment_url }}" style="display: inline-block; padding: 12px 22px; background-color: #00307c; border-radius: 8px; font-weight: 600; color: #ffffff; text-decoration: none;">{% translate 'View Appointment' %}</a>
+            </p>
+        {% endif %}
         <p style="margin: 0;">{% translate 'Please ensure the appointment setup is complete and ready for the client.' %}</p>
     {% endif %}
 {% endblock %}
