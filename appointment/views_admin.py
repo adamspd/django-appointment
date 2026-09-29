@@ -10,6 +10,7 @@ Since: 2.0.0
 import datetime
 import json
 
+from django.conf import settings
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404, redirect, render
@@ -66,6 +67,7 @@ def get_user_appointments(request, response_type='html'):
         'page_title': _("Appointments"),
         'page_description': _("All staff members' appointments.") if request.user.is_superuser
         else _("Your appointments."),
+        'calendar_options': getattr(settings, 'APPOINTMENT_CALENDAR_OPTIONS', None) or {},
     }
     context = get_generic_context_with_extra(request=request, extra=extra_context)
     # if appointment is empty and user doesn't have a staff-member instance, put a message
