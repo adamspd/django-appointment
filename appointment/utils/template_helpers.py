@@ -48,18 +48,31 @@ def _first_usable_template(directory, template_names, default_template):
     return default_template
 
 
-def get_custom_template(template_name, default_template):
+# The subfolder of the custom directory for each kind of page, found from the default template's folder
+_AREAS = {'administration': 'admin', 'appointment': 'booking'}
+
+
+def get_custom_template(template_name, default_template, area=None):
     """
     Look for the user's custom template first, fall back to default.
+
+    Each name is looked for in the area's subfolder first (``custom/admin/`` for staff pages, ``custom/booking/``
+    for client pages), then directly in the custom folder, as before.
 
     :param template_name: Fixed name the user must use (e.g., 'password_reset.html'), or an
                           iterable of accepted names tried in order.
     :param default_template: Our default "template path"
+    :param area: 'admin' or 'booking'; found from ``default_template`` when not given. Pages used in both areas
+                 (the error pages) pass it.
     :return: Template path to use
     """
     # Get user's custom directory from settings (default: 'custom')
     custom_dir = getattr(settings, 'APPOINTMENT_CUSTOM_TEMPLATES_DIR', 'custom')
-    return _first_usable_template(custom_dir, template_name, default_template)
+    names = (template_name,) if isinstance(template_name, str) else tuple(template_name)
+    area = area or _AREAS.get(default_template.split('/', 1)[0])
+    if area:
+        names = tuple(f"{area}/{name}" for name in names) + names
+    return _first_usable_template(custom_dir, names, default_template)
 
 
 def get_email_template(template_name, default_template):

@@ -362,7 +362,7 @@ def appointment_client_information(request, appointment_request_id, id_request):
 
     if request.session.get(f'appointment_submitted_{id_request}', False):
         context = get_generic_context_with_extra(request, {'service_id': ar.service_id}, admin=False)
-        template = get_custom_template('304_already_submitted.html', 'error_pages/304_already_submitted.html')
+        template = get_custom_template('304_already_submitted.html', 'error_pages/304_already_submitted.html', area='booking')
         return render(request, template, context=context)
 
     client_data_form = ClientDataForm(request.POST or None, user = request.user)
@@ -446,7 +446,7 @@ def enter_verification_code(request, appointment_request_id, id_request):
         'id_request': id_request,
     }
     context = get_generic_context_with_extra(request, extra_context, admin=False)
-    verification_code_template = get_custom_template('verification_code.html',
+    verification_code_template = get_custom_template(('enter_verification_code.html', 'verification_code.html'),
                                                      'appointment/enter_verification_code.html')
     return render(request, verification_code_template, context)
 
@@ -494,7 +494,7 @@ def default_thank_you(request, appointment_id):
         'appointment': appointment,
     }
     context = get_generic_context_with_extra(request, extra_context, admin=False)
-    thank_you_template = get_custom_template('thank_you_page.html', 'appointment/default_thank_you.html')
+    thank_you_template = get_custom_template(('default_thank_you.html', 'thank_you_page.html'), 'appointment/default_thank_you.html')
     return render(request, thank_you_template, context=context)
 
 
@@ -509,7 +509,7 @@ def set_passwd(request, uidb64, token):
     # Simple template lookup - user must name their templates exactly these names
     error_template = get_custom_template('password_error.html', 'appointment/thank_you.html')
     success_template = get_custom_template('password_success.html', 'appointment/thank_you.html')
-    form_template = get_custom_template('password_form.html', 'appointment/set_password.html')
+    form_template = get_custom_template(('set_password.html', 'password_form.html'), 'appointment/set_password.html')
 
     try:
         uid = force_str(urlsafe_base64_decode(uidb64))
@@ -556,7 +556,7 @@ def prepare_reschedule_appointment(request, id_request):
         url = reverse('appointment:appointment_request', kwargs={'service_id': ar.service.id})
         context = get_generic_context_with_extra(request, {'url': url, }, admin=False)
         logger.error(f"Appointment with id_request {id_request} cannot be rescheduled")
-        template = get_custom_template('403_forbidden_rescheduling.html', 'error_pages/403_forbidden_rescheduling.html')
+        template = get_custom_template('403_forbidden_rescheduling.html', 'error_pages/403_forbidden_rescheduling.html', area='booking')
         return render(request, template, context=context, status=403)
 
     service = ar.service
@@ -642,7 +642,7 @@ def confirm_reschedule(request, id_request):
         error_message = _("O-o-oh! This link is no longer valid.") if not reschedule_history.still_valid() else _(
                 "O-o-oh! Can't find the pending reschedule request.")
         context = get_generic_context_with_extra(request, {"error_message": error_message}, admin=False)
-        template = get_custom_template('404_not_found.html', 'error_pages/404_not_found.html')
+        template = get_custom_template('404_not_found.html', 'error_pages/404_not_found.html', area='booking')
         return render(request, template, status=404, context=context)
 
     ar = reschedule_history.appointment_request

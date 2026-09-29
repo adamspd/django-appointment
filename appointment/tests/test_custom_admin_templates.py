@@ -108,6 +108,50 @@ class AdministrationTemplateOverrideTests(BaseTest):
             self.assertEqual(response.content, b'from my_templates')
 
 
+class TemplateFoldersAndNamesTests(BaseTest):
+    """Overrides can live in custom/admin/ and custom/booking/, and some pages accept their default name."""
+
+    def test_admin_subfolder_wins_over_the_flat_name(self):
+        from appointment.utils.template_helpers import get_custom_template
+        with with_custom_templates('admin/staff_list.html', 'staff_list.html'):
+            self.assertEqual(get_custom_template('staff_list.html', 'administration/staff_list.html'),
+                             'custom/admin/staff_list.html')
+        with with_custom_templates('staff_list.html'):
+            self.assertEqual(get_custom_template('staff_list.html', 'administration/staff_list.html'),
+                             'custom/staff_list.html')
+
+    def test_booking_subfolder(self):
+        from appointment.utils.template_helpers import get_custom_template
+        with with_custom_templates('booking/appointments.html'):
+            self.assertEqual(get_custom_template('appointments.html', 'appointment/appointments.html'),
+                             'custom/booking/appointments.html')
+        with with_custom_templates('admin/appointments.html'):
+            self.assertEqual(get_custom_template('appointments.html', 'appointment/appointments.html'),
+                             'appointment/appointments.html')
+
+    def test_error_page_uses_the_area_of_the_view(self):
+        self.need_superuser_login()
+        url = reverse('appointment:display_appointment', args=[999999])
+        with with_custom_templates('admin/404_not_found.html'):
+            response = self.client.get(url)
+            self.assertEqual(response.content, b'overridden admin/404_not_found.html')
+        with with_custom_templates('booking/404_not_found.html'):
+            response = self.client.get(url)
+            self.assertIn('error_pages/404_not_found.html', [t.name for t in response.templates])
+
+    def test_default_names_work_next_to_the_old_ones(self):
+        from appointment.utils.template_helpers import get_custom_template
+        pairs = [
+            (('default_thank_you.html', 'thank_you_page.html'), 'appointment/default_thank_you.html'),
+            (('set_password.html', 'password_form.html'), 'appointment/set_password.html'),
+            (('enter_verification_code.html', 'verification_code.html'), 'appointment/enter_verification_code.html'),
+        ]
+        for names, default in pairs:
+            for name in names:
+                with self.subTest(name=name), with_custom_templates(name):
+                    self.assertEqual(get_custom_template(names, default), f'custom/{name}')
+
+
 def page_context(response):
     context = {}
     for part in response.context:
