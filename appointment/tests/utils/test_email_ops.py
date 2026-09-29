@@ -3,7 +3,9 @@ from datetime import datetime
 from unittest import mock
 from unittest.mock import MagicMock, patch
 
+from django.test import override_settings
 from django.test.client import RequestFactory
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
@@ -11,7 +13,7 @@ from appointment.messages_ import thank_you_no_payment, thank_you_payment, thank
 from appointment.models import AppointmentRescheduleHistory
 from appointment.tests.base.base_test import BaseTest
 from appointment.utils.email_ops import (
-    get_thank_you_message, notify_admin_about_appointment, notify_admin_about_reschedule,
+    get_email_context, get_thank_you_message, notify_admin_about_appointment, notify_admin_about_reschedule,
     send_reschedule_confirmation_email,
     send_reset_link_to_staff_member, send_thank_you_email,
     send_verification_email
@@ -51,20 +53,24 @@ class SendResetLinkToStaffMemberTests(BaseTest):
 
         send_reset_link_to_staff_member(self.user, self.request, self.email)
 
-        # Check send_email was called with correct parameters
+        # The default template is used; the context carries the link and the site's name
         mock_send_email.assert_called_once()
         args, kwargs = mock_send_email.call_args
         self.assertEqual(kwargs['recipient_list'], [self.email])
-        self.assertIn('Gate Room Server', kwargs['message'])
-        self.assertIn('http://gateroomserver/reset_password', kwargs['message'])
-        self.assertIn('Colonel_Samantha_Carter_a_Tau_ri_Scientist', kwargs['message'])
+        self.assertEqual(kwargs['template_url'], 'email_sender/password_reset_email.html')
+        self.assertIn('Gate Room Server', kwargs['subject'])
+        context = kwargs['context']
+        self.assertEqual(context['activation_link'], f"http://gateroomserver/reset_password/{mock_token.token}")
+        self.assertEqual(context['company'], 'Gate Room Server')
+        self.assertEqual(context['first_name'], self.user.first_name)
+        self.assertEqual(context['current_year'], timezone.localdate().year)
 
-        # Additional assertions to verify more parts of the message content
-        self.assertIn('Hello', kwargs['message'])
-        self.assertIn(self.user.first_name, kwargs['message'])
-        self.assertIn(str(timezone.localdate().year), kwargs['message'])
-        self.assertIn('No additional details provided.', kwargs['message'])
-        self.assertIn(self.user.username, kwargs['message'])
+        # The default template renders the link
+        from django.template.loader import render_to_string
+        html = render_to_string(kwargs['template_url'], context)
+        self.assertIn(mock_token.token, html)
+        self.assertIn('Gate Room Server', html)
+        self.assertIn(self.user.username, context['login_instruction'])
 
 
 class GetThankYouMessageTests(BaseTest):
@@ -104,12 +110,12 @@ class SendVerificationEmailTests(BaseTest):
 
         send_verification_email(user, self.email)
 
-        mock_send_email.assert_called_once_with(
-            recipient_list=[self.email],
-            subject=_("Email Verification"),
-            message=mock.ANY
-        )
-        self.assertIn("123456", mock_send_email.call_args[1]['message'])
+        mock_send_email.assert_called_once()
+        kwargs = mock_send_email.call_args[1]
+        self.assertEqual(kwargs['recipient_list'], [self.email])
+        self.assertEqual(kwargs['subject'], _("Email Verification"))
+        self.assertEqual(kwargs['template_url'], 'email_sender/verification_email.html')
+        self.assertEqual(kwargs['context']['verification_code'], "123456")
 
 
 class SendRescheduleConfirmationEmailTests(BaseTest):
@@ -216,3 +222,57 @@ class EmailSubjectAndRecipientTests(BaseTest):
         with translation.override('fr'):
             send_thank_you_email(self.appointment_request, user, RequestFactory().get('/'), user.email)
         self.assertEqual(mock_send_email.call_args.kwargs['context']['month_year'], "AVR 2030")
+
+
+class EmailContextTests(BaseTest):
+    """Every email gets the site, and the appointment's objects and links when it is about one."""
+
+    def setUp(self):
+        super().setUp()
+        self.appointment = self.create_appt_for_sm1()
+
+    @override_settings(APPOINTMENT_SITE_URL='https://sgc.mil/')
+    def test_site_url_setting_wins(self):
+        context = get_email_context(appointment=self.appointment, request=RequestFactory().get('/'))
+        self.assertEqual(context['site_url'], 'https://sgc.mil')
+        self.assertEqual(context['appointment_url'],
+                         'https://sgc.mil' + reverse('appointment:display_appointment', args=[self.appointment.id]))
+        self.assertTrue(context['dashboard_url'].startswith('https://sgc.mil/'))
+        self.assertTrue(context['reschedule_url'].startswith('https://sgc.mil/'))
+
+    def test_request_is_used_without_the_setting(self):
+        context = get_email_context(request=RequestFactory().get('/'))
+        self.assertEqual(context['site_url'], 'http://testserver')
+        self.assertNotIn('appointment', context)
+
+    def test_model_objects(self):
+        context = get_email_context(appointment=self.appointment)
+        ar = self.appointment.appointment_request
+        self.assertEqual(context['appointment'], self.appointment)
+        self.assertEqual(context['appointment_request'], ar)
+        self.assertEqual(context['service'], ar.service)
+        self.assertEqual(context['staff_member'], ar.staff_member)
+        self.assertEqual(context['client'], self.appointment.client)
+        self.assertEqual(context['client_name'], self.appointment.get_client_name())
+        self.assertIn('company', context)
+
+    @override_settings(APPOINTMENT_SITE_URL='https://sgc.mil')
+    @patch('appointment.utils.email_ops.send_email')
+    @patch('appointment.utils.email_ops.notify_admin')
+    def test_admin_notification_has_the_links(self, mock_notify_admin, mock_send_email):
+        notify_admin_about_appointment(self.appointment, 'Jack')
+        context = mock_send_email.call_args[1]['context']
+        self.assertTrue(context['appointment_url'].startswith('https://sgc.mil/'))
+        self.assertEqual(context['service'], self.appointment.get_service())
+        self.assertEqual(context['client_name'], 'Jack')
+
+    @patch('appointment.utils.email_ops.send_email')
+    def test_reschedule_confirmation_has_the_service(self, mock_send_email):
+        ar = self.appointment.appointment_request
+        history = AppointmentRescheduleHistory.objects.create(
+            appointment_request=ar, date=ar.date + timezone.timedelta(days=1), start_time=ar.start_time,
+            end_time=ar.end_time, staff_member=ar.staff_member, reason_for_rescheduling='Off-world')
+        send_reschedule_confirmation_email(RequestFactory().get('/'), history, ar, 'Jack', 'jack@sgc.mil')
+        context = mock_send_email.call_args[1]['context']
+        self.assertEqual(context['service_name'], ar.service.name)
+        self.assertEqual(context['appointment'], self.appointment)
