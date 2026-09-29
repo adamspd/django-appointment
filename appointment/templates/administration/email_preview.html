@@ -1,0 +1,52 @@
+{% extends "appointment/layout.html" %}
+{% load i18n %}
+{% load static %}
+{% block customCSS %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/staff.css' %}"/>
+{% endblock %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block description %}{{ page_description }}{% endblock %}
+
+{% block djappt_content %}
+    <div class="djappt-shell djappt-staff djappt-email-preview content content-wrapper">
+        {% include "appointment/_messages.html" %}
+
+        {% block djappt_back %}
+        <a class="djappt-back" href="{{ back_url }}">
+            <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                <path d="M10.354 3.146a.5.5 0 0 1 0 .708L6.207 8l4.147 4.146a.5.5 0 0 1-.708.708l-4.5-4.5a.5.5 0 0 1 0-.708l4.5-4.5a.5.5 0 0 1 .708 0"/>
+            </svg>
+            {% trans 'Back' %}</a>
+        {% endblock %}
+
+        <header class="djappt-page-head">
+            <div>
+                {% block djappt_heading %}
+                <h1 class="djappt-title">{{ page_title }}</h1>
+                {% endblock %}
+                {% if page_description %}<p class="djappt-note">{{ page_description }}</p>{% endif %}
+            </div>
+        </header>
+
+        {% for email in emails %}
+            <section class="djappt-card djappt-form-section" id="email-{{ email.key }}">
+                <h2 class="djappt-card-title">{{ email.label }}</h2>
+                <dl>
+                    <dt>{% trans 'Subject' %}</dt>
+                    <dd>{{ email.subject }}</dd>
+                    <dt>{% trans 'Template' %}</dt>
+                    <dd><code>{{ email.template }}</code></dd>
+                </dl>
+                <p>
+                    <a href="{% url 'appointment:email_preview_detail' email.key %}" target="_blank" rel="noopener">{% trans 'HTML' %}</a>
+                    ·
+                    <a href="{% url 'appointment:email_preview_detail' email.key %}?format=text" target="_blank" rel="noopener">{% trans 'Text' %}</a>
+                </p>
+                <iframe src="{% url 'appointment:email_preview_detail' email.key %}" title="{{ email.label }}"
+                        loading="lazy" style="width: 100%; height: 560px; border: 1px solid #e3e8ef; border-radius: 8px;"></iframe>
+            </section>
+        {% empty %}
+            <p class="djappt-empty">{% trans 'Book an appointment first: the preview uses the latest one.' %}</p>
+        {% endfor %}
+    </div>
+{% endblock %}
