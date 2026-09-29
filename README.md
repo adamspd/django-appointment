@@ -196,7 +196,14 @@ EMAIL_HOST_PASSWORD = 'your_email_password'
 
 # Optional: Set your website name for email footer
 APPOINTMENT_WEBSITE_NAME = 'Your Website Name'
+
+# Optional: Your site's address, for the links in emails sent without a request (reminders, staff notifications)
+APPOINTMENT_SITE_URL = 'https://www.example.com'
 ```
+
+To change the emails, see [Custom templates](https://django-appt-doc.adamspierredavid.com/custom-templates/): each
+email can be overridden, with its subject and its plain-text part, and with `DEBUG = True` a superuser can preview them
+all at `app-admin/email-preview/`.
 
 > **Note:** Make sure to use environment variables or a secure method to store sensitive information like email passwords in production.
 
