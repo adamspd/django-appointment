@@ -1,0 +1,14 @@
+{% extends "email_sender/base_email.html" %}
+{% load i18n %}
+{% block title %}{% translate 'Email Verification' %}{% endblock %}
+{% block preheader %}{% blocktranslate trimmed %}Your verification code is {{ verification_code }}.{% endblocktranslate %}{% endblock %}
+{% block heading %}{% translate 'Email Verification' %}{% endblock %}
+
+{% block content %}
+    <p style="margin: 0 0 12px;">{% if first_name %}{% blocktranslate trimmed %}Hi {{ first_name }},{% endblocktranslate %}{% else %}{% translate 'Hi' %},{% endif %}</p>
+    <p style="margin: 0 0 16px;">{% translate 'Enter this code to confirm your email address:' %}</p>
+    <p style="margin: 0 0 24px; padding: 14px; background-color: #f4f6fa; border-radius: 8px; text-align: center; font-size: 28px; font-weight: 700; letter-spacing: 6px; color: #0c1b33;">{{ verification_code }}</p>
+    <p style="margin: 0 0 24px; font-size: 14px; color: #33415c;">{% translate 'If you did not expect this email, you can ignore it.' %}</p>
+
+    <p style="margin: 0;">{% translate "Thank you," %}<br>{{ company }}</p>
+{% endblock %}
