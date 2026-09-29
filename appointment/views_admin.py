@@ -84,7 +84,7 @@ def display_appointment(request, appointment_id):
 
     if error_message:
         context = get_generic_context(request=request)
-        template = get_custom_template('404_not_found.html', 'error_pages/404_not_found.html')
+        template = get_custom_template('404_not_found.html', 'error_pages/404_not_found.html', area='admin')
         return render(request, template, context=context, status=status_code)
     # If everything is okay, render the HTML template.
     extra_context = {
@@ -106,9 +106,9 @@ def user_profile(request, staff_user_id=None):
     status_code = data.get('status_code', 400)
     context = get_generic_context_with_extra(request=request, extra=data['extra_context'])
     if status_code == 403:
-        error_template = get_custom_template('403_forbidden.html', 'error_pages/403_forbidden.html')
+        error_template = get_custom_template('403_forbidden.html', 'error_pages/403_forbidden.html', area='admin')
     else:
-        error_template = get_custom_template('404_not_found.html', 'error_pages/404_not_found.html')
+        error_template = get_custom_template('404_not_found.html', 'error_pages/404_not_found.html', area='admin')
     template = data['template'] if not error else error_template
     return render(request, template, context)
 
@@ -139,7 +139,7 @@ def update_day_off(request, day_off_id, staff_user_id=None, response_type='html'
                                  error_code=ErrorCode.DAY_OFF_NOT_FOUND)
         else:
             context = get_generic_context(request=request)
-            template = get_custom_template('404_not_found.html', 'error_pages/404_not_found.html')
+            template = get_custom_template('404_not_found.html', 'error_pages/404_not_found.html', area='admin')
             return render(request, template, context=context, status=404)
     staff_user_id = staff_user_id or request.user.pk
     if not check_extensive_permissions(staff_user_id, request.user, day_off):
@@ -191,7 +191,7 @@ def update_unavailability(request, unavailability_id, staff_user_id=None, respon
                                  error_code=ErrorCode.UNAVAILABILITY_NOT_FOUND)
         else:
             context = get_generic_context(request=request)
-            template = get_custom_template('404_not_found.html', 'error_pages/404_not_found.html')
+            template = get_custom_template('404_not_found.html', 'error_pages/404_not_found.html', area='admin')
             return render(request, template, context=context, status=404)
     staff_user_id = staff_user_id or request.user.pk
     if not check_extensive_permissions(staff_user_id, request.user, unavailability):
@@ -244,7 +244,7 @@ def update_working_hours(request, working_hours_id, staff_user_id=None, response
                                  error_code=ErrorCode.WORKING_HOURS_NOT_FOUND)
         else:
             context = get_generic_context(request=request)
-            template = get_custom_template('404_not_found.html', 'error_pages/404_not_found.html')
+            template = get_custom_template('404_not_found.html', 'error_pages/404_not_found.html', area='admin')
             return render(request, template, context=context)
 
     staff_user_id = staff_user_id or request.user.pk
