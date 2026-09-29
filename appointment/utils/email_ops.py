@@ -19,11 +19,52 @@ from appointment.email_sender import get_admins, notify_admin, send_email
 from appointment.logger_config import get_logger
 from appointment.models import Appointment, AppointmentRequest, EmailVerificationCode, PasswordResetToken
 from appointment.settings import APPOINTMENT_PAYMENT_URL
-from appointment.utils.db_helpers import get_absolute_url_, get_website_name, username_in_user_model
+from appointment.utils.db_helpers import (
+    build_absolute_url, get_absolute_url_, get_site_url, get_website_name, username_in_user_model
+)
 from appointment.utils.ics_utils import generate_ics_file
 from appointment.utils.template_helpers import get_email_template
 
 logger = get_logger(__name__)
+
+
+def get_email_context(appointment=None, appointment_request=None, request=None) -> dict:
+    """
+    What every email gets: the site's name and address and a link to the staff calendar, plus the appointment's
+    objects and links when the email is about one.
+
+    :param appointment: The appointment the email is about, if any.
+    :param appointment_request: Its request, when there is no appointment yet.
+    :param request: The request, when there is one; used for the links when ``APPOINTMENT_SITE_URL`` isn't set.
+    :return: The context. The emails add their own keys on top.
+    """
+    if appointment is not None:
+        appointment_request = appointment.appointment_request
+    context = {
+        'company': get_website_name(),
+        'site_url': get_site_url(request),
+        'current_year': timezone.localdate().year,
+        'dashboard_url': build_absolute_url(reverse('appointment:get_user_appointments'), request),
+    }
+    if appointment_request is not None:
+        context.update({
+            'appointment_request': appointment_request,
+            'service': appointment_request.service,
+            'service_name': appointment_request.service.name,
+            'staff_member': appointment_request.staff_member,
+            'reschedule_url': build_absolute_url(
+                reverse('appointment:prepare_reschedule_appointment', args=[appointment_request.get_id_request()]),
+                request),
+        })
+    if appointment is not None:
+        context.update({
+            'appointment': appointment,
+            'client': appointment.client,
+            'client_name': appointment.get_client_name(),
+            'appointment_url': build_absolute_url(
+                reverse('appointment:display_appointment', args=[appointment.id]), request),
+        })
+    return context
 
 
 def get_thank_you_message(ar: AppointmentRequest) -> str:
@@ -81,6 +122,7 @@ def send_thank_you_email(ar: AppointmentRequest, user, request, email: str, appo
     ics_file = generate_ics_file(appt)
 
     email_context = {
+        **get_email_context(appointment=appt, request=request),
         'first_name': user.first_name,
         'message_1': get_thank_you_message(ar),
         'current_year': timezone.localdate().year,
@@ -131,11 +173,12 @@ def send_reset_link_to_staff_member(user, request, email: str, account_details=N
         login_instruction = _("To login, use your email address.")
         username = ""
 
-    # Try the custom template first, fall back to plain text
+    # Try the custom template first, then the default one; plain text only if both fail
     try:
-        template_path = get_email_template('password_reset.html', None)
+        template_path = get_email_template('password_reset.html', 'email_sender/password_reset_email.html')
         if template_path:
             email_context = {
+                **get_email_context(request=request),
                 'first_name': user.first_name,
                 'current_year': timezone.localdate().year,
                 'company': website_name,
@@ -210,7 +253,9 @@ def notify_admin_about_appointment(appointment, client_name: str):
     # User must name their template 'new_appointment_admin_notification.html' in their email directory
     template_path = get_email_template('new_appointment_admin_notification.html',
                                        'email_sender/admin_new_appointment_email.html')
+    common_context = get_email_context(appointment=appointment)
     staff_context = {
+        **common_context,
         'recipient_name': staff_name,
         'client_name': client_name,
         'appointment': appointment,
@@ -225,6 +270,7 @@ def notify_admin_about_appointment(appointment, client_name: str):
 
         is_staff_admin = admin_email == staff_email
         email_context = staff_context if is_staff_admin else {
+            **common_context,
             'recipient_name': admin_name,
             'client_name': client_name,
             'appointment': appointment,
@@ -272,11 +318,12 @@ def send_verification_email(user, email: str, request=None):
     """
     code = EmailVerificationCode.generate_code(user=user)
 
-    # Try the custom template first, fall back to plain text
+    # Try the custom template first, then the default one; plain text only if both fail
     try:
-        template_path = get_email_template('verification.html', None)
+        template_path = get_email_template('verification.html', 'email_sender/verification_email.html')
         if template_path:
             email_context = {
+                **get_email_context(request=request),
                 'user': user,
                 'first_name': user.first_name,
                 'verification_code': code,
@@ -304,6 +351,8 @@ def send_reschedule_confirmation_email(request, reschedule_history, appointment_
     confirmation_link = get_absolute_url_(relative_confirmation_link, request)
 
     email_context = {
+        **get_email_context(appointment=Appointment.objects.filter(appointment_request=appointment_request).first(),
+                            appointment_request=appointment_request, request=request),
         'is_confirmation': True,
         'first_name': first_name,
         'old_date': appointment_request.date,
@@ -339,7 +388,12 @@ def notify_admin_about_reschedule(reschedule_history, appointment_request, clien
     service_name = appointment_request.service.name
     reason_for_rescheduling = reschedule_history.reason_for_rescheduling
 
+    # let's get the new ics file
+    appt = Appointment.objects.get(appointment_request=appointment_request)
+    ics_file = generate_ics_file(appt)
+
     email_context = {
+        **get_email_context(appointment=appt),
         'is_confirmation': False,
         'client_name': client_name,
         'service_name': service_name,
@@ -352,10 +406,6 @@ def notify_admin_about_reschedule(reschedule_history, appointment_request, clien
         'end_time': reschedule_history.end_time,
         'company': get_website_name(),
     }
-
-    # let's get the new ics file
-    appt = Appointment.objects.get(appointment_request=appointment_request)
-    ics_file = generate_ics_file(appt)
 
     subject = _("Reschedule Request for %(client_name)s") % {'client_name': client_name}
     staff_member = appointment_request.staff_member

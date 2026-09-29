@@ -101,6 +101,21 @@ def render_text_body(template_url, context, html_message, request=None) -> str:
     return html_to_text(html_message)
 
 
+def render_subject(template_url, context, subject, request=None) -> str:
+    """Subject of a templated email.
+
+    A ``.subject.txt`` template next to the HTML one (``emails/thank_you.subject.txt`` for ``emails/thank_you.html``)
+    replaces the subject set in Python: its first line that isn't empty is used.
+    """
+    if not template_url or not template_url.endswith('.html'):
+        return subject
+    try:
+        text = loader.render_to_string(template_url[:-len('.html')] + '.subject.txt', context, request=request)
+    except TemplateDoesNotExist:
+        return subject
+    return next((line.strip() for line in text.splitlines() if line.strip()), subject)
+
+
 def send_email_now(recipient_list, subject, message, html_message, from_email, attachments=None):
     """Send an email synchronously, with its text part, optional HTML alternative and attachments."""
     email = EmailMultiAlternatives(subject=subject, body=message, from_email=from_email, to=recipient_list)
@@ -122,6 +137,7 @@ def send_email(recipient_list, subject: str, template_url: str = "", context: Op
     html_message = render_email_template(template_url, context, request)
     if template_url:
         message = render_text_body(template_url, context, html_message, request)
+    subject = render_subject(template_url, context, subject, request)
 
     if get_use_django_q_for_emails() and check_q_cluster() and DJANGO_Q_AVAILABLE:
         # Pass only the necessary data to construct the email
@@ -271,6 +287,7 @@ def schedule_email_sending(
 
     from_email = from_email or APP_DEFAULT_FROM_EMAIL
     html_message = render_email_template(template_url, context, request)
+    subject = render_subject(template_url, context or {}, subject, request)
 
     schedule_type = getattr(Schedule, validated_repeat or 'ONCE')
 
@@ -323,6 +340,7 @@ def notify_admin(subject: str, template_url: str = "", context: Optional[dict] =
     html_message = render_email_template(template_url, context, request)
     if template_url:
         message = render_text_body(template_url, context, html_message, request)
+    subject = render_subject(template_url, context, subject, request)
 
     recipients = [recipient_email] if recipient_email else [email for name, email in get_admins()]
 

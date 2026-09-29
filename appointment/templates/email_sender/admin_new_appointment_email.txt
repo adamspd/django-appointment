@@ -12,7 +12,9 @@
 - {% translate 'Time' %}: {{ appointment.appointment_request.start_time|time }} – {{ appointment.appointment_request.end_time|time }}
 - {% translate 'Contact Details' %}: {% if appointment.phone %}{{ appointment.phone }} | {% endif %}{{ appointment.client.email }}
 - {% translate 'Additional Info' %}: {{ appointment.additional_info|default:"N/A" }}
-
+{% if appointment_url %}
+{% translate 'View Appointment' %}: {{ appointment_url }}
+{% endif %}
 {% if is_staff_member %}{% translate 'Please review the appointment request and take the necessary action.' %}{% else %}{% blocktranslate trimmed %}
     Please ensure that {{ staff_member_name }} reviews this appointment request and takes the necessary
     action.

@@ -27,9 +27,12 @@ def send_email_reminder(to_email, first_name, reschedule_link, appointment_id):
 
     # Fetch the appointment using appointment_id
     logger.info(f"Sending reminder to {to_email} for appointment {appointment_id}")
+    from appointment.utils.email_ops import get_email_context
+
     appointment = Appointment.objects.get(id=appointment_id)
     recipient_type = 'client'
     email_context = {
+        **get_email_context(appointment=appointment),
         'first_name': first_name,
         'appointment': appointment,
         'reschedule_link': reschedule_link,
@@ -42,10 +45,11 @@ def send_email_reminder(to_email, first_name, reschedule_link, appointment_id):
     )
     # Notify the admin
     logger.info(f"Sending admin reminder also")
-    email_context['recipient_type'] = 'admin'
+    # The admin copy isn't addressed to the client: their first name stays available as client_first_name
+    admin_context = {**email_context, 'recipient_type': 'admin', 'first_name': '', 'client_first_name': first_name}
     notify_admin(
         subject=_("Admin Reminder: Upcoming Appointment"),
-        template_url=template_url, context=email_context
+        template_url=template_url, context=admin_context
     )
 
 
