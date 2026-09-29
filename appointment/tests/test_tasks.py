@@ -34,19 +34,26 @@ class SendEmailReminderTest(BaseTest):
         # Call the function under test
         send_email_reminder(to_email, first_name, "", appointment_id)
 
-        # Verify send_email was called with correct parameters
-        mock_send_email.assert_called_once_with(
-            recipient_list=[to_email],
-            subject=_("Reminder: Upcoming Appointment"),
-            template_url='email_sender/reminder_email.html',
-            context={'first_name': first_name, 'appointment': appointment, 'reschedule_link': "",
-                     'recipient_type': 'admin'}
-        )
+        # The client gets their own context, addressed to them
+        mock_send_email.assert_called_once()
+        kwargs = mock_send_email.call_args[1]
+        self.assertEqual(kwargs['recipient_list'], [to_email])
+        self.assertEqual(kwargs['subject'], _("Reminder: Upcoming Appointment"))
+        self.assertEqual(kwargs['template_url'], 'email_sender/reminder_email.html')
+        client_context = kwargs['context']
+        self.assertEqual(client_context['recipient_type'], 'client')
+        self.assertEqual(client_context['first_name'], first_name)
+        self.assertEqual(client_context['appointment'], appointment)
+        self.assertEqual(client_context['service'], appointment.get_service())
+        self.assertIn('company', client_context)
+        self.assertIn(f'/{appointment.id}/', client_context['appointment_url'])
 
-        # Verify notify_admin was called with correct parameters
-        mock_notify_admin.assert_called_once_with(
-            subject=_("Admin Reminder: Upcoming Appointment"),
-            template_url='email_sender/reminder_email.html',
-            context={'first_name': first_name, 'appointment': appointment, 'reschedule_link': "",
-                     'recipient_type': 'admin'}
-        )
+        # The admin copy isn't addressed to the client
+        mock_notify_admin.assert_called_once()
+        kwargs = mock_notify_admin.call_args[1]
+        self.assertEqual(kwargs['subject'], _("Admin Reminder: Upcoming Appointment"))
+        admin_context = kwargs['context']
+        self.assertEqual(admin_context['recipient_type'], 'admin')
+        self.assertEqual(admin_context['first_name'], '')
+        self.assertEqual(admin_context['client_first_name'], first_name)
+        self.assertEqual(admin_context['appointment'], appointment)
