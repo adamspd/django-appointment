@@ -176,9 +176,6 @@ EMAIL_HOST_PASSWORD = 'your_email_password'
 
 # Optional: your website's name, shown at the top of the emails
 APPOINTMENT_WEBSITE_NAME = 'Your Website Name'
-
-# Optional: Your site's address, for the links in emails sent without a request (reminders, staff notifications)
-APPOINTMENT_SITE_URL = 'https://www.example.com'
 ```
 
 To change the emails, see [Custom templates](https://django-appt-doc.adamspierredavid.com/custom-templates/): each

@@ -34,11 +34,10 @@ from appointment.utils.db_helpers import (
     can_appointment_be_rescheduled, check_day_off_for_staff, create_and_save_appointment,
     create_payment_info_and_get_url, get_non_working_days_for_staff, get_user_by_email, get_user_model,
     get_website_name, get_weekday_num_from_date, is_working_day, staff_change_allowed_on_reschedule,
-    update_user_name, username_in_user_model
+    update_user_name
 )
-from appointment.utils.email_ops import notify_admin_about_appointment, notify_admin_about_reschedule, \
-    send_reschedule_confirmation_email, \
-    send_thank_you_email
+from appointment.utils.email_ops import get_thank_you_details, notify_admin_about_appointment, \
+    notify_admin_about_reschedule, send_reschedule_confirmation_email, send_thank_you_email
 from appointment.utils.session import get_appointment_data_from_session, login_or_create_user_by_mail
 from appointment.utils.view_helpers import get_locale
 from .decorators import require_ajax
@@ -345,7 +344,7 @@ def create_appointment(request, appointment_request_obj, client_data, appointmen
     """
     appointment = create_and_save_appointment(appointment_request_obj, client_data, appointment_data, request)
     allow_thank_you_page(request, appointment)
-    notify_admin_about_appointment(appointment, appointment.client.first_name)
+    notify_admin_about_appointment(appointment, appointment.client.first_name, request=request)
     return redirect_to_payment_or_thank_you_page(appointment)
 
 
@@ -467,21 +466,7 @@ def default_thank_you(request, appointment_id):
         raise Http404
     ar = appointment.appointment_request
     email = appointment.client.email
-    appointment_details = {
-        _('Service'): appointment.get_service_name(),
-        _('Appointment Date'): appointment.get_appointment_date(),
-        _('Appointment Time'): appointment.appointment_request.start_time,
-        _('Duration'): appointment.get_service_duration()
-    }
-    account_details = {
-        _('Email address'): email,
-    }
-    if username_in_user_model():
-        account_details[_('Username')] = appointment.client.username
-
-    # If the client already has an account, don't show the 'create password' part in the email
-    if appointment.client.has_usable_password():
-        account_details = None
+    appointment_details, account_details = get_thank_you_details(appointment)
 
     # Send the thank-you email (also used for rescheduling and after verification code sent), once per booking
     pages = request.session.get(THANK_YOU_SESSION_KEY, {})
@@ -672,6 +657,6 @@ def confirm_reschedule(request, id_request):
     messages.success(request, _("Appointment rescheduled successfully"))
     # notify admin and the concerned staff admin about client's rescheduling
     client_name = Appointment.objects.get(appointment_request=ar).client.get_full_name()
-    notify_admin_about_reschedule(reschedule_history, ar, client_name)
+    notify_admin_about_reschedule(reschedule_history, ar, client_name, request=request)
     allow_thank_you_page(request, ar.appointment)
     return redirect('appointment:default_thank_you', appointment_id=ar.appointment.id)
