@@ -26,12 +26,8 @@ DJANGO_Q_AVAILABLE, async_task, schedule, Schedule = initialize_django_q()
 def has_required_email_settings():
     """Check if all required email settings are configured and warn if any are missing."""
     from django.conf import settings as s
-    required_settings = [
-        'EMAIL_HOST', 'EMAIL_PORT', 'EMAIL_HOST_USER', 'EMAIL_HOST_PASSWORD', 'EMAIL_USE_TLS'
-    ]
-    missing_settings = [
-        setting_name for setting_name in required_settings if not hasattr(s, setting_name)
-    ]
+    required_settings = ['EMAIL_HOST', 'EMAIL_PORT', 'EMAIL_HOST_USER', 'EMAIL_HOST_PASSWORD', 'EMAIL_USE_TLS']
+    missing_settings = [setting_name for setting_name in required_settings if not hasattr(s, setting_name)]
 
     if missing_settings:
         missing_settings_str = ", ".join(missing_settings)
@@ -41,10 +37,8 @@ def has_required_email_settings():
 
     # Check if EMAIL_HOST is not the default value
     if os.environ.get('EMAIL_HOST') == 'smtp.example.com':
-        logger.warning(
-            "EMAIL_HOST is set to the default value 'smtp.example.com'. "
-            "Please update it with your actual SMTP server in the .env file."
-        )
+        logger.warning("EMAIL_HOST is set to the default value 'smtp.example.com'. "
+                       "Please update it with your actual SMTP server in the .env file.")
         return False
     return True
 
@@ -126,8 +120,8 @@ def send_email_now(recipient_list, subject, message, html_message, from_email, a
     email.send(fail_silently=False)
 
 
-def send_email(recipient_list, subject: str, template_url: str = "", context: Optional[dict] = None,
-               from_email=None, message: str = "", attachments=None, request=None):
+def send_email(recipient_list, subject: str, template_url: str = "", context: Optional[dict] = None, from_email=None,
+               message: str = "", attachments=None, request=None):
     if context is None:
         context = {}
     if not has_required_email_settings():
@@ -141,15 +135,8 @@ def send_email(recipient_list, subject: str, template_url: str = "", context: Op
 
     if get_use_django_q_for_emails() and check_q_cluster() and DJANGO_Q_AVAILABLE:
         # Pass only the necessary data to construct the email
-        async_task(
-            'appointment.tasks.send_email_task',
-            recipient_list=recipient_list,
-            subject=subject,
-            message=message,
-            html_message=html_message,
-            from_email=from_email,
-            attachments=attachments
-        )
+        async_task('appointment.tasks.send_email_task', recipient_list=recipient_list, subject=subject, message=message,
+            html_message=html_message, from_email=from_email, attachments=attachments)
     else:
         # Synchronously send the email
         try:
@@ -210,51 +197,24 @@ def validate_repeat_option(repeat: Optional[str]) -> Tuple[bool, str, Optional[s
     return True, "", repeat
 
 
-def schedule_email_task(
-        recipient_list: list,
-        subject: str,
-        html_message: str,
-        from_email: Optional[str],
-        attachments: Optional[list],
-        schedule_type: str,
-        send_at: datetime,
-        name: Optional[str],
-        repeat_until: Optional[datetime]
-) -> Tuple[bool, str]:
+def schedule_email_task(recipient_list: list, subject: str, html_message: str, from_email: Optional[str],
+        attachments: Optional[list], schedule_type: str, send_at: datetime, name: Optional[str],
+        repeat_until: Optional[datetime]) -> Tuple[bool, str]:
     try:
-        schedule(
-            'appointment.tasks.send_email_task',
-            recipient_list=recipient_list,
-            subject=subject,
-            message=None,
-            html_message=html_message,
-            from_email=from_email,
-            attachments=attachments,
-            schedule_type=schedule_type,
-            next_run=send_at,
-            name=name,
-            repeats=-1 if schedule_type != Schedule.ONCE and not repeat_until else None,
-            end_date=repeat_until
-        )
+        schedule('appointment.tasks.send_email_task', recipient_list=recipient_list, subject=subject, message=None,
+            html_message=html_message, from_email=from_email, attachments=attachments, schedule_type=schedule_type,
+            next_run=send_at, name=name, repeats=-1 if schedule_type != Schedule.ONCE and not repeat_until else None,
+            end_date=repeat_until)
         return True, "Email scheduled successfully."
     except Exception as e:
         logger.error(f"Error scheduling email: {e}")
         return False, f"Error scheduling email: {str(e)}"
 
 
-def schedule_email_sending(
-        recipient_list: list,
-        subject: str,
-        template_url: str = "",
-        context: Optional[dict] = None,
-        from_email: Optional[str] = None,
-        attachments: Optional[list] = None,
-        send_at: Optional[DateTimeInput] = None,
-        name: Optional[str] = None,
-        repeat: Optional[str] = None,
-        repeat_until: Optional[DateTimeInput] = None,
-        request=None
-) -> Tuple[bool, str]:
+def schedule_email_sending(recipient_list: list, subject: str, template_url: str = "", context: Optional[dict] = None,
+        from_email: Optional[str] = None, attachments: Optional[list] = None, send_at: Optional[DateTimeInput] = None,
+        name: Optional[str] = None, repeat: Optional[str] = None, repeat_until: Optional[DateTimeInput] = None,
+        request=None) -> Tuple[bool, str]:
     if not has_required_email_settings():
         return False, "Email settings are not configured."
 
@@ -291,17 +251,8 @@ def schedule_email_sending(
 
     schedule_type = getattr(Schedule, validated_repeat or 'ONCE')
 
-    return schedule_email_task(
-        recipient_list,
-        subject,
-        html_message,
-        from_email,
-        attachments,
-        schedule_type,
-        processed_send_at,
-        name,
-        processed_repeat_until
-    )
+    return schedule_email_task(recipient_list, subject, html_message, from_email, attachments, schedule_type,
+        processed_send_at, name, processed_repeat_until)
 
 
 def get_admins():
@@ -346,13 +297,8 @@ def notify_admin(subject: str, template_url: str = "", context: Optional[dict] =
 
     if get_use_django_q_for_emails() and check_q_cluster() and DJANGO_Q_AVAILABLE:
         # Asynchronously send the email using Django-Q
-        async_task("appointment.tasks.send_email_task",
-                   subject=subject,
-                   message=message,
-                   html_message=html_message,
-                   from_email=settings.DEFAULT_FROM_EMAIL,
-                   recipient_list=recipients,
-                   attachments=attachments)
+        async_task("appointment.tasks.send_email_task", subject=subject, message=message, html_message=html_message,
+                   from_email=settings.DEFAULT_FROM_EMAIL, recipient_list=recipients, attachments=attachments)
     else:
         # Synchronously send the email
         try:
