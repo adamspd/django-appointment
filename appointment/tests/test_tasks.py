@@ -34,19 +34,36 @@ class SendEmailReminderTest(BaseTest):
         # Call the function under test
         send_email_reminder(to_email, first_name, "", appointment_id)
 
-        # Verify send_email was called with correct parameters
-        mock_send_email.assert_called_once_with(
-            recipient_list=[to_email],
-            subject=_("Reminder: Upcoming Appointment"),
-            template_url='email_sender/reminder_email.html',
-            context={'first_name': first_name, 'appointment': appointment, 'reschedule_link': "",
-                     'recipient_type': 'admin'}
-        )
+        # The client gets their own context, addressed to them
+        mock_send_email.assert_called_once()
+        kwargs = mock_send_email.call_args[1]
+        self.assertEqual(kwargs['recipient_list'], [to_email])
+        self.assertEqual(kwargs['subject'], _("Reminder: Upcoming Appointment"))
+        self.assertEqual(kwargs['template_url'], 'email_sender/reminder_email.html')
+        client_context = kwargs['context']
+        self.assertEqual(client_context['recipient_type'], 'client')
+        self.assertEqual(client_context['first_name'], first_name)
+        self.assertEqual(client_context['appointment'], appointment)
+        self.assertEqual(client_context['service'], appointment.get_service())
+        self.assertIn('company', client_context)
+        self.assertIn(f'/{appointment.id}/', client_context['appointment_url'])
 
-        # Verify notify_admin was called with correct parameters
-        mock_notify_admin.assert_called_once_with(
-            subject=_("Admin Reminder: Upcoming Appointment"),
-            template_url='email_sender/reminder_email.html',
-            context={'first_name': first_name, 'appointment': appointment, 'reschedule_link': "",
-                     'recipient_type': 'admin'}
-        )
+        # The admin copy isn't addressed to the client
+        mock_notify_admin.assert_called_once()
+        kwargs = mock_notify_admin.call_args[1]
+        self.assertEqual(kwargs['subject'], _("Admin Reminder: Upcoming Appointment"))
+        admin_context = kwargs['context']
+        self.assertEqual(admin_context['recipient_type'], 'admin')
+        self.assertEqual(admin_context['first_name'], '')
+        self.assertEqual(admin_context['client_first_name'], first_name)
+        self.assertEqual(admin_context['appointment'], appointment)
+
+    @patch('appointment.tasks.send_email')
+    @patch('appointment.tasks.notify_admin')
+    def test_links_use_the_address_saved_at_booking(self, mock_notify_admin, mock_send_email):
+        appointment = self.create_appt_for_sm1()
+        send_email_reminder(appointment.client.email, 'Jack', '', appointment.id, site_url='https://sgc.mil')
+        for mock_send in (mock_send_email, mock_notify_admin):
+            context = mock_send.call_args[1]['context']
+            self.assertTrue(context['appointment_url'].startswith('https://sgc.mil/'))
+            self.assertEqual(context['site_url'], 'https://sgc.mil')

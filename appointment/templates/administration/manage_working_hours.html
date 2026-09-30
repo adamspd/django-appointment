@@ -13,39 +13,25 @@
 {% endblock %}
 
 {% block djappt_content %}
-    {% if staff_user_id %}
-        {% url 'appointment:user_profile' staff_user_id=staff_user_id as back_url %}
-    {% else %}
-        {% url 'appointment:user_profile' as back_url %}
-    {% endif %}
     <div class="djappt-shell djappt-shell--narrow djappt-staff content content-wrapper">
-        {% if messages %}
-            <div class="messages">
-                {% for message in messages %}
-                    <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
-                         role="alert">{{ message }}</div>
-                {% endfor %}
-            </div>
-        {% endif %}
+        {% include "appointment/_messages.html" %}
 
+        {% block djappt_back %}
         <a class="djappt-back" href="{{ back_url }}">
             <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
                 <path d="M10.354 3.146a.5.5 0 0 1 0 .708L6.207 8l4.147 4.146a.5.5 0 0 1-.708.708l-4.5-4.5a.5.5 0 0 1 0-.708l4.5-4.5a.5.5 0 0 1 .708 0"/>
             </svg>
             {% trans 'Back' %}</a>
+        {% endblock %}
 
-        {# Sent in the background by schedule_form.js, to the add or the update URL #}
-        {% if entity_instance %}
-            {% url 'appointment:update_working_hours_id' entity_id|default:entity_instance.id staff_user_id|default:user.id as post_url %}
-        {% else %}
-            {% url 'appointment:add_working_hours_id' staff_user_id|default:user.id as post_url %}
-        {% endif %}
         <form method="post" action="" id="workingHoursForm" class="djappt-card djappt-form djappt-staff-form"
-              data-schedule-form data-post-url="{{ post_url }}"
+              data-schedule-form data-post-url="{{ form_action }}"
               data-action="{% if entity_instance %}update{% else %}create{% endif %}"
               data-working-hours-id="{% if entity_instance %}{{ entity_instance.id }}{% else %}0{% endif %}"
               data-staff-user-id="{% if staff_user_id %}{{ staff_user_id }}{% else %}0{% endif %}">
+            {% block djappt_heading %}
             <h1 class="djappt-card-title">{% trans "Manage Working Hours" %}</h1>
+            {% endblock %}
             {% csrf_token %}
 
             {% if working_hours_form.staff_member %}
@@ -74,19 +60,13 @@
                     <label class="form-label" for="{{ working_hours_form.start_time.id_for_label }}">{% trans 'Start time' %}</label>
                     <input type="time" class="form-control" id="{{ working_hours_form.start_time.id_for_label }}"
                            name="{{ working_hours_form.start_time.html_name }}"
-                           value="{{ working_hours_form.start_time.value|time:'H:i' }}" required
-                           data-raw-target="{{ working_hours_form.start_time.id_for_label }}_raw" data-raw-format="datetime">
-                    <input type="hidden" name="{{ working_hours_form.start_time.html_name }}_raw"
-                           id="{{ working_hours_form.start_time.id_for_label }}_raw">
+                           value="{{ working_hours_form.start_time.value|time:'H:i' }}" required>
                 </div>
                 <div class="djappt-field">
                     <label class="form-label" for="{{ working_hours_form.end_time.id_for_label }}">{% trans 'End time' %}</label>
                     <input type="time" class="form-control" id="{{ working_hours_form.end_time.id_for_label }}"
                            name="{{ working_hours_form.end_time.html_name }}"
-                           value="{{ working_hours_form.end_time.value|time:'H:i' }}" required
-                           data-raw-target="{{ working_hours_form.end_time.id_for_label }}_raw" data-raw-format="datetime">
-                    <input type="hidden" name="{{ working_hours_form.end_time.html_name }}_raw"
-                           id="{{ working_hours_form.end_time.id_for_label }}_raw">
+                           value="{{ working_hours_form.end_time.value|time:'H:i' }}" required>
                 </div>
             </div>
 

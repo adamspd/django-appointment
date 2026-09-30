@@ -13,39 +13,25 @@
 {% endblock %}
 
 {% block djappt_content %}
-    {% if staff_user_id %}
-        {% url 'appointment:user_profile' staff_user_id=staff_user_id as back_url %}
-    {% else %}
-        {% url 'appointment:user_profile' as back_url %}
-    {% endif %}
     <div class="djappt-shell djappt-shell--narrow djappt-staff content content-wrapper">
-        {% if messages %}
-            <div class="messages">
-                {% for message in messages %}
-                    <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
-                         role="alert">{{ message }}</div>
-                {% endfor %}
-            </div>
-        {% endif %}
+        {% include "appointment/_messages.html" %}
 
+        {% block djappt_back %}
         <a class="djappt-back" href="{{ back_url }}">
             <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
                 <path d="M10.354 3.146a.5.5 0 0 1 0 .708L6.207 8l4.147 4.146a.5.5 0 0 1-.708.708l-4.5-4.5a.5.5 0 0 1 0-.708l4.5-4.5a.5.5 0 0 1 .708 0"/>
             </svg>
             {% trans 'Back' %}</a>
+        {% endblock %}
 
-        {# Sent in the background by schedule_form.js, to the add or the update URL #}
-        {% if entity_instance %}
-            {% url 'appointment:update_unavailability_id' entity_id|default:entity_instance.id staff_user_id|default:user.id as post_url %}
-        {% else %}
-            {% url 'appointment:add_unavailability_id' staff_user_id|default:user.id as post_url %}
-        {% endif %}
         <form method="post" action="" id="unavailabilityForm" class="djappt-card djappt-form djappt-staff-form"
-              data-schedule-form data-post-url="{{ post_url }}"
+              data-schedule-form data-post-url="{{ form_action }}"
               data-action="{% if entity_instance %}update{% else %}create{% endif %}"
               data-unavailability-id="{% if entity_instance %}{{ entity_instance.id }}{% else %}0{% endif %}"
               data-staff-user-id="{% if staff_user_id %}{{ staff_user_id }}{% else %}0{% endif %}">
+            {% block djappt_heading %}
             <h1 class="djappt-card-title">{% trans "Manage Unavailabilities" %}</h1>
+            {% endblock %}
             {% csrf_token %}
 
             {% if unavailability_form.staff_member %}
@@ -60,25 +46,19 @@
                     <div class="djappt-field djappt-field--wide">
                         <label class="form-label" for="{{ form.date.id_for_label }}">{% trans 'Date' %}</label>
                         <input type="date" class="form-control" id="{{ form.date.id_for_label }}"
-                               name="{{ form.date.html_name }}" value="{{ form.date.value|date:'Y-m-d' }}" required
-                               data-raw-target="{{ form.date.id_for_label }}_raw" data-raw-format="date">
-                        <input type="hidden" name="{{ form.date.html_name }}_raw" id="{{ form.date.id_for_label }}_raw">
+                               name="{{ form.date.html_name }}" value="{{ form.date.value|date:'Y-m-d' }}" required>
                     </div>
                     <div class="djappt-field">
                         <label class="form-label" for="{{ form.start_time.id_for_label }}">{% trans 'Start time' %}</label>
                         <input type="time" class="form-control" id="{{ form.start_time.id_for_label }}"
                                name="{{ form.start_time.html_name }}" value="{{ form.start_time.value|time:'H:i' }}"
-                               required data-raw-target="{{ form.start_time.id_for_label }}_raw" data-raw-format="time">
-                        <input type="hidden" name="{{ form.start_time.html_name }}_raw"
-                               id="{{ form.start_time.id_for_label }}_raw">
+                               required>
                     </div>
                     <div class="djappt-field">
                         <label class="form-label" for="{{ form.end_time.id_for_label }}">{% trans 'End time' %}</label>
                         <input type="time" class="form-control" id="{{ form.end_time.id_for_label }}"
                                name="{{ form.end_time.html_name }}" value="{{ form.end_time.value|time:'H:i' }}"
-                               required data-raw-target="{{ form.end_time.id_for_label }}_raw" data-raw-format="time">
-                        <input type="hidden" name="{{ form.end_time.html_name }}_raw"
-                               id="{{ form.end_time.id_for_label }}_raw">
+                               required>
                     </div>
                     <div class="djappt-field djappt-field--wide">
                         <label class="form-label" for="{{ form.description.id_for_label }}">{% trans 'Description' %}</label>

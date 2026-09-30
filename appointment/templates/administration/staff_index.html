@@ -16,29 +16,28 @@
 {% block djappt_content %}
     <div class="djappt-shell djappt-shell--wide djappt-staff-calendar content content-wrapper">
         <div class="messages">
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
-                         role="alert">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
+            {% include "appointment/_messages.html" %}
         </div>
 
         <header class="djappt-page-head">
             <div>
+                {% block djappt_heading %}
                 <h1 class="djappt-title">{% trans "Appointments" %}</h1>
+                {% endblock %}
                 <ul class="djappt-hints">
                     <li>{% trans "Click an appointment to see or edit it." %}</li>
                     <li>{% trans "Drag it to another day to move it." %}</li>
                     <li class="djappt-hint-mouse">{% trans "Right-click a day to add one." %}</li>
                 </ul>
             </div>
+            {% block djappt_actions %}
             <button type="button" class="btn djappt-btn djappt-btn-primary" id="djappt-new-appointment"
                     onclick="djapptNewAppointment()">
                 <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
                     <path d="M8 2a.75.75 0 0 1 .75.75v4.5h4.5a.75.75 0 0 1 0 1.5h-4.5v4.5a.75.75 0 0 1-1.5 0v-4.5h-4.5a.75.75 0 0 1 0-1.5h4.5v-4.5A.75.75 0 0 1 8 2"/>
                 </svg>
                 {% trans "New Appointment" %}</button>
+            {% endblock %}
         </header>
 
         <div class="djappt-card djappt-calendar-card calendar-wrapper">
@@ -55,7 +54,6 @@
         </ul>
     </div>
 
-    {% include 'modal/confirm_modal.html' %}
 {% endblock %}
 
 
@@ -69,6 +67,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.10/index.global.min.js"
             integrity="sha512-JCQkxdym6GmQ+AFVioDUq8dWaWN6tbKRhRyHvYZPupQ6DxpXzkW106FXS1ORgo/m3gxtt5lHRMqSdm2OfPajtg=="
             crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    {{ calendar_options|json_script:"djappt-calendar-options" }}
     <script>
         const timezone = "{{ timezone }}";
         const locale = "{{ locale }}";
@@ -112,14 +111,13 @@
 
     <script src="{% static 'js/modal/error_modal.js' %}"></script>
     <script src="{% static 'js/app_admin/staff_index.js' %}"></script>
-    <script src="{% static 'js/modal/show_modal.js' %}"></script>
     <script src="{% static 'js/js-utils.js' %}"></script>
 
     <script>
         /* The modal body is built from these three functions. staff_index.js reads every <input> in the modal by its
            name, the dropdowns by their ids (serviceSelect, staffSelect), and hides the end time while editing. */
         function djapptField(label, control, id, full) {
-            return `<div class="djappt-field${full ? ' djappt-field-full' : ''}">
+            return `<div class="djappt-field${full ? ' djappt-field-full' : ''}" data-djappt="field">
                         <label class="form-label" for="${id}">${label}</label>${control}</div>`;
         }
 

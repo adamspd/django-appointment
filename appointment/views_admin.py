@@ -10,15 +10,20 @@ Since: 2.0.0
 import datetime
 import json
 
+from django.conf import settings
 from django.contrib import messages
 from django.core.exceptions import ValidationError
+from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils.formats import date_format
 from django.utils.translation import gettext as _
+from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.views.decorators.http import require_POST
 
 from appointment.decorators import (
     require_ajax, require_staff_or_superuser, require_superuser, require_user_authenticated)
+from appointment.email_sender.email_sender import render_email_template, render_subject, render_text_body
 from appointment.forms import PersonalInformationForm, ServiceForm, StaffAppointmentInformationForm, StaffMemberForm
 from appointment.messages_ import appt_updated_successfully
 from appointment.models import Appointment, DayOff, Unavailability, StaffMember, WorkingHours
@@ -30,6 +35,7 @@ from appointment.services import (
 from appointment.utils.db_helpers import (
     Service, get_day_off_by_id, get_unavailability_by_id, get_staff_member_by_user_id, get_user_model,
     get_working_hours_by_id)
+from appointment.utils.email_ops import get_preview_emails
 from appointment.utils.error_codes import ErrorCode
 from appointment.utils.json_context import (
     convert_appointment_to_json, get_generic_context, get_generic_context_with_extra, handle_unauthorized_response,
@@ -40,6 +46,13 @@ from appointment.utils.template_helpers import escape_json_for_script, get_custo
 
 
 ###############################################################
+
+
+def profile_url(staff_user_id=None):
+    """The profile page a staff page goes back to: the given staff member's, or the logged-in user's."""
+    if staff_user_id:
+        return reverse('appointment:user_profile', kwargs={'staff_user_id': staff_user_id})
+    return reverse('appointment:user_profile')
 
 
 @require_user_authenticated
@@ -55,6 +68,10 @@ def get_user_appointments(request, response_type='html'):
     # Render the HTML template
     extra_context = {
         'appointments': escape_json_for_script(json.dumps(appointments_json)),
+        'page_title': _("Appointments"),
+        'page_description': _("All staff members' appointments.") if request.user.is_superuser
+        else _("Your appointments."),
+        'calendar_options': getattr(settings, 'APPOINTMENT_CALENDAR_OPTIONS', None) or {},
     }
     context = get_generic_context_with_extra(request=request, extra=extra_context)
     # if appointment is empty and user doesn't have a staff-member instance, put a message
@@ -73,7 +90,7 @@ def display_appointment(request, appointment_id):
 
     if error_message:
         context = get_generic_context(request=request)
-        template = get_custom_template('404_not_found.html', 'error_pages/404_not_found.html')
+        template = get_custom_template('404_not_found.html', 'error_pages/404_not_found.html', area='admin')
         return render(request, template, context=context, status=status_code)
     # If everything is okay, render the HTML template.
     extra_context = {
@@ -95,9 +112,9 @@ def user_profile(request, staff_user_id=None):
     status_code = data.get('status_code', 400)
     context = get_generic_context_with_extra(request=request, extra=data['extra_context'])
     if status_code == 403:
-        error_template = get_custom_template('403_forbidden.html', 'error_pages/403_forbidden.html')
+        error_template = get_custom_template('403_forbidden.html', 'error_pages/403_forbidden.html', area='admin')
     else:
-        error_template = get_custom_template('404_not_found.html', 'error_pages/404_not_found.html')
+        error_template = get_custom_template('404_not_found.html', 'error_pages/404_not_found.html', area='admin')
     template = data['template'] if not error else error_template
     return render(request, template, context)
 
@@ -128,7 +145,7 @@ def update_day_off(request, day_off_id, staff_user_id=None, response_type='html'
                                  error_code=ErrorCode.DAY_OFF_NOT_FOUND)
         else:
             context = get_generic_context(request=request)
-            template = get_custom_template('404_not_found.html', 'error_pages/404_not_found.html')
+            template = get_custom_template('404_not_found.html', 'error_pages/404_not_found.html', area='admin')
             return render(request, template, context=context, status=404)
     staff_user_id = staff_user_id or request.user.pk
     if not check_extensive_permissions(staff_user_id, request.user, day_off):
@@ -180,7 +197,7 @@ def update_unavailability(request, unavailability_id, staff_user_id=None, respon
                                  error_code=ErrorCode.UNAVAILABILITY_NOT_FOUND)
         else:
             context = get_generic_context(request=request)
-            template = get_custom_template('404_not_found.html', 'error_pages/404_not_found.html')
+            template = get_custom_template('404_not_found.html', 'error_pages/404_not_found.html', area='admin')
             return render(request, template, context=context, status=404)
     staff_user_id = staff_user_id or request.user.pk
     if not check_extensive_permissions(staff_user_id, request.user, unavailability):
@@ -233,7 +250,7 @@ def update_working_hours(request, working_hours_id, staff_user_id=None, response
                                  error_code=ErrorCode.WORKING_HOURS_NOT_FOUND)
         else:
             context = get_generic_context(request=request)
-            template = get_custom_template('404_not_found.html', 'error_pages/404_not_found.html')
+            template = get_custom_template('404_not_found.html', 'error_pages/404_not_found.html', area='admin')
             return render(request, template, context=context)
 
     staff_user_id = staff_user_id or request.user.pk
@@ -274,8 +291,8 @@ def delete_working_hours(request, working_hours_id, staff_user_id=None):
 def add_or_update_staff_info(request, user_id=None):
     user = request.user
 
-    # Only allow superusers or the authenticated user to edit his staff info
-    if not check_permissions(staff_user_id=user_id, user=user):
+    # Only allow superusers or the authenticated user to edit their staff info; the short URL is the user's own
+    if not check_permissions(staff_user_id=user_id or user.pk, user=user):
         return json_response(_("Not authorized."), status=403, success=False, error_code=ErrorCode.NOT_AUTHORIZED)
 
     target_user = get_object_or_404(get_user_model(), pk=user_id) if user_id else user
@@ -293,7 +310,13 @@ def add_or_update_staff_info(request, user_id=None):
     else:
         form = StaffAppointmentInformationForm(instance=staff_member)
 
-    context = get_generic_context_with_extra(request=request, extra={'form': form})
+    extra_context = {
+        'form': form,
+        'page_title': _("Appointment settings"),
+        'page_description': _("Appointment settings of %(name)s") % {'name': staff_member.get_staff_member_name()},
+        'back_url': profile_url(user_id),
+    }
+    context = get_generic_context_with_extra(request=request, extra=extra_context)
     template = get_custom_template('manage_staff_member.html', 'administration/manage_staff_member.html')
     return render(request, template, context)
 
@@ -419,9 +442,8 @@ def update_appt_date_time(request):
 @require_user_authenticated
 @require_staff_or_superuser
 def update_personal_info(request, staff_user_id=None):
-    # only superuser or the staff member itself can update the personal info
-    if not check_permissions(staff_user_id=staff_user_id, user=request.user) or (
-            not staff_user_id and not request.user.is_superuser):
+    # Only superusers or the staff member themselves can update the personal info; the short URL is the user's own
+    if not check_permissions(staff_user_id=staff_user_id or request.user.pk, user=request.user):
         return json_response(_("Not authorized."), status=403, success=False, error_code=ErrorCode.NOT_AUTHORIZED)
 
     if request.method == 'POST':
@@ -447,7 +469,14 @@ def update_personal_info(request, staff_user_id=None):
         'email': user.email,
     }, user=user)
 
-    context = get_generic_context_with_extra(request=request, extra={'form': form, 'btn_text': _("Update")})
+    extra_context = {
+        'form': form,
+        'btn_text': _("Update"),
+        'page_title': _("Personal information"),
+        'page_description': _("Name and email of %(name)s") % {'name': user.get_full_name() or user.email},
+        'back_url': profile_url(staff_user_id),
+    }
+    context = get_generic_context_with_extra(request=request, extra=extra_context)
     template = get_custom_template('manage_staff_personal_info.html', 'administration/manage_staff_personal_info.html')
     return render(request, template, context)
 
@@ -455,7 +484,11 @@ def update_personal_info(request, staff_user_id=None):
 @require_user_authenticated
 @require_staff_or_superuser
 def email_change_verification_code(request):
-    context = get_generic_context(request=request)
+    context = get_generic_context_with_extra(request=request, extra={
+        'page_title': _("Verify your email"),
+        'page_description': _("Enter the code sent to your new email address."),
+        'back_url': profile_url(),
+    })
 
     if request.method == 'POST':
         code = request.POST.get('code')
@@ -491,7 +524,13 @@ def add_staff_member_info(request):
     else:
         form = StaffMemberForm()
 
-    context = get_generic_context_with_extra(request=request, extra={'form': form})
+    extra_context = {
+        'form': form,
+        'page_title': _("Add staff member"),
+        'page_description': _("Make an existing user a staff member."),
+        'back_url': profile_url(),
+    }
+    context = get_generic_context_with_extra(request=request, extra=extra_context)
     template = get_custom_template('manage_staff_member.html', 'administration/manage_staff_member.html')
     return render(request, template, context)
 
@@ -508,7 +547,14 @@ def create_new_staff_member(request):
             return redirect('appointment:add_staff_member_personal_info')
 
     form = PersonalInformationForm()
-    context = get_generic_context_with_extra(request=request, extra={'form': form, 'btn_text': _("Create")})
+    extra_context = {
+        'form': form,
+        'btn_text': _("Create"),
+        'page_title': _("New staff member"),
+        'page_description': _("Create a user account for a new staff member."),
+        'back_url': profile_url(),
+    }
+    context = get_generic_context_with_extra(request=request, extra=extra_context)
     template = get_custom_template('manage_staff_personal_info.html', 'administration/manage_staff_personal_info.html')
     return render(request, template, context=context)
 
@@ -556,7 +602,10 @@ def add_or_update_service(request, service_id=None, view=0):
         "form": form,
         "service": service,
         "btn_text": _("Update") if service else _("Save"),
+        "mode": "edit" if service else "create",
         "page_title": _("Update Service") if service else _("Add Service"),
+        "page_description": service.name if service else _("A new service clients can book."),
+        "back_url": reverse('appointment:get_service_list'),
     }
     context = get_generic_context_with_extra(request=request, extra=extra_context)
     template = get_custom_template('manage_service.html', 'administration/manage_service.html')
@@ -579,7 +628,10 @@ def view_service(request, service_id, view=1):
     extra_context = {
         "form": form,
         "btn_text": None,
+        "mode": "view",
         "page_title": _("View Service"),
+        "page_description": service.name,
+        "back_url": reverse('appointment:get_service_list'),
         "service": service,
         "offered_by_me": StaffMember.objects.filter(user=request.user, services_offered=service).exists(),
     }
@@ -634,8 +686,13 @@ def get_service_list(request, response_type='html'):
         return json_response("Successfully fetched services.", custom_data={'services': service_data}, safe=False)
     # The services the user offers, so their tiles can say so
     offered_ids = set(Service.objects.filter(staffmember__user=request.user).values_list('id', flat=True))
-    context = get_generic_context_with_extra(request=request,
-                                             extra={'services': services, 'offered_service_ids': offered_ids})
+    extra_context = {
+        'services': services,
+        'offered_service_ids': offered_ids,
+        'page_title': _("Services"),
+        'page_description': _("The services clients can book."),
+    }
+    context = get_generic_context_with_extra(request=request, extra=extra_context)
     template = get_custom_template('service_list.html', 'administration/service_list.html')
     return render(request, template, context=context)
 
@@ -678,3 +735,46 @@ def is_user_staff_admin(request):
         if not user.is_superuser:
             return json_response(_("User is not a staff member."), custom_data={'is_staff_admin': False})
         return json_response(_("User is a superuser."), custom_data={'is_staff_admin': True})
+
+
+@xframe_options_sameorigin
+@require_user_authenticated
+@require_superuser
+def email_preview(request, email_key=None):
+    """
+    DEBUG only: every email the package sends, built for the latest appointment, to check custom email templates.
+
+    Without ``email_key``, a page lists the emails with their subjects. With it, the email itself is returned: the
+    HTML part, or the text part with ``?format=text``.
+    """
+    if not settings.DEBUG:
+        raise Http404
+    appointment = Appointment.objects.select_related('appointment_request').order_by('-id').first()
+    if appointment is None:
+        context = get_generic_context_with_extra(request, {
+            'page_title': _("Email preview"), 'emails': [], 'back_url': reverse('appointment:get_user_appointments'),
+        })
+        return render(request, get_custom_template('email_preview.html', 'administration/email_preview.html'),
+                      context)
+    emails = get_preview_emails(appointment, request)
+    if email_key is None:
+        for key, email in emails.items():
+            email['key'] = key
+            email['subject'] = render_subject(email['template'], email['context'], email['subject'], request)
+        context = get_generic_context_with_extra(request, {
+            'page_title': _("Email preview"),
+            'page_description': _("Each email as it would be sent for appointment #%(id)s.") % {'id': appointment.id},
+            'emails': list(emails.values()),
+            'appointment': appointment,
+            'back_url': reverse('appointment:get_user_appointments'),
+        })
+        return render(request, get_custom_template('email_preview.html', 'administration/email_preview.html'),
+                      context)
+    if email_key not in emails:
+        raise Http404
+    email = emails[email_key]
+    html = render_email_template(email['template'], email['context'], request)
+    if request.GET.get('format') == 'text':
+        return HttpResponse(render_text_body(email['template'], email['context'], html, request),
+                            content_type='text/plain; charset=utf-8')
+    return HttpResponse(html)

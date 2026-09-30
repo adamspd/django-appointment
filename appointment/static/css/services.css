@@ -722,6 +722,20 @@
 :where(.djappt) .djappt-form-grid > .djappt-field--background_color { order: 7; }
 :where(.djappt) .djappt-form-grid > .djappt-field--image { order: 8; }
 
+/* The duration: hours and minutes side by side, each with its unit */
+:where(.djappt) .djappt-duration {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .5rem;
+}
+
+:where(.djappt) .djappt-duration .input-group-text {
+    border-color: var(--djappt-line);
+    background-color: var(--djappt-accent-soft);
+    font-size: .85rem;
+    color: var(--djappt-ink-soft);
+}
+
 @container (min-width: 520px) {
     :where(.djappt) .djappt-form-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));

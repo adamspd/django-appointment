@@ -12,7 +12,7 @@ from django.test import SimpleTestCase, override_settings
 from django.utils import translation
 
 from appointment.email_sender import get_admins, notify_admin, send_email
-from appointment.email_sender.email_sender import html_to_text, render_text_body
+from appointment.email_sender.email_sender import html_to_text, render_subject, render_text_body
 from appointment.tasks import send_email_task
 
 ICS = ('appointment.ics', 'BEGIN:VCALENDAR\r\nEND:VCALENDAR\r\n', 'text/calendar')
@@ -109,6 +109,9 @@ class PackageEmailTemplatesTests(SimpleTestCase):
                                  'old_date': ar.date, 'reschedule_date': ar.date, 'old_start_time': ar.start_time,
                                  'start_time': ar.start_time, 'old_end_time': ar.end_time,
                                  'end_time': ar.end_time, 'company': 'SGC'},
+            'password_reset_email': {'first_name': 'Jack', 'company': 'SGC',
+                                     'activation_link': 'https://sgc.mil/set/1', 'login_instruction': 'Use jack'},
+            'verification_email': {'first_name': 'Jack', 'company': 'SGC', 'verification_code': 'ABC123'},
         }
         rendered = {}
         with translation.override(lang):
@@ -146,3 +149,35 @@ class AdminsSettingTests(SimpleTestCase):
     def test_notify_admin_sends_to_plain_addresses(self, *_):
         notify_admin(subject='New', message='Hello')
         self.assertEqual(mail.outbox[0].to, ['george@sgc.mil'])
+
+
+class SubjectTemplateTests(SimpleTestCase):
+    """A .subject.txt template next to the HTML one replaces the subject set in Python."""
+
+    def test_first_line_that_is_not_empty_is_used(self):
+        with patch('appointment.email_sender.email_sender.loader.render_to_string',
+                   return_value='\n  Booked with SGC  \nignored') as render:
+            self.assertEqual(render_subject('emails/x.html', {}, 'Default'), 'Booked with SGC')
+            self.assertEqual(render.call_args[0][0], 'emails/x.subject.txt')
+
+    def test_default_subject_without_a_template(self):
+        with patch('appointment.email_sender.email_sender.loader.render_to_string', side_effect=render_html):
+            self.assertEqual(render_subject('emails/x.html', {}, 'Default'), 'Default')
+        self.assertEqual(render_subject('', {}, 'Default'), 'Default')
+
+    def test_empty_template_keeps_the_default(self):
+        with patch('appointment.email_sender.email_sender.loader.render_to_string', return_value='\n  \n'):
+            self.assertEqual(render_subject('emails/x.html', {}, 'Default'), 'Default')
+
+    @override_settings(TEMPLATES=[{
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'OPTIONS': {'loaders': [('django.template.loaders.locmem.Loader', {
+            'emails/booked.html': '<p>Hi</p>',
+            'emails/booked.subject.txt': 'Booked at {{ company }}',
+        })]},
+    }])
+    @patch('appointment.email_sender.email_sender.get_use_django_q_for_emails', return_value=False)
+    def test_send_email_uses_it(self, *_):
+        send_email(recipient_list=['jack@sgc.mil'], subject='Default', template_url='emails/booked.html',
+                   context={'company': 'SGC'})
+        self.assertEqual(mail.outbox[0].subject, 'Booked at SGC')

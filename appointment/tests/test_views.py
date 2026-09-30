@@ -12,7 +12,7 @@ from django.contrib.messages import get_messages
 from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.http import HttpResponseRedirect
-from django.test import Client
+from django.test import Client, override_settings
 from django.test.client import RequestFactory
 from django.urls import reverse
 from django.utils import timezone
@@ -1223,6 +1223,32 @@ class StaffPagesTemplateTests(BaseTest):
         self.assertContains(response, reverse('appointment:user_profile', args=[user_id]))
         self.assertContains(response, 'id="id_email"')
 
+    def test_staff_opens_own_settings_and_info_through_the_short_urls(self):
+        """add-staff-member/ and update-user-info/ without an id are the logged-in staff member's own pages."""
+        self.need_staff_login()
+        response = self.client.get(reverse('appointment:add_staff_other_info'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['form'].instance.user, self.staff)
+        response = self.client.get(reverse('appointment:update_user_info'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.staff.email)
+
+    def test_staff_saves_own_info_through_the_short_url(self):
+        self.need_staff_login()
+        data = {'first_name': 'Teal', 'last_name': "c", 'email': self.staff.email}
+        response = self.client.post(reverse('appointment:update_user_info'), data)
+        self.assertRedirects(response, reverse('appointment:user_profile'), fetch_redirect_response=False)
+        self.staff.refresh_from_db()
+        self.assertEqual(self.staff.first_name, 'Teal')
+
+    def test_staff_still_cannot_open_someone_elses_settings(self):
+        self.need_staff_login()
+        other = self.users['staff2']
+        response = self.client.get(reverse('appointment:update_staff_other_info', args=[other.pk]))
+        self.assertEqual(response.status_code, 403)
+        response = self.client.get(reverse('appointment:update_user_info', args=[other.pk]))
+        self.assertEqual(response.status_code, 403)
+
     def test_email_change_code_page_has_the_code_field(self):
         self.need_staff_login()
         response = self.client.get(reverse('appointment:email_change_verification_code'))
@@ -1247,7 +1273,54 @@ class ScheduleFormsTemplateTests(BaseTest):
         self.assertContains(response, 'type="time"', count=2)
         self.assertEqual(len(response.context['week_days']), 7)
 
+    def test_iso_fields_without_raw_copies_are_saved(self):
+        """The forms post the model's field names with the pickers' ISO values; no _raw copies are needed."""
+        self.need_staff_login()
+        user_id = self.staff_member1.user.id
+        response = self.client.post(reverse('appointment:add_working_hours_id', args=[user_id]),
+                                    {'day_of_week': '0', 'start_time': '08:30', 'end_time': '12:00'})
+        self.assertEqual(response.status_code, 200, response.content)
+        wh = WorkingHours.objects.get(staff_member=self.staff_member1, day_of_week=0)
+        self.assertEqual((wh.start_time, wh.end_time), (time(8, 30), time(12, 0)))
+
+        day = timezone.localdate() + datetime.timedelta(days=4)
+        response = self.client.post(reverse('appointment:add_unavailability_id', args=[user_id]),
+                                    {'date': day.isoformat(), 'start_time': '13:00', 'end_time': '14:00'})
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertTrue(Unavailability.objects.filter(staff_member=self.staff_member1, date=day).exists())
+
+    def test_invalid_schedule_forms_answer_with_field_errors(self):
+        self.need_staff_login()
+        user_id = self.staff_member1.user.id
+        response = self.client.post(reverse('appointment:add_working_hours_id', args=[user_id]),
+                                    {'day_of_week': '1', 'start_time': '17:00', 'end_time': '09:00'})
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('end_time', response.json()['errors'])
+
+        response = self.client.post(reverse('appointment:add_unavailability_id', args=[user_id]),
+                                    {'date': 'not a date', 'start_time': '10:00', 'end_time': ''})
+        errors = response.json()['errors']
+        self.assertEqual(set(errors), {'date', 'end_time'})
+        self.assertTrue(response.json()['message'])
+
+
+    def test_day_off_with_an_empty_date_answers_with_its_error(self):
+        """An empty date used to crash the overlap check (500); the form is now checked first."""
+        self.need_staff_login()
+        user_id = self.staff_member1.user.id
+        response = self.client.post(reverse('appointment:add_day_off_id', args=[user_id]), {'start_date': ''})
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('start_date', response.json()['errors'])
+
+    def test_schedule_templates_send_no_raw_copies(self):
+        self.need_staff_login()
+        user_id = self.staff_member1.user.id
+        for name in ['add_working_hours_id', 'add_unavailability_id']:
+            with self.subTest(name=name):
+                self.assertNotContains(self.client.get(reverse(f'appointment:{name}', args=[user_id])), '_raw')
+
     def test_working_hours_payload_is_saved(self):
+        """Templates written before 3.13 still send *_raw copies, which are still read."""
         self.need_staff_login()
         user_id = self.staff_member1.user.id
         data = {'day_of_week': '1', 'start_time': '09:00', 'start_time_raw': '1970-01-01T09:00:00',
@@ -1600,6 +1673,17 @@ class AppointmentClientInformationTest(BaseTest):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'appointment/appointment_client_information.html')
 
+    def test_invalid_phone_shows_its_error(self):
+        """A rejected phone number comes back with its error on the page, not silently."""
+        data = dict(self.valid_form_data, phone_0='US', phone_1='123')
+        del data['phone']
+        response = self.client.post(self.url, data)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('phone', response.context['form'].errors)
+        self.assertContains(response, 'djappt-field-error')
+        self.assertContains(response, response.context['form'].errors['phone'][0])
+        self.assertContains(response, 'Please correct the errors below.')
+
     def test_already_submitted_session(self):
         """Test the view when the appointment has already been submitted."""
         session = self.client.session
@@ -1897,3 +1981,189 @@ class CreateAppointmentTests(BaseTest):
     #
     #     # Verify that the redirect_to_payment_or_thank_you_page was called with the created appointment
     #     mock_redirect.assert_called_once_with(mock_appointment)
+
+
+class AdminPageContextTests(BaseTest):
+    """Every staff page gets the same context keys, so overrides don't have to work them out."""
+
+    def admin_pages(self):
+        user_id = self.staff_member1.user.id
+        appt = self.create_appt_for_sm1()
+        wh = WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=1, start_time=time(9),
+                                         end_time=time(17))
+        return [
+            reverse('appointment:get_user_appointments'),
+            reverse('appointment:display_appointment', args=[appt.id]),
+            reverse('appointment:get_service_list'),
+            reverse('appointment:add_service'),
+            reverse('appointment:update_service', args=[self.service1.id]),
+            reverse('appointment:view_service', args=[self.service1.id, 1]),
+            reverse('appointment:user_profile'),
+            reverse('appointment:user_profile', args=[user_id]),
+            reverse('appointment:update_user_info', args=[user_id]),
+            reverse('appointment:update_staff_other_info', args=[user_id]),
+            reverse('appointment:add_staff_member_info'),
+            reverse('appointment:add_staff_member_personal_info'),
+            reverse('appointment:add_working_hours_id', args=[user_id]),
+            reverse('appointment:update_working_hours_id', args=[wh.id, user_id]),
+            reverse('appointment:add_day_off_id', args=[user_id]),
+            reverse('appointment:add_unavailability_id', args=[user_id]),
+            reverse('appointment:email_change_verification_code'),
+        ]
+
+    def test_every_admin_page_has_a_title_and_description(self):
+        self.need_superuser_login()
+        for url in self.admin_pages():
+            with self.subTest(url=url):
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, 200)
+                self.assertTrue(response.context['page_title'])
+                self.assertTrue(response.context['page_description'])
+
+    def test_profile_page_has_profile_user_and_keeps_user(self):
+        self.need_superuser_login()
+        member = self.staff_member1.user
+        response = self.client.get(reverse('appointment:user_profile', args=[member.id]))
+        self.assertEqual(response.context['profile_user'], member)
+        self.assertEqual(response.context['user'], member)
+        self.assertEqual(response.wsgi_request.user, self.superuser)
+
+    def test_staff_list_says_whether_the_admin_is_staff(self):
+        self.need_superuser_login()
+        response = self.client.get(reverse('appointment:user_profile'))
+        self.assertFalse(response.context['admin_is_staff'])
+        self.create_staff_member_(user=self.superuser, service=self.service1)
+        response = self.client.get(reverse('appointment:user_profile'))
+        self.assertTrue(response.context['admin_is_staff'])
+
+    def test_service_pages_pass_their_mode(self):
+        self.need_superuser_login()
+        for url, mode in [(reverse('appointment:add_service'), 'create'),
+                          (reverse('appointment:update_service', args=[self.service1.id]), 'edit'),
+                          (reverse('appointment:view_service', args=[self.service1.id, 1]), 'view')]:
+            with self.subTest(mode=mode):
+                self.assertEqual(self.client.get(url).context['mode'], mode)
+
+    def test_schedule_forms_pass_their_post_and_back_urls(self):
+        self.need_staff_login()
+        user_id = self.staff_member1.user.id
+        wh = WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=2, start_time=time(9),
+                                         end_time=time(17))
+        profile = reverse('appointment:user_profile', args=[user_id])
+        cases = [
+            (reverse('appointment:add_working_hours_id', args=[user_id]),
+             reverse('appointment:add_working_hours_id', args=[user_id])),
+            (reverse('appointment:update_working_hours', args=[wh.id]),
+             reverse('appointment:update_working_hours_id', args=[wh.id, user_id])),
+            (reverse('appointment:add_unavailability_id', args=[user_id]),
+             reverse('appointment:add_unavailability_id', args=[user_id])),
+            (reverse('appointment:add_day_off_id', args=[user_id]),
+             reverse('appointment:add_day_off_id', args=[user_id])),
+        ]
+        for url, action in cases:
+            with self.subTest(url=url):
+                response = self.client.get(url)
+                self.assertEqual(response.context['form_action'], action)
+                self.assertEqual(response.context['back_url'], profile)
+                self.assertContains(response, profile)
+
+
+class SharedPagePartsTests(BaseTest):
+    """Messages come from one include, and staff pages get exactly one confirmation modal."""
+
+    def test_staff_pages_have_one_confirm_modal(self):
+        self.need_superuser_login()
+        for url in [reverse('appointment:get_service_list'), reverse('appointment:user_profile'),
+                    reverse('appointment:get_user_appointments'),
+                    reverse('appointment:user_profile', args=[self.staff_member1.user.id])]:
+            with self.subTest(url=url):
+                response = self.client.get(url)
+                self.assertContains(response, 'id="confirmModal"', count=1)
+                self.assertContains(response, 'js/modal/show_modal.js', count=1)
+
+    def test_delete_buttons_use_data_attributes(self):
+        self.need_superuser_login()
+        response = self.client.get(reverse('appointment:get_service_list'))
+        self.assertContains(response,
+                            f'data-djappt-confirm="{reverse("appointment:delete_service", args=[self.service1.id])}"')
+        self.assertNotContains(response, 'onclick="showModal(')
+
+    def test_client_pages_have_no_confirm_modal(self):
+        response = self.client.get(reverse('appointment:appointment_request', args=[self.service1.id]))
+        self.assertNotContains(response, 'id="confirmModal"')
+
+    def test_messages_come_from_the_shared_include(self):
+        self.need_superuser_login()
+        self.client.post(reverse('appointment:delete_service', args=[self.service2.id]))
+        response = self.client.get(reverse('appointment:get_service_list'))
+        self.assertTemplateUsed(response, 'appointment/_messages.html')
+        self.assertContains(response, 'djappt-messages')
+        self.assertContains(response, 'Service deleted successfully!')
+
+
+class CalendarOptionsTests(BaseTest):
+    """APPOINTMENT_CALENDAR_OPTIONS reaches the calendar page as JSON the script reads."""
+
+    def setUp(self):
+        super().setUp()
+        self.need_superuser_login()
+
+    def test_no_setting_prints_an_empty_object(self):
+        response = self.client.get(reverse('appointment:get_user_appointments'))
+        self.assertEqual(response.context['calendar_options'], {})
+        self.assertContains(response, '<script id="djappt-calendar-options" type="application/json">{}</script>',
+                            html=False)
+
+    @override_settings(APPOINTMENT_CALENDAR_OPTIONS={'height': 'auto', 'initialView': 'timeGridWeek'})
+    def test_setting_is_printed_as_json(self):
+        response = self.client.get(reverse('appointment:get_user_appointments'))
+        self.assertContains(response, '"initialView": "timeGridWeek"')
+        self.assertContains(response, '"height": "auto"')
+
+    def test_close_button_has_its_hook(self):
+        response = self.client.get(reverse('appointment:get_user_appointments'))
+        self.assertContains(response, 'data-djappt="close"')
+
+
+class EmailPreviewTests(BaseTest):
+    """The email preview is for superusers, and only with DEBUG on."""
+
+    def setUp(self):
+        super().setUp()
+        self.appointment = self.create_appt_for_sm1()
+
+    def test_not_found_without_debug(self):
+        self.need_superuser_login()
+        response = self.client.get(reverse('appointment:email_preview'))
+        self.assertEqual(response.status_code, 404)
+
+    @override_settings(DEBUG=True)
+    def test_staff_cannot_see_it(self):
+        self.need_staff_login()
+        response = self.client.get(reverse('appointment:email_preview'))
+        self.assertEqual(response.status_code, 403)
+
+    @override_settings(DEBUG=True)
+    def test_list_and_every_email_render(self):
+        self.need_superuser_login()
+        response = self.client.get(reverse('appointment:email_preview'))
+        self.assertEqual(response.status_code, 200)
+        keys = [email['key'] for email in response.context['emails']]
+        self.assertIn('thank_you', keys)
+        self.assertIn('verification', keys)
+        for key in keys:
+            with self.subTest(email=key):
+                url = reverse('appointment:email_preview_detail', args=[key])
+                html = self.client.get(url)
+                self.assertEqual(html.status_code, 200)
+                self.assertIn(b'<html', html.content)
+                text = self.client.get(url, {'format': 'text'})
+                self.assertEqual(text['Content-Type'], 'text/plain; charset=utf-8')
+                self.assertNotIn(b'<html', text.content)
+                self.assertTrue(text.content.strip())
+
+    @override_settings(DEBUG=True)
+    def test_unknown_email_is_not_found(self):
+        self.need_superuser_login()
+        response = self.client.get(reverse('appointment:email_preview_detail', args=['nope']))
+        self.assertEqual(response.status_code, 404)

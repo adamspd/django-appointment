@@ -7,19 +7,101 @@ Since: 1.0.0
 """
 
 import re
-from datetime import time
+from datetime import time, timedelta
 
 from django import forms
+from django.conf import settings
 from django.utils import timezone
+from django.utils.dateparse import parse_duration
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.formfields import SplitPhoneNumberField
 
 from .models import (
-    Appointment, AppointmentRequest, AppointmentRescheduleHistory, DayOff, Unavailability, Service, StaffMember,
+    DAYS_OF_WEEK, Appointment, AppointmentRequest, AppointmentRescheduleHistory, DayOff, Unavailability, Service, StaffMember,
     WorkingHours
 )
 from .utils.db_helpers import get_user_model
 from .utils.validators import not_in_the_past
+
+
+def apply_widget_classes(form):
+    """
+    Swap the CSS classes the widgets use for the ones set in ``APPOINTMENT_FORM_CLASSES``.
+
+    The setting maps a package class to yours, for example ``{'form-control': 'input', 'form-select': 'select'}``.
+    An empty string removes the class. Classes not in the setting are kept.
+    """
+    mapping = getattr(settings, 'APPOINTMENT_FORM_CLASSES', None)
+    if not mapping:
+        return
+    for field in form.fields.values():
+        for widget in [field.widget, *getattr(field.widget, 'widgets', [])]:
+            classes = widget.attrs.get('class')
+            if not classes:
+                continue
+            new_classes = []
+            for name in classes.split():
+                new_classes.extend(mapping.get(name, name).split())
+            if new_classes:
+                widget.attrs['class'] = ' '.join(new_classes)
+            else:
+                del widget.attrs['class']
+
+
+class WidgetClassesMixin:
+    """Applies ``APPOINTMENT_FORM_CLASSES`` once the form is built."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        apply_widget_classes(self)
+
+
+class DurationWidget(forms.MultiWidget):
+    """
+    Hours and minutes inputs for a duration. They post ``<name>_hours`` and ``<name>_minutes``.
+
+    A single ``<name>`` value ("HH:MM:SS"), as older templates post, is still read.
+    """
+    template_name = 'appointment/widgets/duration.html'
+
+    def __init__(self, attrs=None):
+        widgets = {
+            'hours': forms.NumberInput(attrs={'min': 0, 'placeholder': '0', 'aria-label': _('Hours')}),
+            'minutes': forms.NumberInput(attrs={'min': 0, 'max': 59, 'placeholder': '30',
+                                                'aria-label': _('Minutes')}),
+        }
+        super().__init__(widgets, attrs)
+
+    def decompress(self, value):
+        if isinstance(value, str):
+            value = parse_duration(value)
+        if not isinstance(value, timedelta):
+            return [None, None]
+        minutes = int(value.total_seconds()) // 60
+        return list(divmod(minutes, 60))
+
+    def value_from_datadict(self, data, files, name):
+        hours, minutes = (data.get(f'{name}{suffix}') for suffix in self.widgets_names)
+        if hours in (None, '') and minutes in (None, ''):
+            return data.get(name)
+        try:
+            hours, minutes = int(hours or 0), int(minutes or 0)
+        except (TypeError, ValueError):
+            return 'invalid'  # DurationField rejects it with its own message
+        if hours < 0 or minutes < 0:
+            return 'invalid'
+        hours, minutes = divmod(hours * 60 + minutes, 60)
+        return f'{hours:02d}:{minutes:02d}:00'
+
+    def value_omitted_from_data(self, data, files, name):
+        return name not in data and all(f'{name}{suffix}' not in data for suffix in self.widgets_names)
+
+
+# Short help texts for the staff forms; the model's longer ones stay for the Django admin
+STAFF_HELP_TEXTS = {
+    'slot_duration': _("Length of each slot, in minutes."),
+    'appointment_buffer_time': _("Minutes between now and the first slot of today. Other days are not changed."),
+}
 
 
 class SlotForm(forms.Form):
@@ -45,7 +127,7 @@ class AppointmentRequestForm(forms.ModelForm):
         fields = ('date', 'start_time', 'end_time', 'service', 'staff_member')
 
 
-class ReschedulingForm(forms.ModelForm):
+class ReschedulingForm(WidgetClassesMixin, forms.ModelForm):
     class Meta:
         model = AppointmentRescheduleHistory
         fields = ['reason_for_rescheduling']
@@ -89,9 +171,10 @@ class AppointmentForm(forms.ModelForm):
                 'class': 'form-control',
                 'placeholder': _('I would like to be contacted by phone.')
             })
+        apply_widget_classes(self)
 
 
-class ClientDataForm(forms.Form):
+class ClientDataForm(WidgetClassesMixin, forms.Form):
     name = forms.CharField(max_length=50,
                            widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('John Doe')}))
     email = forms.EmailField(
@@ -108,7 +191,7 @@ class ClientDataForm(forms.Form):
             self.fields['email'].initial = user.email
 
 
-class PersonalInformationForm(forms.Form):
+class PersonalInformationForm(WidgetClassesMixin, forms.Form):
     # first_name, last_name, email
     first_name = forms.CharField(max_length=50,
                                  widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('John')}))
@@ -136,13 +219,13 @@ class PersonalInformationForm(forms.Form):
         return email
 
 
-class StaffAppointmentInformationForm(forms.ModelForm):
+class StaffAppointmentInformationForm(WidgetClassesMixin, forms.ModelForm):
     class Meta:
         model = StaffMember
         fields = ['services_offered', 'slot_duration', 'lead_time', 'finish_time',
                   'appointment_buffer_time', 'work_on_saturday', 'work_on_sunday']
         widgets = {
-            'services_offered': forms.SelectMultiple(attrs={'class': 'form-control'}),
+            'services_offered': forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
             # Minutes: a short example fits the small field next to its "min" unit
             'slot_duration': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '30', 'min': 0}),
             # The browser's time picker; it sends HH:MM, which TimeField accepts
@@ -153,16 +236,17 @@ class StaffAppointmentInformationForm(forms.ModelForm):
             'work_on_saturday': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'work_on_sunday': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
+        help_texts = STAFF_HELP_TEXTS
 
 
-class StaffMemberForm(forms.ModelForm):
+class StaffMemberForm(WidgetClassesMixin, forms.ModelForm):
     class Meta:
         model = StaffMember
         fields = ['user', 'services_offered', 'slot_duration', 'lead_time', 'finish_time',
                   'appointment_buffer_time', 'work_on_saturday', 'work_on_sunday']
         widgets = {
             'user': forms.Select(attrs={'class': 'form-control'}),
-            'services_offered': forms.SelectMultiple(attrs={'class': 'form-control'}),
+            'services_offered': forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
             # Minutes: a short example fits the small field next to its "min" unit
             'slot_duration': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '30', 'min': 0}),
             # The browser's time picker; it sends HH:MM, which TimeField accepts
@@ -173,6 +257,7 @@ class StaffMemberForm(forms.ModelForm):
             'work_on_saturday': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'work_on_sunday': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
+        help_texts = STAFF_HELP_TEXTS
 
     def __init__(self, *args, **kwargs):
         super(StaffMemberForm, self).__init__(*args, **kwargs)
@@ -186,7 +271,7 @@ class StaffMemberForm(forms.ModelForm):
         )
 
 
-class StaffDaysOffForm(forms.ModelForm):
+class StaffDaysOffForm(WidgetClassesMixin, forms.ModelForm):
     class Meta:
         model = DayOff
         fields = ['start_date', 'end_date', 'description']
@@ -200,7 +285,7 @@ class StaffDaysOffForm(forms.ModelForm):
         return cleaned_data
 
 
-class StaffUnavailabilityForm(forms.ModelForm):
+class StaffUnavailabilityForm(WidgetClassesMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(StaffUnavailabilityForm, self).__init__(*args, **kwargs)
         self.fields['date'].initial = timezone.localdate()
@@ -221,7 +306,7 @@ class StaffUnavailabilityForm(forms.ModelForm):
         return cleaned_data
 
 
-class StaffWorkingHoursForm(forms.ModelForm):
+class StaffWorkingHoursForm(WidgetClassesMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(StaffWorkingHoursForm, self).__init__(*args, **kwargs)
         self.fields['start_time'].initial = time(9, 0)
@@ -232,6 +317,35 @@ class StaffWorkingHoursForm(forms.ModelForm):
         fields = ['day_of_week', 'start_time', 'end_time']
 
 
+class UnavailabilityDataForm(forms.Form):
+    """Reads what an unavailability form posts: ISO ``date`` (YYYY-MM-DD) and ``start_time``/``end_time`` (HH:MM)."""
+    date = forms.DateField()
+    start_time = forms.TimeField()
+    end_time = forms.TimeField()
+    description = forms.CharField(required=False, max_length=255)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        start, end = cleaned_data.get('start_time'), cleaned_data.get('end_time')
+        if start and end and start >= end:
+            self.add_error('end_time', _("Start time must be before end time."))
+        return cleaned_data
+
+
+class WorkingHoursDataForm(forms.Form):
+    """Reads what a working hours form posts: ``day_of_week`` and ISO ``start_time``/``end_time`` (HH:MM)."""
+    day_of_week = forms.TypedChoiceField(choices=DAYS_OF_WEEK, coerce=int)
+    start_time = forms.TimeField()
+    end_time = forms.TimeField()
+
+    def clean(self):
+        cleaned_data = super().clean()
+        start, end = cleaned_data.get('start_time'), cleaned_data.get('end_time')
+        if start and end and start >= end:
+            self.add_error('end_time', _("Start time must be before end time."))
+        return cleaned_data
+
+
 def color_to_hex(color):
     """Convert an ``rgb(r, g, b)`` color to ``#rrggbb``; any other value is returned unchanged."""
     match = re.fullmatch(r'\s*rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)\s*', color)
@@ -240,7 +354,7 @@ def color_to_hex(color):
     return '#' + ''.join(f'{min(int(channel), 255):02x}' for channel in match.groups())
 
 
-class ServiceForm(forms.ModelForm):
+class ServiceForm(WidgetClassesMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(ServiceForm, self).__init__(*args, **kwargs)
         # <input type="color"> only accepts #rrggbb; older services were given n rgb(r, g, b) default, which the
@@ -248,6 +362,10 @@ class ServiceForm(forms.ModelForm):
         color = self.initial.get('background_color')
         if isinstance(color, str):
             self.initial['background_color'] = color_to_hex(color)
+        # <input type="number"> needs a dot as the decimal separator, so the amounts are never localized
+        for name in ('price', 'down_payment'):
+            self.fields[name].localize = False
+            self.fields[name].widget.is_localized = False
 
     class Meta:
         model = Service
@@ -261,10 +379,7 @@ class ServiceForm(forms.ModelForm):
                 'class': 'form-control',
                 'placeholder': _("Example: Overview of client's needs.")
             }),
-            'duration': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': _('HH:MM:SS, (example: 00:15:00 for 15 minutes)')
-            }),
+            'duration': DurationWidget(attrs={'class': 'form-control'}),
             'price': forms.NumberInput(attrs={
                 'class': 'form-control',
                 'placeholder': _('Example: 100.00 (0 for free)')

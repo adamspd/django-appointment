@@ -1,0 +1,3 @@
+{% load i18n %}<div class="djappt-duration">{% for widget in widget.subwidgets %}
+    <div class="input-group">{% include widget.template_name %}<span class="input-group-text">{% if forloop.first %}{% trans 'h' context 'hours, short' %}{% else %}{% trans 'min' context 'minutes, short' %}{% endif %}</span></div>{% endfor %}
+</div>

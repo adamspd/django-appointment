@@ -1,0 +1,14 @@
+{% comment %}
+    The Django messages of a package page, in one place: override this file to restyle them everywhere.
+    Options: wrapper_class (classes of the wrapping div), alert_class (classes added to each message),
+    dismissible (False: the message stays; otherwise the page script fades it out).
+    If your base template already shows the messages, override this file with an empty one.
+{% endcomment %}
+{% if messages %}
+    <div class="messages djappt-messages {{ wrapper_class|default:'' }}">
+        {% for message in messages %}
+            <div class="alert {% if dismissible is not False %}alert-dismissible {% endif %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags|default:'info' }}{% endif %} djappt-message-{{ message.level_tag|default:'info' }} {{ alert_class|default:'' }}"
+                 role="alert">{{ message }}</div>
+        {% endfor %}
+    </div>
+{% endif %}
