@@ -11,11 +11,10 @@ from datetime import timedelta
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.forms import SetPasswordForm
-from django.db.models import Q
 from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from django.utils import timezone, translation
+from django.utils import timezone
 from django.utils.encoding import force_str
 from django.utils.formats import date_format, localize, get_format
 from django.utils.http import urlsafe_base64_decode
@@ -25,7 +24,7 @@ from django.utils.translation import gettext as _
 from appointment.forms import AppointmentForm, AppointmentRequestForm, ClientDataForm, SlotForm
 from appointment.logger_config import get_logger
 from appointment.models import (
-    Appointment, AppointmentRequest, AppointmentRescheduleHistory, Config, DayOff, EmailVerificationCode,
+    Appointment, AppointmentRequest, AppointmentRescheduleHistory, Config, EmailVerificationCode,
     PasswordResetToken, Service,
     StaffMember
 )
