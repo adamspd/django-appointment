@@ -57,3 +57,13 @@ class SendEmailReminderTest(BaseTest):
         self.assertEqual(admin_context['first_name'], '')
         self.assertEqual(admin_context['client_first_name'], first_name)
         self.assertEqual(admin_context['appointment'], appointment)
+
+    @patch('appointment.tasks.send_email')
+    @patch('appointment.tasks.notify_admin')
+    def test_links_use_the_address_saved_at_booking(self, mock_notify_admin, mock_send_email):
+        appointment = self.create_appt_for_sm1()
+        send_email_reminder(appointment.client.email, 'Jack', '', appointment.id, site_url='https://sgc.mil')
+        for mock_send in (mock_send_email, mock_notify_admin):
+            context = mock_send.call_args[1]['context']
+            self.assertTrue(context['appointment_url'].startswith('https://sgc.mil/'))
+            self.assertEqual(context['site_url'], 'https://sgc.mil')

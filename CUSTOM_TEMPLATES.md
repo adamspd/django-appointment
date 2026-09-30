@@ -311,17 +311,17 @@ These are HTML emails sent to users:
 | Key | What it holds |
 |---|---|
 | `company` | The website name (`Config` model, or `APPOINTMENT_WEBSITE_NAME`) |
-| `site_url` | The site's address without a trailing slash (see below), or `''` when it is unknown |
+| `site_url` | The site's address without a trailing slash (`https://www.example.com`), taken from the request |
 | `current_year` | The current year |
 | `dashboard_url` | Full link to the staff calendar |
 | `appointment_request`, `service`, `service_name`, `staff_member` | When the email is about an appointment |
 | `reschedule_url` | Full link to reschedule it |
 | `appointment`, `client`, `client_name`, `appointment_url` | When the appointment exists; `appointment_url` is the full link to its staff page |
 
-Links need the site's address, and most emails are sent without a request (the reminders run in Django Q, for
-example). Set `APPOINTMENT_SITE_URL = 'https://www.example.com'` to give it. Without it, the request's address is used
-when there is one, then the domain of the current `Site` when `django.contrib.sites` is installed; otherwise links stay
-relative (`/app-admin/...`).
+The links start with the address of the request that triggered the email, like the set-password and reschedule
+links always have. The reminder is sent later by Django Q, without a request: it uses the address of the booking
+request, saved when the reminder was scheduled. Behind a proxy, set Django's `USE_X_FORWARDED_HOST` and
+`SECURE_PROXY_SSL_HEADER` so the address is right.
 
 **Preview.** With `DEBUG = True`, a superuser can open `app-admin/email-preview/` to see every email the package sends,
 built for the latest appointment: its subject, the template used (so you can check your override is picked), and its
