@@ -8,49 +8,35 @@ Since: 3.1.0
 from datetime import timedelta
 
 from django.utils import timezone
-from django.utils.translation import gettext as _
 
 from appointment.email_sender import notify_admin, send_email
 from appointment.email_sender.email_sender import html_to_text, send_email_now
 from appointment.logger_config import get_logger
 from appointment.models import Appointment, AppointmentRequest
 from appointment.settings import APPOINTMENT_CLEANUP_DAYS
-from appointment.utils.template_helpers import get_email_template
 
 logger = get_logger(__name__)
 
 
-def send_email_reminder(to_email, first_name, reschedule_link, appointment_id):
+def send_email_reminder(to_email, first_name, reschedule_link, appointment_id, site_url=None):
     """
     Send a reminder email to the client about the upcoming appointment.
+
+    ``site_url`` is the site's address when the reminder was scheduled, for the email's links. Reminders queued before
+    3.13.0 don't pass it, and get relative links.
     """
 
-    # Fetch the appointment using appointment_id
-    logger.info(f"Sending reminder to {to_email} for appointment {appointment_id}")
-    from appointment.utils.email_ops import get_email_context
+    from appointment.utils.email_ops import build_reminder_email
 
+    logger.info(f"Sending reminder to {to_email} for appointment {appointment_id}")
     appointment = Appointment.objects.get(id=appointment_id)
-    recipient_type = 'client'
-    email_context = {
-        **get_email_context(appointment=appointment),
-        'first_name': first_name,
-        'appointment': appointment,
-        'reschedule_link': reschedule_link,
-        'recipient_type': recipient_type,
-    }
-    template_url = get_email_template('reminder_email.html', 'email_sender/reminder_email.html')
-    send_email(
-        recipient_list=[to_email], subject=_("Reminder: Upcoming Appointment"),
-        template_url=template_url, context=email_context
-    )
-    # Notify the admin
-    logger.info(f"Sending admin reminder also")
-    # The admin copy isn't addressed to the client: their first name stays available as client_first_name
-    admin_context = {**email_context, 'recipient_type': 'admin', 'first_name': '', 'client_first_name': first_name}
-    notify_admin(
-        subject=_("Admin Reminder: Upcoming Appointment"),
-        template_url=template_url, context=admin_context
-    )
+    email_parts = build_reminder_email(appointment, first_name, reschedule_link, site_url=site_url)
+    send_email(recipient_list=[to_email], subject=email_parts['subject'], template_url=email_parts['template'],
+               context=email_parts['context'])
+
+    logger.info("Sending admin reminder also")
+    admin_parts = build_reminder_email(appointment, first_name, reschedule_link, 'admin', site_url=site_url)
+    notify_admin(subject=admin_parts['subject'], template_url=admin_parts['template'], context=admin_parts['context'])
 
 
 def send_email_task(recipient_list, subject, message, html_message, from_email, attachments=None):

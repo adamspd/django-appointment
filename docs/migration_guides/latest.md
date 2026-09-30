@@ -54,8 +54,10 @@ The supported Python, Django and dependency versions are the same as in 3.12.0. 
       `client_first_name` if you showed the client's name to the admin.
     - Without an override, the password and verification emails are now HTML. If you relied on the plain-text body,
       add your own `emails/password_reset.html` or `emails/verification.html`.
-    - Set `APPOINTMENT_SITE_URL` if your emails should link to your site (it is needed for full links in reminders
-      and staff notifications). When set, it is also used for the set-password and reschedule links.
+    - The links in the emails start with the request's address. Behind a proxy, check that Django's
+      `USE_X_FORWARDED_HOST` and `SECURE_PROXY_SSL_HEADER` are set, as the set-password links already need.
+    - Reminders queued before the upgrade still run, with relative links for the new `appointment_url` and
+      `dashboard_url`; reminders scheduled after it get full links.
 
 8. **Test the booking flow**:
     - Book an appointment and enter a wrong phone number: the error should show under the field.
