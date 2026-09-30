@@ -82,8 +82,10 @@ The [compatibility matrix](../compatibility.md) has the full grid of tested Pyth
       `client_first_name` if you showed the client's name to the admin.
     - Without an override, the password and verification emails are now HTML. If you relied on the plain-text body,
       add your own `emails/password_reset.html` or `emails/verification.html`.
-    - Set `APPOINTMENT_SITE_URL` if your emails should link to your site (it is needed for full links in reminders
-      and staff notifications). When set, it is also used for the set-password and reschedule links.
+    - The links in the emails start with the request's address. Behind a proxy, check that Django's
+      `USE_X_FORWARDED_HOST` and `SECURE_PROXY_SSL_HEADER` are set, as the set-password links already need.
+    - Reminders queued before the upgrade still run, with relative links for the new `appointment_url` and
+      `dashboard_url`; reminders scheduled after it get full links.
 
 10. **Review and Test**:
     - Add or edit a service with an image, then book an appointment from start to finish.

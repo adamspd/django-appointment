@@ -3,7 +3,6 @@ from datetime import datetime
 from unittest import mock
 from unittest.mock import MagicMock, patch
 
-from django.test import override_settings
 from django.test.client import RequestFactory
 from django.urls import reverse
 from django.utils import timezone
@@ -231,18 +230,27 @@ class EmailContextTests(BaseTest):
         super().setUp()
         self.appointment = self.create_appt_for_sm1()
 
-    @override_settings(APPOINTMENT_SITE_URL='https://sgc.mil/')
-    def test_site_url_setting_wins(self):
+    def test_links_start_with_the_request_address(self):
         context = get_email_context(appointment=self.appointment, request=RequestFactory().get('/'))
-        self.assertEqual(context['site_url'], 'https://sgc.mil')
-        self.assertEqual(context['appointment_url'],
-                         'https://sgc.mil' + reverse('appointment:display_appointment', args=[self.appointment.id]))
-        self.assertTrue(context['dashboard_url'].startswith('https://sgc.mil/'))
-        self.assertTrue(context['reschedule_url'].startswith('https://sgc.mil/'))
-
-    def test_request_is_used_without_the_setting(self):
-        context = get_email_context(request=RequestFactory().get('/'))
         self.assertEqual(context['site_url'], 'http://testserver')
+        self.assertEqual(context['appointment_url'],
+                         'http://testserver' + reverse('appointment:display_appointment', args=[self.appointment.id]))
+        self.assertTrue(context['dashboard_url'].startswith('http://testserver/'))
+        self.assertTrue(context['reschedule_url'].startswith('http://testserver/'))
+
+    def test_site_url_is_used_without_a_request(self):
+        context = get_email_context(appointment=self.appointment, site_url='https://sgc.mil')
+        self.assertEqual(context['site_url'], 'https://sgc.mil')
+        self.assertTrue(context['appointment_url'].startswith('https://sgc.mil/'))
+
+    def test_links_are_relative_without_request_or_site_url(self):
+        context = get_email_context(appointment=self.appointment)
+        self.assertEqual(context['site_url'], '')
+        self.assertEqual(context['appointment_url'],
+                         reverse('appointment:display_appointment', args=[self.appointment.id]))
+
+    def test_no_appointment_keys_without_an_appointment(self):
+        context = get_email_context(request=RequestFactory().get('/'))
         self.assertNotIn('appointment', context)
 
     def test_model_objects(self):
@@ -256,13 +264,12 @@ class EmailContextTests(BaseTest):
         self.assertEqual(context['client_name'], self.appointment.get_client_name())
         self.assertIn('company', context)
 
-    @override_settings(APPOINTMENT_SITE_URL='https://sgc.mil')
     @patch('appointment.utils.email_ops.send_email')
     @patch('appointment.utils.email_ops.notify_admin')
     def test_admin_notification_has_the_links(self, mock_notify_admin, mock_send_email):
-        notify_admin_about_appointment(self.appointment, 'Jack')
+        notify_admin_about_appointment(self.appointment, 'Jack', request=RequestFactory().get('/'))
         context = mock_send_email.call_args[1]['context']
-        self.assertTrue(context['appointment_url'].startswith('https://sgc.mil/'))
+        self.assertTrue(context['appointment_url'].startswith('http://testserver/'))
         self.assertEqual(context['service'], self.appointment.get_service())
         self.assertEqual(context['client_name'], 'Jack')
 
