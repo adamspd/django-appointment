@@ -65,8 +65,8 @@ button and field wrappers are now found by `data-djappt="close"` and `data-djapp
   and, when it is about an appointment, `appointment`, `appointment_request`, `service`, `staff_member`, `client`,
   `client_name`, `appointment_url` and `reschedule_url`. A template can now place the date or the service where it
   wants, and link to the appointment.
-- **`APPOINTMENT_SITE_URL`** gives the start of those links. Emails sent without a request (reminders, staff
-  notifications) can now have full links. Without it, the request's address is used, then the current `Site`'s.
+- **Full links in every email.** The links start with the address of the request that triggered the email. The staff
+  notifications now get that request too, and a reminder keeps the address of the booking it was scheduled from.
 - **Subjects from templates.** A `<name>.subject.txt` file next to an email template replaces its subject.
 - **Default HTML emails** for setting a staff password and for the verification code. They were plain text unless you
   wrote your own template.
@@ -86,8 +86,6 @@ The new strings are in French and Spanish.
   were sent as plain text.
 - In the admin copy of the reminder, `first_name` is now empty: it was the client's name, in an email that isn't
   addressed to them. The client's first name is in `client_first_name`.
-- When `APPOINTMENT_SITE_URL` is set, it is also used for the links the package already sent (set-password,
-  reschedule and confirmation links) instead of the request's address.
 
 ## Bug Fixes 🐛
 
