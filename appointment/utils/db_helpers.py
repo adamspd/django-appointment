@@ -147,6 +147,8 @@ def schedule_email_reminder(appointment, request, appointment_datetime=None):
     ar_id_request = appointment.appointment_request.get_id_request()
     relative_reschedule_url = reverse('appointment:prepare_reschedule_appointment', args=[ar_id_request])
     reschedule_link = get_absolute_url_(relative_reschedule_url, request)
+    # The reminder is sent later, without a request: it builds its other links from this address
+    site_url = get_site_url(request)
 
     logger.info(f"Scheduling email reminder for appointment {appointment.id} at {reminder_datetime}")
 
@@ -157,6 +159,7 @@ def schedule_email_reminder(appointment, request, appointment_datetime=None):
              first_name=appointment.client.first_name,
              reschedule_link=reschedule_link,
              appointment_id=appointment.id,
+             site_url=site_url,
              schedule_type=Schedule.ONCE,
              next_run=reminder_datetime)
 
@@ -819,36 +822,10 @@ def working_hours_exist(day_of_week, staff_member):
     return WorkingHours.objects.filter(day_of_week=day_of_week, staff_member=staff_member).exists()
 
 
-def get_site_url(request=None) -> str:
-    """
-    The site's address without a trailing slash, for links in emails: the ``APPOINTMENT_SITE_URL`` setting, else the
-    request's scheme and host, else the current ``Site``'s domain. Empty when none is known.
-    """
-    from django.conf import settings
-
-    site_url = getattr(settings, 'APPOINTMENT_SITE_URL', None)
-    if site_url:
-        return site_url.rstrip('/')
-    if request is not None:
-        return request.build_absolute_uri('/').rstrip('/')
-    if apps.is_installed('django.contrib.sites'):
-        from django.contrib.sites.models import Site
-        try:
-            return f"https://{Site.objects.get_current().domain}"
-        except Exception:  # noqa: BLE001 - no Site row or no SITE_ID: links stay relative
-            logger.warning("Could not get the current Site; email links will be relative.")
-    return ''
+def get_absolute_url_(relative_url, request):
+    return request.build_absolute_uri(relative_url)
 
 
-def build_absolute_url(relative_url, request=None) -> str:
-    """``relative_url`` with the site's address in front (see ``get_site_url``), or as is when it is unknown."""
-    from django.conf import settings
-
-    if request is not None and not getattr(settings, 'APPOINTMENT_SITE_URL', None):
-        return request.build_absolute_uri(relative_url)
-    site_url = get_site_url(request)
-    return f"{site_url}{relative_url}" if site_url else relative_url
-
-
-def get_absolute_url_(relative_url, request=None):
-    return build_absolute_url(relative_url, request)
+def get_site_url(request) -> str:
+    """The site's address from the request, without a trailing slash: 'https://example.com'."""
+    return get_absolute_url_('/', request).rstrip('/')
