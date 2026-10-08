@@ -1,7 +1,9 @@
 // Working hours, day off and unavailability forms (administration/manage_*.html).
-// The fields are the browser's own date and time pickers. Before sending, each field marked data-raw-target copies
-// its value, in the format the server reads, into its hidden *_raw field. The form is sent in the background; the
-// server answers with JSON: the page to go to next, or a message shown in the error modal.
+// The fields are the browser's own date and time pickers, named like the model fields; they send ISO values
+// (YYYY-MM-DD, HH:MM), which the server reads as they are. The form is sent in the background; the server answers
+// with JSON: the page to go to next, or the errors of each field ({"errors": {"end_time": ["..."]}}), shown under
+// the fields. An error that belongs to no field on the page goes to the error modal.
+// Templates written before 3.13 may still mark fields with data-raw-target; their *_raw copies are filled as before.
 document.addEventListener('DOMContentLoaded', function () {
     const form = document.querySelector('form[data-schedule-form]');
     if (!form) {
@@ -40,8 +42,42 @@ document.addEventListener('DOMContentLoaded', function () {
         syncEnd();
     }
 
+    function clearFieldErrors() {
+        form.querySelectorAll('.djappt-field-error[data-schedule-error]').forEach((el) => el.remove());
+        form.querySelectorAll('.is-invalid').forEach((el) => {
+            el.classList.remove('is-invalid');
+            el.removeAttribute('aria-invalid');
+        });
+    }
+
+    // Returns the messages that have no field on the page
+    function showFieldErrors(errors) {
+        const unplaced = [];
+        Object.entries(errors || {}).forEach(([name, messages]) => {
+            const inputs = form.querySelectorAll(`[name="${CSS.escape(name)}"]`);
+            if (!inputs.length) {
+                unplaced.push(...messages);
+                return;
+            }
+            inputs.forEach((input) => {
+                input.classList.add('is-invalid');
+                input.setAttribute('aria-invalid', 'true');
+            });
+            const field = inputs[0].closest('.djappt-field') || inputs[0].parentElement;
+            messages.forEach((message) => {
+                const error = document.createElement('div');
+                error.className = 'djappt-field-error';
+                error.dataset.scheduleError = '';
+                error.textContent = message;
+                field.appendChild(error);
+            });
+        });
+        return unplaced;
+    }
+
     form.addEventListener('submit', async function (event) {
         event.preventDefault();
+        clearFieldErrors();
         fillRawFields();
         const button = form.querySelector('[type="submit"]');
         button.disabled = true;
@@ -56,7 +92,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 window.location.href = data.redirect_url;
                 return;
             }
-            showErrorModal(data.message || response.statusText);
+            if (data.errors) {
+                const unplaced = showFieldErrors(data.errors);
+                if (unplaced.length) {
+                    showErrorModal(unplaced.join(' '));
+                }
+            } else {
+                showErrorModal(data.message || response.statusText);
+            }
         } catch (error) {
             showErrorModal(error.message);
         }

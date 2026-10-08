@@ -1,0 +1,15 @@
+{% load i18n %}{% autoescape off %}{% translate 'Email Verification' %}
+
+{% if first_name %}{% blocktranslate trimmed %}Hi {{ first_name }},{% endblocktranslate %}{% else %}{% translate 'Hi' %},{% endif %}
+
+{% translate 'Enter this code to confirm your email address:' %}
+
+{{ verification_code }}
+
+{% translate 'If you did not expect this email, you can ignore it.' %}
+
+{% translate "Thank you," %}
+{{ company }}
+
+{% translate 'This is an automated message. Please do not reply directly to this email.' %}
+{% endautoescape %}

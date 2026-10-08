@@ -147,6 +147,8 @@ def schedule_email_reminder(appointment, request, appointment_datetime=None):
     ar_id_request = appointment.appointment_request.get_id_request()
     relative_reschedule_url = reverse('appointment:prepare_reschedule_appointment', args=[ar_id_request])
     reschedule_link = get_absolute_url_(relative_reschedule_url, request)
+    # The reminder is sent later, without a request: it builds its other links from this address
+    site_url = get_site_url(request)
 
     logger.info(f"Scheduling email reminder for appointment {appointment.id} at {reminder_datetime}")
 
@@ -157,6 +159,7 @@ def schedule_email_reminder(appointment, request, appointment_datetime=None):
              first_name=appointment.client.first_name,
              reschedule_link=reschedule_link,
              appointment_id=appointment.id,
+             site_url=site_url,
              schedule_type=Schedule.ONCE,
              next_run=reminder_datetime)
 
@@ -821,3 +824,8 @@ def working_hours_exist(day_of_week, staff_member):
 
 def get_absolute_url_(relative_url, request):
     return request.build_absolute_uri(relative_url)
+
+
+def get_site_url(request) -> str:
+    """The site's address from the request, without a trailing slash: 'https://example.com'."""
+    return get_absolute_url_('/', request).rstrip('/')

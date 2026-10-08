@@ -18,7 +18,7 @@ from django.utils.formats import get_format, localize
 from django.utils.translation import gettext as _
 
 from appointment.forms import PersonalInformationForm, ServiceForm, StaffDaysOffForm, StaffUnavailabilityForm, \
-    StaffWorkingHoursForm
+    StaffWorkingHoursForm, UnavailabilityDataForm, WorkingHoursDataForm
 from appointment.messages_ import appt_updated_successfully
 from appointment.models import DAYS_OF_WEEK
 from appointment.settings import APPOINTMENT_PAYMENT_URL
@@ -140,7 +140,11 @@ def prepare_user_profile_data(user, staff_user_id):
             'extra_context': {
                 'staff_members': staff_members,
                 'btn_staff_me': btn_staff_me,
-                'btn_staff_me_link': btn_staff_me_link
+                'btn_staff_me_link': btn_staff_me_link,
+                # Whether the superuser is a staff member themselves, so templates don't compare links
+                'admin_is_staff': btn_staff_me_link == reverse('appointment:remove_superuser_staff_member'),
+                'page_title': _("Staff members"),
+                'page_description': _("Everyone clients can book with."),
             }
         }
         return data
@@ -175,7 +179,12 @@ def prepare_user_profile_data(user, staff_user_id):
         'template': get_custom_template('user_profile.html', 'administration/user_profile.html'),
         'extra_context': {
             'superuser': user if user.is_superuser else None,
+            # `user` is kept for existing templates, but hides the logged-in user; use `profile_user` instead
             'user': staff_member.user if staff_member else user,
+            'profile_user': staff_member.user if staff_member else user,
+            'page_title': staff_member.get_staff_member_name(),
+            'page_description': _("Services, working hours and time off of %(name)s") % {
+                'name': staff_member.get_staff_member_name()},
             'staff_member': staff_member,
             'days_off': staff_member.get_days_off().order_by('start_date') if staff_member else [],
             'unavailabilities': staff_member.get_unavailabilities().order_by('date') if staff_member else [],
@@ -212,6 +221,8 @@ def handle_entity_management_request(request, staff_member, entity_type, instanc
                              error_code=ErrorCode.NOT_AUTHORIZED)
 
     button_text = _('Update') if instance else _('Add')
+    urls = {'form_action': schedule_form_action(request, entity_type, staff_member, instance),
+            'back_url': reverse('appointment:user_profile', kwargs={'staff_user_id': staff_member.user_id})}
     if entity_type == 'day_off':
         form = StaffDaysOffForm(instance=instance)
         context = get_entity_management_context(request, button_text, 'day_off_form', form)
@@ -228,11 +239,16 @@ def handle_entity_management_request(request, staff_member, entity_type, instanc
                                                 staff_user_id, instance,
                                                 instance_id)
         template = get_custom_template('manage_working_hours.html', 'administration/manage_working_hours.html')
+    context.update(urls)
+    context.update(schedule_form_titles(entity_type, instance, staff_member))
 
     if request.method == 'POST' and entity_type == 'day_off':
         day_off_form = StaffDaysOffForm(request.POST, instance=instance)
-        start_date = request.POST.get('start_date')
-        end_date = request.POST.get('end_date')
+        # Validate first: the overlap check needs real dates
+        if not day_off_form.is_valid():
+            return form_errors_response(day_off_form)
+        start_date = day_off_form.cleaned_data['start_date']
+        end_date = day_off_form.cleaned_data['end_date']
 
         if day_off_exists_for_date_range(staff_member, start_date, end_date, getattr(instance, 'id', None)):
             return json_response(_("Days off for this date range already exist."), status=400, success=False,
@@ -241,30 +257,70 @@ def handle_entity_management_request(request, staff_member, entity_type, instanc
         return handle_day_off_form(day_off_form, staff_member, request=request)
 
     elif request.method == 'POST' and entity_type == 'unavailability':
-        try:
-            date = datetime.datetime.strptime(request.POST.get('date_raw'), "%Y-%m-%d").date()
-            start_time = datetime.datetime.strptime(request.POST.get('start_time_raw'), "%H:%M:%S").time()
-            end_time = datetime.datetime.strptime(request.POST.get('end_time_raw'), "%H:%M:%S").time()
-            description = request.POST.get('description')
-        except (TypeError, ValueError):
-            return json_response(_("Invalid data."), status=400, success=False, error_code=ErrorCode.INVALID_DATA)
-
-        return handle_unavailability_form(staff_member, date, start_time, end_time, description, add, instance_id,
-                                          request=request)
+        data_form = UnavailabilityDataForm(schedule_post_data(request.POST, ['date', 'start_time', 'end_time']))
+        if not data_form.is_valid():
+            return form_errors_response(data_form)
+        data = data_form.cleaned_data
+        return handle_unavailability_form(staff_member, data['date'], data['start_time'], data['end_time'],
+                                          data['description'], add, instance_id, request=request)
 
     elif request.method == 'POST' and entity_type == 'working_hours':
-        try:
-            day_of_week = request.POST.get('day_of_week')
-            # get js string start and end times formatted as YYYY-MM-DDTHH:mm:ss and parse it.
-            start_time = datetime.datetime.strptime(request.POST.get('start_time_raw'), "%Y-%m-%dT%H:%M:%S")
-            end_time = datetime.datetime.strptime(request.POST.get('end_time_raw'), "%Y-%m-%dT%H:%M:%S")
-        except (TypeError, ValueError):
-            return json_response(_("Invalid data."), status=400, success=False, error_code=ErrorCode.INVALID_DATA)
-
-        return handle_working_hours_form(staff_member, day_of_week, start_time, end_time, add, instance_id,
-                                         request=request)
+        data_form = WorkingHoursDataForm(schedule_post_data(request.POST, ['start_time', 'end_time']))
+        if not data_form.is_valid():
+            return form_errors_response(data_form)
+        data = data_form.cleaned_data
+        return handle_working_hours_form(staff_member, data['day_of_week'], data['start_time'], data['end_time'], add,
+                                         instance_id, request=request)
 
     return render(request, template, context, status=200)
+
+
+def schedule_post_data(post, fields):
+    """The posted schedule fields, in the ISO format the data forms read.
+
+    The forms send each field under its model name (``date``, ``start_time``, ``end_time``) as the browser's pickers
+    give it: ``YYYY-MM-DD`` and ``HH:MM``. Templates written before 3.13 also send ``<name>_raw`` copies
+    (``HH:MM:SS``, or ``YYYY-MM-DDTHH:MM:SS`` for working hours); when one is there, it is used, since the field
+    itself may hold a localized value.
+    """
+    data = post.copy()
+    for name in fields:
+        raw = post.get(f'{name}_raw')
+        if raw:
+            data[name] = raw.split('T', 1)[1] if 'T' in raw else raw
+    return data
+
+
+def form_errors_response(form):
+    """The JSON answer to an invalid schedule form: a message, and the errors of each field under ``errors``."""
+    errors = {field: [str(error) for error in field_errors] for field, field_errors in form.errors.items()}
+    message = " ".join(" ".join(field_errors) for field_errors in errors.values())
+    return json_response(message or _("Invalid data."), status=400, success=False, error_code=ErrorCode.INVALID_DATA,
+                         custom_data={'errors': errors})
+
+
+def schedule_form_action(request, entity_type, staff_member, instance=None):
+    """The URL a working hours, day off or unavailability form posts to."""
+    if entity_type == 'day_off':
+        # The day off views read the form on the URL that shows it
+        return request.path
+    name = {'unavailability': 'unavailability', 'working_hours': 'working_hours'}[entity_type]
+    if instance:
+        return reverse(f'appointment:update_{name}_id', args=[instance.pk, staff_member.user_id])
+    return reverse(f'appointment:add_{name}_id', args=[staff_member.user_id])
+
+
+def schedule_form_titles(entity_type, instance, staff_member):
+    """``page_title`` and ``page_description`` of a working hours, day off or unavailability form."""
+    titles = {
+        'day_off': (_("Edit day off"), _("Add day off")),
+        'unavailability': (_("Edit unavailability"), _("Add unavailability")),
+        'working_hours': (_("Edit working hours"), _("Add working hours")),
+    }[entity_type]
+    return {
+        'page_title': titles[0] if instance else titles[1],
+        'page_description': _("Schedule of %(name)s") % {'name': staff_member.get_staff_member_name()},
+    }
 
 
 def saved_json_response(request, message, redirect_url):
@@ -294,9 +350,7 @@ def handle_day_off_form(day_off_form, staff_member, request=None):
             'appointment:user_profile')
         return saved_json_response(request, _("Day off saved successfully."), redirect_url)
     else:
-        message = "Invalid data:"
-        message += get_error_message_in_form(form=day_off_form)
-        return json_response(message, status=400, success=False, error_code=ErrorCode.INVALID_DATA)
+        return form_errors_response(day_off_form)
 
 
 def handle_unavailability_form(staff_member, date, start_time, end_time, description, add, unav_id=None,
@@ -365,7 +419,8 @@ def handle_working_hours_form(staff_member, day_of_week, start_time, end_time, a
     :return: A JsonResponse instance.
     """
     # Validate inputs
-    if not (staff_member and day_of_week and start_time and end_time):
+    # day_of_week can be 0 (Sunday), so it is checked against None
+    if not (staff_member and day_of_week not in (None, '') and start_time and end_time):
         return json_response(_("Invalid data."), status=400, success=False, error_code=ErrorCode.INVALID_DATA)
 
     # Ensure start time is before end time

@@ -78,8 +78,12 @@ document.addEventListener('DOMContentLoaded', function () {
             description.textContent = field('description').value.trim();
             description.style.display = description.textContent ? '' : 'none';
         }
-        if (field('duration')) {
-            const text = formatDuration(field('duration').value);
+        // The hours and minutes inputs, or a single "HH:MM:SS" input in older templates
+        const durationValue = field('duration_hours') || field('duration_minutes')
+            ? `${field('duration_hours') ? field('duration_hours').value || 0 : 0}:${field('duration_minutes') ? field('duration_minutes').value || 0 : 0}:0`
+            : field('duration') && field('duration').value;
+        if (durationValue !== undefined && durationValue !== null) {
+            const text = formatDuration(durationValue);
             if (text !== null) duration.textContent = text;
             duration.parentElement.style.display = duration.textContent ? '' : 'none';
         }

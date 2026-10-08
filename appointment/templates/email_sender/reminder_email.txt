@@ -13,7 +13,9 @@
 {% if recipient_type == 'client' %}{% translate 'If you need to reschedule, please click the button below or contact us for further assistance.' %}
 {% if reschedule_link %}{{ reschedule_link }}
 {% endif %}
-{% translate 'Thank you for choosing us!' %}{% else %}{% translate 'Please ensure the appointment setup is complete and ready for the client.' %}{% endif %}
+{% translate 'Thank you for choosing us!' %}{% else %}{% if appointment_url %}{% translate 'View Appointment' %}: {{ appointment_url }}
+
+{% endif %}{% translate 'Please ensure the appointment setup is complete and ready for the client.' %}{% endif %}
 
 {% translate 'This is an automated message. Please do not reply directly to this email.' %}
 {% endautoescape %}

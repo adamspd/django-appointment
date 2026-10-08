@@ -12,12 +12,7 @@
 {% endblock %}
 {% block djappt_content %}
     <div class="djappt-shell djappt-booking djangoAppt_main-container">
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
-                     role="alert">{{ message }}</div>
-            {% endfor %}
-        {% endif %}
+        {% include "appointment/_messages.html" %}
 
         <div class="djangoAppt_body-container">
             <header class="djappt-header">

@@ -17,6 +17,7 @@ from appointment.views_admin import (
     add_day_off, add_unavailability, add_or_update_service, add_or_update_staff_info, add_staff_member_info,
     add_working_hours, create_new_staff_member, delete_appointment, delete_appointment_ajax, delete_day_off,
     delete_unavailability, delete_service, delete_working_hours, display_appointment, email_change_verification_code,
+    email_preview,
     fetch_service_list_for_staff, fetch_staff_list, get_service_list, get_user_appointments, is_user_staff_admin,
     make_superuser_staff_member, remove_staff_member, remove_superuser_staff_member, update_appt_date_time,
     update_appt_min_info, update_day_off, update_unavailability, update_personal_info, update_working_hours,
@@ -93,6 +94,10 @@ admin_urlpatterns = [
 
     # delete appointment
     path('delete-appointment/<int:appointment_id>/', delete_appointment, name='delete_appointment'),
+
+    # every email, rendered for the latest appointment (DEBUG only)
+    path('email-preview/', email_preview, name='email_preview'),
+    path('email-preview/<str:email_key>/', email_preview, name='email_preview_detail'),
 ]
 
 ajax_urlpatterns = [
