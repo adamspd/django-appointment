@@ -367,6 +367,15 @@ class ServiceForm(WidgetClassesMixin, forms.ModelForm):
             self.fields[name].localize = False
             self.fields[name].widget.is_localized = False
 
+    def clean_duration(self):
+        duration = self.cleaned_data.get('duration')
+        # The inputs only have hours and minutes: an unchanged duration that had seconds (set in the Django admin or
+        # with the old HH:MM:SS input) keeps them instead of being cut to the minute on save.
+        current = self.instance.duration if self.instance.pk else None
+        if duration and current and int(current.total_seconds()) // 60 * 60 == int(duration.total_seconds()):
+            return current
+        return duration
+
     class Meta:
         model = Service
         fields = ['name', 'description', 'duration', 'price', 'down_payment', 'image', 'currency', 'background_color']

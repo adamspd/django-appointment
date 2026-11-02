@@ -40,6 +40,15 @@ class DurationWidgetTests(SimpleTestCase):
         form = ServiceForm(data=service_data(duration_hours='', duration_minutes=''))
         self.assertIn('duration', form.errors)
 
+    def test_unchanged_duration_keeps_its_seconds(self):
+        service = Service(pk=1, name='x', duration=datetime.timedelta(minutes=45, seconds=30), price=10)
+        form = ServiceForm(data=service_data(duration_hours='0', duration_minutes='45'), instance=service)
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertEqual(form.cleaned_data['duration'], datetime.timedelta(minutes=45, seconds=30))
+        form = ServiceForm(data=service_data(duration_hours='0', duration_minutes='50'), instance=service)
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertEqual(form.cleaned_data['duration'], datetime.timedelta(minutes=50))
+
     def test_decompress(self):
         widget = DurationWidget()
         self.assertEqual(widget.decompress(datetime.timedelta(hours=2, minutes=5)), [2, 5])
