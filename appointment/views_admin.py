@@ -758,7 +758,7 @@ def email_preview(request, email_key=None):
         })
         return render(request, get_custom_template('email_preview.html', 'administration/email_preview.html'),
                       context)
-    emails = get_preview_emails(appointment, request)
+    emails = get_preview_emails(appointment, request, only=email_key)
     if email_key is None:
         for key, email in emails.items():
             email['key'] = key
