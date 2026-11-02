@@ -426,15 +426,42 @@ function handleCalendarRightClick(event, date) {
         return;
     }
     const contextMenu = document.getElementById("customContextMenu");
-    contextMenu.style.top = `${event.pageY}px`;
-    contextMenu.style.left = `${event.pageX}px`;
     contextMenu.style.display = 'block';
+    placeContextMenu(contextMenu, event.clientX, event.clientY);
 
     const newAppointmentOption = document.getElementById("newAppointmentOption");
     newAppointmentOption.onclick = () => createNewAppointment(date);
 
-    // Hide context menu on any click
-    document.addEventListener('click', () => contextMenu.style.display = 'none', {once: true});
+    // Hide the menu on the next click, scroll (of the page or any scrolling area), resize or Escape
+    const hide = () => {
+        contextMenu.style.display = 'none';
+        document.removeEventListener('click', hide);
+        document.removeEventListener('scroll', hide, true);
+        window.removeEventListener('resize', hide);
+        document.removeEventListener('keydown', onKey);
+    };
+    const onKey = (e) => {
+        if (e.key === 'Escape') hide();
+    };
+    document.addEventListener('click', hide);
+    document.addEventListener('scroll', hide, true);
+    window.addEventListener('resize', hide);
+    document.addEventListener('keydown', onKey);
+}
+
+// Put the menu at the cursor. The menu is position: fixed, so window coordinates (clientX/Y) are right whatever the
+// host page scrolls or positions; page coordinates were off on layouts that scroll an inner area. Where the menu
+// would leave the window, it opens to the left of and/or above the cursor instead.
+function placeContextMenu(menu, x, y) {
+    const margin = 8;
+    const width = menu.offsetWidth;
+    const height = menu.offsetHeight;
+    let left = x + width + margin > window.innerWidth ? x - width : x;
+    let top = y + height + margin > window.innerHeight ? y - height : y;
+    left = Math.max(margin, Math.min(left, window.innerWidth - width - margin));
+    top = Math.max(margin, Math.min(top, window.innerHeight - height - margin));
+    menu.style.left = `${left}px`;
+    menu.style.top = `${top}px`;
 }
 
 function goToEvent() {
