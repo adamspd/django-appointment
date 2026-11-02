@@ -30,13 +30,17 @@ to quickly fix the problem. Please follow these steps to report a vulnerability:
 
 ## Dependencies
 
-This project depends on several third-party libraries:
+This project depends on several third-party libraries, installed within these ranges (as declared in `setup.cfg`):
 
-- Django==4.2.7
-- Pillow==10.1.0
-- phonenumbers==8.13.25
-- django-phonenumber-field==7.2.0
-- babel==2.13.1
+- Django>=4.2,<7.0
+- Pillow>=13.0,<14.0
+- phonenumbers>=8.13,<10.0
+- django-phonenumber-field>=8.0,<9.0
+- babel>=2.15,<3.0
+- colorama>=0.4,<0.5
+- icalendar>=7.3,<8.0
+
+It runs on Python 3.11 or newer.
 
 We strive to keep these dependencies up to date and free from vulnerabilities. If you find a vulnerability in one of
 these dependencies, please follow the steps above to report it.
