@@ -1,6 +1,7 @@
 # email_sender.py
 # Path: appointment/email_sender/email_sender.py
 
+import html
 import os
 import re
 from datetime import datetime, timedelta
@@ -99,7 +100,8 @@ def render_subject(template_url, context, subject, request=None) -> str:
     """Subject of a templated email.
 
     A ``.subject.txt`` template next to the HTML one (``emails/thank_you.subject.txt`` for ``emails/thank_you.html``)
-    replaces the subject set in Python: its first line that isn't empty is used.
+    replaces the subject set in Python: its first line that isn't empty is used. A subject is plain text, so the
+    HTML escaping Django applies to the variables is undone (``Smith & Co``, not ``Smith &amp; Co``).
     """
     if not template_url or not template_url.endswith('.html'):
         return subject
@@ -107,7 +109,7 @@ def render_subject(template_url, context, subject, request=None) -> str:
         text = loader.render_to_string(template_url[:-len('.html')] + '.subject.txt', context, request=request)
     except TemplateDoesNotExist:
         return subject
-    return next((line.strip() for line in text.splitlines() if line.strip()), subject)
+    return next((html.unescape(line.strip()) for line in text.splitlines() if line.strip()), subject)
 
 
 def send_email_now(recipient_list, subject, message, html_message, from_email, attachments=None):

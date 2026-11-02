@@ -172,6 +172,16 @@ class SubjectTemplateTests(SimpleTestCase):
     @override_settings(TEMPLATES=[{
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'OPTIONS': {'loaders': [('django.template.loaders.locmem.Loader', {
+            'emails/x.subject.txt': 'Booked at {{ company }} for {{ name }}',
+        })]},
+    }])
+    def test_variables_are_not_html_escaped(self):
+        subject = render_subject('emails/x.html', {'company': 'Smith & Co', 'name': "O'Neill <SG-1>"}, 'Default')
+        self.assertEqual(subject, "Booked at Smith & Co for O'Neill <SG-1>")
+
+    @override_settings(TEMPLATES=[{
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'OPTIONS': {'loaders': [('django.template.loaders.locmem.Loader', {
             'emails/booked.html': '<p>Hi</p>',
             'emails/booked.subject.txt': 'Booked at {{ company }}',
         })]},
