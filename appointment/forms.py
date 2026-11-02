@@ -317,33 +317,30 @@ class StaffWorkingHoursForm(WidgetClassesMixin, forms.ModelForm):
         fields = ['day_of_week', 'start_time', 'end_time']
 
 
-class UnavailabilityDataForm(forms.Form):
+class TimeRangeMixin:
+    """Rejects a ``start_time`` that isn't before ``end_time``, under the ``end_time`` field."""
+
+    def clean(self):
+        cleaned_data = super().clean()
+        start, end = cleaned_data.get('start_time'), cleaned_data.get('end_time')
+        if start and end and start >= end:
+            self.add_error('end_time', _("Start time must be before end time."))
+        return cleaned_data
+
+
+class UnavailabilityDataForm(TimeRangeMixin, forms.Form):
     """Reads what an unavailability form posts: ISO ``date`` (YYYY-MM-DD) and ``start_time``/``end_time`` (HH:MM)."""
     date = forms.DateField()
     start_time = forms.TimeField()
     end_time = forms.TimeField()
     description = forms.CharField(required=False, max_length=255)
 
-    def clean(self):
-        cleaned_data = super().clean()
-        start, end = cleaned_data.get('start_time'), cleaned_data.get('end_time')
-        if start and end and start >= end:
-            self.add_error('end_time', _("Start time must be before end time."))
-        return cleaned_data
 
-
-class WorkingHoursDataForm(forms.Form):
+class WorkingHoursDataForm(TimeRangeMixin, forms.Form):
     """Reads what a working hours form posts: ``day_of_week`` and ISO ``start_time``/``end_time`` (HH:MM)."""
     day_of_week = forms.TypedChoiceField(choices=DAYS_OF_WEEK, coerce=int)
     start_time = forms.TimeField()
     end_time = forms.TimeField()
-
-    def clean(self):
-        cleaned_data = super().clean()
-        start, end = cleaned_data.get('start_time'), cleaned_data.get('end_time')
-        if start and end and start >= end:
-            self.add_error('end_time', _("Start time must be before end time."))
-        return cleaned_data
 
 
 def color_to_hex(color):
