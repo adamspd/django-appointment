@@ -1190,8 +1190,11 @@ class StaffPagesTemplateTests(BaseTest):
         self.need_superuser_login()
         user_id = self.staff_member1.user.id
         response = self.client.get(reverse('appointment:update_staff_other_info', args=[user_id]))
-        self.assertContains(response, f'name="services_offered" value="{self.service1.id}" checked>')
-        self.assertContains(response, f'name="services_offered" value="{self.service2.id}">')
+        checkboxes = {str(choice.data['value']): choice.tag() for choice in response.context['form']['services_offered']}
+        self.assertIn(' checked', checkboxes[str(self.service1.id)])
+        self.assertNotIn(' checked', checkboxes[str(self.service2.id)])
+        for tag in checkboxes.values():
+            self.assertContains(response, tag)
         self.assertContains(response, reverse('appointment:user_profile', args=[user_id]))
         self.assertNotContains(response, 'Hold down')
 
@@ -1205,6 +1208,14 @@ class StaffPagesTemplateTests(BaseTest):
         response = self.client.get(reverse('appointment:add_staff_member_info'))
         self.assertContains(response, 'Add staff member')
         self.assertContains(response, 'name="user"')
+
+    @override_settings(APPOINTMENT_FORM_CLASSES={'form-check-input': 'checkbox'})
+    def test_service_checkboxes_follow_the_form_classes(self):
+        self.need_superuser_login()
+        self.staff_member1.services_offered.set([self.service1])
+        response = self.client.get(reverse('appointment:update_staff_other_info', args=[self.staff_member1.user.id]))
+        self.assertContains(response, f'name="services_offered" value="{self.service1.id}" class="checkbox"')
+        self.assertNotContains(response, 'form-check-input')
 
     def test_staff_form_checkboxes_save_several_services(self):
         self.need_superuser_login()

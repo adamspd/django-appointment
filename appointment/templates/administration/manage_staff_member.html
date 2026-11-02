@@ -69,8 +69,7 @@
                         <li>
                             <label class="djappt-choice" for="{{ choice.id_for_label }}"
                                    style="--djappt-service-color: {{ choice.data.value.instance.background_color }}">
-                                <input type="checkbox" class="form-check-input" id="{{ choice.id_for_label }}"
-                                       name="{{ choice.data.name }}" value="{{ choice.data.value }}"{% if choice.data.selected %} checked{% endif %}>
+                                {{ choice.tag }}
                                 <span class="djappt-swatch" aria-hidden="true"></span>
                                 <span>{{ choice.choice_label }}</span>
                             </label>
