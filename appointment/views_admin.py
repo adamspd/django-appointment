@@ -742,14 +742,16 @@ def is_user_staff_admin(request):
 @require_superuser
 def email_preview(request, email_key=None):
     """
-    DEBUG only: every email the package sends, built for the latest appointment, to check custom email templates.
+    DEBUG only: every email the package sends, built for the latest appointment that still has its client and staff
+    member (both are emptied when the user is deleted), to check custom email templates.
 
     Without ``email_key``, a page lists the emails with their subjects. With it, the email itself is returned: the
     HTML part, or the text part with ``?format=text``.
     """
     if not settings.DEBUG:
         raise Http404
-    appointment = Appointment.objects.select_related('appointment_request').order_by('-id').first()
+    appointment = Appointment.objects.select_related('appointment_request').filter(
+        client__isnull=False, appointment_request__staff_member__isnull=False).order_by('-id').first()
     if appointment is None:
         context = get_generic_context_with_extra(request, {
             'page_title': _("Email preview"), 'emails': [], 'back_url': reverse('appointment:get_user_appointments'),

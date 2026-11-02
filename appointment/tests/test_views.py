@@ -2163,6 +2163,19 @@ class EmailPreviewTests(BaseTest):
                 self.assertTrue(text.content.strip())
 
     @override_settings(DEBUG=True)
+    def test_skips_an_appointment_without_staff_member_or_client(self):
+        self.need_superuser_login()
+        without_staff = self.create_appt_for_sm1()
+        AppointmentRequest.objects.filter(pk=without_staff.appointment_request_id).update(staff_member=None)
+        without_client = self.create_appt_for_sm1()
+        Appointment.objects.filter(pk=without_client.pk).update(client=None)
+        response = self.client.get(reverse('appointment:email_preview'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['appointment'], self.appointment)
+        html = self.client.get(reverse('appointment:email_preview_detail', args=['password_reset']))
+        self.assertEqual(html.status_code, 200)
+
+    @override_settings(DEBUG=True)
     def test_unknown_email_is_not_found(self):
         self.need_superuser_login()
         response = self.client.get(reverse('appointment:email_preview_detail', args=['nope']))
