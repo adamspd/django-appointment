@@ -200,9 +200,4 @@ if 'django_q' in INSTALLED_APPS:
         'queue_limit': 50,
         'bulk': 10,
         'orm': 'default',
-        'redis': {
-            'host': 'redis',
-            'port': 6379,
-            'db': 0,
-        }
     }
