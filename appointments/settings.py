@@ -145,6 +145,7 @@ LANGUAGES = (
     ('en', _('English')),
     ('fr', _('French')),
     ('es', _('Spanish')),
+    ('pt', _('Portuguese')),
 )
 
 # Email Configuration
