@@ -22,10 +22,10 @@ set -uo pipefail
 # See https://docs.djangoproject.com/en/stable/faq/install/#what-python-version-can-i-use-with-django
 # Override this to try a subset, e.g. COMBINATIONS="6.1:3.13" bash compatibility_matrix.sh
 COMBINATIONS=${COMBINATIONS:-"
-  4.2:3.10 3.11 3.12
-  5.0:3.10 3.11 3.12
-  5.1:3.10 3.11 3.12 3.13
-  5.2:3.10 3.11 3.12 3.13
+  4.2:3.11 3.12
+  5.0:3.11 3.12
+  5.1:3.11 3.12 3.13
+  5.2:3.11 3.12 3.13
   6.0:3.12 3.13 3.14
   6.1:3.12 3.13 3.14
 "}

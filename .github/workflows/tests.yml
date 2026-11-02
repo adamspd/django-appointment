@@ -26,12 +26,10 @@ jobs:
       matrix:
         # The package supports Django 4.2 -> 6.1; each Django series only runs on
         # a subset of Python versions, so incompatible pairs are excluded below.
-        python-version: ['3.10', '3.11', '3.12', '3.13']
+        python-version: ['3.11', '3.12', '3.13']
         django-version: ['4.2', '5.2', '6.1']
         exclude:
           # Django 6.x requires Python 3.12+
-          - python-version: '3.10'
-            django-version: '6.1'
           - python-version: '3.11'
             django-version: '6.1'
           # Django 4.2 supports Python 3.8 -> 3.12
