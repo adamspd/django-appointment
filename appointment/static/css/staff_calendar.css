@@ -300,7 +300,10 @@
 
 /* ---- Right-click menu ---- */
 
+/* Fixed: placed at the cursor in window coordinates (see placeContextMenu in staff_index.js) */
 :where(.djappt) .djappt-context-menu {
+    position: fixed;
+    z-index: 1000;
     min-width: 12rem;
     padding: .35rem;
     border: 1px solid var(--djappt-line);
