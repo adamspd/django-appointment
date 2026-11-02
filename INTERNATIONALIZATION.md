@@ -27,7 +27,6 @@ Add these settings to your `settings.py`:
 # Internationalization
 LANGUAGE_CODE = 'en'  # Default language
 USE_I18N = True       # Enable translations
-USE_L10N = True       # Enable localized formatting
 USE_TZ = True         # Enable timezone support
 
 # Supported languages
@@ -51,7 +50,9 @@ Add the locale middleware to your `MIDDLEWARE` setting:
 ```python
 MIDDLEWARE = [
     # ... other middleware
-    'django.middleware.locale.LocaleMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',  # after SessionMiddleware, before CommonMiddleware
+    'django.middleware.common.CommonMiddleware',
     # ... other middleware
 ]
 ```
@@ -224,7 +225,6 @@ The package correctly handles plural forms for time durations:
 ### Common Issues
 
 1. **Dates showing in wrong format**:
-   - Ensure `USE_L10N = True` in settings
    - Check that locale middleware is enabled
    - Verify language code is supported
 
