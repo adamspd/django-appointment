@@ -342,7 +342,8 @@ def notify_admin_about_appointment(appointment, client_name: str, request=None):
     staff_email_parts = build_new_appointment_email(appointment, client_name, get_staff_name(staff_member), True,
                                                     request)
 
-    # Notify admins, once per address
+    # Notify admins, once per address. The admin copy is built once; only the recipient's name changes.
+    admin_email_parts = None
     notified_emails = set()
     for admin_name, admin_email in get_admins():
         if admin_email in notified_emails:
@@ -350,8 +351,13 @@ def notify_admin_about_appointment(appointment, client_name: str, request=None):
 
         # A staff member who is also an admin gets the staff version, with the calendar file
         is_staff_admin = admin_email == staff_email
-        email_parts = staff_email_parts if is_staff_admin else build_new_appointment_email(
-            appointment, client_name, admin_name, False, request)
+        if is_staff_admin:
+            email_parts = staff_email_parts
+        else:
+            if admin_email_parts is None:
+                admin_email_parts = build_new_appointment_email(appointment, client_name, admin_name, False, request)
+            email_parts = {**admin_email_parts,
+                           'context': {**admin_email_parts['context'], 'recipient_name': admin_name}}
         notify_admin(
             subject=email_parts['subject'],
             template_url=email_parts['template'],
@@ -413,7 +419,7 @@ def notify_admin_about_reschedule(reschedule_history, appointment_request, clien
     logger.info(f"Sending reschedule notifications for appointment {appointment_request.id}")
 
     email_parts = build_reschedule_admin_email(reschedule_history, appointment_request, client_name, request)
-    appt = Appointment.objects.get(appointment_request=appointment_request)
+    appt = email_parts['context'].get('appointment') or Appointment.objects.get(appointment_request=appointment_request)
     attachments = [('appointment.ics', generate_ics_file(appt), 'text/calendar')]
     staff_member = appointment_request.staff_member
 
@@ -428,12 +434,14 @@ def notify_admin_about_reschedule(reschedule_history, appointment_request, clien
     logger.info(f"Reschedule notifications sent for appointment {appointment_request.id}")
 
 
-def get_preview_emails(appointment, request):
+def get_preview_emails(appointment, request, only=None):
     """
     Every email the package sends, built for ``appointment`` by the same functions that send them, for the preview
     page. Nothing is saved: the links that need a token or a code show a sample instead.
 
-    :return: ``{key: {'label', 'template', 'subject', 'context'}}``, in the order the emails are sent.
+    :param only: The key of the one email to build (the preview of a single email); by default, all of them.
+    :return: ``{key: {'label', 'template', 'subject', 'context'}}``, in the order the emails are sent. Empty when
+        ``only`` isn't a known key.
     """
     ar = appointment.appointment_request
     client = appointment.client
@@ -446,24 +454,29 @@ def get_preview_emails(appointment, request):
     reschedule_history = AppointmentRescheduleHistory(
         appointment_request=ar, date=ar.date + timezone.timedelta(days=1), start_time=ar.start_time,
         end_time=ar.end_time, staff_member=staff_member, reason_for_rescheduling=_("Example reason"))
-    appointment_details, account_details = get_thank_you_details(appointment)
 
-    emails = {
-        'thank_you': (_("Booking confirmation (client)"), build_thank_you_email(
-            appointment, client, request, appointment_details, account_details,
-            sample_link if account_details else None)),
-        'new_appointment': (_("New appointment (staff)"), build_new_appointment_email(
+    def thank_you():
+        appointment_details, account_details = get_thank_you_details(appointment)
+        return build_thank_you_email(appointment, client, request, appointment_details, account_details,
+                                     sample_link if account_details else None)
+
+    # Each email is only built when asked for
+    builders = {
+        'thank_you': (_("Booking confirmation (client)"), thank_you),
+        'new_appointment': (_("New appointment (staff)"), lambda: build_new_appointment_email(
             appointment, client.first_name, get_staff_name(staff_member), True, request)),
-        'reminder': (_("Reminder (client)"), build_reminder_email(
+        'reminder': (_("Reminder (client)"), lambda: build_reminder_email(
             appointment, client.first_name, reschedule_link, site_url=site_url)),
-        'reminder_admin': (_("Reminder (admin)"), build_reminder_email(
+        'reminder_admin': (_("Reminder (admin)"), lambda: build_reminder_email(
             appointment, client.first_name, reschedule_link, 'admin', site_url=site_url)),
-        'reschedule_confirmation': (_("Reschedule confirmation (client)"), build_reschedule_confirmation_email(
+        'reschedule_confirmation': (_("Reschedule confirmation (client)"), lambda: build_reschedule_confirmation_email(
             reschedule_history, ar, client.first_name, request)),
-        'reschedule_admin': (_("Reschedule (staff)"), build_reschedule_admin_email(
+        'reschedule_admin': (_("Reschedule (staff)"), lambda: build_reschedule_admin_email(
             reschedule_history, ar, appointment.get_client_name(), request)),
-        'password_reset': (_("Set a password (staff)"), build_password_reset_email(
+        'password_reset': (_("Set a password (staff)"), lambda: build_password_reset_email(
             staff_member.user, request, sample_link)),
-        'verification': (_("Verification code (client)"), build_verification_email(client, 'A1B2C3', request)),
+        'verification': (_("Verification code (client)"), lambda: build_verification_email(client, 'A1B2C3', request)),
     }
-    return {key: {'label': label, **parts} for key, (label, parts) in emails.items()}
+    if only is not None:
+        builders = {only: builders[only]} if only in builders else {}
+    return {key: {'label': label, **build()} for key, (label, build) in builders.items()}

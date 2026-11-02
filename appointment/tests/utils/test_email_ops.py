@@ -12,7 +12,8 @@ from appointment.messages_ import thank_you_no_payment, thank_you_payment, thank
 from appointment.models import AppointmentRescheduleHistory
 from appointment.tests.base.base_test import BaseTest
 from appointment.utils.email_ops import (
-    get_email_context, get_thank_you_message, notify_admin_about_appointment, notify_admin_about_reschedule,
+    build_new_appointment_email, get_email_context, get_thank_you_message, notify_admin_about_appointment,
+    notify_admin_about_reschedule,
     send_reschedule_confirmation_email,
     send_reset_link_to_staff_member, send_thank_you_email,
     send_verification_email
@@ -187,6 +188,25 @@ class EmailSubjectAndRecipientTests(BaseTest):
         with self.settings(ADMINS=[('George', 'george@sgc.mil')]):
             notify_admin_about_reschedule(self.reschedule_history, self.appointment_request, "Jack")
         mock_send_email.assert_called_once()
+
+    @patch('appointment.utils.email_ops.send_email')
+    @patch('appointment.utils.email_ops.notify_admin')
+    def test_each_admin_gets_their_own_name_from_one_build(self, mock_notify_admin, mock_send_email):
+        with self.settings(ADMINS=[('George', 'george@sgc.mil'), ('Elizabeth', 'weir@sgc.mil')]), \
+                patch('appointment.utils.email_ops.build_new_appointment_email',
+                      wraps=build_new_appointment_email) as build:
+            notify_admin_about_appointment(self.appointment, "Jack")
+        self.assertEqual(build.call_count, 2)  # the staff member's copy and the admins' one
+        names = [c.kwargs['context']['recipient_name'] for c in mock_notify_admin.call_args_list]
+        self.assertEqual(names, ['George', 'Elizabeth'])
+
+    @patch('appointment.utils.email_ops.send_email')
+    @patch('appointment.utils.email_ops.notify_admin')
+    def test_reschedule_fetches_the_appointment_once(self, mock_notify_admin, mock_send_email):
+        with self.settings(ADMINS=[('George', 'george@sgc.mil')]), \
+                patch('appointment.utils.email_ops.Appointment.objects.get') as get:
+            notify_admin_about_reschedule(self.reschedule_history, self.appointment_request, "Jack")
+        get.assert_not_called()
 
     @patch('appointment.utils.email_ops.send_email')
     @patch('appointment.utils.email_ops.notify_admin')
