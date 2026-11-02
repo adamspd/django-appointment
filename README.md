@@ -17,96 +17,84 @@
 [![Python compatible version](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/adamspd/django-appointment/main/python_compatible.json)](https://github.com/adamspd/django-appointment/blob/main/compatibility_matrix.md)
 [![Latest on Django Packages](https://img.shields.io/badge/Django%20Packages-django--appointment-8c3c26.svg)](https://djangopackages.org/packages/p/django-appointment/)
 
-Django-Appointment is a Django app engineered for managing appointment scheduling with ease and flexibility. It enables
-users to define custom configurations for time slots, lead time, and finish time, or use the default values
-provided. This app proficiently manages conflicts and availability for appointments, ensuring a seamless user
-experience.
+Django-Appointment is a Django app for booking appointments. You choose how your days are split into time slots, when
+bookings open and close, and how much rest staff get between appointments, or you keep the defaults. The app handles
+conflicts and availability for you, so clients only ever see slots that are actually free.
 
-## 🚨 STOP! Try the Demo First 🚨
+## 👀 Try the demo first
 
-**Before you install anything, go play with the live demo:**
+**The quickest way to understand the app is to play with the [live demo](https://django-appt.adamspierredavid.com/).**
 
-### 👉 [**LIVE DEMO**](https://django-appt.adamspierredavid.com/) 👈
+It takes a couple of minutes, and it will make the rest of this README (and the configuration options) much easier to
+follow. In the demo you can see:
 
-**Seriously, it will help you get less confused about how the system works.** The demo shows you exactly what you're getting into and will save you (and me) a lot of headaches.
+- 📅 how clients book an appointment,
+- ⚙️ how the admin settings change what clients see,
+- 📧 the email notifications in action,
+- 🔄 how conflicts and availability are handled.
 
-**What you'll see in the demo:**
-- 📅 How the appointment booking interface works
-- ⚙️ How the admin configuration affects the frontend
-- 📧 Email notifications in action 
-- 🔄 Conflict resolution and availability management
+### A small favor about emails 🙏
 
-⚠️ **Important**: Use **real email addresses** or `okfiw@thenightcoders.tech` if you don't care about testing the email notification and/or you're concerned about using your personal email. Sending notifications to too many fake emails **will get my server blacklisted** by Gmail/Yahoo/etc., and I'll have to **kill the demo for everyone** before this happens - **my email server matters more** than your testing convenience. 
+The demo sends real emails. Please use **your real email address**, or, if you'd rather not share yours or don't care
+about the emails, use the shared address **`okfiw@thenightcoders.tech`**.
 
-**Privacy note**: A crontab erases the demo database every 2 hours, so I don't collect or store your email addresses - I have zero interest in doing so.
+Please don't make up an address. Emails sent to addresses that don't exist bounce back, and if too many bounce, email
+providers like Gmail and Yahoo start treating the demo's mail server as spam. If that happens, I'll have to take the
+demo offline for everyone. I keep an eye on those bounces, so thank you for helping keep the demo up!
 
-For the record: yes, I know when you use fake emails because Google and the others **bounce them back to me**, and I monitor the demo email account specifically for this.
+**Your privacy:** the demo database is wiped every 2 hours. I don't keep or use your email address.
 
-*Note: Please read the [terms of use](https://django-appt.adamspierredavid.com/terms-and-conditions/) before using the demo.*
+*Please read the [terms of use](https://django-appt.adamspierredavid.com/terms-and-conditions/) before using the demo.*
 
----
+## Documentation 📚
 
-🆕 **New**: The documentation website is now
-available [here](https://django-appt-doc.adamspierredavid.com). It includes reasons for using the
-application, its features, and detailed configuration instructions.
+- 📖 [Documentation site](https://django-appt-doc.adamspierredavid.com/): why you'd use the app, its features, and
+  every configuration option.
+- 🧭 [Tutorial](https://django-appt-doc.adamspierredavid.com/tutorial/): a step-by-step walkthrough of a working setup.
+- 📝 Release notes: on the [documentation site](https://django-appt-doc.adamspierredavid.com/release_notes/latest/),
+  the [GitHub releases page](https://github.com/adamspd/django-appointment/releases), and, for older versions, in
+  [`docs/release_notes`](https://github.com/adamspd/django-appointment/tree/main/docs/release_notes).
+- 🕰️ Features added in earlier versions: [`docs/history`](https://github.com/adamspd/django-appointment/tree/main/docs/history).
 
-⚠️ **IMPORTANT**: If upgrading from a version before 2.x.x, please note significant database changes were introduced in
-version 2.0.0. Please read
-the [migration guide](https://github.com/adamspd/django-appointment/tree/main/docs/migration_guides/v2_1_0.md) before
-updating. Version 3.x.x introduces the ability to send email reminders for appointments using Django Q for efficient
-task scheduling. It also allows clients to reschedule appointments if it is allowed by admins.
-
-For a detailed walkthrough and live example of the system, please refer to
-[this tutorial](https://django-appt-doc.adamspierredavid.com/tutorial/).
-
-Detailed documentation can be found in
-the [documentation site](https://django-appt-doc.adamspierredavid.com/).
-For changes and migration information, please refer to the release
-notes [here](https://github.com/adamspd/django-appointment/releases)
-and [here](https://github.com/adamspd/django-appointment/tree/main/docs/release_notes).
+> ⚠️ **Upgrading from a version older than 2.0.0?** Version 2.0.0 changed the database a lot. Please read the
+> [migration guide](https://github.com/adamspd/django-appointment/tree/main/docs/migration_guides/v2_1_0.md) before
+> you update. For later versions, see the
+> [migration guides folder](https://github.com/adamspd/django-appointment/tree/main/docs/migration_guides).
 
 ## Features ✨
 
-1. Customizable time slots, lead time, and finish time.
-2. Competent handling of appointment conflicts and availability.
-3. Seamless integration with the Django admin interface for appointment management.
-4. Custom admin interface for managing appointment/staff member editing, creation, availability, and conflicts.
-5. User-friendly interface for viewing available time slots and scheduling appointments.
-6. Email notifications for appointment scheduling and reminders:
-   - Instant email notifications to clients upon scheduling an appointment.
-   - Automated email reminders sent 24 hours before the appointment (requires Django Q).
-   - ICS file attachment for calendar synchronization.
-7. Integration with Django Q for efficient task scheduling and email sending.
-8. **Custom Templates Support**: You can easily override the default HTML pages and email templates with your own custom designs. See [Custom Templates Documentation](https://github.com/adamspd/django-appointment/blob/main/CUSTOM_TEMPLATES.md) for full details.
-9. Slot availability that accounts for the real duration of a service, plus a configurable rest time between
-   appointments (globally or per staff member).
-10. Automatic cleanup of abandoned appointment requests, with a `cleanup_appointment_requests` management command.
-11. Per-day unavailabilities: a staff member can block a time range on a single date (a break, a meeting) without
-    losing the whole day, and the booking page hides the affected slots.
-
-## Key features introduced in previous versions.
-
-- For more information, please refer to
-  this [documentation](https://github.com/adamspd/django-appointment/tree/main/docs/history).
-
-## Added Features and Bug Fixes in version 3.x.x
-
-See the [release notes for the current 3.12 release](https://django-appt-doc.adamspierredavid.com/release_notes/latest/),
-or the [GitHub releases page](https://github.com/adamspd/django-appointment/releases).
-For older versions,
-see their [release notes](https://github.com/adamspd/django-appointment/tree/main/docs/release_notes).
+1. Customizable time slots, lead time (when bookings open each day) and finish time (when they close).
+2. Conflict and availability handling, so clients are only offered slots that are free.
+3. Integration with the Django admin.
+4. Dedicated staff pages to manage appointments, staff members, services, working hours, days off and conflicts.
+5. A friendly booking page where clients see the free slots and book one.
+6. Email notifications:
+   - a confirmation email to the client as soon as they book,
+   - an optional reminder email 24 hours before the appointment (needs Django Q, see below),
+   - an ICS attachment so clients can add the appointment to their calendar.
+7. Clients can reschedule their appointment, if you allow it.
+8. **Custom templates**: replace the default pages and emails with your own designs. See the
+   [custom templates guide](https://github.com/adamspd/django-appointment/blob/main/CUSTOM_TEMPLATES.md).
+9. Slots that account for the real length of each service, plus an optional rest time between appointments (for
+   everyone or per staff member).
+10. Automatic cleanup of abandoned booking requests, also available as the `cleanup_appointment_requests` management
+    command.
+11. Per-day unavailability: a staff member can block part of a single day (a break, a meeting) without taking the
+    whole day off, and the booking page hides those slots.
 
 ## Quick Start 🚀
 
-⚠️ **Haven't tried the demo yet?** Go [here](https://django-appt.adamspierredavid.com/) first - it'll make everything clearer.
+Django-Appointment supports Python 3.11+ and Django 4.2+. See the
+[compatibility matrix](https://github.com/adamspd/django-appointment/blob/main/compatibility_matrix.md) for the
+exact combinations that are tested.
 
-1. Install Django-Appointment in your project using pip:
+1. Install the package:
 
    ```bash
    pip install django-appointment
    ```
 
-2. Add "appointment" to your `INSTALLED_APPS` setting like so:
+2. Add `appointment` to `INSTALLED_APPS` in your `settings.py`:
 
    ```python
    INSTALLED_APPS = [
@@ -115,105 +103,97 @@ see their [release notes](https://github.com/adamspd/django-appointment/tree/mai
    ]
    ```
 
-3. Then, incorporate the appointment URLconf in your project's `urls.py`:
+3. Include the app's URLs in your project's `urls.py`:
 
    ```python
    from django.urls import path, include
-   
+
    urlpatterns = [
        # other urls
        path('appointment/', include('appointment.urls')),
    ]
    ```
-4. In your Django's `settings.py`, append the following:
 
-   ```python
-   AUTH_USER_MODEL = 'models.UserModel'  # Optional if you use Django's user model
-   ```
-
-   For instance, if you employ a custom user model called `UserClient` in an app named `client`, you would add it like:
-
-   ```python
-   AUTH_USER_MODEL = 'client.UserClient'
-   ```
-
-   But if you're using the default Django user model (like most of us), there's no need to add this line since Django
-   automatically sets it to:
-
-   ```python
-   AUTH_USER_MODEL = 'auth.User'
-   ```
-
-   Ensure your `create_user` function includes the following arguments, even if they are not all used (in case you're
-   using a custom user model with your own logic for creating users):
-
-   ```python
-   def create_user(first_name, email, username, last_name=None, **extra_fields):
-       pass
-   ```
-
-   This function will create a passwordless user.
-   After doing so, a link to set the password will be sent to the user's email upon completing the appointment request.
-
-   Another variable that is worth configuring is the website's name in your `settings.py`:
+4. *(Optional)* Set your website's name in `settings.py`. It is shown at the top of the emails sent to clients:
 
    ```python
    APPOINTMENT_WEBSITE_NAME = 'Chocolates'
    ```
 
-   It will be used in the footer of the emails sent to clients upon scheduling an appointment:
+   You can also set it later from the Django admin, in the app's configuration. The admin value wins over the setting.
 
-   ```html
-   <p>® 2023 {{ APPOINTMENT_WEBSITE_NAME }}. All Rights Reserved.</p>
+5. Create and apply the migrations:
+
+   ```bash
+   python manage.py makemigrations appointment
+   python manage.py migrate
    ```
 
-5. Next would be to create the migrations and run them by doing `python manage.py makemigrations appointment` and right
-   after, run `python manage.py migrate` to create the appointment models.
+6. Start the development server (`python manage.py runserver`) and log in to the Django admin at
+   http://127.0.0.1:8000/admin/ (the admin app must be enabled).
 
-6. Launch the development server and navigate to http://127.0.0.1:8000/admin/ to create appointments, manage
-   configurations, and handle appointment conflicts (the Admin app must be enabled).
-7. You must create at least one service before using the application on the admin page. If your service is free, input 0
-   as the price. If your service is paid, input the price in the price field. You may also provide a description for
-   your service.
-8. Visit http://127.0.0.1:8000/appointment/request/<service_id>/ to view the available time slots and schedule an
-   appointment.
+7. Create at least one **service**. Use a price of `0` if it's free. A description and an image are optional.
+
+8. Add at least one **staff member** who offers that service, and give them **working hours**. Without a staff
+   member, the booking page has no slots to show. You can do this from the Django admin or from the staff pages at
+   http://127.0.0.1:8000/appointment/app-admin/user-profile/.
+
+9. Open http://127.0.0.1:8000/appointment/request/<service_id>/ to see the free slots and book an appointment.
+
+The [tutorial](https://django-appt-doc.adamspierredavid.com/tutorial/) walks through these steps with screenshots.
+
+### Using a custom user model
+
+You don't need to do anything if you use Django's default user model. If you use your own
+(`AUTH_USER_MODEL = 'client.UserClient'`, for example), keep in mind that the app creates an account for each new
+client when they book. It calls your manager's `create_user` with keyword arguments and **no password**:
+
+```python
+# If your user model has a `username` field:
+User.objects.create_user(username=..., email=..., first_name=..., last_name=...)
+
+# Otherwise:
+User.objects.create_user(email=..., first_name=..., last_name=...)
+```
+
+So your `create_user` must accept those arguments and work without a password. Once the booking is done, the client
+gets an email with a link to set their password.
 
 ## Email and Django Q Configuration 📧
 
 <!-- --8<-- [start:email-and-q] -->
 ### Email Configuration 📧
 
-Proper email configuration is crucial for the sending email and for the appointment reminder functionality.
-Add the following to your `settings.py`:
+The app needs a working email setup to send confirmations and reminders. Add this to your `settings.py`:
 
 ```python
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'your_smtp_host'
-EMAIL_PORT = 587 # or 465 for EMAIL_USE_SSL
-EMAIL_USE_TLS = True # or EMAIL_USE_SSL = True
+EMAIL_PORT = 587  # or 465 with EMAIL_USE_SSL
+EMAIL_USE_TLS = True  # or EMAIL_USE_SSL = True
 EMAIL_HOST_USER = 'your_email@example.com'
 EMAIL_HOST_PASSWORD = 'your_email_password'
 
-# Optional: Set your website name for email footer
+# Optional: your website's name, shown at the top of the emails
 APPOINTMENT_WEBSITE_NAME = 'Your Website Name'
 ```
 
-> **Note:** Make sure to use environment variables or a secure method to store sensitive information like email passwords in production.
+> **Note:** In production, keep secrets like the email password in environment variables (or another secure store),
+> not in `settings.py`.
 
+### Django Q Configuration ⏰
 
-### Django Q Configuration 📧
-
-Django-Appointment uses Django Q for sending email reminders.
-This feature is optional but recommended for better performance and user experience.
+Django-Appointment uses [Django Q](https://github.com/django-q2/django-q2) to send reminder emails at the right time
+and to clean up abandoned booking requests every day. It's optional, but recommended.
 
 #### Setting up Django Q
 
 1. Install Django Q:
    ```bash
-   pip install django_q2
+   pip install django-q2
    ```
 
-2. Add 'django_q' to INSTALLED_APPS in your settings.py:
+2. Add `django_q` to `INSTALLED_APPS` in your `settings.py`:
    ```python
    INSTALLED_APPS = [
        # ...
@@ -221,7 +201,7 @@ This feature is optional but recommended for better performance and user experie
    ]
    ```
 
-3. Configure Django Q in your settings.py:
+3. Configure Django Q in your `settings.py`:
    ```python
    Q_CLUSTER = {
        'name': 'django-appointment',
@@ -232,29 +212,34 @@ This feature is optional but recommended for better performance and user experie
        'bulk': 10,
        'orm': 'default',
    }
-   USE_DJANGO_Q_FOR_EMAILS = True  # Use Django Q for sending ALL emails
+   USE_DJANGO_Q_FOR_EMAILS = True  # optional: also send all the other emails in the background
    ```
 
-4. Start the Django Q cluster:
+4. Create Django Q's tables:
+   ```bash
+   python manage.py migrate
+   ```
+
+5. Start the Django Q cluster, and keep it running alongside your server:
    ```bash
    python manage.py qcluster
    ```
 
-> **Note:** If you choose not to use Django Q, email reminders will not be sent, but the rest of the application will
-> function normally.
+> **Note:** Without Django Q, the app works normally, but reminder emails are not sent and old booking requests are
+> only cleaned up when you run `python manage.py cleanup_appointment_requests` yourself.
 <!-- --8<-- [end:email-and-q] -->
 
 ## Template Configuration 📝
 
-The package pages don't bring their own page shell (navbar, footer…): they render inside your site's base template.
-Point the package at it in `settings.py`:
+The app's pages don't come with their own navbar or footer: they render inside your site's base template. Tell the
+app which template to use in `settings.py`:
 
 ```python
 APPOINTMENT_BASE_TEMPLATE = 'base.html'  # used by the booking pages
 APPOINTMENT_ADMIN_BASE_TEMPLATE = 'base.html'  # (optional) used by the staff pages, can be a different base
 ```
 
-Every package page extends `appointment/layout.html`, which extends the base you set. Your base must include these
+Every page of the app extends `appointment/layout.html`, which extends the base you set. Your base must include these
 blocks:
 
 ```html
@@ -277,48 +262,54 @@ blocks:
 {% endblock %}
 ```
 
-These blocks are essential for the proper functioning of the application:
+What each block is for:
 - `customMetaTag` goes inside `<head>`: the staff pages put the CSRF token there for their AJAX requests.
-- `customCSS` and `customJS` allow the application to inject the necessary styles and scripts.
-- `body` is where the main content of each page will be rendered, inside a `<div class="djappt">` wrapper. The
-  package CSS only styles what's inside that wrapper, so your navbar and footer keep their look.
-- `title` and `description` are used for SEO and are recommended but not strictly required.
+- `customCSS` and `customJS` let the app add its styles and scripts.
+- `body` is where each page's content goes, inside a `<div class="djappt">` wrapper. The app's CSS only applies inside
+  that wrapper, so your navbar and footer keep their look.
+- `title` and `description` are used for SEO. They're recommended but not required.
 
-Your base must also load jQuery and Bootstrap 5 (CSS and JS), before the `customJS` block.
+Your base must also load jQuery and Bootstrap 5 (CSS and JS) before the `customJS` block.
 
-See an example of a base.html template [here](https://github.com/adamspd/django-appointment/blob/main/appointment/templates/base_templates/base.html).
-It is the default when you don't set `APPOINTMENT_BASE_TEMPLATE`.
-
+Here's an [example `base.html`](https://github.com/adamspd/django-appointment/blob/main/appointment/templates/base_templates/base.html).
+It's the one used when you don't set `APPOINTMENT_BASE_TEMPLATE`.
 
 ## Customization 🔧
 
-1. In your Django project's `settings.py`, you can override the default values for the appointment scheduler.
-   More information regarding available configurations can be found in
-   the [documentation](https://django-appt-doc.adamspierredavid.com/configuration/).
-2. Modify these values as needed for your application, and the app will adapt to the new settings.
-3. For further customization, you can extend the provided models, views, and templates or create your own.
+You can change the default values (slot duration, lead time, finish time, rest time between appointments, and more)
+in your `settings.py`, and the app adapts to them. The full list is in the
+[configuration documentation](https://django-appt-doc.adamspierredavid.com/configuration/).
+
+To go further, you can extend the provided models, views and templates, or write your own.
 
 ## Internationalization 🌍
 
-Django-Appointment includes built-in support for multiple languages with localized date formats and translations.
+Django-Appointment is translated and shows dates in the client's language.
 
-**Currently supported languages:**
-- English (en) - Default
-- French (fr) - Maintained by the project
-- Spanish (es) - Contributed by @alexandermamaniy (maintainers welcome!)
+**Languages:**
+- English (en), the default
+- French (fr), maintained by the project
+- Spanish (es), contributed by @alexandermamaniy (new maintainers welcome!)
 
-**Features:**
-- 🗣️ UI translations for 3 languages (more welcome!)
-- 📅 Localized date formats for 35+ (39 to be exact as of Sept 2026) languages
+**What you get:**
+- 🗣️ The interface translated into 3 languages (more are welcome!)
+- 📅 Localized date formats for 39 languages
 - 🌐 Automatic language detection
-- 📝 RTL language support
+- 📝 Right-to-left (RTL) language support
 
 **Quick setup:**
 ```python
 # settings.py
 USE_I18N = True
-USE_L10N = True
 LANGUAGES = [('en', 'English'), ('fr', 'French'), ('es', 'Spanish')]
+
+MIDDLEWARE = [
+    # ...
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',  # after SessionMiddleware, before CommonMiddleware
+    'django.middleware.common.CommonMiddleware',
+    # ...
+]
 ```
 
 **Want to add your language or translate database content?**
@@ -327,150 +318,106 @@ LANGUAGES = [('en', 'English'), ('fr', 'French'), ('es', 'Spanish')]
 ## Docker Support 🐳
 
 <!-- --8<-- [start:docker] -->
-Django-Appointment now supports Docker, making it easier to set up, develop, and test.
+The repository comes with a Docker setup to try the app or work on it locally.
 
-### Getting Started with Docker for Development or Local Testing
+> **Note:** This setup is meant for **development and local testing**, and it runs from a clone of the repository.
+> For production, follow Django's [deployment checklist](https://docs.djangoproject.com/en/stable/howto/deployment/checklist/).
 
-Using Django-Appointment with Docker is primarily intended for **development purposes** or **local testing**.
-This means you'll need to ___clone the project from the GitHub repository___ to get started.
-
-> **Note:** These Docker instructions are for development and testing. For production deployment, please refer to
-> Django's official deployment documentation and best practices.
-
-Here's how you can set it up:
-
-1. **Clone the Repository**: Clone the Django-Appointment repository to your local machine:
+1. **Clone the repository** and go into it:
 
    ```bash
    git clone https://github.com/adamspd/django-appointment.git
-   ```
-
-   or using SSH:
-   ```bash
-   git clone git@github.com:adamspd/django-appointment.git
-   ```
-
-   then go to the project's directory:
-   ```bash
+   # or, with SSH: git clone git@github.com:adamspd/django-appointment.git
    cd django-appointment
    ```
 
-2. **Prepare an .env File**: Create an `.env` file in the root directory of your project with your configuration
-   settings.
-   You should include your email host user and password for Django's email functionality (if you want it to work):
+2. **Create a `.env` file** at the root of the repository. Fill in your own email server's details if you want emails
+   to work:
 
    ```plaintext
-   # Main admin user, can have several others, but you need to change the settings.py configuration then
+   # Main admin user. To add more admins, change ADMINS in appointments/settings.py
    ADMIN_NAME="Super Admin"
    ADMIN_EMAIL=super.admin@example.com
-   
-   # If you don't change these 3 below, docker-compose (or localhost) will fail sending emails
+
+   # Replace these 3 with your own, otherwise sending emails will fail
    EMAIL_HOST_USER=no-reply@example.com
    EMAIL_HOST_PASSWORD=youcantguessme
    EMAIL_HOST=smtp.example.com
-   
-   # default one (can leave it as is)
+
+   # The default backend, you can leave it as is
    EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
-   
-   # if using TLS on your mail server this is ok, else, use 465 for SSL
+
+   # 587 for TLS. For SSL, use 465 and EMAIL_USE_SSL=True instead
    EMAIL_PORT=587
    EMAIL_USE_TLS=True
-   
-   # On localhost, you must install django-q2, with docker-compose, it's already installed
+
+   # Django Q is already installed in the Docker image. Outside Docker, install django-q2 first
    USE_DJANGO_Q=True
    ```
 
-   > **Note:** The `.env` file is used to store sensitive information and should not be committed to version control.
+   > **Note:** The `.env` file holds secrets. Don't commit it.
 
-3. **Build and Run the Docker Containers**: Run the following command to build and run the Docker containers:
+3. **Build and start the containers:**
 
-   ```bash
-   docker-compose up -d --build
-   ```
-
-   or
    ```bash
    docker compose up -d --build
    ```
 
-4. **Make Migrations and Run**: Create the migrations with the following command:
+   > On older Docker installs, use `docker-compose` (with a hyphen) instead of `docker compose` in every command.
+
+4. **Create and apply the migrations:**
 
    ```bash
-   docker-compose exec web python manage.py makemigrations appointment
-   ```
-
-   or
-    ```bash
    docker compose exec web python manage.py makemigrations appointment
-   ```
-
-   Then, apply the migrations with the following command:
-   ```bash
-   docker-compose exec web python manage.py migrate
-   ```
-
-   or
-    ```bash
    docker compose exec web python manage.py migrate
    ```
 
-5. **Create a Superuser**: After the containers are running, create a superuser to access the Django admin interface:
+5. **Create a superuser** to log in to the Django admin:
 
    ```bash
-    docker-compose exec web python manage.py createsuperuser
-    ```
-
-   or
-   ```bash
-    docker compose exec web python manage.py createsuperuser
-    ```
-
-6. **Access the Application**: Once the containers are running, you can access the application at `localhost:8000`. The
-   Django admin interface is available at `localhost:8000/admin`. And from there, add the necessary configurations.
-   [Follow this documentation](https://django-appt-doc.adamspierredavid.com/tutorial/).
-7. **Shut Down the Containers**: When you're finished, you can shut down the containers with the following command:
-
-   ```bash
-   docker-compose down
-   # docker compose down
+   docker compose exec web python manage.py createsuperuser
    ```
 
-   > **Note:** I used the default database settings for the Docker container.
-   > If you want to use a different database, you can modify the Dockerfile and docker-compose.yml files to use your
-   > preferred database.
+6. **Open the app** at http://localhost:8000 and the Django admin at http://localhost:8000/admin/. From there, add a
+   service and a staff member by following the [tutorial](https://django-appt-doc.adamspierredavid.com/tutorial/).
+
+7. **Stop the containers** when you're done:
+
+   ```bash
+   docker compose down
+   ```
+
+> **Note:** The Docker setup uses the project's default database (SQLite). To use another database, change the
+> `Dockerfile` and `docker-compose.yml`.
 <!-- --8<-- [end:docker] -->
 
 ## Compatibility Matrix 📊
 
-A compatibility matrix is available to help you determine which versions of Django and Python are compatible with the
-package.
-The matrix is updated regularly to reflect the latest compatibility test results. For more information, please
-refer to
-the [compatibility matrix here](https://github.com/adamspd/django-appointment/blob/main/compatibility_matrix.md).
+The [compatibility matrix](https://github.com/adamspd/django-appointment/blob/main/compatibility_matrix.md) shows
+which versions of Python and Django the package is tested against. It is updated with each round of compatibility
+tests.
 
 ## Support 💬
 
-For support or inquiries regarding the Appointment Scheduler app, please refer to the documentation in the "docs"
-directory or visit the GitHub repository for more information.
+Have a question? Start with the [documentation site](https://django-appt-doc.adamspierredavid.com/). If you've found a
+bug or something isn't clear, please [open an issue](https://github.com/adamspd/django-appointment/issues).
 
 ## Contributing 🤝
 
-Contributions are welcome! Please refer to
-the [contributing guidelines](https://github.com/adamspd/django-appointment/tree/main/CONTRIBUTING.md) for more
-information.
+Contributions are welcome! Please read the
+[contributing guidelines](https://github.com/adamspd/django-appointment/tree/main/CONTRIBUTING.md) to get started.
 
-> **Important**: Please consider starring the repository if you find it useful. It helps me to know that the project is
-> appreciated and that I should continue to maintain it. Thank you!
+If you find the project useful, a ⭐ on GitHub would mean a lot. It tells me people are using it and that it's worth
+keeping it maintained. Thank you!
 
 ## Code of Conduct 📜
 
-Please refer to the [code of conduct](https://github.com/adamspd/django-appointment/tree/main/CODE_OF_CONDUCT.md) for
-more information.
+Please read the [code of conduct](https://github.com/adamspd/django-appointment/tree/main/CODE_OF_CONDUCT.md).
 
-## Security policy 🔒
+## Security Policy 🔒
 
-Please refer to the [security policy](https://github.com/adamspd/django-appointment/tree/main/SECURITY.md) for more
-information.
+Please read the [security policy](https://github.com/adamspd/django-appointment/tree/main/SECURITY.md), especially
+before reporting a vulnerability.
 
 ## About the Author
 
