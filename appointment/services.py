@@ -129,11 +129,10 @@ def prepare_user_profile_data(user, staff_user_id):
     """
     if user.is_superuser and staff_user_id is None:
         staff_members = get_all_staff_members()
-        btn_staff_me = _("Staff me")
-        btn_staff_me_link = reverse('appointment:make_superuser_staff_member')
-        if StaffMember.objects.filter(user=user).exists():
-            btn_staff_me = _("Remove me")
-            btn_staff_me_link = reverse('appointment:remove_superuser_staff_member')
+        admin_is_staff = StaffMember.objects.filter(user=user).exists()
+        btn_staff_me = _("Remove me") if admin_is_staff else _("Staff me")
+        btn_staff_me_link = reverse('appointment:remove_superuser_staff_member' if admin_is_staff
+                                    else 'appointment:make_superuser_staff_member')
         data = {
             'error': False,
             'template': get_custom_template('staff_list.html', 'administration/staff_list.html'),
@@ -142,7 +141,7 @@ def prepare_user_profile_data(user, staff_user_id):
                 'btn_staff_me': btn_staff_me,
                 'btn_staff_me_link': btn_staff_me_link,
                 # Whether the superuser is a staff member themselves, so templates don't compare links
-                'admin_is_staff': btn_staff_me_link == reverse('appointment:remove_superuser_staff_member'),
+                'admin_is_staff': admin_is_staff,
                 'page_title': _("Staff members"),
                 'page_description': _("Everyone clients can book with."),
             }
@@ -304,10 +303,10 @@ def schedule_form_action(request, entity_type, staff_member, instance=None):
     if entity_type == 'day_off':
         # The day off views read the form on the URL that shows it
         return request.path
-    name = {'unavailability': 'unavailability', 'working_hours': 'working_hours'}[entity_type]
+    # 'unavailability' or 'working_hours', as in the URL names
     if instance:
-        return reverse(f'appointment:update_{name}_id', args=[instance.pk, staff_member.user_id])
-    return reverse(f'appointment:add_{name}_id', args=[staff_member.user_id])
+        return reverse(f'appointment:update_{entity_type}_id', args=[instance.pk, staff_member.user_id])
+    return reverse(f'appointment:add_{entity_type}_id', args=[staff_member.user_id])
 
 
 def schedule_form_titles(entity_type, instance, staff_member):
