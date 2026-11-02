@@ -51,8 +51,8 @@ time. The package deletes the stale ones for you:
 APPOINTMENT_CLEANUP_DAYS = 7  # Delete unassociated appointment requests older than this many days
 ```
 
-If `django_q` is in your `INSTALLED_APPS`, a daily cleanup task is scheduled automatically when the app starts — you
-don't have to register anything. Without Django Q, nothing is scheduled and you can run the cleanup yourself:
+If `django_q` is in your `INSTALLED_APPS`, a daily cleanup task is scheduled automatically the next time you run
+`python manage.py migrate` — you don't have to register anything. Without Django Q, nothing is scheduled and you can run the cleanup yourself:
 
 ```bash
 python manage.py cleanup_appointment_requests
@@ -65,8 +65,8 @@ Only appointment requests with no associated `Appointment` are removed; confirme
 
 ## Django Q Configuration:
 
-For email reminders with Django Q, you can configure the following settings after adding `django_q` to
-your `INSTALLED_APPS`:
+For email reminders with Django Q, install it (`pip install django-q2`), add `django_q` to your `INSTALLED_APPS`,
+then configure the following settings:
 
 ```python
 Q_CLUSTER = {
@@ -80,8 +80,8 @@ Q_CLUSTER = {
 }
 ```
 
-If those settings are not provided, the application won't send email reminders. You also have to
-run `python manage.py qcluster` to start the Django Q cluster.
+If those settings are not provided, the application won't send email reminders. Run `python manage.py migrate` to
+create Django Q's tables, then `python manage.py qcluster` to start the cluster, and keep it running.
 
 ### Sending all emails through Django Q
 
