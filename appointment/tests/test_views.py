@@ -2187,6 +2187,14 @@ class EmailPreviewTests(BaseTest):
         self.assertEqual(html.status_code, 200)
 
     @override_settings(DEBUG=True)
+    def test_one_email_is_built_alone(self):
+        self.need_superuser_login()
+        with patch('appointment.utils.email_ops.build_thank_you_email') as thank_you:
+            response = self.client.get(reverse('appointment:email_preview_detail', args=['verification']))
+        self.assertEqual(response.status_code, 200)
+        thank_you.assert_not_called()
+
+    @override_settings(DEBUG=True)
     def test_unknown_email_is_not_found(self):
         self.need_superuser_login()
         response = self.client.get(reverse('appointment:email_preview_detail', args=['nope']))
