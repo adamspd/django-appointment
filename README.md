@@ -276,9 +276,10 @@ It's the one used when you don't set `APPOINTMENT_BASE_TEMPLATE`.
 
 ## Customization 🔧
 
-You can change the default values (slot duration, lead time, finish time, rest time between appointments, and more)
-in your `settings.py`, and the app adapts to them. The full list is in the
-[configuration documentation](https://django-appt-doc.adamspierredavid.com/configuration/).
+You can change the default values (slot duration, lead time, finish time, and more) in your `settings.py`, and the app
+adapts to them. Most of them can also be changed from the Django admin, in the app's configuration, and the admin
+value wins. The rest time between appointments is only set from the admin, for everyone or per staff member. The full
+list is in the [configuration documentation](https://django-appt-doc.adamspierredavid.com/configuration/).
 
 To go further, you can extend the provided models, views and templates, or write your own.
 
