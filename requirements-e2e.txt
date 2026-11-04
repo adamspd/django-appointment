@@ -1,0 +1,4 @@
+-r requirements-test.txt
+pytest
+pytest-django
+pytest-playwright
