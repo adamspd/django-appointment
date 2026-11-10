@@ -19,9 +19,10 @@ password setup, rescheduling and cancellation.
 
 Run commands from the repository root in an activated virtual environment.
 
-The library supports Python 3.10 with compatible Django versions.
-The commands below use the current requirements.txt.
-Use Python 3.12 or newer for this setup.
+The E2E tools support Python 3.10 or newer. The commands below install
+the current requirements.txt, which pins Django 6.1 and therefore requires
+Python 3.12 or newer. This is a requirement of that Django version, not
+of the browser tests themselves. CI uses Python 3.12 for this setup.
 
 Install dependencies:
 
@@ -60,6 +61,20 @@ Slow down browser actions for inspection:
 
 ```bash
 python -m pytest e2e/test_booking.py -v --headed --slowmo=500
+```
+
+## Continuous integration
+
+The Booking E2E workflow runs these tests in Chromium on pull requests
+targeting main and pushes to main. It uses the same dependency files and
+Linux browser installation command documented above, without a separate
+runserver, SMTP server or Django Q worker.
+
+On failure, Playwright traces and screenshots are uploaded as the
+booking-e2e-results artifact. To run locally with the same diagnostics:
+
+```bash
+python -m pytest e2e/test_booking.py -v --browser chromium --tracing retain-on-failure --screenshot only-on-failure
 ```
 
 ## Test isolation
