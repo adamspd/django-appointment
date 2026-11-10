@@ -181,3 +181,4 @@ data
 
 # compatibility_matrix.sh results and per-combination logs
 test_results/
+test-results/
