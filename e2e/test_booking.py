@@ -9,15 +9,21 @@ from appointment.models import Appointment
 def open_booking_page(page, live_server, service, staff):
     with page.expect_response(
         lambda response: "/ajax/available_slots/" in response.url
-    ):
+    ) as slots_response:
         response = page.goto(
             f"{live_server.url}/en/request/{service.pk}/"
         )
         assert response is not None
         assert response.status == 200
 
+    assert slots_response.value.status == 200
     expect(page.locator("#staff_id")).to_have_value(str(staff.pk))
     expect(page.locator(".fc-daygrid-day").first).to_be_visible()
+
+    # The calendar ignores date requests until its initial AJAX handler finishes.
+    page.wait_for_function(
+        "() => selectedDateIso !== null && !isRequestInProgress"
+    )
 
 
 def select_slot(page, date, start_time, unavailable_start=None):
@@ -88,6 +94,8 @@ def test_new_client_can_book_appointment(
     expect(
         page.get_by_role("heading", name="Enter Verification Code")
     ).to_be_visible()
+    # An unverified client must not have a confirmed appointment yet.
+    assert Appointment.objects.count() == 0
 
     # Read the code from the actual test email.
     verification_emails = [
@@ -100,9 +108,12 @@ def test_new_client_can_book_appointment(
         f"Expected 1 verification email, got {len(verification_emails)}"
     )
 
+    # The shipped English verification_email.txt puts the code on its own
+    # line. A custom verification.html/text template may need another parser.
     match = re.search(
-        r"Your verification code is ([A-Z0-9]{6})",
+        r"^\s*([A-Z0-9]{6})\s*$",
         verification_emails[0].body,
+        re.MULTILINE,
     )
     assert match is not None, "Verification code missing from email"
 
@@ -147,13 +158,15 @@ def test_authenticated_client_can_book_appointment(
     staff = booking_data["staff"]
     date = booking_data["date"]
     user = authenticated_client["user"]
-    previous_id = authenticated_client["previous_appointment"].pk
+    previous_appointment = authenticated_client["previous_appointment"]
+    previous_id = previous_appointment.pk
+    expected_name = user.get_full_name()
 
     previous_start = booking_data["start_time"]
     previous_end = (
         datetime.combine(date, previous_start) + service.duration
     ).time()
-    previous_phone = "+12025550123"
+    previous_phone = str(previous_appointment.phone)
 
     expected_start = authenticated_client["next_start"]
     expected_end = (
@@ -163,7 +176,7 @@ def test_authenticated_client_can_book_appointment(
 
     assert not user.is_staff
     assert not user.is_superuser
-    assert user.get_full_name() == "Returning Client"
+    assert expected_name
     assert Appointment.objects.filter(client=user).count() == 1
 
     # Give the browser the authenticated Django session.
@@ -185,7 +198,7 @@ def test_authenticated_client_can_book_appointment(
 
     # The form uses the existing client's identity.
     expect(page.get_by_label("Full Name")).to_have_value(
-        "Returning Client"
+        expected_name
     )
     expect(page.locator("#id_email")).to_have_count(0)
     expect(

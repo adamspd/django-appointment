@@ -1,0 +1,43 @@
+name: Booking E2E
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  chromium:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      USE_DJANGO_Q: 'False'
+      USE_DJANGO_Q_FOR_EMAILS: 'False'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-test.txt
+            requirements-e2e.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt -r requirements-e2e.txt
+      - name: Install Chromium and system dependencies
+        run: python -m playwright install --with-deps chromium
+      - name: Run booking browser tests
+        run: python -m pytest e2e/test_booking.py -v --browser chromium --tracing retain-on-failure --screenshot only-on-failure
+      - name: Upload failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v5
+        with:
+          name: booking-e2e-results
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 7
