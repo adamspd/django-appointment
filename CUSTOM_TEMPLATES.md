@@ -42,6 +42,8 @@ TEMPLATES = [
 your_project/
 ├── templates/
 │   ├── custom/          # HTML Page templates (configurable via APPOINTMENT_CUSTOM_TEMPLATES_DIR)
+│   │   ├── admin/       # (optional) staff pages can go here...
+│   │   ├── booking/     # (optional) ...and client pages here
 │   │   ├── appointments.html
 │   │   ├── appointment_client_information.html
 │   │   ├── verification_code.html
@@ -65,7 +67,8 @@ your_project/
 │   │   ├── user_profile.html
 │   │   ├── manage_day_off.html
 │   │   ├── manage_unavailability.html
-│   │   └── manage_working_hours.html
+│   │   ├── manage_working_hours.html
+│   │   └── email_preview.html
 │   └── emails/          # Email templates (configurable via APPOINTMENT_CUSTOM_EMAILS_DIR)
 │       ├── thank_you.html
 │       ├── password_reset.html
@@ -78,6 +81,24 @@ your_project/
 ```
 
 You only create the files you actually want to override — everything else keeps using the defaults.
+
+**Folders.** Since 3.13.0, a page is looked for in a subfolder first, then directly in `custom/`:
+
+- staff pages (the `administration/` defaults) in `custom/admin/`,
+- client pages (the `appointment/` defaults) in `custom/booking/`,
+- error pages in the folder of the page that shows them: `custom/admin/404_not_found.html` for a staff page,
+  `custom/booking/404_not_found.html` for a booking link.
+
+So `custom/admin/staff_list.html` wins over `custom/staff_list.html`, and a flat `custom/` folder keeps working.
+
+**Names.** A few pages have an older custom name that differs from their default template's name. Both names work now,
+and the default template's name wins when both files exist:
+
+| Default template's name        | Older name, still accepted |
+|--------------------------------|----------------------------|
+| `default_thank_you.html`       | `thank_you_page.html`      |
+| `set_password.html`            | `password_form.html`       |
+| `enter_verification_code.html` | `verification_code.html`   |
 
 ## Your Base Template
 
@@ -185,16 +206,16 @@ picker, or the widget will fall back to a format the server may not parse back.
 | Template Name                         | When Used                                      | Page-specific Context Variables                                                                                                                                                                                                  | Original Template                                 |
 |---------------------------------------|------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------|
 | `appointments.html`                   | Slot picker, for both booking and rescheduling | `service`, `staff_member`, `all_staff_members`, `page_title`, `page_description`, `available_slots`, `date_chosen`, `locale`, `timezoneTxt`, `label` — plus `rescheduled_date`, `page_header`, `ar_id_request` when rescheduling | `appointment/appointments.html`                   |
-| `appointment_client_information.html` | Client information form page                   | `ar`, `APPOINTMENT_PAYMENT_URL`, `form`, `client_data_form`, `service_name`, `has_required_email_reminder_config`                                                                                                                | `appointment/appointment_client_information.html` |
-| `verification_code.html`              | Email verification code entry page             | `appointment_request_id`, `id_request`                                                                                                                                                                                           | `appointment/enter_verification_code.html`        |
-| `thank_you_page.html`                 | Thank you page after appointment booking       | `appointment`                                                                                                                                                                                                                    | `appointment/default_thank_you.html`              |
+| `appointment_client_information.html` | Client information form page                   | `ar`, `APPOINTMENT_PAYMENT_URL`, `form`, `client_data_form`, `service_name`, `has_required_email_reminder_config` (show `form.<field>.errors` and `client_data_form.<field>.errors`: the default page lists them under each field)                                                                                                                | `appointment/appointment_client_information.html` |
+| `enter_verification_code.html` (or `verification_code.html`) | Email verification code entry page | `appointment_request_id`, `id_request`                                                                                                                                                                                           | `appointment/enter_verification_code.html`        |
+| `default_thank_you.html` (or `thank_you_page.html`) | Thank you page after appointment booking | `appointment`                                                                                                                                                                                                                    | `appointment/default_thank_you.html`              |
 | `rescheduling_thank_you.html`         | Thank you page after rescheduling              | (generic context only)                                                                                                                                                                                                           | `appointment/rescheduling_thank_you.html`         |
 
 #### Password reset
 
 | Template Name           | When Used                        | Page-specific Context Variables                            | Original Template               |
 |-------------------------|----------------------------------|------------------------------------------------------------|---------------------------------|
-| `password_form.html`    | Password reset form page         | `form`, `page_title`, `page_message`, `page_description`   | `appointment/set_password.html` |
+| `set_password.html` (or `password_form.html`) | Password reset form page | `form`, `page_title`, `page_message`, `page_description`   | `appointment/set_password.html` |
 | `password_success.html` | After successful password reset  | `page_title`, `page_message`, `page_description`           | `appointment/thank_you.html`    |
 | `password_error.html`   | When password reset fails        | `page_title`, `page_message`, `page_description`           | `appointment/thank_you.html`    |
 
@@ -209,40 +230,50 @@ picker, or the widget will fall back to a format the server may not parse back.
 
 #### Administration
 
+Since 3.13.0, every staff page also gets `page_title`, `page_description` and `back_url` (the page its **Back** link
+goes to), so an override doesn't have to work them out. The table lists the other keys.
+
 | Template Name                         | When Used                                         | Page-specific Context Variables                                                                                                                                                                       | Original Template                                    |
 |---------------------------------------|---------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------|
-| `staff_index.html`                    | Staff/admin calendar dashboard                    | `appointments` (JSON string)                                                                                                                                                                          | `administration/staff_index.html`                    |
+| `staff_index.html`                    | Staff/admin calendar dashboard                    | `appointments` (JSON string), `calendar_options`                                                                                                                                                                       | `administration/staff_index.html`                    |
 | `display_appointment.html`            | Detail page for a single appointment              | `appointment`, `page_title`, `page_description`                                                                                                                                                       | `administration/display_appointment.html`            |
 | `manage_staff_member.html`            | Add or edit a staff member's appointment settings | `form`                                                                                                                                                                                                | `administration/manage_staff_member.html`            |
 | `manage_staff_personal_info.html`     | Add or edit a staff member's personal information | `form`, `btn_text`                                                                                                                                                                                    | `administration/manage_staff_personal_info.html`     |
 | `email_change_verification_code.html` | Verification code entry after an email change     | (generic context only)                                                                                                                                                                                | `administration/email_change_verification_code.html` |
-| `manage_service.html`                 | Add, edit, or view a service                      | `form`, `btn_text`, `page_title`, `service` (not when adding), `offered_by_me` (view mode only)                                                                                                       | `administration/manage_service.html`                 |
+| `manage_service.html`                 | Add, edit, or view a service                      | `form`, `btn_text`, `mode` (`create`, `edit` or `view`), `service` (not when adding), `offered_by_me` (view mode only)                                                                                                       | `administration/manage_service.html`                 |
 | `service_list.html`                   | List of all services                              | `services`                                                                                                                                                                                            | `administration/service_list.html`                   |
-| `staff_list.html`                     | List of all staff members, shown to a superuser   | `staff_members`, `btn_staff_me`, `btn_staff_me_link`                                                                                                                                                  | `administration/staff_list.html`                     |
-| `user_profile.html`                   | A staff member's profile page                     | `superuser`, `user`, `staff_member`, `days_off`, `unavailabilities`, `working_hours`, `services_offered`, `staff_member_not_found`, `buffer_time_help_text`, `slot_duration_help_text`, `service_msg` | `administration/user_profile.html`                   |
-| `manage_day_off.html`                 | Add or edit a day off                             | `button_text`, `day_off_form`                                                                                                                                                                         | `administration/manage_day_off.html`                 |
-| `manage_unavailability.html`          | Add or edit an unavailability                     | `button_text`, `unavailability_form`, `staff_user_id`, `entity_instance` and `entity_id` (edit only)                                                                                                  | `administration/manage_unavailability.html`          |
-| `manage_working_hours.html`           | Add or edit working hours                         | `button_text`, `working_hours_form`, `staff_user_id`, `entity_instance` and `entity_id` (edit only)                                                                                                   | `administration/manage_working_hours.html`           |
+| `staff_list.html`                     | List of all staff members, shown to a superuser   | `staff_members`, `btn_staff_me`, `btn_staff_me_link`, `admin_is_staff`                                                                                                                                                  | `administration/staff_list.html`                     |
+| `user_profile.html`                   | A staff member's profile page                     | `superuser`, `profile_user` (the staff member; `user` holds it too, as before), `staff_member`, `days_off`, `unavailabilities`, `working_hours`, `services_offered`, `staff_member_not_found`, `buffer_time_help_text`, `slot_duration_help_text`, `service_msg` | `administration/user_profile.html`                   |
+| `manage_day_off.html`                 | Add or edit a day off                             | `button_text`, `day_off_form`, `form_action`                                                                                                                                                                         | `administration/manage_day_off.html`                 |
+| `manage_unavailability.html`          | Add or edit an unavailability                     | `button_text`, `unavailability_form`, `form_action`, `staff_user_id`, `entity_instance` and `entity_id` (edit only)                                                                                                  | `administration/manage_unavailability.html`          |
+| `manage_working_hours.html`           | Add or edit working hours                         | `button_text`, `working_hours_form`, `form_action`, `staff_user_id`, `entity_instance` and `entity_id` (edit only)                                                                                                   | `administration/manage_working_hours.html`           |
 
 > **Note:** `user-profile/` serves two different templates. A superuser visiting it without a `staff_user_id` gets
 > `staff_list.html`; everyone else, and a superuser visiting a specific member, gets `user_profile.html`. Override
 > whichever you need — they are independent.
 >
-> The three `manage_*` forms post their values back as pre-formatted hidden fields (`date_raw`, `start_time_raw`,
-> `end_time_raw`, and `day_of_week` for working hours) alongside the localized ones the user sees. A replacement
-> template must keep those, or the view will not be able to parse the submission.
+> The three `manage_*` forms post to `form_action` with the model's field names and ISO values: `start_date`,
+> `end_date` and `description` for a day off; `date` (`YYYY-MM-DD`), `start_time`, `end_time` (`HH:MM`) and
+> `description` for an unavailability; `day_of_week` (`0` for Sunday to `6`), `start_time` and `end_time` for working
+> hours. The browser's `<input type="date">` and `<input type="time">` send exactly that. A wrong value comes back as
+> JSON with status 400, `{"errors": {"<field>": ["..."]}}`, and the default script shows each message under its
+> field. The old `date_raw`, `start_time_raw` and `end_time_raw` fields are still read when a template sends them.
 >
 > Every delete and remove action (`delete_service`, `delete_appointment`, `delete_day_off`, `delete_unavailability`,
 > `delete_working_hours`, `remove_staff_member`) and the staff-me toggle (`btn_staff_me_link`) only accept **POST**;
 > a GET returns `405`. Use a small `<form method="post">` with `{% csrf_token %}`, or the default
-> `modal/confirm_modal.html` with `js/modal/show_modal.js`, which submits one for you.
+> `modal/confirm_modal.html` with `js/modal/show_modal.js`, which submits one for you. Every staff page already has
+> both (see [Confirm dialogs](#confirm-dialogs)).
 >
 > `staff_index.html` builds the appointment modal's form in three functions the page defines,
 > `createCommonInputFields`, `generateModalContent` and `prepareCreateAppointmentModalContent`, and
 > `js/app_admin/staff_index.js` calls them. A replacement page must define them too, and keep the inputs' `name`s,
 > the `serviceSelect` / `staffSelect` dropdown ids and the element ids the script uses (`calendar`,
 > `event-list-container`, `customContextMenu`, `newAppointmentOption`, and the modal's `eventModalLabel`,
-> `eventModalBody` and buttons). Copying the packaged template and changing its markup is the easiest start.
+> `eventModalBody` and buttons). Copying the packaged template and changing its markup is the easiest start. The
+> modal's Close button is found by `data-djappt="close"`, and a field's wrapper by `data-djappt="field"` (the end time's
+> wrapper is hidden while editing); the older `.btn-secondary[data-bs-dismiss='modal']` and `.djappt-field` still work.
+> See [The calendar](#the-calendar) for its options.
 
 ### Email Templates (Emails Directory)
 
@@ -251,9 +282,9 @@ These are HTML emails sent to users:
 | Template Name                             | When Sent                             | Fallback Behavior          | Context Variables                                                                                                                                                                 |
 |-------------------------------------------|---------------------------------------|----------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `thank_you.html`                          | Appointment confirmation              | Uses default HTML template | `first_name`, `message_1`, `current_year`, `company`, `more_details`, `account_details`, `message_2`, `month_year`, `day`, `activation_link`, `main_title`, `reschedule_link`     |
-| `password_reset.html`                     | Staff member password setup           | Plain text email           | `first_name`, `current_year`, `company`, `activation_link`, `account_details`, `username`, `login_instruction`, `user`, `website_name`                                            |
-| `verification.html`                       | Email address verification            | Plain text email           | `user`, `first_name`, `verification_code`, `company`                                                                                                                              |
-| `reminder_email.html`                     | 24h appointment reminder (Django Q)   | Uses default HTML template | `first_name`, `appointment`, `reschedule_link`, `recipient_type` (`'client'` or `'admin'`)                                                                                        |
+| `password_reset.html`                     | Staff member password setup           | Uses default HTML template | `first_name`, `current_year`, `company`, `activation_link`, `account_details`, `username`, `login_instruction`, `user`, `website_name`                                            |
+| `verification.html`                       | Email address verification            | Uses default HTML template | `user`, `first_name`, `verification_code`, `company`                                                                                                                              |
+| `reminder_email.html`                     | 24h appointment reminder (Django Q)   | Uses default HTML template | `first_name` (empty in the admin copy), `client_first_name` (admin copy), `appointment`, `reschedule_link`, `recipient_type` (`'client'` or `'admin'`)                                                                                      |
 | `new_appointment_admin_notification.html` | Admin/staff notified of a new booking | Uses default HTML template | `recipient_name`, `client_name`, `appointment`, `is_staff_member`, `staff_member_name`                                                                                            |
 | `reschedule.html`                         | Reschedule confirmation request       | Uses default HTML template | `is_confirmation`, `first_name`, `old_date`, `reschedule_date`, `old_start_time`, `start_time`, `old_end_time`, `end_time`, `confirmation_link`, `company`                        |
 | `reschedule_admin.html`                   | Admin notification of reschedule      | Uses default HTML template | `is_confirmation`, `client_name`, `service_name`, `reason_for_rescheduling`, `old_date`, `reschedule_date`, `old_start_time`, `start_time`, `old_end_time`, `end_time`, `company` |
@@ -269,6 +300,110 @@ These are HTML emails sent to users:
 > **Plain-text part:** every HTML email is also sent with a plain-text version. It is rendered from a `.txt` template
 > with the same name next to the HTML one when there is one (`emails/thank_you.txt` for `emails/thank_you.html`, with
 > the same context), and derived from the HTML otherwise.
+
+> **Subject:** a `.subject.txt` template next to the HTML one replaces the subject set by the package. Its first line
+> that isn't empty is used, with the same context: `emails/thank_you.subject.txt` could hold
+> `Your booking at {{ company }} on {{ appointment_request.date|date }}`.
+
+**Context shared by every email.** Since 3.13.0, each email also gets the keys below, on top of the ones in the table
+(the table's keys win when the names are the same).
+
+| Key | What it holds |
+|---|---|
+| `company` | The website name (`Config` model, or `APPOINTMENT_WEBSITE_NAME`) |
+| `site_url` | The site's address without a trailing slash (`https://www.example.com`), taken from the request |
+| `current_year` | The current year |
+| `dashboard_url` | Full link to the staff calendar |
+| `appointment_request`, `service`, `service_name`, `staff_member` | When the email is about an appointment |
+| `reschedule_url` | Full link to reschedule it |
+| `appointment`, `client`, `client_name`, `appointment_url` | When the appointment exists; `appointment_url` is the full link to its staff page |
+
+The links start with the address of the request that triggered the email, like the set-password and reschedule
+links always have. The reminder is sent later by Django Q, without a request: it uses the address of the booking
+request, saved when the reminder was scheduled. Behind a proxy, set Django's `USE_X_FORWARDED_HOST` and
+`SECURE_PROXY_SSL_HEADER` so the address is right.
+
+**Preview.** With `DEBUG = True`, a superuser can open `app-admin/email-preview/` to see every email the package sends,
+built for the latest appointment: its subject, the template used (so you can check your override is picked), and its
+HTML and text parts. The page returns 404 when `DEBUG` is off.
+
+## Building Staff Pages
+
+These help when you override the staff pages. They are all new in 3.13.0.
+
+### Named blocks
+
+Every staff page puts its **Back** link in `{% block djappt_back %}`, its title in `{% block djappt_heading %}` and its
+buttons next to the title in `{% block djappt_actions %}`. To change only those, extend the default page instead of
+copying it:
+
+```django
+{% extends "administration/service_list.html" %}
+{% block djappt_heading %}<h1>Our treatments</h1>{% endblock %}
+{% block djappt_actions %}{% endblock %}
+```
+
+Save it as `custom/admin/service_list.html` (or `custom/service_list.html`).
+
+### Messages
+
+Every page shows the Django messages through one file, `appointment/_messages.html`. Override that file
+(`templates/appointment/_messages.html`) to restyle them everywhere. If your base template already shows the messages,
+override it with an empty file and the package pages leave them to your base. In your own page overrides, include it
+the same way: `{% include "appointment/_messages.html" %}` (options: `wrapper_class`, `alert_class`, and
+`dismissible=False` to keep the messages on screen).
+
+### Confirm dialogs
+
+Every staff page has one confirm dialog (`modal/confirm_modal.html`) and its script. A button opens it with data
+attributes, and the dialog then POSTs to the URL you give:
+
+```django
+<button type="button" class="btn btn-danger"
+        data-djappt-confirm="{% url 'appointment:delete_service' service.id %}"
+        data-confirm-title="{% translate 'Confirm Deletion' %}"
+        data-confirm-message="{% translate 'Are you sure you want to delete this service?' %}"
+        data-confirm-action="{% translate 'Delete' %}">{% translate 'Delete' %}</button>
+```
+
+The old `onclick="showModal(...)"` still works.
+
+### Your own context
+
+To add your own keys to the package pages, use a Django
+[context processor](https://docs.djangoproject.com/en/stable/ref/templates/api/#writing-your-own-context-processors).
+It runs for every page, and `request.resolver_match.url_name` tells you which one (`'get_service_list'`,
+`'user_profile'`...).
+
+### The calendar
+
+`APPOINTMENT_CALENDAR_OPTIONS` sets up the staff calendar (`staff_index.html`). The page prints it with
+`{{ calendar_options|json_script:"djappt-calendar-options" }}`; keep that line in an override.
+
+```python
+APPOINTMENT_CALENDAR_OPTIONS = {
+    'height': 'fill',       # 'fill' (default), 'auto', a number of pixels, or any CSS height
+    'fillRatio': 1,         # with 'fill': end the calendar at this share of the window height (default 0.95)
+    'bottomOffset': 80,     # with 'fill': pixels to leave below it, for a footer
+    'minHeight': 500,       # with 'fill': never shorter than this
+    'initialView': 'timeGridWeek',  # any other key is passed to FullCalendar as is
+    'firstDay': 1,
+}
+```
+
+### Forms
+
+- `APPOINTMENT_FORM_CLASSES` swaps the Bootstrap classes the package puts on its form fields for yours. An empty
+  string removes a class:
+  ```python
+  APPOINTMENT_FORM_CLASSES = {'form-control': 'input', 'form-select': 'select', 'form-check-input': ''}
+  ```
+- The service `duration` is two inputs, `duration_hours` and `duration_minutes` (`{{ form.duration }}` draws both).
+  A single `duration` value in `HH:MM:SS`, as older templates send, still works.
+- `services_offered` is a list of checkboxes: `{{ form.services_offered }}`, or loop over it to draw your own.
+- The service image uses Django's `ClearableFileInput`: the file input is named `image`, and the "clear" checkbox
+  `image-clear`. A custom template that draws its own input must keep those names.
+- The price and down payment are never localized, so `<input type="number">` always gets a dot (`150.50`).
 
 ## Template Examples
 
@@ -544,7 +679,8 @@ The following are just examples. You can customize them as you see fit. Or you c
 ## Testing Your Templates
 
 1. Create your custom templates
-2. Trigger the relevant actions (booking, password reset, etc.)
+2. Trigger the relevant actions (booking, password reset, etc.), or, for emails, open the preview page
+   (`app-admin/email-preview/`, `DEBUG` only)
 3. Check that your templates are being used
 4. Verify fallback works by temporarily renaming your template files
 

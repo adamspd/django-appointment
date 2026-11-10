@@ -15,19 +15,15 @@
     {% translate "Remove" as remove_btn_modal %}
     {% translate "Are you sure you want to remove this staff member?" as r_modal_message %}
     <div class="djappt-shell djappt-staff content content-wrapper">
-        {% if messages %}
-            <div class="messages">
-                {% for message in messages %}
-                    <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
-                         role="alert">{{ message }}</div>
-                {% endfor %}
-            </div>
-        {% endif %}
+        {% include "appointment/_messages.html" %}
 
         <header class="djappt-page-head">
             <div>
+                {% block djappt_heading %}
                 <h1 class="djappt-title">{% trans 'Staff Members' %}</h1>
+                {% endblock %}
             </div>
+            {% block djappt_actions %}
             <div class="djappt-page-tools">
                 {# Adds (or removes) the logged-in superuser as a staff member #}
                 <form method="post" action="{{ btn_staff_me_link }}">
@@ -40,6 +36,7 @@
                     </svg>
                     {% trans 'Add staff member' %}</a>
             </div>
+            {% endblock %}
         </header>
 
         <div class="djappt-card">
@@ -55,7 +52,7 @@
                         <div class="djappt-row-actions">
                             <a class="btn djappt-btn djappt-btn-outline djappt-btn-sm" href="{{ profile_url }}">{% trans 'View Profile' %}</a>
                             <button type="button" class="btn djappt-btn djappt-btn-ghost djappt-btn-sm djappt-text-danger"
-                                    onclick="showModal('{{ modal_title|escapejs }}', '{{ r_modal_message|escapejs }}', '{{ remove_btn_modal|escapejs }}', '{% url 'appointment:remove_staff_member' staff_member.user.id %}', null)">
+                                    data-djappt-confirm="{% url 'appointment:remove_staff_member' staff_member.user.id %}" data-confirm-title="{{ modal_title }}" data-confirm-message="{{ r_modal_message }}" data-confirm-action="{{ remove_btn_modal }}">
                                 {% trans 'Remove' %}</button>
                         </div>
                     </li>
@@ -69,11 +66,9 @@
                 {% trans "PS: Remove means, deleting the staff status of the user. The user account is still active." %}
             </p>
         </div>
-        {% include 'modal/confirm_modal.html' %}
     </div>
 {% endblock %}
 
 {% block customJS %}
-    <script src="{% static 'js/modal/show_modal.js' %}"></script>
     <script src="{% static 'js/js-utils.js' %}"></script>
 {% endblock %}

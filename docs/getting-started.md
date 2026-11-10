@@ -16,7 +16,7 @@ Django-Appointment is a flexible Django app for managing appointment scheduling.
    INSTALLED_APPS = [
        # other apps
        'appointment',
-       'django_q',  # Optional: for email reminders
+       'django_q',  # Optional: for email reminders (pip install django-q2)
    ]
    ```
 
@@ -39,11 +39,18 @@ Django-Appointment is a flexible Django app for managing appointment scheduling.
    AUTH_USER_MODEL = 'your_app.YourUserModel'  # Optional if using Django's default user model
    ```
 
-- Set the website name:
+   The package creates an account for each new client when they book. It calls your manager's `create_user` with
+   keyword arguments and no password: `create_user(username=..., email=..., first_name=..., last_name=...)` if your
+   model has a `username` field, `create_user(email=..., first_name=..., last_name=...)` otherwise. Make sure your
+   `create_user` accepts those and works without a password. The client then gets an email to set their password.
+
+- *(Optional)* Set the website name, shown at the top of the emails sent to clients:
 
    ```python
    APPOINTMENT_WEBSITE_NAME = 'Your Website Name'
    ```
+
+   It can also be set in the Config model from the admin, and that value wins over the setting.
 
 - For email reminders (optional), configure Django Q:
 
@@ -76,6 +83,9 @@ For more configuration options, refer to [the configuration reference](configura
    python manage.py migrate
    ```
 
+   `migrate` also creates Django Q's tables. If you add `django_q` later, run `migrate` again before starting the
+   cluster, otherwise it fails with `no such table: django_q_ormq`.
+
 - Start the Django Q cluster (if using email reminders):
 
    ```bash
@@ -93,6 +103,10 @@ For more configuration options, refer to [the configuration reference](configura
 - Access the admin panel at `http://127.0.0.1:8000/admin/` to create services, manage configurations, and handle appointments.
 
 - Create at least one service before using the application.
+
+- Add at least one staff member who offers that service, and give them working hours. Without one, the booking page
+  has no slots to show. You can do it from the admin or from the staff pages at
+  `http://127.0.0.1:8000/appointment/app-admin/user-profile/`. The [tutorial](tutorial.md) shows each step.
 
 - Access the appointment booking page at `http://127.0.0.1:8000/appointment/request/<service_id>/`.
 

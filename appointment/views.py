@@ -11,11 +11,10 @@ from datetime import timedelta
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.forms import SetPasswordForm
-from django.db.models import Q
 from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from django.utils import timezone, translation
+from django.utils import timezone
 from django.utils.encoding import force_str
 from django.utils.formats import date_format, localize, get_format
 from django.utils.http import urlsafe_base64_decode
@@ -25,7 +24,7 @@ from django.utils.translation import gettext as _
 from appointment.forms import AppointmentForm, AppointmentRequestForm, ClientDataForm, SlotForm
 from appointment.logger_config import get_logger
 from appointment.models import (
-    Appointment, AppointmentRequest, AppointmentRescheduleHistory, Config, DayOff, EmailVerificationCode,
+    Appointment, AppointmentRequest, AppointmentRescheduleHistory, Config, EmailVerificationCode,
     PasswordResetToken, Service,
     StaffMember
 )
@@ -34,11 +33,10 @@ from appointment.utils.db_helpers import (
     can_appointment_be_rescheduled, check_day_off_for_staff, create_and_save_appointment,
     create_payment_info_and_get_url, get_non_working_days_for_staff, get_user_by_email, get_user_model,
     get_website_name, get_weekday_num_from_date, is_working_day, staff_change_allowed_on_reschedule,
-    update_user_name, username_in_user_model
+    update_user_name
 )
-from appointment.utils.email_ops import notify_admin_about_appointment, notify_admin_about_reschedule, \
-    send_reschedule_confirmation_email, \
-    send_thank_you_email
+from appointment.utils.email_ops import get_thank_you_details, notify_admin_about_appointment, \
+    notify_admin_about_reschedule, send_reschedule_confirmation_email, send_thank_you_email
 from appointment.utils.session import get_appointment_data_from_session, login_or_create_user_by_mail
 from appointment.utils.view_helpers import get_locale
 from .decorators import require_ajax
@@ -345,7 +343,7 @@ def create_appointment(request, appointment_request_obj, client_data, appointmen
     """
     appointment = create_and_save_appointment(appointment_request_obj, client_data, appointment_data, request)
     allow_thank_you_page(request, appointment)
-    notify_admin_about_appointment(appointment, appointment.client.first_name)
+    notify_admin_about_appointment(appointment, appointment.client.first_name, request=request)
     return redirect_to_payment_or_thank_you_page(appointment)
 
 
@@ -362,7 +360,7 @@ def appointment_client_information(request, appointment_request_id, id_request):
 
     if request.session.get(f'appointment_submitted_{id_request}', False):
         context = get_generic_context_with_extra(request, {'service_id': ar.service_id}, admin=False)
-        template = get_custom_template('304_already_submitted.html', 'error_pages/304_already_submitted.html')
+        template = get_custom_template('304_already_submitted.html', 'error_pages/304_already_submitted.html', area='booking')
         return render(request, template, context=context)
 
     client_data_form = ClientDataForm(request.POST or None, user = request.user)
@@ -446,7 +444,7 @@ def enter_verification_code(request, appointment_request_id, id_request):
         'id_request': id_request,
     }
     context = get_generic_context_with_extra(request, extra_context, admin=False)
-    verification_code_template = get_custom_template('verification_code.html',
+    verification_code_template = get_custom_template(('enter_verification_code.html', 'verification_code.html'),
                                                      'appointment/enter_verification_code.html')
     return render(request, verification_code_template, context)
 
@@ -467,21 +465,7 @@ def default_thank_you(request, appointment_id):
         raise Http404
     ar = appointment.appointment_request
     email = appointment.client.email
-    appointment_details = {
-        _('Service'): appointment.get_service_name(),
-        _('Appointment Date'): appointment.get_appointment_date(),
-        _('Appointment Time'): appointment.appointment_request.start_time,
-        _('Duration'): appointment.get_service_duration()
-    }
-    account_details = {
-        _('Email address'): email,
-    }
-    if username_in_user_model():
-        account_details[_('Username')] = appointment.client.username
-
-    # If the client already has an account, don't show the 'create password' part in the email
-    if appointment.client.has_usable_password():
-        account_details = None
+    appointment_details, account_details = get_thank_you_details(appointment)
 
     # Send the thank-you email (also used for rescheduling and after verification code sent), once per booking
     pages = request.session.get(THANK_YOU_SESSION_KEY, {})
@@ -494,7 +478,7 @@ def default_thank_you(request, appointment_id):
         'appointment': appointment,
     }
     context = get_generic_context_with_extra(request, extra_context, admin=False)
-    thank_you_template = get_custom_template('thank_you_page.html', 'appointment/default_thank_you.html')
+    thank_you_template = get_custom_template(('default_thank_you.html', 'thank_you_page.html'), 'appointment/default_thank_you.html')
     return render(request, thank_you_template, context=context)
 
 
@@ -509,7 +493,7 @@ def set_passwd(request, uidb64, token):
     # Simple template lookup - user must name their templates exactly these names
     error_template = get_custom_template('password_error.html', 'appointment/thank_you.html')
     success_template = get_custom_template('password_success.html', 'appointment/thank_you.html')
-    form_template = get_custom_template('password_form.html', 'appointment/set_password.html')
+    form_template = get_custom_template(('set_password.html', 'password_form.html'), 'appointment/set_password.html')
 
     try:
         uid = force_str(urlsafe_base64_decode(uidb64))
@@ -556,7 +540,7 @@ def prepare_reschedule_appointment(request, id_request):
         url = reverse('appointment:appointment_request', kwargs={'service_id': ar.service.id})
         context = get_generic_context_with_extra(request, {'url': url, }, admin=False)
         logger.error(f"Appointment with id_request {id_request} cannot be rescheduled")
-        template = get_custom_template('403_forbidden_rescheduling.html', 'error_pages/403_forbidden_rescheduling.html')
+        template = get_custom_template('403_forbidden_rescheduling.html', 'error_pages/403_forbidden_rescheduling.html', area='booking')
         return render(request, template, context=context, status=403)
 
     service = ar.service
@@ -642,7 +626,7 @@ def confirm_reschedule(request, id_request):
         error_message = _("O-o-oh! This link is no longer valid.") if not reschedule_history.still_valid() else _(
                 "O-o-oh! Can't find the pending reschedule request.")
         context = get_generic_context_with_extra(request, {"error_message": error_message}, admin=False)
-        template = get_custom_template('404_not_found.html', 'error_pages/404_not_found.html')
+        template = get_custom_template('404_not_found.html', 'error_pages/404_not_found.html', area='booking')
         return render(request, template, status=404, context=context)
 
     ar = reschedule_history.appointment_request
@@ -672,6 +656,6 @@ def confirm_reschedule(request, id_request):
     messages.success(request, _("Appointment rescheduled successfully"))
     # notify admin and the concerned staff admin about client's rescheduling
     client_name = Appointment.objects.get(appointment_request=ar).client.get_full_name()
-    notify_admin_about_reschedule(reschedule_history, ar, client_name)
+    notify_admin_about_reschedule(reschedule_history, ar, client_name, request=request)
     allow_thank_you_page(request, ar.appointment)
     return redirect('appointment:default_thank_you', appointment_id=ar.appointment.id)

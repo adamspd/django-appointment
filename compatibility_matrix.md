@@ -1,13 +1,13 @@
 # Compatibility Matrix
 
-| Django \ Python | 3.10 | 3.11 | 3.12 | 3.13 | 3.14 |
-|-----------------|------|------|------|------|------|
-| 4.2             | PASS | PASS | PASS | -    | -    |
-| 5.0             | PASS | PASS | PASS | -    | -    |
-| 5.1             | PASS | PASS | PASS | PASS | -    |
-| 5.2             | PASS | PASS | PASS | PASS | -    |
-| 6.0             | -    | -    | PASS | PASS | PASS |
-| 6.1             | -    | -    | PASS | PASS | PASS |
+| Django \ Python | 3.11 | 3.12 | 3.13 | 3.14 |
+|-----------------|------|------|------|------|
+| 4.2             | PASS | PASS | -    | -    |
+| 5.0             | PASS | PASS | -    | -    |
+| 5.1             | PASS | PASS | PASS | -    |
+| 5.2             | PASS | PASS | PASS | -    |
+| 6.0             | -    | PASS | PASS | PASS |
+| 6.1             | -    | PASS | PASS | PASS |
 
 ## Test Results Explanation
 
