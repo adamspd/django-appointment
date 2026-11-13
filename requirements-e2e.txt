@@ -1,4 +1,4 @@
 -r requirements-test.txt
-pytest==9.1.1
+pytest==9.2.0
 pytest-django==4.14.0
 pytest-playwright==0.10.0
