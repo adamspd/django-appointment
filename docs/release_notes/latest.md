@@ -6,7 +6,7 @@
 
 ## Introduction 📜
 
-Version 3.14.0 adds Brazilian Portuguese. 🇧🇷 It is a small release with no database change, no new setting and no
+Version 3.14.0 adds Brazilian Portuguese 🇧🇷 and the first browser tests for booking. It is a small release with no database change, no new setting and no
 code change to the package's logic, so upgrading is a drop-in. The version number is a happy coincidence: this release
 is 3.14, and we did not bake it, so there is no slice of Pi to share, only translations. 🥧
 
@@ -30,8 +30,9 @@ is 3.14, and we did not bake it, so there is no slice of Pi to share, only trans
 
 These changes do not affect how the package works for you.
 
-- **Browser tests for booking.** The repository now has Playwright tests (Chromium, run in CI) for the two booking
-  flows: a new client who verifies their email, and a signed-in client who books another slot. See `e2e/README.md`.
+- **Browser tests for booking.** Thanks to [@trippiez](https://github.com/trippiez) for adding Playwright tests
+  (Chromium, run in CI) for the two booking flows: a new client who verifies their email, and a signed-in client who
+  books another slot. See `e2e/README.md`.
 - **Updated dependencies.** The pinned versions of Django (6.1.3), phonenumbers (9.0.43), pytest and the documentation
   tools are up to date, and the GitHub Actions workflows use the latest action versions.
 - **TestPyPI uploads skip files that already exist,** so a second push of the same version no longer fails the
