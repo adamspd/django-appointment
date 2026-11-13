@@ -29,6 +29,10 @@ jobs:
             requirements-e2e.txt
       - name: Install dependencies
         run: python -m pip install -r requirements.txt -r requirements-e2e.txt
+      - name: Create migrations
+        run: |
+          python manage.py makemigrations
+          python manage.py migrate
       - name: Install Chromium and system dependencies
         run: python -m playwright install --with-deps chromium
       - name: Run booking browser tests

@@ -1,9 +1,8 @@
-import re
 from datetime import datetime
 
 from playwright.sync_api import expect
 
-from appointment.models import Appointment
+from appointment.models import Appointment, EmailVerificationCode
 
 
 def open_booking_page(page, live_server, service, staff):
@@ -97,27 +96,17 @@ def test_new_client_can_book_appointment(
     # An unverified client must not have a confirmed appointment yet.
     assert Appointment.objects.count() == 0
 
-    # Read the code from the actual test email.
-    verification_emails = [
-        message
-        for message in mailoutbox
-        if email in message.to
-        and message.subject == "Email Verification"
-    ]
-    assert len(verification_emails) == 1, (
-        f"Expected 1 verification email, got {len(verification_emails)}"
+    # One email must go out, and its code must be the stored one.
+    emails_to_client = [m for m in mailoutbox if email in m.to]
+    assert len(emails_to_client) == 1, (
+        f"Expected 1 email, got {len(emails_to_client)}"
     )
+    code = EmailVerificationCode.objects.get(
+        user__email=email
+    ).code
+    assert code in emails_to_client[0].body
 
-    # The shipped English verification_email.txt puts the code on its own
-    # line. A custom verification.html/text template may need another parser.
-    match = re.search(
-        r"^\s*([A-Z0-9]{6})\s*$",
-        verification_emails[0].body,
-        re.MULTILINE,
-    )
-    assert match is not None, "Verification code missing from email"
-
-    page.get_by_label("Code", exact=True).fill(match.group(1))
+    page.get_by_label("Code", exact=True).fill(code)
     page.get_by_role("button", name="Submit", exact=True).click()
 
     expect(
@@ -220,13 +209,10 @@ def test_authenticated_client_can_book_appointment(
         page.locator(".appointment-details")
     ).to_contain_text(service.name)
 
-    verification_emails = [
-        message
-        for message in mailoutbox
-        if user.email in message.to
-        and message.subject == "Email Verification"
-    ]
-    assert verification_emails == []
+    # No code is created for a logged-in client. The only email they get
+    # is the booking confirmation, so no email can carry a code.
+    assert not EmailVerificationCode.objects.filter(user=user).exists()
+    assert len([m for m in mailoutbox if user.email in m.to]) == 1
 
     assert django_user_model.objects.count() == user_count_before
     assert django_user_model.objects.filter(email=user.email).count() == 1
