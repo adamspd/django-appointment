@@ -6,9 +6,10 @@
 
 ## Introduction 📜
 
-Version 3.14.0 adds Brazilian Portuguese 🇧🇷 and the first browser tests for booking. It is a small release with no database change, no new setting and no
-code change to the package's logic, so upgrading is a drop-in. The version number is a happy coincidence: this release
-is 3.14, and we did not bake it, so there is no slice of Pi to share, only translations. 🥧
+Version 3.14.0 adds Brazilian Portuguese 🇧🇷 and the first browser tests for booking. It is a small release with no
+database change, no new setting and no change to the package's logic, so upgrading is a drop-in. The version number is
+a happy coincidence: this release is 3.14, and we did not bake it, so there is no slice of Pi to share, only
+translations and tests. 🥧
 
 ## What's New ✨
 
