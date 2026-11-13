@@ -39,7 +39,7 @@ jobs:
         run: python -m pytest e2e/test_booking.py -v --browser chromium --tracing retain-on-failure --screenshot only-on-failure
       - name: Upload failure diagnostics
         if: failure()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: booking-e2e-results
           path: test-results/
