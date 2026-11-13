@@ -9,7 +9,7 @@ from django.test import TestCase
 from django.utils import timezone
 
 from appointment.utils.date_time import (
-    combine_date_and_time, convert_12_hour_time_to_24_hour_time, convert_24_hour_time_to_12_hour_time,
+    DATE_FORMATS, combine_date_and_time, convert_12_hour_time_to_24_hour_time, convert_24_hour_time_to_12_hour_time,
     convert_minutes_in_human_readable_format, convert_str_to_date,
     convert_str_to_time, get_ar_end_time, get_current_year, get_timestamp, get_weekday_num,
     time_difference
@@ -411,3 +411,22 @@ class GeneralDateTimeTests(TestCase):
     def test_invalid_get_weekday_num(self):
         """Test get_weekday_num function with invalid input which should return -1"""
         self.assertEqual(get_weekday_num("InvalidDay"), -1)
+
+
+class DateFormatsTests(TestCase):
+    """Every entry of DATE_FORMATS must format a date: letters meant as text have to be escaped."""
+
+    def test_every_format_works_on_a_date(self):
+        from django.utils import translation
+        from django.utils.formats import date_format
+        day = datetime.date(2025, 8, 14)
+        for lang, fmt in DATE_FORMATS.items():
+            with self.subTest(lang=lang), translation.override(lang):
+                date_format(day, fmt, use_l10n=True)
+
+    def test_portuguese_keeps_the_word_de(self):
+        from django.utils import translation
+        from django.utils.formats import date_format
+        with translation.override('pt-br'):
+            self.assertEqual(date_format(datetime.date(2025, 8, 14), DATE_FORMATS['pt'], use_l10n=True),
+                             "Qui, 14 de Agosto de 2025")
