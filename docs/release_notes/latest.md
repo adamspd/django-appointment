@@ -1,49 +1,61 @@
 # django-appointment 📦
 
-**v3.13.1 🆕**
+**v3.14.0 🆕**
 
-## ___Release Notes for Version 3.13.1___
+## ___Release Notes for Version 3.14.0___
 
 ## Introduction 📜
 
-Version 3.13.1 is a bug fix release for 3.13.0. It fixes the right-click menu on the staff calendar, which could open
-away from the cursor and run off the edge of the window. There is no database change and no setting to add; see the
-[3.13.0 release notes](v3_13_0.md) for everything new in the 3.13 series.
+Version 3.14.0 adds Brazilian Portuguese. 🇧🇷 It is a small release with no database change, no new setting and no
+code change to the package's logic, so upgrading is a drop-in. The version number is a happy coincidence: this release
+is 3.14, and we did not bake it, so there is no slice of Pi to share, only translations. 🥧
 
-## Bug Fixes 🐛
+## What's New ✨
 
-- **The calendar's right-click menu opens at the cursor.** The **New Appointment** menu was placed at the cursor's
-  position on the page. On a site whose layout scrolls an inner area or positions the content column (an admin with a
-  sidebar and a fixed header, for example), that position was off by the sidebar's width and the header's height. The
-  menu is now placed at the cursor's position in the window, so it lands next to the cursor whatever the layout.
-- **The menu stays inside the window.** Near the right or bottom edge, it now opens to the left of or above the cursor
-  instead of running off the screen.
-- **The menu closes as you'd expect.** Besides a click, it now also closes on Escape, when the page or any scrolling
-  area scrolls, and when the window is resized, rather than staying where it was while the calendar moved.
+- **Brazilian Portuguese (`pt-br`).** Thanks to [@FelipeCarvalhoS](https://github.com/FelipeCarvalhoS) for the
+  translation. It covers the booking pages, the staff pages, the admin pages and every email, including the pages and
+  emails added in 3.13 (staff account and set-password emails, the email preview, the verification code). To use it,
+  add it to your `LANGUAGES` setting:
+
+  ```python
+  LANGUAGES = [
+      ('en', 'English'),
+      ('pt-br', 'Brazilian Portuguese'),
+  ]
+  ```
+
+  The locale folder is `pt_BR`, as Django expects for `pt-br`.
+
+## Under the Hood 🔧
+
+These changes do not affect how the package works for you.
+
+- **Browser tests for booking.** The repository now has Playwright tests (Chromium, run in CI) for the two booking
+  flows: a new client who verifies their email, and a signed-in client who books another slot. See `e2e/README.md`.
+- **Updated dependencies.** The pinned versions of Django (6.1.3), phonenumbers (9.0.43), pytest and the documentation
+  tools are up to date, and the GitHub Actions workflows use the latest action versions.
+- **TestPyPI uploads skip files that already exist,** so a second push of the same version no longer fails the
+  publishing workflow.
 
 ## Good to Know 📝
 
-- **If you override `administration/staff_index.html`:** the menu's positioning moved from the inline `style` of
-  `#customContextMenu` into the package CSS (`.djappt-context-menu`). If your copy of the template still has
-  `position: absolute` in that inline style, remove it, or the menu keeps opening in the wrong place on layouts like
-  the one above. Keep `display: none`, which hides the menu until it is used.
-- **If you worked around the menu's position in your own CSS or JavaScript,** you can remove the workaround.
+- If you set `LANGUAGES` yourself, nothing changes until you add `pt-br`.
+- Spotted a wording that does not read right in Portuguese? Please open an issue or a pull request.
 
 ## Getting Started 🚀
 
 ### Installation 📥:
 
 ```bash
-pip install django-appointment==3.13.1
+pip install django-appointment==3.14.0
 ```
 
-The fix is in the package's JavaScript and CSS, so run `python manage.py collectstatic` after upgrading if you serve
-collected static files.
+No migration and no `collectstatic` run is needed for this release.
 
 ## Previous Version Highlights 🔙
 
+- [Release notes for version 3.13.1](v3_13_1.md)
 - [Release notes for version 3.13.0](v3_13_0.md)
-- [Release notes for version 3.12.0](v3_12_0.md)
 
 ## Support & Feedback 📞
 
