@@ -1,6 +1,6 @@
 # django-appointment 📦
 
-**v3.14.0 🆕**
+**v3.14.0 🆕** (≈ π, to three significant digits)
 
 ## ___Release Notes for Version 3.14.0___
 
@@ -8,8 +8,8 @@
 
 Version 3.14.0 adds Brazilian Portuguese 🇧🇷 and the first browser tests for booking. It is a small release with no
 database change, no new setting and no change to the package's logic, so upgrading is a drop-in. The version number is
-a happy coincidence: this release is 3.14, and we did not bake it, so there is no slice of Pi to share, only
-translations. 🥧
+a happy coincidence: this release is 3.14, and I did not bake it, so there is no slice of Pi to share, only
+translations. 🥧 It is also a rational number, unlike its famous neighbour, so it ends where it should: at 3.14.0.
 
 ## What's New ✨
 
@@ -52,7 +52,8 @@ These changes do not affect how the package works for you.
 pip install django-appointment==3.14.0
 ```
 
-No migration and no `collectstatic` run is needed for this release.
+No migration and no `collectstatic` run is needed for this release. The database keeps its shape: circumference and
+diameter are unchanged. ⭕
 
 ## Previous Version Highlights 🔙
 
