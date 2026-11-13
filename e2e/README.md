@@ -99,3 +99,8 @@ for the whole pytest session and restores its previous value afterward.
 
 Run these E2E tests in their own pytest invocation, separately from other
 tests. Do not enable this setting in application or production configuration.
+
+TODO: remove this workaround. Switch to pytest-playwright-asyncio and wrap
+the ORM calls in the tests and fixtures with sync_to_async. This rewrites
+both tests and the fixtures, so do it in its own PR, ideally with the
+rescheduling and cancellation tests.
