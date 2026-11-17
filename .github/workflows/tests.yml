@@ -85,7 +85,8 @@ jobs:
         python manage.py test appointment.tests --parallel=10 --shuffle --verbosity=2
 
   # Merge Dependabot patch and minor updates once the tests pass.
-  # Major updates stay open for a manual review.
+  # Major updates stay open for a manual review, except setuptools.
+  # setuptools bumps its major version often and is only a build tool.
   automerge:
     needs: testing
     if: github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dependabot[bot]'
@@ -96,7 +97,7 @@ jobs:
     steps:
       - id: meta
         uses: dependabot/fetch-metadata@v3
-      - if: steps.meta.outputs.update-type != 'version-update:semver-major'
+      - if: (steps.meta.outputs.update-type != 'version-update:semver-major' || steps.meta.outputs.dependency-names == 'setuptools')
         run: gh pr merge --squash "$PR_URL"
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
