@@ -1187,13 +1187,13 @@ msgstr "Texto"
 #: templates/administration/email_preview.html:49
 #| msgid "Book an appointment for {s} at {wn}."
 msgid "Book an appointment first: the preview uses the latest one."
-msgstr "Agende um compromisso primeiro: a pré-visualização usa o mais recente."
+msgstr "Agende um compromisso primeiro: a prévia usa o mais recente."
 
 #: templates/administration/manage_day_off.html:9
 #: templates/administration/manage_day_off.html:12
 #: templates/administration/manage_day_off.html:30
 msgid "Manage Days Off"
-msgstr "Gerenciar dias livres"
+msgstr "Gerenciar dias de folga"
 
 #: templates/administration/manage_day_off.html:46
 msgid "Start date"
@@ -2686,9 +2686,9 @@ msgstr "Este usuário é um superusuário."
 #: views_admin.py:757 views_admin.py:767
 #| msgid "Email address"
 msgid "Email preview"
-msgstr "Pré-visualização de e-mails"
+msgstr "Prévia de e-mails"
 
 #: views_admin.py:768
 #, python-format
 msgid "Each email as it would be sent for appointment #%(id)s."
-msgstr "Cada e-mail como seria enviado para o compromisso nº %(id)s."
+msgstr "Cada e-mail da forma que seria enviado para o compromisso de nº %(id)s."
