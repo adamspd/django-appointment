@@ -1,67 +1,56 @@
 # django-appointment 📦
 
-**v3.14.0 🆕** (≈ π, to three significant digits)
+**v3.14.2 🆕**
 
-## ___Release Notes for Version 3.14.0___
+## ___Release Notes for Version 3.14.2___
 
 ## Introduction 📜
 
-Version 3.14.0 adds Brazilian Portuguese 🇧🇷 and the first browser tests for booking. It is a small release with no
-database change, no new setting and no change to the package's logic, so upgrading is a drop-in. The version number is
-a happy coincidence: this release is 3.14, and I did not bake it, so there is no slice of Pi to share, only
-translations. 🥧 It is also a rational number, unlike its famous neighbour, so it ends where it should: at 3.14.0.
+Version 3.14.2 is a security release. It fixes a permission check that let a staff member change the date and time of
+another staff member's appointments. It also includes the date format fix from 3.14.1 and better Brazilian Portuguese
+wording. There is no database change and no new setting, so upgrading is a drop-in. **Please upgrade.**
 
-## What's New ✨
+## Security 🔒
 
-- **Brazilian Portuguese (`pt-br`).** Thanks to [@FelipeCarvalhoS](https://github.com/FelipeCarvalhoS) for the
-  translation. It covers the booking pages, the staff pages, the admin pages and every email, including the pages and
-  emails added in 3.13 (staff account and set-password emails, the email preview, the verification code). To use it,
-  add it to your `LANGUAGES` setting:
+- **Staff members can only reschedule their own appointments**
+  ([GHSA-pp78-hqpw-28pf](https://github.com/adamspd/django-appointment/security/advisories/GHSA-pp78-hqpw-28pf),
+  CVE-XXXX-XXXXX). The endpoint used to drag an appointment to a new date and time in the staff calendar
+  (`update_appt_date_time`) did not check who owned the appointment. Any staff member could move any other staff
+  member's appointment by sending its id. It now returns a 403 unless the appointment belongs to the staff member, as
+  the other appointment endpoints already did. Superusers can still reschedule any appointment.
 
-  ```python
-  LANGUAGES = [
-      ('en', 'English'),
-      ('pt-br', 'Brazilian Portuguese'),
-  ]
-  ```
+  Only staff accounts could do this, so clients and visitors were never able to. No appointment data was exposed.
+  Rated Moderate (CVSS 6.5). Thanks to [@p-w](https://github.com/p-w) for finding this, reporting it privately and
+  writing the fix.
 
-  The locale folder is `pt_BR`, as Django expects for `pt-br`.
+## Bug Fixes 🐛
 
-## Under the Hood 🔧
+- **Booking page in four languages** (from 3.14.1). The date formats for Portuguese, Finnish, Latvian and Vietnamese
+  left some letters unescaped, such as the "e" in "de", so the booking page returned an error in those languages.
 
-These changes do not affect how the package works for you.
+## Translations 🌍
 
-- **Browser tests for booking.** Thanks to [@trippiez](https://github.com/trippiez) for adding Playwright tests
-  (Chromium, run in CI) for the two booking flows: a new client who verifies their email, and a signed-in client who
-  books another slot. See `e2e/README.md`.
-- **Updated dependencies.** The pinned versions of Django (6.1.3), phonenumbers (9.0.43), pytest and the documentation
-  tools are up to date, and the GitHub Actions workflows use the latest action versions.
-- **TestPyPI uploads skip files that already exist,** so a second push of the same version no longer fails the
-  publishing workflow.
-
-## Good to Know 📝
-
-- If you set `LANGUAGES` yourself, nothing changes until you add `pt-br`.
-- Spotted a wording that does not read right in Portuguese? Please open an issue or a pull request.
+- **Brazilian Portuguese.** Thanks to [@FelipeCarvalhoS](https://github.com/FelipeCarvalhoS) for making some sentences
+  sound more natural and for using "dias de folga" everywhere for days off.
 
 ## Getting Started 🚀
 
 ### Installation 📥:
 
 ```bash
-pip install django-appointment==3.14.0
+pip install django-appointment==3.14.2
 ```
 
-No migration and no `collectstatic` run is needed for this release. The database keeps its shape: circumference and
-diameter are unchanged. ⭕
+No migration and no `collectstatic` run is needed for this release.
 
 ## Previous Version Highlights 🔙
 
+- [Release notes for version 3.14.0](v3_14_0.md)
 - [Release notes for version 3.13.1](v3_13_1.md)
-- [Release notes for version 3.13.0](v3_13_0.md)
 
 ## Support & Feedback 📞
 
 Feedback is welcome. For support, documentation, and further details, please refer to the
 [documentation site](https://django-appt-doc.adamspierredavid.com/) or open an issue on
-[GitHub](https://github.com/adamspd/django-appointment/issues).
+[GitHub](https://github.com/adamspd/django-appointment/issues). To report a security issue, please follow the
+[security policy](https://github.com/adamspd/django-appointment/security/policy) instead of opening a public issue.
