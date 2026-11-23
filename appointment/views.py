@@ -30,7 +30,7 @@ from appointment.models import (
 )
 from appointment.settings import check_q_cluster
 from appointment.utils.db_helpers import (
-    can_appointment_be_rescheduled, check_day_off_for_staff, create_and_save_appointment,
+    can_appointment_be_rescheduled, check_day_off_for_staff, create_and_save_appointment, create_new_user,
     create_payment_info_and_get_url, get_non_working_days_for_staff, get_user_by_email, get_user_model,
     get_website_name, get_weekday_num_from_date, is_working_day, staff_change_allowed_on_reschedule,
     update_user_name
@@ -358,7 +358,7 @@ def appointment_client_information(request, appointment_request_id, id_request):
     :param id_request: The unique ID of the appointment request.
     :return: The rendered HTML page.
     """
-    ar = get_object_or_404(AppointmentRequest, pk=appointment_request_id)
+    ar = get_object_or_404(AppointmentRequest, pk=appointment_request_id, id_request=id_request)
     has_required_email_reminder_config = has_required_email_settings() and check_q_cluster(hide_warning=True)
 
     if request.session.get(f'appointment_submitted_{id_request}', False):
@@ -402,21 +402,29 @@ def appointment_client_information(request, appointment_request_id, id_request):
     return render(request, appointment_client_information_template, context=context)
 
 
-def verify_user_and_login(request, user, code):
-    """This function verifies the user's email and logs the user in.
+def verify_user_and_login(request, user, code, email=None):
+    """This function verifies the user's email and logs the user in. With no user yet, the code is checked against
+    `email`, and the account is created once it matches.
+
+    Staff and superuser accounts are not logged in this way: the booking is still made for them, but they have to log
+    in with their password.
 
     :param request: The request instance.
-    :param user: The User instance.
+    :param user: The User instance, or None for a new client.
     :param code: The verification code.
+    :param email: The address the code was sent to.
     """
-    if user and EmailVerificationCode.objects.filter(user=user, code=code).exists():
-        logger.info(f"Email verified successfully for user {user}")
-        login(request, user)
+    if EmailVerificationCode.verify(user, code, email=email):
+        if user is None:
+            user = get_user_by_email(email) or create_new_user(
+                {'name': request.session.get('name') or email.split('@')[0], 'email': email})
+        logger.info(f"Email verified successfully for user {user.pk}")
+        if not (user.is_staff or user.is_superuser):
+            login(request, user)
         messages.success(request, _("Email verified successfully."))
         return True
-    else:
-        messages.error(request, _("Invalid verification code."))
-        return False
+    messages.error(request, _("Invalid verification code."))
+    return False
 
 
 def enter_verification_code(request, appointment_request_id, id_request):
@@ -427,19 +435,17 @@ def enter_verification_code(request, appointment_request_id, id_request):
     :param id_request: The unique ID of the appointment request.
     :return: The rendered HTML page.
     """
+    ar = get_object_or_404(AppointmentRequest, pk=appointment_request_id, id_request=id_request)
     if request.method == 'POST':
         email = request.session.get('email')
         code = request.POST.get('code')
-        user = get_user_by_email(email)
+        user = get_user_by_email(email) if email else None
 
-        if verify_user_and_login(request, user, code):
-            appointment_request_object = AppointmentRequest.objects.get(pk=appointment_request_id)
+        if verify_user_and_login(request, user, code, email=email):
             appointment_data = get_appointment_data_from_session(request)
-            response = create_appointment(request=request, appointment_request_obj=appointment_request_object,
+            response = create_appointment(request=request, appointment_request_obj=ar,
                                           client_data={'email': email}, appointment_data=appointment_data)
             return response
-        else:
-            messages.error(request, _("Invalid verification code."))
 
     # base_template = request.session.get('BASE_TEMPLATE', '')
     # if base_template == '':

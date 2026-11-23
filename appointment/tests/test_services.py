@@ -10,6 +10,7 @@ from unittest.mock import patch
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.test import Client, override_settings
+from django.contrib.sessions.backends.db import SessionStore
 from django.test.client import RequestFactory
 from django.utils import timezone
 from django.utils.formats import localize, get_format
@@ -846,10 +847,18 @@ class UpdatePersonalInfoServiceTest(BaseTest):
             'email': self.daniel.email
         }
 
+    def request_as(self, user):
+        request = RequestFactory().post('/')
+        request.user = user
+        request.session = SessionStore()
+        return request
+
+    def update(self, user_id, data, as_user=None):
+        return update_personal_info_service(user_id, data, self.request_as(as_user or self.daniel))
+
     def test_update_name(self):
         """Test if the user's name can be updated."""
-        user, is_valid, error_message = update_personal_info_service(self.staff_member1.user.id, self.post_data_valid,
-                                                                     self.daniel)
+        user, is_valid, error_message = self.update(self.staff_member1.user.id, self.post_data_valid)
         self.assertTrue(is_valid)
         self.assertIsNone(error_message)
         self.assertEqual(user.first_name, 'UpdatedName')
@@ -857,8 +866,7 @@ class UpdatePersonalInfoServiceTest(BaseTest):
 
     def test_update_invalid_user_id(self):
         """Updating a user that doesn't exist should return an error message."""
-        user, is_valid, error_message = update_personal_info_service(9999, self.post_data_valid,
-                                                                     self.daniel)  # Assuming 9999 is an invalid user ID
+        user, is_valid, error_message = self.update(9999, self.post_data_valid)
 
         self.assertFalse(is_valid)
         self.assertEqual(error_message, _("User not found."))
@@ -866,7 +874,7 @@ class UpdatePersonalInfoServiceTest(BaseTest):
 
     def test_invalid_form(self):
         """Updating a user with invalid form data should return an error message."""
-        user, is_valid, error_message = update_personal_info_service(self.staff_member1.user.id, {}, self.daniel)
+        user, is_valid, error_message = self.update(self.staff_member1.user.id, {})
         self.assertFalse(is_valid)
         self.assertEqual(error_message, _("Empty fields are not allowed."))
 
@@ -874,10 +882,28 @@ class UpdatePersonalInfoServiceTest(BaseTest):
         """Updating a user with invalid form data should return an error message."""
         # remove email in post_data
         del self.post_data_valid['email']
-        user, is_valid, error_message = update_personal_info_service(self.staff_member1.user.id, self.post_data_valid,
-                                                                     self.daniel)
+        user, is_valid, error_message = self.update(self.staff_member1.user.id, self.post_data_valid)
         self.assertFalse(is_valid)
         self.assertEqual(error_message, "email: This field is required.")
+
+    @patch('appointment.utils.session.send_verification_email')
+    def test_new_email_waits_for_the_code(self, mock_send):
+        request = self.request_as(self.daniel)
+        data = dict(self.post_data_valid, email='daniel.new@django-appointment.com')
+        user, is_valid, _error = update_personal_info_service(None, data, request)
+        self.assertTrue(is_valid)
+        self.daniel.refresh_from_db()
+        self.assertNotEqual(self.daniel.email, 'daniel.new@django-appointment.com')
+        self.assertEqual(request.session['email_change'],
+                         {'user_id': self.daniel.pk, 'email': 'daniel.new@django-appointment.com'})
+        mock_send.assert_called_once_with(user=self.daniel, email='daniel.new@django-appointment.com',
+                                          request=request)
+
+    def test_email_taken_in_other_case_is_refused(self):
+        other = self.users['staff2']
+        data = dict(self.post_data_valid, email=other.email.upper())
+        _user, is_valid, _error = self.update(self.daniel.id, data)
+        self.assertFalse(is_valid)
 
 
 class EmailChangeVerificationServiceTest(BaseTest):
@@ -885,15 +911,14 @@ class EmailChangeVerificationServiceTest(BaseTest):
     def setUp(self):
         super().setUp()
         self.georges = self.users['client1']
-        self.valid_code = EmailVerificationCode.generate_code(self.georges)
-        self.invalid_code = "INVALID_CODE456"
-
         self.old_email = self.georges.email
         self.new_email = "georges.hammond@django-appointment.com"
+        self.valid_code = EmailVerificationCode.generate_code(self.georges, email=self.new_email)
+        self.invalid_code = "INVALID_CODE456"
 
     def test_valid_code_and_email(self):
         """Test if a valid code and email can be verified."""
-        is_verified = email_change_verification_service(self.valid_code, self.new_email, self.old_email)
+        is_verified = email_change_verification_service(self.georges, self.valid_code, self.new_email)
 
         self.assertTrue(is_verified)
         self.georges.refresh_from_db()  # Refresh the user object to get the updated email
@@ -901,25 +926,34 @@ class EmailChangeVerificationServiceTest(BaseTest):
 
     def test_invalid_code(self):
         """If the code is invalid, the email should not be updated."""
-        is_verified = email_change_verification_service(self.invalid_code, self.new_email, self.old_email)
+        is_verified = email_change_verification_service(self.georges, self.invalid_code, self.new_email)
 
         self.assertFalse(is_verified)
         self.georges.refresh_from_db()
         self.assertEqual(self.georges.email, self.old_email)  # Email should not change
 
-    def test_valid_code_no_user(self):
-        """If the code is valid but the user doesn't exist, the email should not be updated."""
-        is_verified = email_change_verification_service(self.valid_code, self.new_email, "nonexistent@gmail.com")
+    def test_no_user(self):
+        self.assertFalse(email_change_verification_service(None, self.valid_code, self.new_email))
 
-        self.assertFalse(is_verified)
+    def test_code_belongs_to_the_user(self):
+        other = self.users['client2']
+        code = EmailVerificationCode.generate_code(other, email=self.new_email)
+        self.assertFalse(email_change_verification_service(self.georges, code, self.new_email))
+        self.georges.refresh_from_db()
+        self.assertEqual(self.georges.email, self.old_email)
 
-    def test_code_doesnt_match_users_code(self):
-        """If the code is valid but doesn't match the user's code, the email should not be updated."""
-        # Using valid code but for another user
-        is_verified = email_change_verification_service(self.valid_code, self.new_email,
-                                                        "g.hammond@django-appointment.com")
+    def test_code_was_sent_to_the_new_email(self):
+        code = EmailVerificationCode.generate_code(self.georges, email=self.old_email)
+        self.assertFalse(email_change_verification_service(self.georges, code, self.new_email))
 
-        self.assertFalse(is_verified)
+    def test_code_works_once(self):
+        self.assertTrue(email_change_verification_service(self.georges, self.valid_code, self.new_email))
+        self.assertFalse(email_change_verification_service(self.georges, self.valid_code, self.new_email))
+
+    def test_email_taken_meanwhile(self):
+        self.users['client2'].email = self.new_email.upper()
+        self.users['client2'].save()
+        self.assertFalse(email_change_verification_service(self.georges, self.valid_code, self.new_email))
 
 
 class CreateStaffMemberServiceTest(BaseTest):

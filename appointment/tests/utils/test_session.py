@@ -74,7 +74,7 @@ class HandleExistingEmailTests(BaseTest):
         self.assertEqual(response.status_code, 302)
         mock_send_verification_email.assert_called_once_with(user=mock_get_user_by_email.return_value,
                                                              email=client_data['email'],
-                                                             request=self.request)
+                                                             request=self.request, first_name='georges.hammond')
         mock_get_user_by_email.assert_called_once_with(client_data['email'])
 
 
@@ -111,8 +111,7 @@ class HandleEmailChangeTests(BaseTest):
 
         # Assert session data
         session = self.request.session
-        self.assertEqual(session['email'], new_email)
-        self.assertEqual(session['old_email'], self.hammond.email)
+        self.assertEqual(session['email_change'], {'user_id': self.hammond.pk, 'email': new_email})
 
         # Assert redirect
         self.assertEqual(response.status_code, 302)

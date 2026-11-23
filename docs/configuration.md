@@ -79,6 +79,32 @@ python manage.py cleanup_appointment_requests --dry-run
 
 Only appointment requests with no associated `Appointment` are removed; confirmed appointments are never touched.
 
+## Verification Codes:
+
+When a visitor books without being logged in, a code is emailed to them to confirm the address. Each code works once
+and expires after a few minutes:
+
+```python
+APPOINTMENT_VERIFICATION_CODE_MINUTES = 10  # How long an emailed verification code stays valid
+```
+
+At most 3 codes are sent to the same address in an hour. For a new client, the account is only created once they
+enter the code.
+
+You can also limit the codes asked for from one IP address in an hour. It is off by default:
+
+```python
+APPOINTMENT_VERIFICATION_EMAILS_PER_IP = None  # e.g. 10
+```
+
+The IP address is read from `REMOTE_ADDR`. Behind a reverse proxy or a load balancer, that is the proxy's address
+for every visitor unless your setup passes the real one on, so only turn this on when `REMOTE_ADDR` is the visitor's
+own address. Both limits use Django's cache: with several worker processes, use a shared cache (Redis, Memcached or the
+database).
+
+Staff and superuser accounts are never logged in by a code. Their booking is still made, but they log in with their
+password.
+
 ## Django Q Configuration:
 
 For email reminders with Django Q, install it (`pip install django-q2`), add `django_q` to your `INSTALLED_APPS`,

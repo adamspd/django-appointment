@@ -7,7 +7,9 @@ Since: 1.0.0
 """
 import colorsys
 import datetime
+import hmac
 import random
+import secrets
 import string
 import uuid
 
@@ -25,7 +27,8 @@ from django.utils.translation import gettext_lazy as _, ngettext
 from phonenumber_field.modelfields import PhoneNumberField
 
 from appointment.compat import check_constraint
-from appointment.settings import APPOINTMENT_BUFFER_TIME, APPOINTMENT_SLOT_DURATION, CONFIG_CACHE_KEY
+from appointment.settings import (
+    APPOINTMENT_BUFFER_TIME, APPOINTMENT_SLOT_DURATION, APPOINTMENT_VERIFICATION_CODE_MINUTES, CONFIG_CACHE_KEY)
 from appointment.utils.date_time import convert_minutes_in_human_readable_format, get_timestamp, get_weekday_num, \
     time_difference
 from appointment.utils.view_helpers import format_price, generate_random_id, get_locale
@@ -1031,16 +1034,25 @@ class EmailVerificationCode(models.Model):
     Version: 1.1.0
     Since: 1.1.0
     """
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name=_("User"))
+    # Empty for a new client: their account is only created once they enter the code
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True,
+                             verbose_name=_("User"))
     code = models.CharField(
         max_length=6,
         verbose_name=_("Verification Code"),
         help_text=_("The verification code sent to the user's email.")
     )
 
+    email = models.EmailField(blank=True, default='', verbose_name=_("Email"),
+                              help_text=_("The address the code was sent to."))
+    attempts = models.PositiveSmallIntegerField(default=0, verbose_name=_("Attempts"),
+                                                help_text=_("Number of wrong codes entered."))
+
     # metadata
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=_("Updated At"))
+
+    MAX_ATTEMPTS = 5
 
     class Meta:
         verbose_name = _("Email Verification Code")
@@ -1051,14 +1063,58 @@ class EmailVerificationCode(models.Model):
         return f"{self.code}"
 
     @classmethod
-    def generate_code(cls, user):
-        code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
-        verification_code = cls(user=user, code=code)
-        verification_code.save()
+    def _codes_for(cls, user, email):
+        """The user's codes sent to `email` (all of them without `email`), or with no user, the codes for `email`.
+
+        A booking code and an email change code go to different addresses, so one doesn't replace the other.
+        """
+        if user is not None:
+            codes = cls.objects.filter(user=user)
+            return codes.filter(email__iexact=email) if email else codes
+        return cls.objects.filter(user__isnull=True, email__iexact=email or '')
+
+    @classmethod
+    def generate_code(cls, user, email=''):
+        """Create a new code for the user (or, with no user yet, for `email`), sent to `email`. It replaces the code
+        sent to that address before.
+        """
+        cls._codes_for(user, email).delete()
+        code = ''.join(secrets.choice(string.ascii_uppercase + string.digits) for _i in range(6))
+        cls.objects.create(user=user, code=code, email=email or '')
         return code
 
+    @classmethod
+    def verify(cls, user, code, email=None) -> bool:
+        """Check a code entered by the user. A code works once, for a limited time, and is deleted after too many
+        wrong tries. With `email`, the code must also have been sent to that address. With no user, `email` is
+        required.
+        """
+        if not code or (user is None and not email):
+            return False
+        codes = cls._codes_for(user, email)
+        code_obj = codes.first()
+        if code_obj is None:
+            return False
+        if email is not None and code_obj.email.lower() != email.lower():
+            return False
+        if code_obj.is_expired():
+            codes.delete()
+            return False
+        if code_obj.check_code(code):
+            codes.delete()
+            return True
+        code_obj.attempts = models.F('attempts') + 1
+        code_obj.save(update_fields=['attempts', 'updated_at'])
+        code_obj.refresh_from_db(fields=['attempts'])
+        if code_obj.attempts >= cls.MAX_ATTEMPTS:
+            code_obj.delete()
+        return False
+
+    def is_expired(self):
+        return self.created_at < timezone.now() - datetime.timedelta(minutes=APPOINTMENT_VERIFICATION_CODE_MINUTES)
+
     def check_code(self, code):
-        return self.code == code
+        return hmac.compare_digest(self.code.encode(), str(code).strip().upper().encode())
 
 
 class PasswordResetToken(models.Model):

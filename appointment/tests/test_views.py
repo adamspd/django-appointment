@@ -11,6 +11,8 @@ from django.contrib import messages
 from django.contrib.messages import get_messages
 from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
+from django.core import mail
+from django.core.cache import cache
 from django.http import HttpResponseRedirect
 from django.test import Client, override_settings
 from django.test.client import RequestFactory
@@ -27,7 +29,7 @@ from appointment.models import (
     PasswordResetToken, StaffMember, Unavailability
 )
 from appointment.tests.base.base_test import BaseTest
-from appointment.utils.db_helpers import Service, WorkingHours, create_user_with_username
+from appointment.utils.db_helpers import Service, WorkingHours, create_user_with_username, get_user_model
 from appointment.utils.error_codes import ErrorCode
 from appointment.utils.template_helpers import escape_json_for_script
 from appointment.views import (
@@ -221,6 +223,49 @@ class VerificationCodeTestCase(BaseTest):
         # Check for an error message
         messages_list = list(messages.get_messages(response.wsgi_request))
         self.assertIn(_("Invalid verification code."), [str(msg) for msg in messages_list])
+
+    def test_verify_user_and_login_does_not_log_in_staff(self):
+        """Staff accounts log in with their password; a booking code only confirms the booking."""
+        code = EmailVerificationCode.generate_code(user=self.daniel)
+        self.assertTrue(verify_user_and_login(self.request, self.daniel, code))
+        self.assertNotIn('_auth_user_id', self.request.session)
+
+    def test_verify_user_and_login_logs_in_client(self):
+        client = self.users['client1']
+        code = EmailVerificationCode.generate_code(user=client)
+        self.assertTrue(verify_user_and_login(self.request, client, code))
+        self.assertEqual(str(client.pk), self.request.session['_auth_user_id'])
+
+    def test_enter_verification_code_staff_booking_made_without_login(self):
+        code = EmailVerificationCode.generate_code(user=self.daniel, email=self.daniel.email)
+        session = self.client.session
+        session.update({'email': self.daniel.email, 'phone': '+12392340543', 'want_reminder': False,
+                        'address': 'x', 'additional_info': ''})
+        session.save()
+        self.client.post(self.url, {'code': code})
+        self.assertNotIn('_auth_user_id', self.client.session)
+        self.assertEqual(Appointment.objects.get(appointment_request=self.ar).client, self.daniel)
+
+    def test_enter_verification_code_works_once(self):
+        client = self.users['client1']
+        code = EmailVerificationCode.generate_code(user=client)
+        session = self.client.session
+        session['email'] = client.email
+        session.save()
+        verify_user_and_login(self.request, client, code)
+        self.client.post(self.url, {'code': code})
+        self.assertNotIn('_auth_user_id', self.client.session)
+
+    def test_enter_verification_code_wrong_token_is_404(self):
+        """The appointment request's token must match; its id alone is not enough."""
+        url = reverse('appointment:enter_verification_code', args=[self.ar.id, 'wrong-token'])
+        code = EmailVerificationCode.generate_code(user=self.daniel)
+        session = self.client.session
+        session['email'] = self.daniel.email
+        session.save()
+        self.assertEqual(self.client.get(url).status_code, 404)
+        self.assertEqual(self.client.post(url, {'code': code}).status_code, 404)
+        self.assertFalse(Appointment.objects.filter(appointment_request=self.ar).exists())
 
 
 class StaffMemberTestCase(BaseTest):
@@ -1357,6 +1402,32 @@ class StaffPagesTemplateTests(BaseTest):
         response = self.client.get(reverse('appointment:update_user_info', args=[other.pk]))
         self.assertEqual(response.status_code, 403)
 
+    def test_staff_changes_own_email_with_the_code(self):
+        self.need_staff_login()
+        new_email = 'teal.new@django-appointment.com'
+        data = {'first_name': 'Teal', 'last_name': 'c', 'email': new_email}
+        response = self.client.post(reverse('appointment:update_user_info'), data)
+        self.assertRedirects(response, reverse('appointment:email_change_verification_code'),
+                             fetch_redirect_response=False)
+        self.staff.refresh_from_db()
+        self.assertNotEqual(self.staff.email, new_email)
+        code = EmailVerificationCode.objects.get(user=self.staff).code
+        response = self.client.post(reverse('appointment:email_change_verification_code'), {'code': code})
+        self.assertRedirects(response, reverse('appointment:user_profile'), fetch_redirect_response=False)
+        self.staff.refresh_from_db()
+        self.assertEqual(self.staff.email, new_email)
+
+    def test_email_change_needs_this_users_code(self):
+        self.need_staff_login()
+        old_email = self.staff.email
+        self.client.post(reverse('appointment:update_user_info'),
+                         {'first_name': 'Teal', 'last_name': 'c', 'email': 'teal.new@django-appointment.com'})
+        other_code = EmailVerificationCode.generate_code(self.users['client1'],
+                                                         email='teal.new@django-appointment.com')
+        self.client.post(reverse('appointment:email_change_verification_code'), {'code': other_code})
+        self.staff.refresh_from_db()
+        self.assertEqual(self.staff.email, old_email)
+
     def test_email_change_code_page_has_the_code_field(self):
         self.need_staff_login()
         response = self.client.get(reverse('appointment:email_change_verification_code'))
@@ -1703,6 +1774,73 @@ class SetPasswordViewTests(BaseTest):
             any(msg.message == _("The password reset link is invalid or has expired.") for msg in messages_))
 
 
+class VisitorBookingCodeTests(BaseTest):
+    def setUp(self):
+        super().setUp()
+        mail.outbox = []
+
+    def post_info(self, email, name='Vala Mal Doran'):
+        ar = self.bookable_appt_request_for_sm1()
+        url = reverse('appointment:appointment_client_information', args=[ar.id, ar.id_request])
+        response = self.client.post(url, {
+            'name': name, 'email': email, 'phone_0': 'US', 'phone_1': '2392340543',
+            'address': 'x', 'additional_info': 'x', 'payment_type': 'full'})
+        return ar, response
+
+    def messages_of(self, response):
+        return [str(m) for m in get_messages(response.wsgi_request)]
+
+    def test_same_message_with_or_without_an_account(self):
+        _ar, known = self.post_info(self.users['client1'].email)
+        self.client = Client()
+        _ar, unknown = self.post_info('vala@django-appointment.com')
+        self.assertEqual([m.replace(self.users['client1'].email, 'X') for m in self.messages_of(known)],
+                         [m.replace('vala@django-appointment.com', 'X') for m in self.messages_of(unknown)])
+
+    def test_account_is_created_only_after_the_code(self):
+        ar, _response = self.post_info('vala@django-appointment.com')
+        user_model = get_user_model()
+        self.assertFalse(user_model.objects.filter(email='vala@django-appointment.com').exists())
+        code = EmailVerificationCode.objects.get(email='vala@django-appointment.com').code
+        url = reverse('appointment:enter_verification_code', args=[ar.id, ar.id_request])
+        self.client.post(url, {'code': code})
+        user = user_model.objects.get(email='vala@django-appointment.com')
+        self.assertEqual((user.first_name, user.last_name), ('Vala', 'Mal Doran'))
+        self.assertEqual(Appointment.objects.get(appointment_request=ar).client, user)
+        self.assertEqual(int(self.client.session['_auth_user_id']), user.pk)
+
+    def test_wrong_code_creates_no_account(self):
+        ar, _response = self.post_info('vala@django-appointment.com')
+        url = reverse('appointment:enter_verification_code', args=[ar.id, ar.id_request])
+        self.client.post(url, {'code': 'WRONG1'})
+        self.assertFalse(get_user_model().objects.filter(email='vala@django-appointment.com').exists())
+
+    def test_codes_per_address_are_limited(self):
+        with patch('appointment.utils.session.send_verification_email') as send:
+            for _i in range(5):
+                self.client = Client()
+                self.post_info('vala@django-appointment.com')
+        self.assertEqual(send.call_count, 3)
+
+    @override_settings(APPOINTMENT_VERIFICATION_EMAILS_PER_IP=4)
+    def test_codes_per_ip_address_are_limited_when_set(self):
+        cache.clear()
+        with patch('appointment.utils.session.send_verification_email') as send:
+            for i in range(6):
+                self.client = Client(REMOTE_ADDR='203.0.113.7')
+                self.post_info(f'visitor{i}@django-appointment.com')
+            self.client = Client(REMOTE_ADDR='203.0.113.8')
+            self.post_info('someone.else@django-appointment.com')
+        self.assertEqual(send.call_count, 5)
+
+    def test_codes_per_ip_address_are_not_limited_by_default(self):
+        with patch('appointment.utils.session.send_verification_email') as send:
+            for i in range(6):
+                self.client = Client(REMOTE_ADDR='203.0.113.9')
+                self.post_info(f'guest{i}@django-appointment.com')
+        self.assertEqual(send.call_count, 6)
+
+
 class GetNonWorkingDaysAjaxTests(BaseTest):
     @classmethod
     def setUpClass(cls):
@@ -1801,6 +1939,17 @@ class AppointmentClientInformationTest(BaseTest):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'error_pages/304_already_submitted.html')
+
+    def test_wrong_token_is_404(self):
+        """The appointment request's token must match; its id alone does not give access."""
+        url = reverse('appointment:appointment_client_information', args=[self.ar.pk, 'wrong-token'])
+        self.assertEqual(self.client.get(url).status_code, 404)
+        self.client.force_login(self.users['client1'])
+        data = dict(self.logged_in_post_data('Jack O\'Neill'), payment_type='down')
+        self.assertEqual(self.client.post(url, data).status_code, 404)
+        self.ar.refresh_from_db()
+        self.assertNotEqual(self.ar.payment_type, 'down')
+        self.assertFalse(Appointment.objects.filter(appointment_request=self.ar).exists())
 
     def post_payment_type(self, payment_type):
         self.client.force_login(self.users['client1'])
