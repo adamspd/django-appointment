@@ -47,6 +47,14 @@ class SynchronousEmailTests(SimpleTestCase):
         self.assertEqual(mail.outbox[0].body, 'Plain text')
         self.assertEqual(mail.outbox[0].alternatives, [])
 
+    @override_settings(MAILERS={'default': {'BACKEND': 'django.core.mail.backends.locmem.EmailBackend'}},
+                       ADMINS=['george@sgc.mil'])
+    def test_emails_are_sent_when_mailers_is_used(self, *_):
+        """Django 6.1 sites set MAILERS instead of the EMAIL_* settings."""
+        send_email(recipient_list=['jack@sgc.mil'], subject='Hi', message='Plain text')
+        notify_admin(subject='New', message='Plain text')
+        self.assertEqual([email.to for email in mail.outbox], [['jack@sgc.mil'], ['george@sgc.mil']])
+
     @override_settings(ADMINS=[('George', 'george@sgc.mil')])
     def test_notify_admin_keeps_attachments(self, *_):
         notify_admin(subject='New', template_url='emails/x.html', attachments=[ICS])
