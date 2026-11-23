@@ -29,7 +29,7 @@ from appointment.messages_ import appt_updated_successfully
 from appointment.models import Appointment, DayOff, Unavailability, StaffMember, WorkingHours
 from appointment.services import (
     create_new_appointment, create_staff_member_service, email_change_verification_service,
-    fetch_user_appointments, get_error_message_in_form, handle_entity_management_request,
+    fetch_user_appointments, get_error_message_in_form, handle_entity_management_request, not_authorized_response,
     prepare_appointment_display_data, prepare_user_profile_data, save_appt_date_time, update_existing_appointment,
     update_personal_info_service)
 from appointment.utils.db_helpers import (
@@ -441,7 +441,7 @@ def update_appt_date_time(request):
         return json_response(_("Appointment does not exist."), status=404, success=False,
                              error_code=ErrorCode.APPOINTMENT_NOT_FOUND)
     except PermissionDenied as e:
-        return json_response(str(e), status=403, success=False, error_code=ErrorCode.NOT_AUTHORIZED)
+        return not_authorized_response(e)
     except ValidationError as e:
         return json_response(e.message, status=400, success=False)
     return json_response(appt_updated_successfully, custom_data={'appt': appt.id})

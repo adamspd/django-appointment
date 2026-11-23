@@ -16,7 +16,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.formats import get_format, localize
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext as _, gettext_lazy
 
 from appointment.forms import PersonalInformationForm, ServiceForm, StaffDaysOffForm, StaffUnavailabilityForm, \
     StaffWorkingHoursForm, UnavailabilityDataForm, WorkingHoursDataForm
@@ -501,6 +501,20 @@ def get_entity_management_context(request, btn_txt, form_name, form, user_id=Non
     return context
 
 
+# The reasons a calendar change is refused, sent back as they are
+NOT_OWN_APPOINTMENT = gettext_lazy("You can only manage your own appointments.")
+NOT_OWN_APPOINTMENT_UPDATE = gettext_lazy("You can only update your own appointments.")
+ONLY_SUPERUSER_CHANGES_EMAIL = gettext_lazy("Only a superuser can change a client's email.")
+
+
+def not_authorized_response(error):
+    """The 403 answer to a refused change. The message is one of ours, never the exception's own text."""
+    reasons = {str(reason): reason for reason in (NOT_OWN_APPOINTMENT, NOT_OWN_APPOINTMENT_UPDATE,
+                                                  ONLY_SUPERUSER_CHANGES_EMAIL)}
+    message = reasons.get(str(error), gettext_lazy("You are not allowed to do this."))
+    return json_response(str(message), status=403, success=False, error_code=ErrorCode.NOT_AUTHORIZED)
+
+
 def resolve_staff_member(user, staff_member_id=None, default=None):
     """Return the staff member a calendar change is for.
 
@@ -514,7 +528,7 @@ def resolve_staff_member(user, staff_member_id=None, default=None):
         return default or StaffMember.objects.filter(user=user).first()
     own = StaffMember.objects.filter(user=user).first()
     if own is None or (staff_member_id and str(staff_member_id) != str(own.id)):
-        raise PermissionDenied(_("You can only manage your own appointments."))
+        raise PermissionDenied(NOT_OWN_APPOINTMENT)
     return own
 
 
@@ -532,7 +546,7 @@ def save_appointment(appt, client_name, client_email, start_time, phone_number, 
     client = appt.client
     if client_email and client_email != client.email:
         if not request.user.is_superuser:
-            raise PermissionDenied(_("Only a superuser can change a client's email."))
+            raise PermissionDenied(ONLY_SUPERUSER_CHANGES_EMAIL)
         if get_user_model().objects.filter(email__iexact=client_email).exclude(pk=client.pk).exists():
             raise ValidationError(_("A user with this email already exists."))
         client.email = client_email
@@ -578,7 +592,7 @@ def save_appt_date_time(appt_start_time, appt_date, appt_id, request):
     """
     appt = Appointment.objects.get(id=appt_id)
     if not check_entity_ownership(request.user, appt):
-        raise PermissionDenied(_("You can only update your own appointments."))
+        raise PermissionDenied(NOT_OWN_APPOINTMENT_UPDATE)
     service = appt.get_service()
 
     # Convert start time to a time object if it is a string
@@ -829,7 +843,7 @@ def create_new_appointment(data, request):
     try:
         staff_member = resolve_staff_member(request.user, data.get("staff_member"))
     except PermissionDenied as e:
-        return json_response(str(e), status=403, success=False, error_code=ErrorCode.NOT_AUTHORIZED)
+        return not_authorized_response(e)
     if staff_member is None:
         return json_response(_("Staff member not found."), status=404, success=False,
                              error_code=ErrorCode.STAFF_MEMBER_NOT_FOUND)
@@ -918,7 +932,7 @@ def update_existing_appointment(data, request):
         appointments_json = convert_appointment_to_json(request, [appt])[0]
         return json_response(appt_updated_successfully, custom_data={'appt': appointments_json})
     except PermissionDenied as e:
-        return json_response(str(e), status=403, success=False, error_code=ErrorCode.NOT_AUTHORIZED)
+        return not_authorized_response(e)
     except Appointment.DoesNotExist:
         return json_response("Appointment does not exist.", status=404, success=False,
                              error_code=ErrorCode.APPOINTMENT_NOT_FOUND)
