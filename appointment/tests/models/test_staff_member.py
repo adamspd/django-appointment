@@ -324,6 +324,21 @@ class StaffMemberGetterTestCase(BaseTest):
         self.assertEqual(sm.get_finish_time(), datetime.time(17, 0))
         self.assertEqual(sm.get_appointment_buffer_time(), 15)
 
+    def test_get_slot_duration_with_empty_config(self):
+        """An empty Config (as Config.get_instance() creates) falls back to APPOINTMENT_SLOT_DURATION."""
+        Config.get_instance()
+        self.assertEqual(self.get_fresh_staff_member().get_slot_duration(), 30)
+
+    def test_get_slot_duration_without_config(self):
+        Config.objects.all().delete()
+        self.assertEqual(self.get_fresh_staff_member().get_slot_duration(), 30)
+
+    def test_get_buffer_time_with_empty_config(self):
+        Config.get_instance()
+        sm = self.get_fresh_staff_member()
+        self.assertEqual(sm.get_appointment_buffer_time(), 0)
+        self.assertTrue(sm.get_appointment_buffer_time_text())
+
     def test_get_slot_duration_and_appt_buffer_time_text(self):
         """Test get_slot_duration_text & get_appointment_buffer_time_text function."""
         sm = self.get_fresh_staff_member()
