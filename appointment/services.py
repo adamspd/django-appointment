@@ -729,9 +729,12 @@ def get_error_message_in_form(form):
     return " ".join(error_messages)
 
 
-def update_personal_info_service(staff_user_id, post_data, current_user):
+def update_personal_info_service(staff_user_id, post_data, request):
+    """Save the name. A new email is only saved once the code sent to it is entered (see
+    `email_change_verification_service`).
+    """
     try:
-        user = get_user_model().objects.get(pk=staff_user_id) if staff_user_id else current_user
+        user = get_user_model().objects.get(pk=staff_user_id) if staff_user_id else request.user
     except get_user_model().DoesNotExist:
         return None, False, _("User not found.")
 
@@ -739,24 +742,26 @@ def update_personal_info_service(staff_user_id, post_data, current_user):
     if form.is_valid():
         user.first_name = form.cleaned_data['first_name']
         user.last_name = form.cleaned_data['last_name']
-        if form.cleaned_data['email'] != user.email:
-            handle_email_change(current_user, user, form.cleaned_data['email'])
-        user.save()
+        user.save(update_fields=['first_name', 'last_name'])
+        request.session.pop('email_change', None)
+        if form.cleaned_data['email'].lower() != user.email.lower():
+            handle_email_change(request, user, form.cleaned_data['email'])
         return user, True, None
     else:
         return None, False, get_error_message_in_form(form=form)
 
 
-def email_change_verification_service(code, email, old_email):
-    user = get_user_by_email(old_email)
-    code_obj = EmailVerificationCode.objects.filter(code=code).first()
-
-    if user and code_obj and code_obj.check_code(code):
-        user.email = email
-        user.save()
-        code_obj.delete()
-        return True
-    return False
+def email_change_verification_service(user, code, email):
+    """Change the user's email if `code` is the code sent to `email` for this user."""
+    if user is None or not email:
+        return False
+    if get_user_model().objects.exclude(pk=user.pk).filter(email__iexact=email).exists():
+        return False
+    if not EmailVerificationCode.verify(user, code, email=email):
+        return False
+    user.email = email
+    user.save(update_fields=['email'])
+    return True
 
 
 def create_staff_member_service(post_data, request):

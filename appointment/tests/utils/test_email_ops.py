@@ -116,6 +116,7 @@ class SendVerificationEmailTests(BaseTest):
         self.assertEqual(kwargs['subject'], _("Email Verification"))
         self.assertEqual(kwargs['template_url'], 'email_sender/verification_email.html')
         self.assertEqual(kwargs['context']['verification_code'], "123456")
+        mock_generate_code.assert_called_once_with(user=user, email=self.email)
 
 
 class SendRescheduleConfirmationEmailTests(BaseTest):

@@ -207,13 +207,13 @@ class PersonalInformationForm(WidgetClassesMixin, forms.Form):
     def clean_email(self):
         email = self.cleaned_data.get('email')
         if self.user:
-            if self.user.email == email:
+            if self.user.email.lower() == email.lower():
                 return email
             queryset = get_user_model().objects.exclude(pk=self.user.pk)
         else:
             queryset = get_user_model().objects.all()
 
-        if queryset.filter(email=email).exists():
+        if queryset.filter(email__iexact=email).exists():
             raise forms.ValidationError(_("This email is already taken."))
 
         return email

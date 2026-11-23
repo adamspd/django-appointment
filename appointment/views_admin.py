@@ -449,8 +449,10 @@ def update_personal_info(request, staff_user_id=None):
         return json_response(_("Not authorized."), status=403, success=False, error_code=ErrorCode.NOT_AUTHORIZED)
 
     if request.method == 'POST':
-        user, is_valid, error_message = update_personal_info_service(staff_user_id, request.POST, request.user)
+        user, is_valid, error_message = update_personal_info_service(staff_user_id, request.POST, request)
         if is_valid:
+            if 'email_change' in request.session:
+                return redirect('appointment:email_change_verification_code')
             if staff_user_id:
                 return redirect('appointment:user_profile', staff_user_id=staff_user_id)
             return redirect('appointment:user_profile')
@@ -493,13 +495,17 @@ def email_change_verification_code(request):
     })
 
     if request.method == 'POST':
-        code = request.POST.get('code')
-        email = request.session.get('email')
-        old_email = request.session.get('old_email')
+        pending = request.session.get('email_change') or {}
+        user = get_user_model().objects.filter(pk=pending.get('user_id')).first()
+        if user is not None and not check_permissions(staff_user_id=user.pk, user=request.user):
+            user = None
 
-        is_verified = email_change_verification_service(code, email, old_email)
+        is_verified = email_change_verification_service(user, request.POST.get('code'), pending.get('email'))
         if is_verified:
+            request.session.pop('email_change', None)
             messages.success(request, _("Email updated successfully!"))
+            if user.pk != request.user.pk:
+                return redirect('appointment:user_profile', staff_user_id=user.pk)
             return redirect('appointment:user_profile')
         else:
             messages.error(request, _("The verification code provided is incorrect. Please try again."))

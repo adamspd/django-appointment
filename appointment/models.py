@@ -1041,6 +1041,8 @@ class EmailVerificationCode(models.Model):
         help_text=_("The verification code sent to the user's email.")
     )
 
+    email = models.EmailField(blank=True, default='', verbose_name=_("Email"),
+                              help_text=_("The address the code was sent to."))
     attempts = models.PositiveSmallIntegerField(default=0, verbose_name=_("Attempts"),
                                                 help_text=_("Number of wrong codes entered."))
 
@@ -1059,22 +1061,24 @@ class EmailVerificationCode(models.Model):
         return f"{self.code}"
 
     @classmethod
-    def generate_code(cls, user):
-        """Create a new code for the user. It replaces any code the user had before."""
+    def generate_code(cls, user, email=''):
+        """Create a new code for the user, sent to `email`. It replaces any code the user had before."""
         cls.objects.filter(user=user).delete()
         code = ''.join(secrets.choice(string.ascii_uppercase + string.digits) for _i in range(6))
-        cls.objects.create(user=user, code=code)
+        cls.objects.create(user=user, code=code, email=email or '')
         return code
 
     @classmethod
-    def verify(cls, user, code) -> bool:
+    def verify(cls, user, code, email=None) -> bool:
         """Check a code entered by the user. A code works once, for a limited time, and is deleted after too many
-        wrong tries.
+        wrong tries. With `email`, the code must also have been sent to that address.
         """
         if user is None or not code:
             return False
         code_obj = cls.objects.filter(user=user).first()
         if code_obj is None:
+            return False
+        if email is not None and code_obj.email.lower() != email.lower():
             return False
         if code_obj.is_expired():
             cls.objects.filter(user=user).delete()
