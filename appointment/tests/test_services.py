@@ -393,6 +393,48 @@ class HandleWorkingHoursFormTest(BaseTest):
         self.assertEqual(content['errorCode'], ErrorCode.WORKING_HOURS_CONFLICT.value)
         self.assertFalse(content['success'])
 
+    def test_add_same_hours_to_several_days(self):
+        response = handle_working_hours_form(self.staff_member1, [1, 2, 3, 6], time(9, 0), time(17, 0), True)
+        self.assertEqual(response.status_code, 200)
+        hours = WorkingHours.objects.filter(staff_member=self.staff_member1)
+        self.assertEqual(sorted(hours.values_list('day_of_week', flat=True)), [1, 2, 3, 6])
+        self.assertEqual({(wh.start_time, wh.end_time) for wh in hours}, {(time(9, 0), time(17, 0))})
+        self.staff_member1.refresh_from_db()
+        self.assertTrue(self.staff_member1.work_on_saturday)
+
+    def test_several_days_with_one_taken_adds_none(self):
+        WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=2, start_time='09:00',
+                                    end_time='17:00')
+        response = handle_working_hours_form(self.staff_member1, [1, 2, 3], time(10, 0), time(18, 0), True)
+        self.assertEqual(response.status_code, 400)
+        content = json.loads(response.getvalue())
+        self.assertEqual(content['errorCode'], ErrorCode.WORKING_HOURS_CONFLICT.value)
+        self.assertIn('Tuesday', content['message'])
+        self.assertEqual(WorkingHours.objects.filter(staff_member=self.staff_member1).count(), 1)
+
+    def test_update_takes_one_day_only(self):
+        wh = WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=2, start_time='09:00',
+                                         end_time='17:00')
+        response = handle_working_hours_form(self.staff_member1, [2, 3], time(10, 0), time(18, 0), False, wh_id=wh.id)
+        self.assertEqual(response.status_code, 400)
+
+    def test_update_to_a_day_that_has_hours_is_refused(self):
+        WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=3, start_time='09:00',
+                                    end_time='17:00')
+        wh = WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=2, start_time='09:00',
+                                         end_time='17:00')
+        response = handle_working_hours_form(self.staff_member1, 3, time(10, 0), time(18, 0), False, wh_id=wh.id)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(json.loads(response.getvalue())['errorCode'], ErrorCode.WORKING_HOURS_CONFLICT.value)
+        wh.refresh_from_db()
+        self.assertEqual(wh.day_of_week, 2)
+
+    def test_update_keeps_its_own_day(self):
+        wh = WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=2, start_time='09:00',
+                                         end_time='17:00')
+        response = handle_working_hours_form(self.staff_member1, 2, time(10, 0), time(18, 0), False, wh_id=wh.id)
+        self.assertEqual(response.status_code, 200)
+
     def test_invalid_working_hours_id(self):
         """If the working hours ID is invalid, the function should return a JsonResponse with the appropriate error"""
         response = handle_working_hours_form(self.staff_member1, 1, time(10,0), time(18,0), False, wh_id=9999)

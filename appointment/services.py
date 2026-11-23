@@ -12,6 +12,7 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
 from django.core.validators import validate_email
+from django.db import transaction
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
@@ -19,7 +20,7 @@ from django.utils.formats import get_format, localize
 from django.utils.translation import gettext as _, gettext_lazy
 
 from appointment.forms import PersonalInformationForm, ServiceForm, StaffDaysOffForm, StaffUnavailabilityForm, \
-    StaffWorkingHoursForm, UnavailabilityDataForm, WorkingHoursDataForm
+    StaffWorkingHoursForm, UnavailabilityDataForm, WorkingHoursDataForm, WorkingHoursDaysDataForm
 from appointment.messages_ import appt_updated_successfully
 from appointment.models import DAYS_OF_WEEK
 from appointment.settings import APPOINTMENT_PAYMENT_URL
@@ -239,6 +240,13 @@ def handle_entity_management_request(request, staff_member, entity_type, instanc
                                                 staff_user_id, instance,
                                                 instance_id)
         template = get_custom_template('manage_working_hours.html', 'administration/manage_working_hours.html')
+        if not instance:
+            # Adding: several days can be picked at once, except the days that already have working hours
+            taken = set(staff_member.get_working_hours().values_list('day_of_week', flat=True))
+            context['multiple_days'] = True
+            for day in context['week_days']:
+                day['taken'] = day['value'] in taken
+                day['selected'] = False
     context.update(urls)
     context.update(schedule_form_titles(entity_type, instance, staff_member))
 
@@ -265,7 +273,8 @@ def handle_entity_management_request(request, staff_member, entity_type, instanc
                                           data['description'], add, instance_id, request=request)
 
     elif request.method == 'POST' and entity_type == 'working_hours':
-        data_form = WorkingHoursDataForm(schedule_post_data(request.POST, ['start_time', 'end_time']))
+        form_class = WorkingHoursDaysDataForm if add else WorkingHoursDataForm
+        data_form = form_class(schedule_post_data(request.POST, ['start_time', 'end_time']))
         if not data_form.is_valid():
             return form_errors_response(data_form)
         data = data_form.cleaned_data
@@ -410,7 +419,7 @@ def handle_working_hours_form(staff_member, day_of_week, start_time, end_time, a
     """Handle the working hours form.
 
     :param staff_member: The staff member instance.
-    :param day_of_week: The day of the week.
+    :param day_of_week: The day of the week. When adding, it can also be a list of days, which all get the same hours.
     :param start_time: The start time.
     :param end_time: The end time.
     :param add: If True, add a new working hours instance. Otherwise, update an existing one.
@@ -418,9 +427,12 @@ def handle_working_hours_form(staff_member, day_of_week, start_time, end_time, a
     :param request: When given, the success message is also queued for the page the client is redirected to.
     :return: A JsonResponse instance.
     """
+    days = list(day_of_week) if isinstance(day_of_week, (list, tuple, set)) else [day_of_week]
     # Validate inputs
     # day_of_week can be 0 (Sunday), so it is checked against None
-    if not (staff_member and day_of_week not in (None, '') and start_time and end_time):
+    if not (staff_member and days and all(day not in (None, '') for day in days) and start_time and end_time):
+        return json_response(_("Invalid data."), status=400, success=False, error_code=ErrorCode.INVALID_DATA)
+    if not add and len(days) > 1:
         return json_response(_("Invalid data."), status=400, success=False, error_code=ErrorCode.INVALID_DATA)
 
     # Ensure start time is before end time
@@ -429,11 +441,17 @@ def handle_working_hours_form(staff_member, day_of_week, start_time, end_time, a
                              error_code=ErrorCode.INVALID_DATA)
 
     if add:
-        # Create new working hours
-        if working_hours_exist(day_of_week=day_of_week, staff_member=staff_member):
-            return json_response(_("Working hours already exist for this day."), status=400, success=False,
-                                 error_code=ErrorCode.WORKING_HOURS_CONFLICT)
-        wk = WorkingHours(staff_member=staff_member, day_of_week=day_of_week, start_time=start_time, end_time=end_time)
+        taken = [day for day in days if working_hours_exist(day_of_week=day, staff_member=staff_member)]
+        if taken:
+            names = dict(DAYS_OF_WEEK)
+            return json_response(
+                _("Working hours already exist for: {days}.").format(days=", ".join(str(names[int(day)])
+                                                                                    for day in taken)),
+                status=400, success=False, error_code=ErrorCode.WORKING_HOURS_CONFLICT)
+        with transaction.atomic():
+            for day in days:
+                WorkingHours(staff_member=staff_member, day_of_week=day, start_time=start_time,
+                             end_time=end_time).save()
     else:
         # Ensure working_hours_id is provided
         if not wh_id:
@@ -443,15 +461,16 @@ def handle_working_hours_form(staff_member, day_of_week, start_time, end_time, a
         # Get the working hours instance to update
         try:
             wk = WorkingHours.objects.get(pk=wh_id)
-            wk.day_of_week = day_of_week
-            wk.start_time = start_time
-            wk.end_time = end_time
         except WorkingHours.DoesNotExist:
             return json_response(_("Working hours does not exist."), status=400, success=False,
                                  error_code=ErrorCode.WORKING_HOURS_NOT_FOUND)
-
-        # Save working hours
-    wk.save()
+        if WorkingHours.objects.filter(staff_member=wk.staff_member, day_of_week=days[0]).exclude(pk=wk.pk).exists():
+            return json_response(_("Working hours already exist for this day."), status=400, success=False,
+                                 error_code=ErrorCode.WORKING_HOURS_CONFLICT)
+        wk.day_of_week = days[0]
+        wk.start_time = start_time
+        wk.end_time = end_time
+        wk.save()
 
     # Return success with redirect URL
     redirect_url = reverse('appointment:user_profile', kwargs={'staff_user_id': staff_member.user.id}) \

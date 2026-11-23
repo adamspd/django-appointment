@@ -11,6 +11,11 @@ testing a full site from start to finish. It changes the database (run `makemigr
 settings and changes how rescheduling and email codes behave. **Please read the
 [migration guide](../migration_guides/latest.md) before upgrading.**
 
+## New Features ✨
+
+- **Working hours for several days at once.** On the add working hours page, staff can now pick several days, and they
+  all get the same hours. Days that already have working hours are shown crossed out.
+
 ## Changes ⚙️
 
 ### Booking
@@ -68,6 +73,7 @@ settings and changes how rescheduling and email codes behave. **Please read the
   `APPOINTMENT_SLOT_DURATION` and `APPOINTMENT_BUFFER_TIME`.
 - **Editing an appointment in the calendar works for staff who are not superusers.**
 - **Changing your email from the profile page** no longer returns an error.
+- **Moving working hours onto a day that already has them** now shows an error instead of failing.
 - **A pending move to another staff member** no longer blocks the wrong staff member's slot.
 
 ## Getting Started 🚀

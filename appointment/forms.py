@@ -358,6 +358,21 @@ class WorkingHoursDataForm(TimeRangeMixin, forms.Form):
     end_time = forms.TimeField()
 
 
+class DaysField(forms.TypedMultipleChoiceField):
+    """Several days of the week; a single day given as a plain value is also read."""
+
+    def to_python(self, value):
+        if isinstance(value, (str, int)):
+            value = [value]
+        return super().to_python(value)
+
+
+class WorkingHoursDaysDataForm(WorkingHoursDataForm):
+    """Like ``WorkingHoursDataForm``, for adding working hours: ``day_of_week`` can be posted once for each day."""
+    day_of_week = DaysField(choices=DAYS_OF_WEEK, coerce=int,
+                            error_messages={'required': _("Choose at least one day.")})
+
+
 def color_to_hex(color):
     """Convert an ``rgb(r, g, b)`` color to ``#rrggbb``; any other value is returned unchanged."""
     match = re.fullmatch(r'\s*rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)\s*', color)

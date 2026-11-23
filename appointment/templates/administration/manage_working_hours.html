@@ -41,14 +41,19 @@
                 </div>
             {% endif %}
 
-            {# The day as a row of chips, in the site's week order #}
-            <fieldset class="djappt-form-section mb-4">
-                <legend class="form-label">{% trans 'Day of Week' %}</legend>
+            {# The days as a row of chips, in the site's week order. When adding, several days can be picked. #}
+            <fieldset class="djappt-form-section djappt-field mb-4">
+                <legend class="form-label">{% if multiple_days %}{% trans 'Days of Week' %}{% else %}{% trans 'Day of Week' %}{% endif %}</legend>
+                {% if multiple_days %}
+                    <p class="djappt-help mb-2">{% trans 'Pick one or more days. They all get the same hours.' %}</p>
+                {% endif %}
                 <div class="djappt-day-chips">
                     {% for day in week_days %}
-                        <label class="djappt-day-chip">
-                            <input type="radio" name="{{ working_hours_form.day_of_week.html_name }}" value="{{ day.value }}"
-                                   {% if day.selected %}checked{% endif %} required>
+                        <label class="djappt-day-chip"{% if day.taken %} title="{% trans 'This day already has working hours.' %}"{% endif %}>
+                            <input type="{% if multiple_days %}checkbox{% else %}radio{% endif %}"
+                                   name="{{ working_hours_form.day_of_week.html_name }}" value="{{ day.value }}"
+                                   {% if day.selected %}checked{% endif %}{% if day.taken %} disabled{% endif %}
+                                   {% if not multiple_days %}required{% endif %}>
                             <span>{{ day.label }}</span>
                         </label>
                     {% endfor %}

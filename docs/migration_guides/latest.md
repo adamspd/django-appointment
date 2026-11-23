@@ -46,6 +46,8 @@ email codes behave. The supported Python and Django versions are the same.
     - The reschedule limit now counts confirmed reschedules for each appointment request.
     - Staff and superuser accounts are no longer logged in by a booking code.
     - Bookings outside the staff member's free slots are refused, and the end time follows the service's duration.
+    - If you override `manage_working_hours.html`, it keeps working with one day. To let staff pick several days,
+      use checkboxes when `multiple_days` is set, as the package template does.
     - The calendar delete endpoint (`delete_appointment_ajax`) only accepts AJAX POST requests.
     - Only 3 codes are sent to the same address in an hour. The count uses Django's cache, so with several worker
       processes use a shared cache (Redis, Memcached or the database) for an exact count.
