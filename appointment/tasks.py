@@ -28,7 +28,7 @@ def send_email_reminder(to_email, first_name, reschedule_link, appointment_id, s
 
     from appointment.utils.email_ops import build_reminder_email
 
-    logger.info(f"Sending reminder to {to_email} for appointment {appointment_id}")
+    logger.info(f"Sending reminder for appointment {appointment_id}")
     appointment = Appointment.objects.get(id=appointment_id)
     email_parts = build_reminder_email(appointment, first_name, reschedule_link, site_url=site_url)
     send_email(recipient_list=[to_email], subject=email_parts['subject'], template_url=email_parts['template'],
