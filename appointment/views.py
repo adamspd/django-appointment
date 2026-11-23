@@ -358,7 +358,7 @@ def appointment_client_information(request, appointment_request_id, id_request):
     :param id_request: The unique ID of the appointment request.
     :return: The rendered HTML page.
     """
-    ar = get_object_or_404(AppointmentRequest, pk=appointment_request_id)
+    ar = get_object_or_404(AppointmentRequest, pk=appointment_request_id, id_request=id_request)
     has_required_email_reminder_config = has_required_email_settings() and check_q_cluster(hide_warning=True)
 
     if request.session.get(f'appointment_submitted_{id_request}', False):
@@ -427,15 +427,15 @@ def enter_verification_code(request, appointment_request_id, id_request):
     :param id_request: The unique ID of the appointment request.
     :return: The rendered HTML page.
     """
+    ar = get_object_or_404(AppointmentRequest, pk=appointment_request_id, id_request=id_request)
     if request.method == 'POST':
         email = request.session.get('email')
         code = request.POST.get('code')
         user = get_user_by_email(email)
 
         if verify_user_and_login(request, user, code):
-            appointment_request_object = AppointmentRequest.objects.get(pk=appointment_request_id)
             appointment_data = get_appointment_data_from_session(request)
-            response = create_appointment(request=request, appointment_request_obj=appointment_request_object,
+            response = create_appointment(request=request, appointment_request_obj=ar,
                                           client_data={'email': email}, appointment_data=appointment_data)
             return response
         else:

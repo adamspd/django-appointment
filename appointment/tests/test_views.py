@@ -222,6 +222,17 @@ class VerificationCodeTestCase(BaseTest):
         messages_list = list(messages.get_messages(response.wsgi_request))
         self.assertIn(_("Invalid verification code."), [str(msg) for msg in messages_list])
 
+    def test_enter_verification_code_wrong_token_is_404(self):
+        """The appointment request's token must match; its id alone is not enough."""
+        url = reverse('appointment:enter_verification_code', args=[self.ar.id, 'wrong-token'])
+        code = EmailVerificationCode.generate_code(user=self.daniel)
+        session = self.client.session
+        session['email'] = self.daniel.email
+        session.save()
+        self.assertEqual(self.client.get(url).status_code, 404)
+        self.assertEqual(self.client.post(url, {'code': code}).status_code, 404)
+        self.assertFalse(Appointment.objects.filter(appointment_request=self.ar).exists())
+
 
 class StaffMemberTestCase(BaseTest):
     @classmethod
@@ -1801,6 +1812,17 @@ class AppointmentClientInformationTest(BaseTest):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'error_pages/304_already_submitted.html')
+
+    def test_wrong_token_is_404(self):
+        """The appointment request's token must match; its id alone does not give access."""
+        url = reverse('appointment:appointment_client_information', args=[self.ar.pk, 'wrong-token'])
+        self.assertEqual(self.client.get(url).status_code, 404)
+        self.client.force_login(self.users['client1'])
+        data = dict(self.logged_in_post_data('Jack O\'Neill'), payment_type='down')
+        self.assertEqual(self.client.post(url, data).status_code, 404)
+        self.ar.refresh_from_db()
+        self.assertNotEqual(self.ar.payment_type, 'down')
+        self.assertFalse(Appointment.objects.filter(appointment_request=self.ar).exists())
 
     def post_payment_type(self, payment_type):
         self.client.force_login(self.users['client1'])
