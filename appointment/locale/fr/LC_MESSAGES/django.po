@@ -2796,3 +2796,16 @@ msgstr "Un jour peut avoir plusieurs horaires de travail (par exemple de 9 h à 
 
 msgid "This day already has working hours."
 msgstr "Ce jour a déjà des horaires de travail."
+
+msgid "Client time zone"
+msgstr "Fuseau horaire du client"
+
+msgid "The client's browser time zone when they booked, like 'America/New_York'."
+msgstr "Le fuseau horaire du navigateur du client au moment de la réservation, par exemple « America/New_York »."
+
+#, python-format
+msgid "Times are in %(tz)s time, not your time zone."
+msgstr "Les horaires sont à l'heure de %(tz)s, pas dans votre fuseau horaire."
+
+msgid "Your time"
+msgstr "Votre heure"
