@@ -405,18 +405,21 @@ def appointment_client_information(request, appointment_request_id, id_request):
 def verify_user_and_login(request, user, code):
     """This function verifies the user's email and logs the user in.
 
+    Staff and superuser accounts are not logged in this way: the booking is still made for them, but they have to log
+    in with their password.
+
     :param request: The request instance.
     :param user: The User instance.
     :param code: The verification code.
     """
-    if user and EmailVerificationCode.objects.filter(user=user, code=code).exists():
-        logger.info(f"Email verified successfully for user {user}")
-        login(request, user)
+    if EmailVerificationCode.verify(user, code):
+        logger.info(f"Email verified successfully for user {user.pk}")
+        if not (user.is_staff or user.is_superuser):
+            login(request, user)
         messages.success(request, _("Email verified successfully."))
         return True
-    else:
-        messages.error(request, _("Invalid verification code."))
-        return False
+    messages.error(request, _("Invalid verification code."))
+    return False
 
 
 def enter_verification_code(request, appointment_request_id, id_request):
@@ -438,8 +441,6 @@ def enter_verification_code(request, appointment_request_id, id_request):
             response = create_appointment(request=request, appointment_request_obj=ar,
                                           client_data={'email': email}, appointment_data=appointment_data)
             return response
-        else:
-            messages.error(request, _("Invalid verification code."))
 
     # base_template = request.session.get('BASE_TEMPLATE', '')
     # if base_template == '':

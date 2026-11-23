@@ -79,6 +79,18 @@ python manage.py cleanup_appointment_requests --dry-run
 
 Only appointment requests with no associated `Appointment` are removed; confirmed appointments are never touched.
 
+## Verification Codes:
+
+When a visitor books without being logged in, a code is emailed to them to confirm the address. Each code works once
+and expires after a few minutes:
+
+```python
+APPOINTMENT_VERIFICATION_CODE_MINUTES = 10  # How long an emailed verification code stays valid
+```
+
+Staff and superuser accounts are never logged in by a code. Their booking is still made, but they log in with their
+password.
+
 ## Django Q Configuration:
 
 For email reminders with Django Q, install it (`pip install django-q2`), add `django_q` to your `INSTALLED_APPS`,

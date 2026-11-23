@@ -222,6 +222,38 @@ class VerificationCodeTestCase(BaseTest):
         messages_list = list(messages.get_messages(response.wsgi_request))
         self.assertIn(_("Invalid verification code."), [str(msg) for msg in messages_list])
 
+    def test_verify_user_and_login_does_not_log_in_staff(self):
+        """Staff accounts log in with their password; a booking code only confirms the booking."""
+        code = EmailVerificationCode.generate_code(user=self.daniel)
+        self.assertTrue(verify_user_and_login(self.request, self.daniel, code))
+        self.assertNotIn('_auth_user_id', self.request.session)
+
+    def test_verify_user_and_login_logs_in_client(self):
+        client = self.users['client1']
+        code = EmailVerificationCode.generate_code(user=client)
+        self.assertTrue(verify_user_and_login(self.request, client, code))
+        self.assertEqual(str(client.pk), self.request.session['_auth_user_id'])
+
+    def test_enter_verification_code_staff_booking_made_without_login(self):
+        code = EmailVerificationCode.generate_code(user=self.daniel)
+        session = self.client.session
+        session.update({'email': self.daniel.email, 'phone': '+12392340543', 'want_reminder': False,
+                        'address': 'x', 'additional_info': ''})
+        session.save()
+        self.client.post(self.url, {'code': code})
+        self.assertNotIn('_auth_user_id', self.client.session)
+        self.assertEqual(Appointment.objects.get(appointment_request=self.ar).client, self.daniel)
+
+    def test_enter_verification_code_works_once(self):
+        client = self.users['client1']
+        code = EmailVerificationCode.generate_code(user=client)
+        session = self.client.session
+        session['email'] = client.email
+        session.save()
+        verify_user_and_login(self.request, client, code)
+        self.client.post(self.url, {'code': code})
+        self.assertNotIn('_auth_user_id', self.client.session)
+
     def test_enter_verification_code_wrong_token_is_404(self):
         """The appointment request's token must match; its id alone is not enough."""
         url = reverse('appointment:enter_verification_code', args=[self.ar.id, 'wrong-token'])
