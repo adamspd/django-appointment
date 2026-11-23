@@ -153,8 +153,8 @@ body.on('click', '.btn-submit-appointment', function () {
         form.submit();
     } else {
         const warningContainer = $('.warning-message');
-        if (warningContainer.find('submit-warning') === 0) {
-            warningContainer.append('<p class="submit-warning">' + selectTimeSlotWarningTxt + '</p>');
+        if (warningContainer.find('.submit-warning').length === 0) {
+            warningContainer.append($('<p class="submit-warning">').text(selectTimeSlotWarningTxt));
         }
     }
 });
@@ -240,7 +240,7 @@ function getAvailableSlots(selectedDate, staffId = null) {
     // Check if 'staffId' is 'none', null, or undefined and display an error message
     if (staffId === 'none' || staffId === null || staffId === undefined) {
         console.log('No staff ID provided, displaying error message.');
-        const errorMessage = $('<p class="djangoAppt_no-availability-text">' + noStaffMemberSelectedTxt + '</p>');
+        const errorMessage = $('<p class="djangoAppt_no-availability-text">').text(noStaffMemberSelectedTxt);
         errorMessageContainer.append(errorMessage);
         // Optionally disable the "submit" button here
         $('.btn-submit-appointment').attr('disabled', 'disabled');
@@ -282,21 +282,21 @@ function getAvailableSlots(selectedDate, staffId = null) {
 
                 if (selectedD < today) {
                     // Show an error message
-                    errorMessageContainer.append('<p class="djangoAppt_no-availability-text">' + dateInPastErrorTxt + '</p>');
+                    errorMessageContainer.append($('<p class="djangoAppt_no-availability-text">').text(dateInPastErrorTxt));
                     if (slotContainer.find('.djangoAppt_btn-request-next-slot').length === 0) {
-                        slotContainer.append(`<button class="btn btn-danger djangoAppt_btn-request-next-slot" data-service-id="${serviceId}">` + requestNonAvailableSlotBtnTxt + `</button>`);
+                        slotContainer.append(nextSlotButton(serviceId));
                     }
                     // Disable the 'submit' button
                     $('.btn-submit-appointment').attr('disabled', 'disabled');
                 } else {
                     errorMessageContainer.find('.djangoAppt_no-availability-text').remove();
                     if (errorMessageContainer.find('.djangoAppt_no-availability-text').length === 0) {
-                        errorMessageContainer.append(`<p class="djangoAppt_no-availability-text">${data.message}</p>`);
+                        errorMessageContainer.append($('<p class="djangoAppt_no-availability-text">').text(data.message));
                     }
                     // Check if there is no available slots
                     if (data.no_availability) {
                         if (slotContainer.find('.djangoAppt_btn-request-next-slot').length === 0) {
-                            slotContainer.append(`<button class="btn btn-danger djangoAppt_btn-request-next-slot" data-service-id="${serviceId}">` + requestNonAvailableSlotBtnTxt + `</button>`);
+                            slotContainer.append(nextSlotButton(serviceId));
                         }
                     } else {
                         $('.djangoAppt_btn-request-next-slot').remove();
@@ -309,7 +309,8 @@ function getAvailableSlots(selectedDate, staffId = null) {
                 const uniqueSlots = [...new Set(data.available_slots)]; // remove duplicates
                 for (let i = 0; i < uniqueSlots.length; i++) {
                     //uniqueSlots en localized example [... ["2026-07-29T14:00:00", "2 p.m."] ...]
-                    slotList.append('<li class="djangoAppt_appointment-slot" data-timeslot="'+uniqueSlots[i][0]+'">' + uniqueSlots[i][1] + '</li>');
+                    slotList.append($('<li class="djangoAppt_appointment-slot">')
+                        .attr('data-timeslot', uniqueSlots[i][0]).text(uniqueSlots[i][1]));
                 }
 
                 // Attach click event to the slots
@@ -389,7 +390,7 @@ function requestNextAvailableSlot(serviceId) {
                 nextAvailableDateSelector.text(nextAvailableDateText);
             } else {
                 // If the .next-available-date element doesn't exist, create and append it
-                const nextDateText = `<p class="djangoAppt_next-available-date">${nextAvailableDateText}</p>`;
+                const nextDateText = $('<p class="djangoAppt_next-available-date">').text(nextAvailableDateText);
                 $('.djangoAppt_btn-request-next-slot').after(nextDateText);
             }
 
@@ -400,4 +401,9 @@ function requestNextAvailableSlot(serviceId) {
             // }
         }
     });
+}
+
+function nextSlotButton(serviceId) {
+    return $('<button class="btn btn-danger djangoAppt_btn-request-next-slot">')
+        .attr('data-service-id', serviceId).text(requestNonAvailableSlotBtnTxt);
 }
