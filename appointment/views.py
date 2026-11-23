@@ -370,8 +370,10 @@ def appointment_client_information(request, appointment_request_id, id_request):
         appointment_data = appointment_form.cleaned_data
         client_data = client_data_form.cleaned_data
         payment_type = request.POST.get('payment_type')
+        if payment_type != 'down' or not ar.accepts_down_payment():
+            payment_type = 'full'
         ar.payment_type = payment_type
-        ar.save()
+        ar.save(update_fields=['payment_type'])
 
         if request.user.is_authenticated:
             update_user_name(request.user, client_data['name'])
