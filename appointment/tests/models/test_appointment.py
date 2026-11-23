@@ -181,6 +181,15 @@ class AppointmentValidationTestCase(BaseTest):
         appointment.save()
         self.assertEqual(appointment.get_service_down_payment(), self.service2.get_down_payment())
 
+    def test_amount_to_pay_defaults_to_full_price(self):
+        """A down payment only applies when the service has one."""
+        ar = self.create_appointment_request_(service=self.service2, staff_member=self.staff_member2,
+                                              date_=self.tomorrow)
+        ar.payment_type = 'down'
+        ar.save()
+        appointment = Appointment.objects.create(client=self.client_, appointment_request=ar)
+        self.assertEqual(appointment.amount_to_pay, self.service2.price)
+
     def test_creation_without_appointment_request(self):
         """Test that an appointment cannot be created without an appointment request."""
         with self.assertRaises(ValidationError):  # Assuming model validation prevents this

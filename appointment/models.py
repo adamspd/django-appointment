@@ -699,13 +699,11 @@ class Appointment(models.Model):
         if not self.id_request:
             self.id_request = f"{get_timestamp()}{self.appointment_request.id}{generate_random_id()}"
         if not self.amount_to_pay:
-            payment_type = self.appointment_request.payment_type
-            if payment_type == 'full':
-                self.amount_to_pay = self.appointment_request.get_service_price()
-            elif payment_type == 'down':
-                self.amount_to_pay = self.appointment_request.get_service_down_payment()
+            ar = self.appointment_request
+            if ar.payment_type == 'down' and ar.accepts_down_payment():
+                self.amount_to_pay = ar.get_service_down_payment()
             else:
-                self.amount_to_pay = 0
+                self.amount_to_pay = ar.get_service_price()
         return super().save(*args, **kwargs)
 
     def get_client_name(self):

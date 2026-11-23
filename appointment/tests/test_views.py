@@ -1810,6 +1810,30 @@ class AppointmentClientInformationTest(BaseTest):
         self.assertNotEqual(self.ar.payment_type, 'down')
         self.assertFalse(Appointment.objects.filter(appointment_request=self.ar).exists())
 
+    def post_payment_type(self, payment_type):
+        self.client.force_login(self.users['client1'])
+        data = dict(self.logged_in_post_data('Jack O\'Neill'), payment_type=payment_type)
+        self.client.post(self.url, data)
+        self.ar.refresh_from_db()
+        return Appointment.objects.get(appointment_request=self.ar)
+
+    def test_unknown_payment_type_means_full_payment(self):
+        appt = self.post_payment_type('something-else')
+        self.assertEqual(self.ar.payment_type, 'full')
+        self.assertEqual(appt.amount_to_pay, self.service1.price)
+
+    def test_down_payment_needs_service_down_payment(self):
+        appt = self.post_payment_type('down')
+        self.assertEqual(self.ar.payment_type, 'full')
+        self.assertEqual(appt.amount_to_pay, self.service1.price)
+
+    def test_down_payment_when_service_has_one(self):
+        self.service1.down_payment = 50
+        self.service1.save()
+        appt = self.post_payment_type('down')
+        self.assertEqual(self.ar.payment_type, 'down')
+        self.assertEqual(appt.amount_to_pay, 50)
+
     def logged_in_post_data(self, name):
         return {'name': name, 'email': 'someone.else@django-appointment.com', 'payment_type': 'full',
                 'phone_0': 'US', 'phone_1': '2025550123', 'address': '123 Ori Temple, Celestis'}
