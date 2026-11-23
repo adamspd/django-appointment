@@ -276,10 +276,10 @@ def delete_working_hours(request, working_hours_id, staff_user_id=None):
     if not check_extensive_permissions(staff_user_id or request.user.pk, request.user, working_hours):
         message = _("You can only delete your own working hours.")
         return handle_unauthorized_response(request, message, 'html')
-    # update weekend hours if necessary
-    staff_member.update_upon_working_hours_deletion(working_hours.day_of_week)
-
+    day_of_week = working_hours.day_of_week
     working_hours.delete()
+    # update weekend hours if no other working hours are left on that day
+    staff_member.update_upon_working_hours_deletion(day_of_week)
     messages.success(request, _("Working hours deleted successfully."))
 
     if staff_user_id:

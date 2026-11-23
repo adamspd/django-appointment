@@ -402,7 +402,9 @@ service's real duration, and `slot_gap_time` is applied on both sides, exactly a
 ## WorkingHours
 
 The `WorkingHours` model represents the working hours for a staff member on a specific day of the week.
-`start_time` is checked to make sure that it is before `end_time`.
+`start_time` is checked to make sure that it is before `end_time`. A day can have several working hours (split shifts,
+like 9:00 to 12:00 and 14:00 to 17:00), as long as they don't overlap: no slot is offered during the break, and a
+service can't run into it.
 
 ### WorkingHours Fields:
 
@@ -416,9 +418,11 @@ The `WorkingHours` model represents the working hours for a staff member on a sp
 - `get_start_time`: Returns the start time of the working hours.
 - `get_end_time`: Returns the end time of the working hours.
 - `get_day_of_week_str`: Returns the name of the day.
+- `overlapping`: Returns the staff member's other working hours on the same day that overlap these ones. `clean`
+  refuses hours that overlap; hours that only touch (one ends when the other starts) are fine.
 - `is_owner`: Returns a boolean indicating if the given user ID matches the user ID of the staff member associated with
   the working hours.
 
 ## Meta:
 
-- `unique_together`: Ensures that each combination of `staff_member` and `day_of_week` is unique.
+- `ordering`: By day of the week, then start time.

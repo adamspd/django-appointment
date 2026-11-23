@@ -261,6 +261,15 @@ class StaffMemberWorkingTimeTests(BaseTest):
         sm.update_upon_working_hours_deletion(0)
         self.assertFalse(sm.work_on_sunday)
 
+    def test_update_upon_working_hours_deletion_keeps_a_day_with_other_hours(self):
+        """Saturday stays a working day while it still has other working hours."""
+        sm = self.get_fresh_staff_member()
+        WorkingHours.objects.create(staff_member=sm, day_of_week=6, start_time=datetime.time(14, 0),
+                                    end_time=datetime.time(17, 0))
+        sm.refresh_from_db()
+        sm.update_upon_working_hours_deletion(6)
+        self.assertTrue(sm.work_on_saturday)
+
     def test_is_working_day(self):
         """Test whether a day is considered a working day."""
         sm = self.get_fresh_staff_member()

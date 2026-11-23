@@ -128,6 +128,21 @@ class AppointmentValidDateTestCase(BaseTest):
         self.assertFalse(is_valid)
         self.assertIn("outside of", message)
 
+    def test_start_time_in_a_split_shift_break(self):
+        self.wh.end_time = time(12, 0)
+        self.wh.save()
+        WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=self.weekday_num,
+                                    start_time=time(14, 0), end_time=time(17, 0))
+        in_break = timezone.localtime().replace(hour=13, minute=0, second=0, microsecond=0)
+        is_valid, message = Appointment.is_valid_date(self.appt_date, in_break, self.staff_member1,
+                                                      self.current_appointment_id, self.weekday)
+        self.assertFalse(is_valid)
+        self.assertIn("outside of", message)
+        afternoon = timezone.localtime().replace(hour=15, minute=0, second=0, microsecond=0)
+        is_valid, _message = Appointment.is_valid_date(self.appt_date, afternoon, self.staff_member1,
+                                                       self.current_appointment_id, self.weekday)
+        self.assertTrue(is_valid)
+
     def test_staff_member_has_day_off(self):
         DayOff.objects.create(staff_member=self.staff_member1, start_date=self.appt_date, end_date=self.appt_date)
         is_valid, message = Appointment.is_valid_date(self.appt_date, self.start_time, self.staff_member1,

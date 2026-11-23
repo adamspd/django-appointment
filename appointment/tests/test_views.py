@@ -1174,6 +1174,15 @@ class StaffScheduleFeedbackTests(BaseTest):
         self.assert_deleted_with_message(reverse('appointment:delete_working_hours', args=[working_hours.id]),
                                          WorkingHours, working_hours.id, _("Working hours deleted successfully."))
 
+    def test_deleting_one_of_two_saturday_hours_keeps_saturday(self):
+        WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=6, start_time=time(9, 0),
+                                    end_time=time(12, 0))
+        afternoon = WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=6,
+                                                start_time=time(14, 0), end_time=time(17, 0))
+        self.client.post(reverse('appointment:delete_working_hours', args=[afternoon.id]))
+        self.staff_member1.refresh_from_db()
+        self.assertTrue(self.staff_member1.work_on_saturday)
+
     def test_staff_cannot_delete_someone_elses_day_off(self):
         day_off = DayOff.objects.create(staff_member=self.staff_member2, start_date=timezone.localdate(),
                                         end_date=timezone.localdate())
@@ -1393,6 +1402,19 @@ class StaffPagesTemplateTests(BaseTest):
         self.assertEqual((tuesday['left'], tuesday['width']), (21.43, 28.57))
         self.assertEqual(sum(1 for day in days if day['working_hours'] is None), 6)
         self.assertContains(response, 'djappt-week-day--off', count=6)
+
+    def test_profile_shows_each_working_hours_of_a_split_day(self):
+        self.need_staff_login()
+        morning = WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=2, start_time=time(9, 0),
+                                              end_time=time(12, 0))
+        afternoon = WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=2,
+                                                start_time=time(14, 0), end_time=time(17, 0))
+        response = self.client.get(reverse('appointment:user_profile'))
+        tuesday = next(day for day in response.context['working_week']['days'] if day['day_of_week'] == 2)
+        self.assertEqual([r['working_hours'] for r in tuesday['ranges']], [morning, afternoon])
+        self.assertContains(response, 'djappt-week-bar', count=2)
+        self.assertContains(response, reverse('appointment:update_working_hours', args=[morning.id]))
+        self.assertContains(response, reverse('appointment:delete_working_hours', args=[afternoon.id]))
 
     def test_profile_greys_past_days_off(self):
         self.need_staff_login()
@@ -1614,7 +1636,7 @@ class ScheduleFormsTemplateTests(BaseTest):
         self.assertEqual(response.status_code, 400)
         self.assertIn('day_of_week', response.json()['errors'])
 
-    def test_add_working_hours_page_offers_free_days_only(self):
+    def test_add_working_hours_page_marks_days_that_have_hours(self):
         self.need_staff_login()
         user_id = self.staff_member1.user.id
         WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=1, start_time=time(9, 0),
@@ -1624,7 +1646,9 @@ class ScheduleFormsTemplateTests(BaseTest):
         self.assertTrue(days[1]['taken'])
         self.assertFalse(days[2]['taken'])
         self.assertContains(response, 'type="checkbox"', count=7)
-        self.assertContains(response, 'disabled', count=1)
+        # A day that has hours can still get more (split shifts), so none is disabled
+        self.assertNotContains(response, 'disabled')
+        self.assertContains(response, 'djappt-day-chip--taken', count=1)
 
     def test_edit_working_hours_page_picks_one_day(self):
         self.need_staff_login()

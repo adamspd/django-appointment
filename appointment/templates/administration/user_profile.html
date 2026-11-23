@@ -118,21 +118,24 @@
                         </div>
                         <ul class="djappt-week-days">
                             {% for day in working_week.days %}
-                                {% with working_hour=day.working_hours %}
-                                    <li class="djappt-week-day{% if not working_hour %} djappt-week-day--off{% endif %}">
-                                        <div class="djappt-week-label">
-                                            <span class="djappt-week-name">{{ day.name }}</span>
-                                            <span class="djappt-week-hours">
-                                                {% if working_hour %}{{ working_hour.start_time }} – {{ working_hour.end_time }}{% else %}{% trans 'Off' context 'day without working hours' %}{% endif %}
-                                            </span>
-                                        </div>
-                                        <div class="djappt-week-track" aria-hidden="true">
-                                            {% if working_hour %}
-                                                <span class="djappt-week-bar" style="left: {{ day.left|unlocalize }}%; width: {{ day.width|unlocalize }}%"></span>
-                                            {% endif %}
-                                        </div>
-                                        <div class="djappt-row-actions">
-                                            {% if working_hour %}
+                                {# A day can have several working hours (split shifts): one bar and one pair of buttons each #}
+                                <li class="djappt-week-day{% if not day.ranges %} djappt-week-day--off{% endif %}">
+                                    <div class="djappt-week-label">
+                                        <span class="djappt-week-name">{{ day.name }}</span>
+                                        {% for range in day.ranges %}
+                                            <span class="djappt-week-hours">{{ range.working_hours.start_time }} – {{ range.working_hours.end_time }}</span>
+                                        {% empty %}
+                                            <span class="djappt-week-hours">{% trans 'Off' context 'day without working hours' %}</span>
+                                        {% endfor %}
+                                    </div>
+                                    <div class="djappt-week-track" aria-hidden="true">
+                                        {% for range in day.ranges %}
+                                            <span class="djappt-week-bar" style="left: {{ range.left|unlocalize }}%; width: {{ range.width|unlocalize }}%"></span>
+                                        {% endfor %}
+                                    </div>
+                                    <div class="djappt-week-actions">
+                                        {% for range in day.ranges %}
+                                            {% with working_hour=range.working_hours %}
                                                 {% if superuser %}
                                                     {% url 'appointment:update_working_hours_id' working_hours_id=working_hour.id staff_user_id=user.id as edit_url %}
                                                     {% url 'appointment:delete_working_hours_id' working_hours_id=working_hour.id staff_user_id=user.id as delete_url %}
@@ -140,24 +143,26 @@
                                                     {% url 'appointment:update_working_hours' working_hours_id=working_hour.id as edit_url %}
                                                     {% url 'appointment:delete_working_hours' working_hours_id=working_hour.id as delete_url %}
                                                 {% endif %}
-                                                <a class="btn djappt-btn djappt-btn-ghost djappt-icon-btn" href="{{ edit_url }}"
-                                                   title="{{ edit_label }}" aria-label="{{ edit_label }} · {{ day.name }}">
-                                                    <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-                                                        <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325"/>
-                                                    </svg>
-                                                </a>
-                                                <button type="button" class="btn djappt-btn djappt-btn-ghost djappt-icon-btn djappt-text-danger"
-                                                        title="{{ delete_label }}" aria-label="{{ delete_label }} · {{ day.name }}"
-                                                        data-djappt-confirm="{{ delete_url }}" data-confirm-title="{{ modal_title }}" data-confirm-message="{{ w_modal_message }}" data-confirm-action="{{ delete_btn_modal }}">
-                                                    <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-                                                        <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
-                                                        <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
-                                                    </svg>
-                                                </button>
-                                            {% endif %}
-                                        </div>
-                                    </li>
-                                {% endwith %}
+                                                <div class="djappt-row-actions">
+                                                    <a class="btn djappt-btn djappt-btn-ghost djappt-icon-btn" href="{{ edit_url }}"
+                                                       title="{{ edit_label }}" aria-label="{{ edit_label }} · {{ day.name }} {{ working_hour.start_time }} – {{ working_hour.end_time }}">
+                                                        <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                                                            <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325"/>
+                                                        </svg>
+                                                    </a>
+                                                    <button type="button" class="btn djappt-btn djappt-btn-ghost djappt-icon-btn djappt-text-danger"
+                                                            title="{{ delete_label }}" aria-label="{{ delete_label }} · {{ day.name }} {{ working_hour.start_time }} – {{ working_hour.end_time }}"
+                                                            data-djappt-confirm="{{ delete_url }}" data-confirm-title="{{ modal_title }}" data-confirm-message="{{ w_modal_message }}" data-confirm-action="{{ delete_btn_modal }}">
+                                                        <svg class="djappt-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                                                            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
+                                                            <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            {% endwith %}
+                                        {% endfor %}
+                                    </div>
+                                </li>
                             {% endfor %}
                         </ul>
                     </div>
