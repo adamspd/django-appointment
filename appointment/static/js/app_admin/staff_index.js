@@ -83,12 +83,7 @@ function attachEventListenersToDropdown() {
     const staffDropdown = document.getElementById('staffSelect');
     if (staffDropdown && !staffDropdown.getAttribute('listener-attached')) {
         staffDropdown.setAttribute('listener-attached', 'true');
-        staffDropdown.addEventListener('change', async function () {
-            const selectedStaffId = this.value;
-            const servicesDropdown = document.getElementById('serviceSelect');
-            const services = await fetchServicesForStaffMember(selectedStaffId);
-            updateServicesDropdown(servicesDropdown, services);
-        });
+        staffDropdown.addEventListener('change', syncServicesWithStaff);
     }
 }
 
@@ -643,14 +638,23 @@ async function fetchServicesForStaffMember(staffId) {
 
 // Function to update services dropdown options
 function updateServicesDropdown(dropdown, services) {
-    // Clear existing options
+    // Keep the chosen service when the new staff member offers it too
+    const current = dropdown.value;
     dropdown.innerHTML = '';
 
-    // Populate with new options
     services.forEach(service => {
-        const option = new Option(service.name, service.id); // Assuming service object has id and name properties
+        const option = new Option(service.name, service.id);
+        option.selected = String(service.id) === current;
         dropdown.add(option);
     });
+}
+
+// The services of the staff member picked in the form (superusers pick one)
+async function syncServicesWithStaff() {
+    const staffDropdown = document.getElementById('staffSelect');
+    const servicesDropdown = document.getElementById('serviceSelect');
+    if (!staffDropdown || !servicesDropdown) return;
+    updateServicesDropdown(servicesDropdown, await fetchServicesForStaffMember(staffDropdown.value));
 }
 
 function getCSRFToken() {
@@ -749,12 +753,16 @@ async function showCreateAppointmentModal(defaultStartTime, formattedDate) {
         staffDropdown = await populateStaffMembers(null, false);
         staffDropdown.id = "staffSelect";
         staffDropdown.disabled = false; // Enable dropdown
-        attachEventListenersToDropdown(); // Attach event listener
     }
     servicesDropdown.id = "serviceSelect";
     servicesDropdown.disabled = false; // Enable dropdown
 
     document.getElementById('eventModalBody').innerHTML = prepareCreateAppointmentModalContent(servicesDropdown, staffDropdown, defaultStartTime, formattedDate);
+    if (staffDropdown) {
+        // The form is built from HTML, so the listener goes on the element now on the page
+        attachEventListenersToDropdown();
+        await syncServicesWithStaff();
+    }
     setEventModalTitle(newEventTxt);
 
     adjustCreateAppointmentModalButtons();
@@ -825,10 +833,11 @@ async function showEventModal(eventId = null, isEditMode, isCreatingMode = false
     let staffDropdown = null;
     if (isUserSuperUser) {
         staffDropdown = await getStaffDropdown(appointment.staff_id, isEditMode);
-        attachEventListenersToDropdown(); // Attach event listener
     }
 
     document.getElementById('eventModalBody').innerHTML = generateModalContent(appointment, servicesDropdown, isEditMode, staffDropdown);
+    // The form is built from HTML, so the listener goes on the element now on the page
+    attachEventListenersToDropdown();
     setEventModalTitle(null);
     adjustModalButtonsVisibility(isEditMode, isCreatingMode);
     getEventDetailsModal().show();
@@ -880,7 +889,7 @@ function updateModalUIForEditMode(modal, isEditingAppointment) {
 
     // Toggle input and dropdown enable/disable state
     inputs.forEach(input => input.disabled = !isEditingAppointment);
-    staffDropdown.disabled = !isEditingAppointment;
+    if (staffDropdown) staffDropdown.disabled = !isEditingAppointment;
     servicesDropdown.disabled = !isEditingAppointment;
 
     // Toggle visibility of UI elements
@@ -923,8 +932,10 @@ async function submitChanges() {
 
         AppState.calendar.render();
     } else {
-        const responseData = await response.json();
-        showErrorModal(responseData.message);
+        // Keep the form open with what was typed, so it can be fixed and sent again
+        const responseData = await response.json().catch(() => ({}));
+        showErrorModal(responseData.message || response.statusText);
+        return;
     }
     closeModal();
 

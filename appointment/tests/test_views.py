@@ -437,7 +437,7 @@ class AppointmentTestCase(BaseTest):
 
         url = reverse('appointment:delete_appointment_ajax')
         data = json.dumps({'appointment_id': self.appointment.id})
-        response = self.client.post(url, data, content_type='application/json')
+        response = self.client.post(url, data, content_type='application/json', HTTP_X_REQUESTED_WITH='XMLHttpRequest')
 
         self.assertEqual(response.status_code, 200)
         # Expecting both 'message' and 'success' in the response
@@ -472,7 +472,8 @@ class AppointmentTestCase(BaseTest):
         different_appointment = self.create_appt_for_sm2()
         url = reverse('appointment:delete_appointment_ajax')
 
-        response = self.client.post(url, {'appointment_id': different_appointment.id}, content_type='application/json')
+        response = self.client.post(url, {'appointment_id': different_appointment.id}, content_type='application/json',
+                                    HTTP_X_REQUESTED_WITH='XMLHttpRequest')
 
         # Check that the response indicates failure due to lack of permissions
         self.assertEqual(response.status_code, 403)
@@ -555,6 +556,26 @@ class UpdateAppointmentTestCase(BaseTest):
         # Verify appointment updated in the database
         updated_appt = Appointment.objects.get(id=self.appointment.id)
         self.assertEqual(updated_appt.client.email, self.data['client_email'])
+
+    def test_create_or_update_with_a_bad_phone_is_refused(self):
+        self.need_superuser_login()
+        url = reverse('appointment:update_appt_min_info')
+        for creating in (True, False):
+            with self.subTest(creating=creating):
+                data = dict(self.data, client_phone='12', isCreating=creating,
+                            appointment_id=None if creating else self.appointment.id)
+                response = self.client.post(url, data=json.dumps(data), content_type='application/json',
+                                            HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+                self.assertEqual(response.status_code, 400)
+                self.assertEqual(response.json()['message'], 'Please enter a valid phone number.')
+        self.assertEqual(Appointment.objects.count(), 1)
+
+    def test_create_without_a_phone(self):
+        self.need_staff_login()
+        data = dict(self.data, client_phone='', isCreating=True, appointment_id=None)
+        response = self.client.post(reverse('appointment:update_appt_min_info'), data=json.dumps(data),
+                                    content_type='application/json', HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.status_code, 200)
 
     def test_update_nonexistent_appointment(self):
         self.need_superuser_login()
@@ -647,6 +668,60 @@ class UpdateAppointmentTestCase(BaseTest):
             other_staff_appointment.appointment_request.staff_member.id,
             self.staff_member2.id,
         )
+
+
+class CalendarCreateAppointmentTestCase(BaseTest):
+    """Creating an appointment from the staff calendar."""
+
+    def setUp(self):
+        super().setUp()
+        self.url = reverse('appointment:update_appt_min_info')
+        self.data = {
+            'isCreating': True, 'service_id': self.service1.pk, 'client_name': 'Vala Mal Doran',
+            'client_email': 'vala.mal-doran@django-appointment.com', 'client_phone': '+12392350345',
+            'client_address': 'Outer Rim', 'want_reminder': 'false', 'additional_info': '', 'start_time': '10:00',
+            'date': (timezone.localdate() + timedelta(days=1)).isoformat(),
+        }
+
+    def post(self, **changes):
+        return self.client.post(self.url, data=json.dumps(dict(self.data, **changes)),
+                                content_type='application/json', HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+
+    def test_client_is_the_given_email(self):
+        self.need_staff_login()
+        self.assertEqual(self.post().status_code, 200)
+        appt = Appointment.objects.get(appointment_request__staff_member=self.staff_member1)
+        self.assertEqual(appt.client.email, self.data['client_email'])
+
+    def test_existing_client_is_reused(self):
+        self.need_staff_login()
+        self.post(client_email=self.users['client1'].email)
+        appt = Appointment.objects.get(appointment_request__staff_member=self.staff_member1)
+        self.assertEqual(appt.client, self.users['client1'])
+
+    def test_staff_books_into_own_calendar_only(self):
+        self.need_staff_login()
+        response = self.post(staff_member=self.staff_member2.id, service_id=self.service2.pk)
+        self.assertEqual(response.status_code, 403)
+        self.assertFalse(Appointment.objects.exists())
+
+    def test_service_must_be_offered(self):
+        self.need_staff_login()
+        self.assertEqual(self.post(service_id=self.service2.pk).status_code, 400)
+
+    def test_email_is_required(self):
+        self.need_staff_login()
+        self.assertEqual(self.post(client_email='').status_code, 400)
+
+    def test_superuser_can_book_for_any_staff_member(self):
+        self.need_superuser_login()
+        response = self.post(staff_member=self.staff_member2.id, service_id=self.service2.pk)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(Appointment.objects.filter(appointment_request__staff_member=self.staff_member2).exists())
+
+    def test_unknown_service_is_404(self):
+        self.need_staff_login()
+        self.assertEqual(self.post(service_id=999).status_code, 404)
 
 
 class UpdateApptDateTimeTestCase(BaseTest):
@@ -881,6 +956,18 @@ class AppointmentDisplayViewTestCase(BaseTest):
         self.need_normal_login()
         response = self.client.get(self.url_display_appt)
         self.assertNotEqual(response.status_code, 200)  # Expect redirection or error
+
+    def test_display_another_staff_appointment_is_forbidden(self):
+        self.need_staff_login()
+        response = self.client.get(reverse('appointment:display_appointment', args=[self.create_appt_for_sm2().id]))
+        self.assertEqual(response.status_code, 403)
+        self.assertTemplateUsed(response, 'error_pages/403_forbidden.html')
+
+    def test_another_staff_profile_is_forbidden(self):
+        self.need_staff_login()
+        response = self.client.get(reverse('appointment:user_profile', args=[self.staff_member2.user.id]))
+        self.assertEqual(response.status_code, 403)
+        self.assertTemplateNotUsed(response, 'administration/user_profile.html')
 
     def test_display_appointment_non_existent(self):
         # Log in as staff user
@@ -1841,6 +1928,65 @@ class VisitorBookingCodeTests(BaseTest):
         self.assertEqual(send.call_count, 6)
 
 
+class CalendarRequestsCheckInputTests(BaseTest):
+    AJAX = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+
+    def post_json(self, name, payload):
+        return self.client.post(reverse(f'appointment:{name}'), json.dumps(payload),
+                                content_type='application/json', **self.AJAX)
+
+    def test_validate_date_only_for_own_appointments(self):
+        appt = self.create_appt_for_sm2()
+        self.need_staff_login()
+        day = (timezone.localdate() + timedelta(days=7)).isoformat()
+        response = self.post_json('validate_appointment_date', {
+            'start_time': f'{day}T10:00:00.000Z', 'date': day, 'appointment_id': appt.id})
+        self.assertEqual(response.status_code, 403)
+
+    def test_validate_date_bad_input(self):
+        self.need_staff_login()
+        for payload in ({}, {'appointment_id': 'x', 'start_time': '10:00', 'date': '2026-01-01'},
+                        {'appointment_id': 1, 'start_time': 'noon', 'date': '2026-01-01'},
+                        {'appointment_id': 1, 'start_time': '10:00', 'date': 'tomorrow'}):
+            with self.subTest(payload=payload):
+                self.assertEqual(self.post_json('validate_appointment_date', payload).status_code, 400)
+
+    def test_validate_date_unknown_appointment(self):
+        self.need_staff_login()
+        response = self.post_json('validate_appointment_date', {
+            'appointment_id': 999999, 'start_time': '2026-01-01T10:00:00.000Z', 'date': '2026-01-01'})
+        self.assertEqual(response.status_code, 404)
+
+    def test_delete_needs_post(self):
+        appt = self.create_appt_for_sm1()
+        self.need_staff_login()
+        response = self.client.get(reverse('appointment:delete_appointment_ajax'), **self.AJAX)
+        self.assertEqual(response.status_code, 405)
+        self.assertTrue(Appointment.objects.filter(pk=appt.pk).exists())
+
+    def test_delete_bad_input(self):
+        self.need_staff_login()
+        self.assertEqual(self.post_json('delete_appointment_ajax', {'appointment_id': 'x'}).status_code, 400)
+
+    def test_service_list_unknown_appointment(self):
+        self.need_superuser_login()
+        response = self.client.get(reverse('appointment:fetch_service_list_for_staff'), {'appointmentId': '999999'})
+        self.assertEqual(response.status_code, 404)
+
+    def test_service_list_other_staff_appointment(self):
+        appt = self.create_appt_for_sm2()
+        self.need_staff_login()
+        response = self.client.get(reverse('appointment:fetch_service_list_for_staff'), {'appointmentId': appt.id})
+        self.assertEqual(response.status_code, 403)
+
+    def test_next_available_date_needs_the_service_offered(self):
+        url = reverse('appointment:request_next_available_slot', args=[self.service2.id])
+        response = self.client.get(url, {'staff_member': self.staff_member1.id}, **self.AJAX)
+        self.assertEqual(response.status_code, 404)
+        response = self.client.get(url, {'staff_member': 'abc'}, **self.AJAX)
+        self.assertEqual(response.status_code, 404)
+
+
 class GetNonWorkingDaysAjaxTests(BaseTest):
     @classmethod
     def setUpClass(cls):
@@ -1879,7 +2025,12 @@ class GetNonWorkingDaysAjaxTests(BaseTest):
     def test_ajax_required(self):
         """Ensure the view only responds to AJAX requests."""
         non_ajax_response = self.client.get(self.url, {'staff_member': self.staff_member1.id})
-        self.assertEqual(non_ajax_response.status_code, 200)
+        self.assertEqual(non_ajax_response.status_code, 400)
+
+    def test_bad_staff_id(self):
+        response = self.client.get(self.url, {'staff_member': 'abc'}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.json()['success'])
 
 
 class AppointmentClientInformationTest(BaseTest):
