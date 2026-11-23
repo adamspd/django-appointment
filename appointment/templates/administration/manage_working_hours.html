@@ -45,16 +45,17 @@
             <fieldset class="djappt-form-section djappt-field mb-4">
                 <legend class="form-label">{% if multiple_days %}{% trans 'Days of Week' %}{% else %}{% trans 'Day of Week' %}{% endif %}</legend>
                 {% if multiple_days %}
-                    <p class="djappt-help mb-2">{% trans 'Pick one or more days. They all get the same hours.' %}</p>
+                    <p class="djappt-help mb-2">{% trans 'Pick one or more days. They all get the same hours.' %}
+                        {% trans 'A day can have several working hours (for example 9:00 to 12:00 and 14:00 to 17:00), as long as they do not overlap.' %}</p>
                 {% endif %}
                 <div class="djappt-day-chips">
                     {% for day in week_days %}
-                        <label class="djappt-day-chip"{% if day.taken %} title="{% trans 'This day already has working hours.' %}"{% endif %}>
+                        <label class="djappt-day-chip{% if day.taken %} djappt-day-chip--taken{% endif %}"{% if day.taken %} title="{% trans 'This day already has working hours.' %}"{% endif %}>
                             <input type="{% if multiple_days %}checkbox{% else %}radio{% endif %}"
                                    name="{{ working_hours_form.day_of_week.html_name }}" value="{{ day.value }}"
-                                   {% if day.selected %}checked{% endif %}{% if day.taken %} disabled{% endif %}
+                                   {% if day.selected %}checked{% endif %}
                                    {% if not multiple_days %}required{% endif %}>
-                            <span>{{ day.label }}</span>
+                            <span>{{ day.label }}{% if day.taken %}<span class="visually-hidden"> ({% trans 'This day already has working hours.' %})</span>{% endif %}</span>
                         </label>
                     {% endfor %}
                 </div>

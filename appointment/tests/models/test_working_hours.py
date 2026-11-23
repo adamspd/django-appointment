@@ -94,12 +94,26 @@ class WorkingHoursValidationTestCase(TestCase, UserMixin, ServiceMixin, StaffMem
         self.staff_member.refresh_from_db()
         self.assertTrue(self.staff_member.work_on_sunday)
 
-    def test_working_hours_duplicate_day(self):
-        """A WorkingHours instance cannot be created if the staff member already has a working hours on that day."""
-        with self.assertRaises(IntegrityError):
-            WorkingHours.objects.create(
-                    staff_member=self.staff_member,
-                    day_of_week=1,  # Same day as the working_hours created in setUp
-                    start_time=time(9, 0),
-                    end_time=time(17, 0)
-            )
+    def test_split_shift_on_the_same_day(self):
+        """A day can have several working hours that don't overlap, even when one ends as the other starts."""
+        self.working_hours.end_time = time(12, 0)
+        self.working_hours.save()
+        afternoon = WorkingHours(staff_member=self.staff_member, day_of_week=1, start_time=time(14, 0),
+                                 end_time=time(17, 0))
+        afternoon.full_clean()
+        afternoon.save()
+        touching = WorkingHours(staff_member=self.staff_member, day_of_week=1, start_time=time(12, 0),
+                                end_time=time(14, 0))
+        touching.full_clean()
+        self.assertEqual(WorkingHours.objects.filter(staff_member=self.staff_member, day_of_week=1).count(), 2)
+
+    def test_overlapping_hours_on_the_same_day(self):
+        """Working hours can't overlap other working hours on the same day."""
+        overlapping = WorkingHours(staff_member=self.staff_member, day_of_week=1, start_time=time(16, 0),
+                                   end_time=time(18, 0))
+        with self.assertRaises(ValidationError):
+            overlapping.full_clean()
+        # The same hours on another day are fine, and saved hours don't overlap themselves
+        WorkingHours(staff_member=self.staff_member, day_of_week=2, start_time=time(16, 0),
+                     end_time=time(18, 0)).full_clean()
+        self.working_hours.full_clean()

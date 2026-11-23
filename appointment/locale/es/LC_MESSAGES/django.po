@@ -2774,3 +2774,19 @@ msgstr "Crear una cuenta para un nuevo miembro del personal."
 
 msgid "Email preview"
 msgstr "Vista previa de correos"
+
+msgid "These hours overlap other working hours on the same day."
+msgstr "Este horario se superpone con otro horario de trabajo del mismo día."
+
+#, python-brace-format
+msgid "These hours overlap working hours on: {days}."
+msgstr "Este horario se superpone con el horario de trabajo de: {days}."
+
+msgid "These hours overlap other working hours on this day."
+msgstr "Este horario se superpone con otro horario de trabajo de este día."
+
+msgid "A day can have several working hours (for example 9:00 to 12:00 and 14:00 to 17:00), as long as they do not overlap."
+msgstr "Un día puede tener varios horarios de trabajo (por ejemplo, de 9:00 a 12:00 y de 14:00 a 17:00), siempre que no se superpongan."
+
+msgid "This day already has working hours."
+msgstr "Este día ya tiene horario de trabajo."

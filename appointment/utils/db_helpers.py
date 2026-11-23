@@ -81,21 +81,27 @@ def calculate_staff_slots(date, staff_member, service_duration=None):
     :return: A list of available slots.
     """
     weekday_num = get_weekday_num_from_date(date)
-    if not is_working_day(staff_member, weekday_num):
+    working_hours = get_working_hours_list_for_staff_and_day(staff_member, weekday_num)
+    if not working_hours:
         return []
-
-    start_time = datetime.datetime.combine(date, get_staff_member_start_time(staff_member, date))
-    end_time = datetime.datetime.combine(date, get_staff_member_end_time(staff_member, date))
 
     # Rolling window: no appointment may start before now + buffer, whatever the day.
     # Working hours are naive local wall-clock times, so compare against local time.
     buffer_duration = datetime.timedelta(minutes=get_staff_member_buffer_time(staff_member, date))
     earliest_start = timezone.localtime().replace(tzinfo=None) + buffer_duration
-    buffer_time = max(start_time, earliest_start)
 
     slot_duration = datetime.timedelta(minutes=get_staff_member_slot_duration(staff_member, date))
 
-    return calculate_slots(start_time, end_time, buffer_time, slot_duration, service_duration)
+    # A day can have several working hours (split shifts): each gives its own slots, and no slot runs into a break
+    slots = []
+    for wh in working_hours:
+        start_time = datetime.datetime.combine(date, wh.start_time)
+        end_time = datetime.datetime.combine(date, wh.end_time)
+        buffer_time = max(start_time, earliest_start)
+        slots += calculate_slots(start_time, end_time, buffer_time, slot_duration, service_duration)
+    # The overlap check runs before saving, so two requests at the same moment could still save overlapping hours:
+    # never list a slot twice
+    return sorted(set(slots))
 
 
 def check_day_off_for_staff(staff_member, date) -> bool:
@@ -764,14 +770,23 @@ def get_working_hours_by_id(working_hours_id):
         return None
 
 
+def get_working_hours_list_for_staff_and_day(staff_member, day_of_week) -> list:
+    """All the working hours of the staff member on that day of the week, earliest first. There can be several
+    (split shifts, like 9:00-12:00 and 14:00-17:00)."""
+    return list(WorkingHours.objects.filter(staff_member=staff_member, day_of_week=day_of_week).order_by('start_time'))
+
+
 def get_working_hours_for_staff_and_day(staff_member, day_of_week):
     """Get the working hours for the given staff member and day of the week.
+
+    When the day has several working hours, the result covers them all: it starts with the first one and ends with
+    the last one. Use ``get_working_hours_list_for_staff_and_day`` to get each of them.
 
     :param staff_member: The staff member to get the working hours for.
     :param day_of_week: The day of the week to get the working hours for.
     :return: The working hours for the given staff member and day of the week.
     """
-    working_hours = WorkingHours.objects.filter(staff_member=staff_member, day_of_week=day_of_week).first()
+    day_hours = get_working_hours_list_for_staff_and_day(staff_member, day_of_week)
 
     # TODO: I can't leave the following logic.
     #  Needs to be commented out and just return None if no working hours are set for that day.
@@ -794,15 +809,15 @@ def get_working_hours_for_staff_and_day(staff_member, day_of_week):
     #         'end_time': staff_member.get_finish_time()
     #     }
 
-    if not working_hours:
+    if not day_hours:
         return None
 
-    # If a WorkingHours instance is found, convert it to a dictionary for consistent return type
+    # Convert the working hours to a dictionary for consistent return type
     return {
-        'staff_member': working_hours.staff_member,
-        'day_of_week': working_hours.day_of_week,
-        'start_time': working_hours.start_time,
-        'end_time': working_hours.end_time
+        'staff_member': day_hours[0].staff_member,
+        'day_of_week': day_hours[0].day_of_week,
+        'start_time': day_hours[0].start_time,
+        'end_time': max(wh.end_time for wh in day_hours)
     }
 
 

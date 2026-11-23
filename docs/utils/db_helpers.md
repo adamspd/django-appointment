@@ -122,7 +122,9 @@ Each of these resolves the staff member's own value first and falls back to the 
 - **get_weekday_num_from_date**: Determine the number of the weekday from a given date.
 - **get_working_hours_by_id**: Fetch working hours by its ID.
 - **get_working_hours_for_staff_and_day**: Fetch the working hours for a given staff member on a specific day of the
-  week.
+  week. When the day has several working hours, the result runs from the first start to the last end.
+- **get_working_hours_list_for_staff_and_day**: Fetch each of the working hours of a staff member on a day of the
+  week, earliest first.
 - **is_working_day**: Determine if a specified day is a working day for a given staff member.
 - **working_hours_exist**: Check if working hours exist for a specified day of the week and staff member.
 

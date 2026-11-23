@@ -211,6 +211,30 @@ class TestCalculateStaffSlots(BaseTest):
         # Asserting the last slot starts at 3:30 PM because of the 90 min service duration and end working time 5 PM
         self.assertEqual(slots[-1].time(),datetime.time(15, 30))
 
+    @patch("appointment.utils.db_helpers.timezone.localtime")
+    def test_calculate_slots_on_split_shift(self, mock_localtime):
+        """Each working hours of the day gives its own slots, and none fall in the break."""
+        mock_localtime.return_value = self.reference_now
+        self.wh2.end_time = datetime.time(10, 0)
+        self.wh2.save()
+        WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=self.wh2.day_of_week,
+                                    start_time=datetime.time(14, 15), end_time=datetime.time(15, 15))
+        slots = calculate_staff_slots(self.working_date2, self.staff_member1)
+        self.assertEqual([slot.time() for slot in slots],
+                         [datetime.time(9, 0), datetime.time(9, 30), datetime.time(14, 15), datetime.time(14, 45)])
+
+    @patch("appointment.utils.db_helpers.timezone.localtime")
+    def test_calculate_slots_lists_each_slot_once(self, mock_localtime):
+        """Overlapping working hours (saved by two requests at the same moment) don't list a slot twice."""
+        mock_localtime.return_value = self.reference_now
+        self.wh2.end_time = datetime.time(10, 0)
+        self.wh2.save()
+        WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=self.wh2.day_of_week,
+                                    start_time=datetime.time(9, 30), end_time=datetime.time(10, 30))
+        slots = calculate_staff_slots(self.working_date2, self.staff_member1)
+        self.assertEqual([slot.time() for slot in slots],
+                         [datetime.time(9, 0), datetime.time(9, 30), datetime.time(10, 0)])
+
     def test_calculate_slots_on_non_working_day(self):
         """Test that no slots are returned on a day the staff member is not working."""
         slots = calculate_staff_slots(self.date_not_working, self.staff_member1, )
@@ -1190,6 +1214,15 @@ class TestWorkingHoursFunctions(BaseTest):
         # result = get_working_hours_for_staff_and_day(self.staff_member1, 2)  # Tuesday
         # self.assertEqual(result['start_time'], datetime.time(8, 0))
         # self.assertEqual(result['end_time'], datetime.time(18, 0))
+
+    def test_get_working_hours_for_staff_and_day_with_split_shift(self):
+        """With several working hours on a day, the result runs from the first start to the last end."""
+        WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=1, start_time=datetime.time(18, 0),
+                                    end_time=datetime.time(20, 0))
+        WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=1, start_time=datetime.time(7, 0),
+                                    end_time=datetime.time(8, 0))
+        result = get_working_hours_for_staff_and_day(self.staff_member1, 1)
+        self.assertEqual((result['start_time'], result['end_time']), (datetime.time(7, 0), datetime.time(20, 0)))
 
     def test_is_working_day(self):
         """is_working_day() should return True if there are WorkingHours for the staff member and day,

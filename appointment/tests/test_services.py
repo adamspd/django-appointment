@@ -384,7 +384,7 @@ class HandleWorkingHoursFormTest(BaseTest):
         self.assertFalse(content['success'])
 
     def test_working_hours_conflict(self):
-        """A staff member cannot have two working hours on the same day."""
+        """A staff member cannot have two working hours that overlap on the same day."""
         WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=4, start_time='09:00',
                                     end_time='17:00')
         response = handle_working_hours_form(self.staff_member1, 4, time(10,0), time(18,0), True)
@@ -412,6 +412,15 @@ class HandleWorkingHoursFormTest(BaseTest):
         self.assertIn('Tuesday', content['message'])
         self.assertEqual(WorkingHours.objects.filter(staff_member=self.staff_member1).count(), 1)
 
+    def test_add_split_shift_to_a_day_that_has_hours(self):
+        WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=2, start_time='09:00',
+                                    end_time='12:00')
+        response = handle_working_hours_form(self.staff_member1, [1, 2], time(14, 0), time(17, 0), True)
+        self.assertEqual(response.status_code, 200)
+        tuesday = WorkingHours.objects.filter(staff_member=self.staff_member1, day_of_week=2).order_by('start_time')
+        self.assertEqual([(wh.start_time, wh.end_time) for wh in tuesday],
+                         [(time(9, 0), time(12, 0)), (time(14, 0), time(17, 0))])
+
     def test_update_takes_one_day_only(self):
         wh = WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=2, start_time='09:00',
                                          end_time='17:00')
@@ -428,6 +437,16 @@ class HandleWorkingHoursFormTest(BaseTest):
         self.assertEqual(json.loads(response.getvalue())['errorCode'], ErrorCode.WORKING_HOURS_CONFLICT.value)
         wh.refresh_from_db()
         self.assertEqual(wh.day_of_week, 2)
+
+    def test_update_to_a_day_with_hours_that_do_not_overlap(self):
+        WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=3, start_time='09:00',
+                                    end_time='12:00')
+        wh = WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=2, start_time='09:00',
+                                         end_time='17:00')
+        response = handle_working_hours_form(self.staff_member1, 3, time(14, 0), time(17, 0), False, wh_id=wh.id)
+        self.assertEqual(response.status_code, 200)
+        wh.refresh_from_db()
+        self.assertEqual((wh.day_of_week, wh.start_time, wh.end_time), (3, time(14, 0), time(17, 0)))
 
     def test_update_keeps_its_own_day(self):
         wh = WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=2, start_time='09:00',
@@ -767,6 +786,39 @@ class GetAvailableSlotsForStaffTests(BaseTest):
             datetime.datetime(self.next_wednesday.year, self.next_wednesday.month, self.next_wednesday.day, hour) for
             hour in range(9, 17)]
         self.assertEqual(slots, expected_slots)
+
+    def test_split_shift_has_no_slots_during_the_break(self):
+        """With 9:00-12:00 and 14:00-17:00 on Wednesday, no slot is offered from 12:00 to 14:00."""
+        self.wh2.end_time = datetime.time(12, 0)
+        self.wh2.save()
+        WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=3,
+                                    start_time=datetime.time(14, 0), end_time=datetime.time(17, 0))
+        slots = get_available_slots_for_staff(self.next_wednesday, self.staff_member1, 3)
+        self.assertEqual([slot.hour for slot in slots], [9, 10, 11, 14, 15, 16])
+
+    def test_split_shift_service_does_not_run_into_the_break(self):
+        """A 2-hour service can't start at 11:00 when the morning ends at 12:00."""
+        self.wh2.end_time = datetime.time(12, 0)
+        self.wh2.save()
+        WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=3,
+                                    start_time=datetime.time(14, 0), end_time=datetime.time(17, 0))
+        self.service1.duration = datetime.timedelta(hours=2)
+        self.service1.save()
+        slots = get_available_slots_for_staff(self.next_wednesday, self.staff_member1, 3, service=self.service1)
+        self.assertEqual([slot.hour for slot in slots], [9, 10, 14, 15])
+
+    def test_split_shift_appointment_in_the_afternoon(self):
+        """Appointments in the second working hours of the day block their slots too."""
+        self.wh2.end_time = datetime.time(12, 0)
+        self.wh2.save()
+        WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=3,
+                                    start_time=datetime.time(14, 0), end_time=datetime.time(17, 0))
+        appt_request = self.create_appointment_request_(service=self.service1, staff_member=self.staff_member1,
+                                                        date_=self.next_wednesday, start_time=datetime.time(15, 0),
+                                                        end_time=datetime.time(16, 0))
+        self.create_appointment_(user=self.users['client1'], appointment_request=appt_request)
+        slots = get_available_slots_for_staff(self.next_wednesday, self.staff_member1, 3)
+        self.assertEqual([slot.hour for slot in slots], [9, 10, 11, 14, 16])
 
     def test_booked_slots(self):
         """On a given day, if a staff member has an appointment, that time slot should not be available."""

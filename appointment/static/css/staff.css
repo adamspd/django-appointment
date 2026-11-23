@@ -343,6 +343,13 @@
     justify-content: flex-end;
 }
 
+/* One pair of buttons for each of the day's working hours */
+:where(.djappt) .djappt-week-actions {
+    display: flex;
+    flex-direction: column;
+    gap: .25rem;
+}
+
 :where(.djappt) .djappt-week-day--off .djappt-week-name,
 :where(.djappt) .djappt-week-day--off .djappt-week-hours {
     font-weight: 400;
@@ -733,7 +740,25 @@
     box-shadow: 0 0 0 .2rem var(--djappt-accent-soft);
 }
 
-/* A day that already has working hours can't be picked again when adding */
+/* A day that already has working hours gets a dot; it can still get more hours that don't overlap */
+:where(.djappt) .djappt-day-chip--taken::after {
+    content: "";
+    position: absolute;
+    top: .35rem;
+    right: .35rem;
+    width: .35rem;
+    height: .35rem;
+    border-radius: 50%;
+    background-color: currentColor;
+    color: var(--djappt-accent);
+    pointer-events: none;
+}
+
+:where(.djappt) .djappt-day-chip--taken:has(input:checked)::after {
+    color: var(--djappt-accent-contrast);
+}
+
+/* Custom templates may still disable days that already have working hours */
 :where(.djappt) .djappt-day-chip:has(input:disabled) {
     cursor: not-allowed;
 }

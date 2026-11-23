@@ -391,6 +391,9 @@ class StaffMember(models.Model):
         return self.workinghours_set.all()
 
     def update_upon_working_hours_deletion(self, day_of_week: int):
+        # A day can have several working hours: it stays a working day while one of them is left
+        if self.workinghours_set.filter(day_of_week=day_of_week).exists():
+            return
         if day_of_week == 6:
             self.work_on_saturday = False
         elif day_of_week == 0:
@@ -809,14 +812,13 @@ class Appointment(models.Model):
         sm_name = staff_member.get_staff_member_name()
 
         # Check if the staff member works on the given day
-        try:
-            working_hours = WorkingHours.objects.get(staff_member=staff_member, day_of_week=weekday_num)
-        except WorkingHours.DoesNotExist:
+        working_hours = WorkingHours.objects.filter(staff_member=staff_member, day_of_week=weekday_num)
+        if not working_hours:
             message = _("{staff_member} does not work on this day.").format(staff_member=sm_name)
             return False, message
 
-        # Check if the start time falls within the staff member's working hours
-        if not (working_hours.start_time <= start_time.time() <= working_hours.end_time):
+        # Check if the start time falls within one of the staff member's working hours for that day
+        if not any(wh.start_time <= start_time.time() <= wh.end_time for wh in working_hours):
             message = _("The appointment start time is outside of {staff_member}'s working hours.").format(
                 staff_member=sm_name)
             return False, message
@@ -1303,7 +1305,6 @@ class WorkingHours(models.Model):
         verbose_name = _("Working Hour")
         verbose_name_plural = _("Working Hours")
         ordering = ['day_of_week', 'start_time']
-        unique_together = ['staff_member', 'day_of_week']
         constraints = [
             check_constraint(
                 condition=models.Q(start_time__lt=models.F('end_time')),
@@ -1328,6 +1329,16 @@ class WorkingHours(models.Model):
     def clean(self):
         if self.start_time >= self.end_time:
             raise ValidationError("Start time must be before end time")
+        # A day can have several working hours (split shifts), but they can't overlap
+        if self.staff_member_id is not None and self.day_of_week is not None and self.overlapping().exists():
+            raise ValidationError(_("These hours overlap other working hours on the same day."))
+
+    def overlapping(self):
+        """The staff member's other working hours on the same day that overlap these ones. Hours that only touch
+        (one ends when the other starts) don't overlap."""
+        return WorkingHours.objects.filter(staff_member_id=self.staff_member_id, day_of_week=self.day_of_week,
+                                           start_time__lt=self.end_time, end_time__gt=self.start_time
+                                           ).exclude(pk=self.pk)
 
     def get_start_time(self):
         return self.start_time

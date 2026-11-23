@@ -37,7 +37,7 @@ from appointment.utils.db_helpers import (
     get_staff_member_appointment_list,
     get_staff_member_from_user_id_or_logged_in, get_staff_member_slot_gap_time, get_times_from_config,
     get_user_by_email, get_weekday_num_from_date, get_working_hours_for_staff_and_day, parse_name,
-    update_appointment_reminder, working_hours_exist)
+    update_appointment_reminder)
 from appointment.utils.email_ops import send_reset_link_to_staff_member
 from appointment.utils.error_codes import ErrorCode
 from appointment.utils.json_context import convert_appointment_to_json, get_generic_context, json_response
@@ -91,16 +91,21 @@ def prepare_appointment_display_data(user, appointment_id):
 
 def get_working_week(working_hours):
     """The staff member's week for the profile page: a day per entry, in the site's week order (FIRST_DAY_OF_WEEK),
-    with its working hours (or None) and where to draw them on a shared time axis.
+    with its working hours and where to draw them on a shared time axis.
 
     :param working_hours: The staff member's WorkingHours.
-    :return: A dictionary with 'days' (name, working_hours, left and width in % of the axis) and 'ticks' (hour
-             labels with their position in %).
+    :return: A dictionary with 'days' and 'ticks' (hour labels with their position in %). Each day has 'name',
+             'day_of_week' and 'ranges': its working hours, earliest first, each with 'working_hours' and its 'left'
+             and 'width' in % of the axis. A day can have several (split shifts) or none. 'working_hours' is the
+             day's first one (or None), for templates written before split shifts.
     """
-    by_day = {wh.day_of_week: wh for wh in working_hours}
+    by_day = {}
+    for wh in sorted(working_hours, key=lambda item: item.start_time):
+        by_day.setdefault(wh.day_of_week, []).append(wh)
+    every_wh = [wh for day_hours in by_day.values() for wh in day_hours]
     # The axis covers 6:00 to 20:00, stretched to fit hours that start earlier or end later.
-    first_hour = min([6] + [wh.start_time.hour for wh in by_day.values()])
-    last_hour = max([20] + [wh.end_time.hour + (1 if wh.end_time.minute else 0) for wh in by_day.values()])
+    first_hour = min([6] + [wh.start_time.hour for wh in every_wh])
+    last_hour = max([20] + [wh.end_time.hour + (1 if wh.end_time.minute else 0) for wh in every_wh])
     span = (last_hour - first_hour) * 60
 
     def position(value):
@@ -111,11 +116,16 @@ def get_working_week(working_hours):
     days = []
     for offset in range(7):
         day = (first_day + offset) % 7
-        wh = by_day.get(day)
-        entry = {'day_of_week': day, 'name': names[day], 'working_hours': wh}
-        if wh:
-            entry['left'] = position(wh.start_time)
-            entry['width'] = round(position(wh.end_time) - entry['left'], 2)
+        day_hours = by_day.get(day, [])
+        ranges = []
+        for wh in day_hours:
+            left = position(wh.start_time)
+            ranges.append({'working_hours': wh, 'left': left, 'width': round(position(wh.end_time) - left, 2)})
+        entry = {'day_of_week': day, 'name': names[day], 'ranges': ranges,
+                 'working_hours': day_hours[0] if day_hours else None}
+        if ranges:
+            entry['left'] = ranges[0]['left']
+            entry['width'] = ranges[0]['width']
         days.append(entry)
     step = 3 if last_hour - first_hour <= 15 else 4
     ticks = [{'time': datetime.time(hour), 'left': position(datetime.time(hour))}
@@ -242,7 +252,8 @@ def handle_entity_management_request(request, staff_member, entity_type, instanc
                                                 instance_id)
         template = get_custom_template('manage_working_hours.html', 'administration/manage_working_hours.html')
         if not instance:
-            # Adding: several days can be picked at once, except the days that already have working hours
+            # Adding: several days can be picked at once. Days that already have working hours can get more, as long
+            # as they don't overlap; 'taken' only marks them.
             taken = set(staff_member.get_working_hours().values_list('day_of_week', flat=True))
             context['multiple_days'] = True
             for day in context['week_days']:
@@ -442,12 +453,14 @@ def handle_working_hours_form(staff_member, day_of_week, start_time, end_time, a
                              error_code=ErrorCode.INVALID_DATA)
 
     if add:
-        taken = [day for day in days if working_hours_exist(day_of_week=day, staff_member=staff_member)]
+        # A day can have several working hours (split shifts), as long as they don't overlap
+        taken = [day for day in days if WorkingHours(staff_member=staff_member, day_of_week=day, start_time=start_time,
+                                                     end_time=end_time).overlapping().exists()]
         if taken:
             names = dict(DAYS_OF_WEEK)
             return json_response(
-                _("Working hours already exist for: {days}.").format(days=", ".join(str(names[int(day)])
-                                                                                    for day in taken)),
+                _("These hours overlap working hours on: {days}.").format(days=", ".join(str(names[int(day)])
+                                                                                       for day in taken)),
                 status=400, success=False, error_code=ErrorCode.WORKING_HOURS_CONFLICT)
         with transaction.atomic():
             for day in days:
@@ -465,12 +478,12 @@ def handle_working_hours_form(staff_member, day_of_week, start_time, end_time, a
         except WorkingHours.DoesNotExist:
             return json_response(_("Working hours does not exist."), status=400, success=False,
                                  error_code=ErrorCode.WORKING_HOURS_NOT_FOUND)
-        if WorkingHours.objects.filter(staff_member=wk.staff_member, day_of_week=days[0]).exclude(pk=wk.pk).exists():
-            return json_response(_("Working hours already exist for this day."), status=400, success=False,
-                                 error_code=ErrorCode.WORKING_HOURS_CONFLICT)
         wk.day_of_week = days[0]
         wk.start_time = start_time
         wk.end_time = end_time
+        if wk.overlapping().exists():
+            return json_response(_("These hours overlap other working hours on this day."), status=400,
+                                 success=False, error_code=ErrorCode.WORKING_HOURS_CONFLICT)
         wk.save()
 
     # Return success with redirect URL
