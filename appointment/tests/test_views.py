@@ -649,6 +649,60 @@ class UpdateAppointmentTestCase(BaseTest):
         )
 
 
+class CalendarCreateAppointmentTestCase(BaseTest):
+    """Creating an appointment from the staff calendar."""
+
+    def setUp(self):
+        super().setUp()
+        self.url = reverse('appointment:update_appt_min_info')
+        self.data = {
+            'isCreating': True, 'service_id': self.service1.pk, 'client_name': 'Vala Mal Doran',
+            'client_email': 'vala.mal-doran@django-appointment.com', 'client_phone': '+12392350345',
+            'client_address': 'Outer Rim', 'want_reminder': 'false', 'additional_info': '', 'start_time': '10:00',
+            'date': (timezone.localdate() + timedelta(days=1)).isoformat(),
+        }
+
+    def post(self, **changes):
+        return self.client.post(self.url, data=json.dumps(dict(self.data, **changes)),
+                                content_type='application/json', HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+
+    def test_client_is_the_given_email(self):
+        self.need_staff_login()
+        self.assertEqual(self.post().status_code, 200)
+        appt = Appointment.objects.get(appointment_request__staff_member=self.staff_member1)
+        self.assertEqual(appt.client.email, self.data['client_email'])
+
+    def test_existing_client_is_reused(self):
+        self.need_staff_login()
+        self.post(client_email=self.users['client1'].email)
+        appt = Appointment.objects.get(appointment_request__staff_member=self.staff_member1)
+        self.assertEqual(appt.client, self.users['client1'])
+
+    def test_staff_books_into_own_calendar_only(self):
+        self.need_staff_login()
+        response = self.post(staff_member=self.staff_member2.id, service_id=self.service2.pk)
+        self.assertEqual(response.status_code, 403)
+        self.assertFalse(Appointment.objects.exists())
+
+    def test_service_must_be_offered(self):
+        self.need_staff_login()
+        self.assertEqual(self.post(service_id=self.service2.pk).status_code, 400)
+
+    def test_email_is_required(self):
+        self.need_staff_login()
+        self.assertEqual(self.post(client_email='').status_code, 400)
+
+    def test_superuser_can_book_for_any_staff_member(self):
+        self.need_superuser_login()
+        response = self.post(staff_member=self.staff_member2.id, service_id=self.service2.pk)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(Appointment.objects.filter(appointment_request__staff_member=self.staff_member2).exists())
+
+    def test_unknown_service_is_404(self):
+        self.need_staff_login()
+        self.assertEqual(self.post(service_id=999).status_code, 404)
+
+
 class UpdateApptDateTimeTestCase(BaseTest):
     """The update_appt_date_time endpoint only lets owners and superusers move an appointment."""
 
