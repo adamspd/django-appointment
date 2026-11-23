@@ -27,7 +27,7 @@ from django.utils.translation import gettext_lazy as _, ngettext
 from phonenumber_field.modelfields import PhoneNumberField
 
 from appointment.compat import check_constraint
-from appointment.settings import APPOINTMENT_VERIFICATION_CODE_MINUTES, CONFIG_CACHE_KEY
+from appointment.settings import APPOINTMENT_SLOT_DURATION, APPOINTMENT_VERIFICATION_CODE_MINUTES, CONFIG_CACHE_KEY
 from appointment.utils.date_time import convert_minutes_in_human_readable_format, get_timestamp, get_weekday_num, \
     time_difference
 from appointment.utils.view_helpers import format_price, generate_random_id, get_locale
@@ -290,8 +290,9 @@ class StaffMember(models.Model):
         return f"{self.get_staff_member_name()}"
 
     def get_slot_duration(self):
+        # A Config can exist with empty fields (Config.get_instance() creates one), so fall back to the setting.
         config = Config.objects.first()
-        return self.slot_duration or (config.slot_duration if config else 0)
+        return self.slot_duration or (config.slot_duration if config else None) or APPOINTMENT_SLOT_DURATION
 
     def get_slot_duration_text(self):
         slot_duration = self.get_slot_duration()
