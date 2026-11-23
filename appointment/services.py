@@ -10,7 +10,7 @@ import datetime
 
 from django.contrib import messages
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
@@ -555,6 +555,8 @@ def save_appt_date_time(appt_start_time, appt_date, appt_id, request):
     :return: The modified appointment.
     """
     appt = Appointment.objects.get(id=appt_id)
+    if not check_entity_ownership(request.user, appt):
+        raise PermissionDenied(_("You can only update your own appointments."))
     service = appt.get_service()
 
     # Convert start time to a time object if it is a string

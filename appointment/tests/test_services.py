@@ -8,6 +8,7 @@ from datetime import time, timedelta
 from unittest.mock import patch
 
 from django.core.cache import cache
+from django.core.exceptions import PermissionDenied
 from django.test import Client, override_settings
 from django.test.client import RequestFactory
 from django.utils import timezone
@@ -560,6 +561,7 @@ class SaveApptDateTimeTests(BaseTest):
         self.appt = self.create_appt_for_sm1()
         self.factory = RequestFactory()
         self.request = self.factory.get('/')
+        self.request.user = self.users['staff1']
 
     def test_save_appt_date_time(self):
         """Test if an appointment's date and time can be updated."""
@@ -584,6 +586,20 @@ class SaveApptDateTimeTests(BaseTest):
         self.assertEqual(updated_appt.appointment_request.date, appt_date_obj)
         self.assertEqual(updated_appt.appointment_request.start_time, appt_start_time_obj)
         self.assertEqual(updated_appt.appointment_request.end_time, end_time_obj)
+
+    def test_save_appt_date_time_not_owner(self):
+        """A staff member cannot change the date and time of another staff member's appointment."""
+        self.request.user = self.users['staff2']
+        old_date = self.appt.appointment_request.date
+        old_start_time = self.appt.appointment_request.start_time
+        new_date_str = (timezone.localdate() + datetime.timedelta(days=7)).strftime("%Y-%m-%d")
+
+        with self.assertRaises(PermissionDenied):
+            save_appt_date_time("10:00:00.000000Z", new_date_str, self.appt.id, self.request)
+
+        self.appt.appointment_request.refresh_from_db()
+        self.assertEqual(self.appt.appointment_request.date, old_date)
+        self.assertEqual(self.appt.appointment_request.start_time, old_start_time)
 
 
 def get_next_weekday(d, weekday):

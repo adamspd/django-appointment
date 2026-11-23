@@ -558,6 +558,57 @@ class UpdateAppointmentTestCase(BaseTest):
         )
 
 
+class UpdateApptDateTimeTestCase(BaseTest):
+    """The update_appt_date_time endpoint only lets owners and superusers move an appointment."""
+
+    def setUp(self):
+        super().setUp()
+        self.url = reverse('appointment:update_appt_date_time')
+        self.new_date = timezone.localdate() + timedelta(days=7)
+
+    def _post(self, appt):
+        data = {'appointment_id': appt.id, 'date': self.new_date.strftime('%Y-%m-%d'),
+                'start_time': '09:00:00.000Z'}
+        return self.client.post(self.url, data=json.dumps(data), content_type='application/json',
+                                **{'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'})
+
+    def test_staff_cannot_move_other_staff_appointment(self):
+        self.need_staff_login()
+        other_appt = self.create_appt_for_sm2()
+        old_date = other_appt.appointment_request.date
+        old_start_time = other_appt.appointment_request.start_time
+
+        response = self._post(other_appt)
+
+        self.assertEqual(response.status_code, 403)
+        response_data = response.json()
+        self.assertFalse(response_data['success'])
+        self.assertEqual(response_data['errorCode'], ErrorCode.NOT_AUTHORIZED.value)
+        other_appt.appointment_request.refresh_from_db()
+        self.assertEqual(other_appt.appointment_request.date, old_date)
+        self.assertEqual(other_appt.appointment_request.start_time, old_start_time)
+
+    def test_staff_can_move_own_appointment(self):
+        self.need_staff_login()
+        own_appt = self.create_appt_for_sm1()
+
+        response = self._post(own_appt)
+
+        self.assertEqual(response.status_code, 200)
+        own_appt.appointment_request.refresh_from_db()
+        self.assertEqual(own_appt.appointment_request.date, self.new_date)
+
+    def test_superuser_can_move_any_appointment(self):
+        self.need_superuser_login()
+        other_appt = self.create_appt_for_sm2()
+
+        response = self._post(other_appt)
+
+        self.assertEqual(response.status_code, 200)
+        other_appt.appointment_request.refresh_from_db()
+        self.assertEqual(other_appt.appointment_request.date, self.new_date)
+
+
 class ServiceViewTestCase(BaseTest):
     @classmethod
     def setUpClass(cls):

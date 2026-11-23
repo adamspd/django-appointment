@@ -12,7 +12,7 @@ import json
 
 from django.conf import settings
 from django.contrib import messages
-from django.core.exceptions import ValidationError
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -434,6 +434,8 @@ def update_appt_date_time(request):
     except Appointment.DoesNotExist:
         return json_response(_("Appointment does not exist."), status=404, success=False,
                              error_code=ErrorCode.APPOINTMENT_NOT_FOUND)
+    except PermissionDenied as e:
+        return json_response(str(e), status=403, success=False, error_code=ErrorCode.NOT_AUTHORIZED)
     except ValidationError as e:
         return json_response(e.message, status=400, success=False)
     return json_response(appt_updated_successfully, custom_data={'appt': appt.id})
