@@ -880,7 +880,7 @@ function updateModalUIForEditMode(modal, isEditingAppointment) {
 
     // Toggle input and dropdown enable/disable state
     inputs.forEach(input => input.disabled = !isEditingAppointment);
-    staffDropdown.disabled = !isEditingAppointment;
+    if (staffDropdown) staffDropdown.disabled = !isEditingAppointment;
     servicesDropdown.disabled = !isEditingAppointment;
 
     // Toggle visibility of UI elements
