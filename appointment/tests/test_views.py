@@ -556,6 +556,26 @@ class UpdateAppointmentTestCase(BaseTest):
         updated_appt = Appointment.objects.get(id=self.appointment.id)
         self.assertEqual(updated_appt.client.email, self.data['client_email'])
 
+    def test_create_or_update_with_a_bad_phone_is_refused(self):
+        self.need_superuser_login()
+        url = reverse('appointment:update_appt_min_info')
+        for creating in (True, False):
+            with self.subTest(creating=creating):
+                data = dict(self.data, client_phone='12', isCreating=creating,
+                            appointment_id=None if creating else self.appointment.id)
+                response = self.client.post(url, data=json.dumps(data), content_type='application/json',
+                                            HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+                self.assertEqual(response.status_code, 400)
+                self.assertEqual(response.json()['message'], 'Please enter a valid phone number.')
+        self.assertEqual(Appointment.objects.count(), 1)
+
+    def test_create_without_a_phone(self):
+        self.need_staff_login()
+        data = dict(self.data, client_phone='', isCreating=True, appointment_id=None)
+        response = self.client.post(reverse('appointment:update_appt_min_info'), data=json.dumps(data),
+                                    content_type='application/json', HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.status_code, 200)
+
     def test_update_nonexistent_appointment(self):
         self.need_superuser_login()
 

@@ -18,6 +18,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.formats import get_format, localize
 from django.utils.translation import gettext as _, gettext_lazy
+from phonenumber_field.phonenumber import to_python as to_phone_number
 
 from appointment.forms import PersonalInformationForm, ServiceForm, StaffDaysOffForm, StaffUnavailabilityForm, \
     StaffWorkingHoursForm, UnavailabilityDataForm, WorkingHoursDataForm, WorkingHoursDaysDataForm
@@ -854,6 +855,19 @@ def handle_service_management_request(post_data, files_data=None, service_id=Non
         return None, False, str(e)
 
 
+def phone_is_valid(value) -> bool:
+    """An empty phone number is allowed; anything else must be a real number."""
+    if not value or not str(value).strip():
+        return True
+    phone = to_phone_number(str(value).strip())
+    return bool(phone) and phone.is_valid()
+
+
+def invalid_phone_response():
+    return json_response(_("Please enter a valid phone number."), status=400, success=False,
+                         error_code=ErrorCode.INVALID_DATA)
+
+
 def create_new_appointment(data, request):
     service = Service.objects.filter(id=data.get("service_id")).first()
     if service is None:
@@ -874,6 +888,8 @@ def create_new_appointment(data, request):
         validate_email(email)
     except ValidationError:
         return json_response(_("Please enter a valid email address."), status=400, success=False)
+    if not phone_is_valid(data.get("client_phone")):
+        return invalid_phone_response()
 
     # Convert date and start time strings to datetime objects
     date = convert_str_to_date(data.get("date"))
@@ -930,6 +946,8 @@ def update_existing_appointment(data, request):
                 success=False,
                 error_code=ErrorCode.NOT_AUTHORIZED,
             )
+        if not phone_is_valid(data.get("client_phone")):
+            return invalid_phone_response()
         staff_id = data.get("staff_member")
         want_reminder = data.get("want_reminder") == 'true'
         appt = save_appointment(
