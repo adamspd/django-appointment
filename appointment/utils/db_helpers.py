@@ -222,25 +222,16 @@ def cancel_existing_reminder(appointment_id_request):
 
 
 def can_appointment_be_rescheduled(appointment_request):
-    # Datetime 5 minutes ago from now
-    five_minutes_ago = timezone.now() - timezone.timedelta(minutes=5)
-
-    # Filter reschedule histories to those created within the last 5 minutes
-    recent_reschedule_count = appointment_request.reschedule_histories.filter(created_at__gte=five_minutes_ago).count()
+    """Whether the client can still move this appointment. Each confirmed reschedule counts toward the limit: the
+    service's own limit when `allow_rescheduling` is on, otherwise `Config.default_reschedule_limit`.
+    """
     service = appointment_request.service
-    config = Config.get_instance()
-
-    # Determine which rescheduled limit to use based on service settings
     if service.allow_rescheduling:
-        # If rescheduling is allowed
-        logger.info(f"Rescheduling is allowed for service {service.name} -> "
-                    f"Reschedule count: {recent_reschedule_count}, Reschedule limit: {service.reschedule_limit}")
-        return recent_reschedule_count < service.reschedule_limit
+        limit = service.reschedule_limit
     else:
-        # Rescheduling is allowed but no specific limit set; use system default
-        logger.info(f"Rescheduling is allowed but no specific limit set for service {service.name} -> "
-                    f"Reschedule count: {recent_reschedule_count}, Reschedule limit: {config.default_reschedule_limit}")
-        return recent_reschedule_count < config.default_reschedule_limit
+        config = Config.objects.first()
+        limit = config.default_reschedule_limit if config else Config._meta.get_field('default_reschedule_limit').default
+    return appointment_request.reschedule_attempts < limit
 
 
 def staff_change_allowed_on_reschedule():
@@ -431,7 +422,7 @@ def exclude_pending_reschedules(slots, staff_member, date):
     # Calculate the time window for "last 5 minutes"
     ten_minutes_ago = timezone.now() - datetime.timedelta(minutes=5)
     pending_reschedules = AppointmentRescheduleHistory.objects.filter(
-        appointment_request__staff_member=staff_member,
+        staff_member=staff_member,
         date=date,
         reschedule_status='pending',
         created_at__gte=ten_minutes_ago

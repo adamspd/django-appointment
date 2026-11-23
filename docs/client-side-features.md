@@ -123,6 +123,8 @@ reminder email will be dispatched 24 hours prior to the appointment.
 The email received by the client will always include a rescheduling link, allowing them to reschedule the appointment if
 this is permitted by the site owner's configuration. However, to prevent abuse, the site administrator has the ability
 to set a limit on the number of times a client can reschedule. For example, clients may be restricted to rescheduling no
-more than three times.
+more than three times. Each confirmed new date counts toward that limit.
+
+The new date is only saved once the client opens the confirmation link from the email and clicks **Confirm**.
 
 This concludes the client-side process.

@@ -108,7 +108,8 @@ not in the past.
 - `staff_member` (ForeignKey): The staff member assigned to the appointment, linking to the `StaffMember` model.
 - `payment_type` (CharField): The type of payment for the appointment (e.g., 'full').
 - `id_request` (CharField): An ID for the appointment request.
-- `reschedule_attempts` (PositiveIntegerField): Counter of reschedules for this request. See the note below — the live reschedule flow does not currently maintain it.
+- `reschedule_attempts` (PositiveIntegerField): Number of confirmed reschedules for this request. It goes up each time
+  the client confirms a new date.
 
 ### AppointmentRequest Methods:
 
@@ -125,11 +126,11 @@ not in the past.
 - `increment_reschedule_attempts`: Increments the reschedule counter and saves it.
 - `get_reschedule_history`: Returns this request's `AppointmentRescheduleHistory` entries, newest first.
 
-!!! warning "`reschedule_attempts` is not wired into the reschedule flow"
-    Nothing in the booking or rescheduling views calls `increment_reschedule_attempts`, so `reschedule_attempts`
-    stays at `0` and `can_be_rescheduled()` always returns `True` for any service with a non-zero
-    `reschedule_limit`. The limit that is actually enforced is computed by `can_appointment_be_rescheduled`, which
-    counts reschedule history entries created in the last 5 minutes. Treat these two members as available for your own code rather than as a description of the built-in behaviour.
+!!! note "Which limit applies"
+    The reschedule pages use `can_appointment_be_rescheduled` from `appointment.utils.db_helpers`: the client can
+    move the appointment while `reschedule_attempts` is below the service's `reschedule_limit` when
+    `allow_rescheduling` is on, or below `Config.default_reschedule_limit` otherwise. `can_be_rescheduled()` only
+    looks at the service's own limit.
 
 ## AppointmentRescheduleHistory
 

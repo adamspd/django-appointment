@@ -444,20 +444,29 @@ class CanAppointmentBeRescheduledTests(BaseTest, ConfigMixin):
 
     def test_rescheduling_allowed_exceeds_limit(self):
         modify_service_rescheduling(self.service1, allow_rescheduling=True, reschedule_limit=3)
-        ar = self.create_appointment_request_with_histories(service=self.service1, count=4)
+        ar = self.create_rescheduled_request(count=3)
         self.assertFalse(can_appointment_be_rescheduled(ar))
 
     def test_rescheduling_with_default_limit(self):
-        ar = self.create_appointment_request_with_histories(service=self.service1, count=2, use_default_limit=True)
+        ar = self.create_rescheduled_request(count=2)
         self.assertTrue(can_appointment_be_rescheduled(ar))
-        self.create_appt_reschedule_for_sm1(appointment_request=ar)
+        ar.increment_reschedule_attempts()
         self.assertFalse(can_appointment_be_rescheduled(ar))
 
-    # Helper method to create appointment request with rescheduled histories
-    def create_appointment_request_with_histories(self, service, count, use_default_limit=False):
-        ar = self.create_appointment_request_(service=service, staff_member=self.staff_member1)
+    def test_old_reschedules_still_count(self):
+        modify_service_rescheduling(self.service1, allow_rescheduling=True, reschedule_limit=1)
+        ar = self.create_rescheduled_request(count=1)
+        AppointmentRescheduleHistory.objects.filter(appointment_request=ar).update(
+            created_at=timezone.now() - datetime.timedelta(days=30))
+        self.assertFalse(can_appointment_be_rescheduled(ar))
+
+    def create_rescheduled_request(self, count):
+        """An appointment request that was rescheduled `count` times."""
+        ar = self.create_appointment_request_(service=self.service1, staff_member=self.staff_member1)
         for _ in range(count):
             self.create_appt_reschedule_for_sm1(appointment_request=ar)
+        ar.reschedule_attempts = count
+        ar.save()
         return ar
 
 
@@ -1375,6 +1384,16 @@ class ExcludePendingReschedulesTests(BaseTest):
         )
         filtered_slots = exclude_pending_reschedules(self.slots, self.staff_member1, self.date)
         self.assertEqual(len(filtered_slots), len(self.slots) - 1)  # Assuming only one slot overlaps
+
+    def test_pending_reschedule_holds_the_new_staff_members_slot(self):
+        appointment_request = self.create_appointment_request_(self.service1, self.staff_member1)
+        self.create_reschedule_history_(
+                appointment_request, date_=self.date, start_time=self.start_time, end_time=self.end_time,
+                staff_member=self.staff_member2, reason_for_rescheduling="")
+        self.assertEqual(len(exclude_pending_reschedules(self.slots, self.staff_member2, self.date)),
+                         len(self.slots) - 1)
+        self.assertEqual(len(exclude_pending_reschedules(self.slots, self.staff_member1, self.date)),
+                         len(self.slots))
 
     def test_exclude_with_non_pending_reschedules_within_last_5_minutes(self):
         """Slots should remain unchanged if reschedules within the last 5 minutes are not pending."""
