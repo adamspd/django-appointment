@@ -1,30 +1,61 @@
-## Migration Guide for Version 3.14.2 🚀
+## Migration Guide for Version 3.15.0 🚀
 
-Version 3.14.2 is a security release. It does **not** change the database, the settings, the supported Python and
-Django versions or the template context, so there is no migration to generate.
+Version 3.15.0 changes the database (email verification codes), adds two settings and changes how rescheduling and
+email codes behave. The supported Python and Django versions are the same.
 
 ### Coming from 3.14.x
 
 1. **Upgrade the package**:
 
     ```bash
-    pip install django-appointment==3.14.2
+    pip install django-appointment==3.15.0
     ```
 
-2. **Check any custom code that moves appointments.** Only if you call the `update_appt_date_time` endpoint or the
-   `save_appt_date_time` service yourself: a staff member can now only reschedule their own appointments. The endpoint
-   returns a 403 for anyone else's, and the service raises `PermissionDenied`. Superusers are not affected.
+2. **Create and run the migration.** `EmailVerificationCode` has new `attempts` and `email` fields, and its `user` can
+   now be empty (a new client's account is only created once they enter the code):
 
-### Coming from 3.13.x
+    ```bash
+    python manage.py makemigrations appointment
+    python manage.py migrate
+    ```
 
-Follow the [3.14.0 migration guide](v3_14_0.md) and install 3.14.2 instead of 3.14.0.
+3. **Collect the static files**, since the booking and calendar scripts changed:
 
-### Coming from 3.12 or older
+    ```bash
+    python manage.py collectstatic
+    ```
 
-Follow the [3.13.0 migration guide](v3_13_0.md) and install 3.14.2 instead of 3.13.0.
+4. **Set your site address** (recommended). Links in emails use it instead of the request's address:
+
+    ```python
+    APPOINTMENT_SITE_URL = "https://example.com"
+    ```
+
+   Also make sure `ALLOWED_HOSTS` lists your real domain names, not `["*"]`.
+
+5. **Optional:** change how long email codes stay valid (10 minutes by default):
+
+    ```python
+    APPOINTMENT_VERIFICATION_CODE_MINUTES = 10
+    ```
+
+6. **Check what changed in behaviour:**
+    - Confirming a reschedule now takes a click on a Confirm button. The link opens the new
+      `appointment/confirm_reschedule.html` page, which you can override like the other templates. Only a POST to
+      that page confirms.
+    - The reschedule limit now counts confirmed reschedules for each appointment request.
+    - Staff and superuser accounts are no longer logged in by a booking code.
+    - Bookings outside the staff member's free slots are refused, and the end time follows the service's duration.
+    - The calendar delete endpoint (`delete_appointment_ajax`) only accepts AJAX POST requests.
+    - Only 3 codes are sent to the same address in an hour. The count uses Django's cache, so with several worker
+      processes use a shared cache (Redis, Memcached or the database) for an exact count.
+
+### Coming from 3.13.x or older
+
+Follow the [3.14.0 migration guide](v3_14_0.md) first, then the steps above.
 
 ### Important Notes 📝:
 
-- See the [release notes](../release_notes/latest.md) for what the fix changes.
+- See the [release notes](../release_notes/latest.md) for what is new.
 - As with any upgrade, testing in a development or staging environment before applying changes to your production
   environment is highly recommended.
