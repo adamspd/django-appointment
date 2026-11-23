@@ -61,6 +61,8 @@ settings and changes how rescheduling and email codes behave. **Please read the
 
 ## Bug Fixes 🐛
 
+- **Emails on Django 6.1 with `MAILERS`.** New Django 6.1 projects set `MAILERS` instead of the `EMAIL_*` settings,
+  and the package then sent no email at all. It now sends them with either setup.
 - **Empty settings no longer break slots and profiles.** Once the settings row existed with empty values (it is created
   on the first reschedule), the slot list and the staff profile page failed. They now fall back to
   `APPOINTMENT_SLOT_DURATION` and `APPOINTMENT_BUFFER_TIME`.
