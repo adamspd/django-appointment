@@ -89,8 +89,11 @@ def display_appointment(request, appointment_id):
     appointment, page_title, error_message, status_code = prepare_appointment_display_data(request.user, appointment_id)
 
     if error_message:
-        context = get_generic_context(request=request)
-        template = get_custom_template('404_not_found.html', 'error_pages/404_not_found.html', area='admin')
+        context = get_generic_context_with_extra(request=request, extra={'message': error_message})
+        if status_code == 403:
+            template = get_custom_template('403_forbidden.html', 'error_pages/403_forbidden.html', area='admin')
+        else:
+            template = get_custom_template('404_not_found.html', 'error_pages/404_not_found.html', area='admin')
         return render(request, template, context=context, status=status_code)
     # If everything is okay, render the HTML template.
     extra_context = {
@@ -115,8 +118,9 @@ def user_profile(request, staff_user_id=None):
         error_template = get_custom_template('403_forbidden.html', 'error_pages/403_forbidden.html', area='admin')
     else:
         error_template = get_custom_template('404_not_found.html', 'error_pages/404_not_found.html', area='admin')
-    template = data['template'] if not error else error_template
-    return render(request, template, context)
+    if error:
+        return render(request, error_template, context, status=status_code)
+    return render(request, data['template'], context)
 
 
 ###############################################################

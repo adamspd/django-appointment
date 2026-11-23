@@ -937,6 +937,18 @@ class AppointmentDisplayViewTestCase(BaseTest):
         response = self.client.get(self.url_display_appt)
         self.assertNotEqual(response.status_code, 200)  # Expect redirection or error
 
+    def test_display_another_staff_appointment_is_forbidden(self):
+        self.need_staff_login()
+        response = self.client.get(reverse('appointment:display_appointment', args=[self.create_appt_for_sm2().id]))
+        self.assertEqual(response.status_code, 403)
+        self.assertTemplateUsed(response, 'error_pages/403_forbidden.html')
+
+    def test_another_staff_profile_is_forbidden(self):
+        self.need_staff_login()
+        response = self.client.get(reverse('appointment:user_profile', args=[self.staff_member2.user.id]))
+        self.assertEqual(response.status_code, 403)
+        self.assertTemplateNotUsed(response, 'administration/user_profile.html')
+
     def test_display_appointment_non_existent(self):
         # Log in as staff user
         self.need_superuser_login()
