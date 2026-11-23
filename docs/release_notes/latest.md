@@ -74,6 +74,8 @@ settings and changes how rescheduling and email codes behave. **Please read the
 - **Editing an appointment in the calendar works for staff who are not superusers.**
 - **Changing your email from the profile page** no longer returns an error.
 - **Moving working hours onto a day that already has them** now shows an error instead of failing.
+- **Refused staff pages answer with the right status.** Another staff member's profile returned the 403 page with a 200
+  status, and another staff member's appointment showed a "page not found" page.
 - **A pending move to another staff member** no longer blocks the wrong staff member's slot.
 
 ## Getting Started 🚀
