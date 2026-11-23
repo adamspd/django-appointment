@@ -1,14 +1,15 @@
-from datetime import timedelta
+from datetime import time, timedelta
 
 from django.core.cache import cache
 from django.test import TestCase
+from django.utils import timezone
 
-from appointment.models import Appointment, AppointmentRequest, Service, StaffMember
+from appointment.models import Appointment, AppointmentRequest, Service, StaffMember, WorkingHours
 from appointment.tests.mixins.base_mixin import (
     AppointmentMixin, AppointmentRequestMixin, AppointmentRescheduleHistoryMixin, ServiceMixin, StaffMemberMixin,
     UserMixin
 )
-from appointment.utils.db_helpers import get_user_model
+from appointment.utils.db_helpers import get_user_model, get_weekday_num_from_date
 
 
 class BaseTest(TestCase, UserMixin, StaffMemberMixin, ServiceMixin, AppointmentRequestMixin,
@@ -62,6 +63,16 @@ class BaseTest(TestCase, UserMixin, StaffMemberMixin, ServiceMixin, AppointmentR
         StaffMember.objects.all().delete()
         Service.objects.all().delete()
         get_user_model().objects.all().delete()
+
+    def bookable_appt_request_for_sm1(self, days_ahead=7):
+        """An appointment request in a free slot: staff_member1 works 9:00 to 17:00 that day."""
+        date_ = timezone.localdate() + timedelta(days=days_ahead)
+        self.staff_member1.work_on_saturday = self.staff_member1.work_on_sunday = True
+        self.staff_member1.save()
+        WorkingHours.objects.get_or_create(staff_member=self.staff_member1,
+                                           day_of_week=get_weekday_num_from_date(date_),
+                                           defaults={'start_time': time(9), 'end_time': time(17)})
+        return self.create_appt_request_for_sm1(date_=date_, start_time=time(9), end_time=time(10))
 
     def create_appt_request_for_sm1(self, service=None, staff_member=None, **kwargs):
         """Create an appointment request for staff_member1."""

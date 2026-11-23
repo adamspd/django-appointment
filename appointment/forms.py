@@ -20,6 +20,7 @@ from .models import (
     DAYS_OF_WEEK, Appointment, AppointmentRequest, AppointmentRescheduleHistory, DayOff, Unavailability, Service, StaffMember,
     WorkingHours
 )
+from .utils.date_time import get_ar_end_time
 from .utils.db_helpers import get_user_model
 from .utils.validators import not_in_the_past
 
@@ -125,6 +126,20 @@ class AppointmentRequestForm(forms.ModelForm):
     class Meta:
         model = AppointmentRequest
         fields = ('date', 'start_time', 'end_time', 'service', 'staff_member')
+
+    def clean(self):
+        cleaned_data = super().clean()
+        date, start_time = cleaned_data.get('date'), cleaned_data.get('start_time')
+        service, staff_member = cleaned_data.get('service'), cleaned_data.get('staff_member')
+        if not (date and start_time and service and staff_member):
+            return cleaned_data
+        # The end always follows from the service, whatever the browser sent
+        cleaned_data['end_time'] = get_ar_end_time(start_time, service.duration)
+
+        from appointment.services import is_slot_bookable  # services imports this module
+        if not is_slot_bookable(date, start_time, staff_member, service):
+            raise forms.ValidationError(_("This time is not available. Please choose another one."))
+        return cleaned_data
 
 
 class ReschedulingForm(WidgetClassesMixin, forms.ModelForm):

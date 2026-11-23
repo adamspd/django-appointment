@@ -4,7 +4,7 @@
 import datetime
 import json
 import uuid
-from datetime import time, timedelta
+from datetime import date, time, timedelta
 from unittest.mock import patch
 
 from django.contrib import messages
@@ -97,19 +97,65 @@ class AppointmentRequestTestCase(BaseTest):
         self.assertIn('all_staff_members', response.context)
         self.assertIn('service', response.context)
 
+    def booking_data(self, **overrides):
+        ar = self.bookable_appt_request_for_sm1()
+        data = {'date': ar.date.isoformat(), 'start_time': '09:00', 'end_time': '10:00',
+                'service': self.service1.id, 'staff_member': self.staff_member1.id}
+        ar.delete()
+        data.update(overrides)
+        return data
+
     def test_appointment_request_submit_valid(self):
         """Test if a valid appointment request can be submitted."""
-        post_data = {
-            'date': timezone.localdate().isoformat(),
-            'start_time': time(9, 0),
-            'end_time': time(10, 0),
-            'service': self.service1.id,
-            'staff_member': self.staff_member1.id,
-        }
-        response = self.client.post(self.url, post_data)
+        response = self.client.post(self.url, self.booking_data())
         self.assertEqual(response.status_code, 302)  # Redirect status
         # Check if an AppointmentRequest object was created
         self.assertTrue(AppointmentRequest.objects.filter(service=self.service1).exists())
+
+    def assert_refused(self, data):
+        response = self.client.post(self.url, data)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(AppointmentRequest.objects.exists())
+
+    def test_end_time_follows_the_service(self):
+        self.client.post(self.url, self.booking_data(end_time='09:01'))
+        self.assertEqual(AppointmentRequest.objects.get().end_time, time(10))
+
+    def test_time_outside_working_hours_refused(self):
+        self.assert_refused(self.booking_data(start_time='03:00', end_time='04:00'))
+
+    def test_day_without_working_hours_refused(self):
+        data = self.booking_data()
+        data['date'] = (date.fromisoformat(data['date']) + timedelta(days=1)).isoformat()
+        self.assert_refused(data)
+
+    def test_day_off_refused(self):
+        data = self.booking_data()
+        day = date.fromisoformat(data['date'])
+        DayOff.objects.create(staff_member=self.staff_member1, start_date=day, end_date=day)
+        self.assert_refused(data)
+
+    def test_service_must_be_offered(self):
+        self.assert_refused(self.booking_data(service=self.service2.id))
+
+    def test_booked_time_refused(self):
+        data = self.booking_data()
+        self.create_appt_for_sm1(appointment_request=self.create_appt_request_for_sm1(
+            date_=date.fromisoformat(data['date']), start_time=time(9), end_time=time(10)))
+        AppointmentRequest.objects.filter(appointment__isnull=True).delete()
+        self.client.post(self.url, data)
+        self.assertEqual(AppointmentRequest.objects.count(), 1)
+
+    def test_time_taken_before_confirmation_is_not_booked(self):
+        self.need_normal_login()
+        ar = self.bookable_appt_request_for_sm1()
+        self.create_appt_for_sm1(appointment_request=self.create_appt_request_for_sm1(
+            date_=ar.date, start_time=time(9), end_time=time(10)))
+        url = reverse('appointment:appointment_client_information', args=[ar.id, ar.id_request])
+        self.client.post(url, {'name': 'Georges Hammond', 'email': 'georges.s.hammond@django-appointment.com',
+                               'phone_0': 'US', 'phone_1': '2392340543', 'address': 'x', 'additional_info': 'x',
+                               'payment_type': 'full'})
+        self.assertFalse(Appointment.objects.filter(appointment_request=ar).exists())
 
     def test_appointment_request_submit_invalid(self):
         """Test if an invalid appointment request can be submitted."""
@@ -145,7 +191,7 @@ class VerificationCodeTestCase(BaseTest):
         middleware.process_request(self.request)
         self.request.session.save()
 
-        self.ar = self.create_appt_request_for_sm1()
+        self.ar = self.bookable_appt_request_for_sm1()
         self.url = reverse('appointment:enter_verification_code', args=[self.ar.id, self.ar.id_request])
 
     def test_verify_user_and_login_valid(self):
@@ -1833,7 +1879,7 @@ class AppointmentClientInformationTest(BaseTest):
     def setUp(self):
         super().setUp()
         self.client = Client()
-        self.ar = self.create_appt_request_for_sm1()
+        self.ar = self.bookable_appt_request_for_sm1()
         self.url = reverse('appointment:appointment_client_information', args=[self.ar.pk, self.ar.id_request])
         self.factory = RequestFactory()
         self.request = self.factory.get('/')

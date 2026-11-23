@@ -42,7 +42,7 @@ from appointment.utils.view_helpers import get_locale
 from .decorators import require_ajax
 from .email_sender.email_sender import has_required_email_settings
 from .messages_ import passwd_error, passwd_set_successfully
-from .services import get_appointments_and_slots, get_available_slots_for_staff
+from .services import get_appointments_and_slots, get_available_slots_for_staff, is_slot_bookable
 from .settings import (APPOINTMENT_PAYMENT_URL, APPOINTMENT_THANK_YOU_URL)
 from .utils.date_time import DATE_FORMATS, convert_str_to_date
 from .utils.error_codes import ErrorCode
@@ -271,8 +271,7 @@ def appointment_request_submit(request):
                                 id_request=ar.id_request)
         else:
             # Handle the case if the form is not valid
-            logger.error(f"Form errors: {form.errors}")
-            logger.error(f"Form data: {request.POST}")
+            logger.info(f"Booking form errors: {form.errors.as_json()}")
             messages.error(request, _('There was an error in your submission. Please check the form and try again.'))
     else:
         form = AppointmentRequestForm()
@@ -341,6 +340,10 @@ def create_appointment(request, appointment_request_obj, client_data, appointmen
     :param appointment_data: The appointment data.
     :return: The redirect response.
     """
+    ar = appointment_request_obj
+    if not is_slot_bookable(ar.date, ar.start_time, ar.staff_member, ar.service):
+        messages.error(request, _("This time is not available. Please choose another one."))
+        return redirect('appointment:appointment_request', service_id=ar.service_id)
     appointment = create_and_save_appointment(appointment_request_obj, client_data, appointment_data, request)
     allow_thank_you_page(request, appointment)
     notify_admin_about_appointment(appointment, appointment.client.first_name, request=request)
