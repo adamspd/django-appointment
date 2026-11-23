@@ -7,7 +7,14 @@ function showErrorModal(message, title = errorTxt) {
 
     // Show the modal
     if (!errorModalInstance) {
-        errorModalInstance = new bootstrap.Modal(document.getElementById('errorModal'));
+        const element = document.getElementById('errorModal');
+        errorModalInstance = new bootstrap.Modal(element);
+        // Shown over another modal (a form): once closed, that one is still open, so keep the page from scrolling
+        element.addEventListener('hidden.bs.modal', function () {
+            if (document.querySelector('.modal.show')) {
+                document.body.classList.add('modal-open');
+            }
+        });
     }
     errorModalInstance.show();
 }

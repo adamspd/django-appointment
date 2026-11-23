@@ -76,6 +76,8 @@ settings and changes how rescheduling and email codes behave. **Please read the
 - **Moving working hours onto a day that already has them** now shows an error instead of failing.
 - **Refused staff pages answer with the right status.** Another staff member's profile returned the 403 page with a 200
   status, and another staff member's appointment showed a "page not found" page.
+- **Calendar form.** The service list now follows the staff member picked, and the form stays open with what was typed
+  when saving fails. Phone numbers typed there are checked; an invalid one used to be saved as is.
 - **A pending move to another staff member** no longer blocks the wrong staff member's slot.
 
 ## Getting Started 🚀
