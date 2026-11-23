@@ -109,7 +109,8 @@ nav:
       - Compatibility matrix: compatibility.md
   - Releases:
       - Release notes:
-          - Latest (3.14.0): release_notes/latest.md
+          - Latest (3.14.2): release_notes/latest.md
+          - Version 3.14.0: release_notes/v3_14_0.md
           - Version 3.13.1: release_notes/v3_13_1.md
           - Version 3.13.0: release_notes/v3_13_0.md
           - Version 3.12.0: release_notes/v3_12_0.md
@@ -119,7 +120,8 @@ nav:
           - Version 3.0.0: release_notes/v3_0_0.md
           - Version 2.1.1: release_notes/v2_1_1.md
       - Migration guides:
-          - Latest (3.14.0): migration_guides/latest.md
+          - Latest (3.14.2): migration_guides/latest.md
+          - Version 3.14.0: migration_guides/v3_14_0.md
           - Version 3.13.1: migration_guides/v3_13_1.md
           - Version 3.13.0: migration_guides/v3_13_0.md
           - Version 3.12.0: migration_guides/v3_12_0.md
