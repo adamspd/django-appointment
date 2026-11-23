@@ -1926,26 +1926,66 @@ class RescheduleAppointmentSubmitViewTests(BaseTest):
     def setUp(self):
         super().setUp()
         self.client = Client()
-        self.ar = self.create_appt_request_for_sm1(date_=timezone.localdate() + datetime.timedelta(days=1))
+        self.ar = self.bookable_appt_request_for_sm1()
         self.appointment = self.create_appt_for_sm1(appointment_request=self.ar)
         self.url = reverse('appointment:reschedule_appointment_submit')
         self.post_data = {
             'appointment_request_id': self.ar.id_request,
-            'date': (timezone.localdate() + datetime.timedelta(days=2)).isoformat(),
-            'start_time': '10:00',
-            'end_time': '11:00',
+            'date': self.ar.date.isoformat(),
+            'start_time': '11:00',
+            'end_time': '12:00',
+            'service': self.service1.id,
             'staff_member': self.staff_member1.id,
             'reason_for_rescheduling': 'Need a different time',
         }
 
     def test_post_request_with_valid_form(self):
-        with patch('appointment.views.AppointmentRequestForm.is_valid', return_value=True), \
-                patch('appointment.views.send_reschedule_confirmation_email') as mock_send_email:
+        with patch('appointment.views.send_reschedule_confirmation_email') as mock_send_email:
             response = self.client.post(self.url, self.post_data)
             self.assertEqual(response.status_code, 200)
             self.assertTemplateUsed(response, 'appointment/rescheduling_thank_you.html')
             mock_send_email.assert_called_once()
             self.assertTrue(AppointmentRescheduleHistory.objects.exists())
+
+    def test_limit_reached_is_refused(self):
+        self.service1.allow_rescheduling = True
+        self.service1.reschedule_limit = 1
+        self.service1.save()
+        self.ar.increment_reschedule_attempts()
+        response = self.client.post(self.url, self.post_data)
+        self.assertEqual(response.status_code, 403)
+        self.assertFalse(AppointmentRescheduleHistory.objects.exists())
+
+    def test_time_must_be_free(self):
+        self.client.post(self.url, dict(self.post_data, start_time='03:00', end_time='03:30'))
+        self.assertFalse(AppointmentRescheduleHistory.objects.exists())
+
+    def test_end_time_follows_the_service(self):
+        self.client.post(self.url, dict(self.post_data, end_time='11:01'))
+        self.assertEqual(AppointmentRescheduleHistory.objects.get().end_time, datetime.time(12))
+
+    def test_service_stays_the_same(self):
+        self.staff_member2.services_offered.add(self.service1)
+        self.client.post(self.url, dict(self.post_data, service=self.service2.id))
+        history = AppointmentRescheduleHistory.objects.get()
+        self.ar.refresh_from_db()
+        self.assertEqual(self.ar.service, self.service1)
+        self.assertEqual(history.end_time, datetime.time(12))
+
+    def test_staff_stays_the_same_when_change_not_allowed(self):
+        Config.objects.update_or_create(defaults={'allow_staff_change_on_reschedule': False})
+        self.client.post(self.url, dict(self.post_data, staff_member=self.staff_member2.id))
+        self.assertEqual(AppointmentRescheduleHistory.objects.get().staff_member, self.staff_member1)
+
+    def test_new_staff_must_offer_the_service(self):
+        self.client.post(self.url, dict(self.post_data, staff_member=self.staff_member2.id))
+        self.assertFalse(AppointmentRescheduleHistory.objects.exists())
+
+    def test_only_the_latest_request_is_pending(self):
+        self.client.post(self.url, self.post_data)
+        self.client.post(self.url, dict(self.post_data, start_time='13:00', end_time='14:00'))
+        pending = AppointmentRescheduleHistory.objects.filter(reschedule_status='pending')
+        self.assertEqual([h.start_time for h in pending], [datetime.time(13)])
 
     def test_post_request_with_invalid_form(self):
         # Simulate an invalid form submission
@@ -1957,13 +1997,8 @@ class RescheduleAppointmentSubmitViewTests(BaseTest):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'appointment/appointments.html')
 
-    def test_reschedule_not_allowed(self):
-        # Simulate the scenario where rescheduling is not allowed by setting the reschedule limit to 0
-        self.service1.reschedule_limit = 0
-        self.service1.allow_rescheduling = False
-        self.service1.save()
-
-        response = self.client.post(self.url, self.post_data)
+    def test_invalid_time_shows_the_error(self):
+        response = self.client.post(self.url, dict(self.post_data, start_time='03:00', end_time='03:30'))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'appointment/appointments.html')
         messages_list = list(get_messages(response.wsgi_request))
@@ -1999,27 +2034,39 @@ class ConfirmRescheduleViewTests(BaseTest):
         self.url = reverse('appointment:confirm_reschedule', args=[self.reschedule_history.id_request])
 
     def test_confirm_reschedule_valid(self):
-        response = self.client.get(self.url)
+        response = self.client.post(self.url)
         self.reschedule_history.refresh_from_db()
         self.ar.refresh_from_db()
         self.assertEqual(self.reschedule_history.reschedule_status, 'confirmed')
         self.assertEqual(response.status_code, 302)  # Redirect to thank you page
         self.assertRedirects(response, reverse('appointment:default_thank_you', args=[self.ar.appointment.id]))
 
+    def test_opening_the_link_changes_nothing(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'appointment/confirm_reschedule.html')
+        self.reschedule_history.refresh_from_db()
+        self.assertEqual(self.reschedule_history.reschedule_status, 'pending')
+
+    def test_confirm_counts_toward_the_limit(self):
+        self.client.post(self.url)
+        self.ar.refresh_from_db()
+        self.assertEqual(self.ar.reschedule_attempts, 1)
+
     def test_confirm_reschedule_invalid_status(self):
         self.reschedule_history.reschedule_status = 'confirmed'
         self.reschedule_history.save()
-        response = self.client.get(self.url)
+        response = self.client.post(self.url)
         self.assertEqual(response.status_code, 404)  # Render 404_not_found with error message
 
     def test_confirm_reschedule_no_longer_valid(self):
         with patch('appointment.models.AppointmentRescheduleHistory.still_valid', return_value=False):
-            response = self.client.get(self.url)
+            response = self.client.post(self.url)
             self.assertEqual(response.status_code, 404)  # Render 404_not_found with error message
 
     def test_confirm_reschedule_updates(self):
         """Ensure that the appointment request and reschedule history are updated correctly."""
-        self.client.get(self.url)
+        self.client.post(self.url)
         self.ar.refresh_from_db()
         self.reschedule_history.refresh_from_db()
         self.assertEqual(self.ar.staff_member, self.reschedule_history.staff_member)
@@ -2027,7 +2074,7 @@ class ConfirmRescheduleViewTests(BaseTest):
 
     @patch('appointment.views.notify_admin_about_reschedule')
     def test_notify_admin_about_reschedule_called(self, mock_notify_admin):
-        self.client.get(self.url)
+        self.client.post(self.url)
         mock_notify_admin.assert_called_once()
         self.assertTrue(mock_notify_admin.called)
 
