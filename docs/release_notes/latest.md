@@ -60,8 +60,9 @@ changes how rescheduling and email codes behave. **Please read the
 
 ### Links in emails
 
-- **New `APPOINTMENT_SITE_URL` setting.** When set, every link in emails uses it instead of the request's address. Also
-  make sure `ALLOWED_HOSTS` lists your real domain names.
+- **New optional `APPOINTMENT_SITE_URL` setting.** When set, every link in emails uses it. When it is not set, links use
+  the current `Site` of `django.contrib.sites` if that app is installed, and the request's address otherwise. Also make
+  sure `ALLOWED_HOSTS` lists your real domain names.
 
 ### Logs
 

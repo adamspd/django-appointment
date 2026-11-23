@@ -25,13 +25,15 @@ email codes behave. The supported Python and Django versions are the same.
     python manage.py collectstatic
     ```
 
-4. **Set your site address** (recommended). Links in emails use it instead of the request's address:
+4. **Check your site address** (optional). Links in emails use, in order, `APPOINTMENT_SITE_URL`, the current `Site`
+   of `django.contrib.sites` when that app is installed, or the request's address:
 
     ```python
     APPOINTMENT_SITE_URL = "https://example.com"
     ```
 
-   Also make sure `ALLOWED_HOSTS` lists your real domain names, not `["*"]`.
+   If you use `django.contrib.sites`, make sure your `Site`'s domain is not still `example.com`. Also make sure
+   `ALLOWED_HOSTS` lists your real domain names, not `["*"]`.
 
 5. **Optional:** change how long email codes stay valid (10 minutes by default):
 
