@@ -40,7 +40,7 @@ from appointment.utils.error_codes import ErrorCode
 from appointment.utils.json_context import (
     convert_appointment_to_json, get_generic_context, get_generic_context_with_extra, handle_unauthorized_response,
     json_response)
-from appointment.utils.permissions import check_extensive_permissions, check_permissions, \
+from appointment.utils.permissions import check_entity_ownership, check_extensive_permissions, check_permissions, \
     has_permission_to_delete_appointment
 from appointment.utils.template_helpers import escape_json_for_script, get_custom_template
 
@@ -329,18 +329,19 @@ def fetch_service_list_for_staff(request):
     staff_id = request.GET.get('staff_member')
     if appointment_id:
         # Fetch services for a specific appointment (edit mode)
-        if request.user.is_superuser:
-            appointment = Appointment.objects.get(id=appointment_id)
-            staff_member = appointment.get_staff_member()
-        else:
-            staff_member = StaffMember.objects.get(user=request.user)
-            # Ensure the staff member is associated with this appointment
-            if not Appointment.objects.filter(id=appointment_id,
-                                              appointment_request__staff_member=staff_member).exists():
-                return json_response(_("You do not have permission to access this appointment."), status_code=403)
+        appointment = Appointment.objects.filter(id=appointment_id).first() if appointment_id.isdigit() else None
+        if appointment is None:
+            return json_response(_("Appointment does not exist."), status=404, success=False,
+                                 error_code=ErrorCode.APPOINTMENT_NOT_FOUND)
+        staff_member = appointment.get_staff_member()
+        if not request.user.is_superuser and staff_member.user_id != request.user.pk:
+            return json_response(_("You do not have permission to access this appointment."), status=403,
+                                 success=False, error_code=ErrorCode.NOT_AUTHORIZED)
         services = list(staff_member.get_services_offered().values('id', 'name'))
     elif staff_id:
         # Fetch services for the specified staff member (new mode based on staff member selection)
+        if not staff_id.isdigit():
+            raise Http404
         staff_member = get_object_or_404(StaffMember, id=staff_id)
         services = list(staff_member.get_services_offered().values('id', 'name'))
     else:
@@ -395,17 +396,22 @@ def update_appt_min_info(request):
 @require_ajax
 @require_POST
 def validate_appointment_date(request):
-    data = json.loads(request.body)
-    start_time_str = data.get("start_time")
-    appt_date_str = data.get("date")
-    appointment_id = data.get("appointment_id")
+    try:
+        data = json.loads(request.body)
+        appointment_id = int(data.get("appointment_id"))
+        # Convert the string date and time to Python datetime objects
+        start_time_obj = datetime.datetime.fromisoformat(data.get("start_time"))
+        appt_date = datetime.datetime.strptime(data.get("date"), "%Y-%m-%d").date()
+    except (AttributeError, TypeError, ValueError):
+        return json_response(_("Invalid data."), status=400, success=False, error_code=ErrorCode.INVALID_DATA)
 
-    # Convert the string date and time to Python datetime objects
-    start_time_obj = datetime.datetime.fromisoformat(start_time_str)
-    appt_date = datetime.datetime.strptime(appt_date_str, "%Y-%m-%d").date()
-
-    # Get the staff member for the appointment
-    appt = Appointment.objects.get(id=appointment_id)
+    appt = Appointment.objects.filter(id=appointment_id).first()
+    if appt is None:
+        return json_response(_("Appointment does not exist."), status=404, success=False,
+                             error_code=ErrorCode.APPOINTMENT_NOT_FOUND)
+    if not check_entity_ownership(request.user, appt):
+        return json_response(_("You can only manage your own appointments."), status=403, success=False,
+                             error_code=ErrorCode.NOT_AUTHORIZED)
     staff_member = appt.appointment_request.staff_member
 
     # Check if the appointment's date and time are valid
@@ -720,9 +726,13 @@ def delete_appointment(request, appointment_id):
 
 @require_user_authenticated
 @require_staff_or_superuser
+@require_ajax
+@require_POST
 def delete_appointment_ajax(request):
-    data = json.loads(request.body)
-    appointment_id = data.get("appointment_id")
+    try:
+        appointment_id = int(json.loads(request.body).get("appointment_id"))
+    except (AttributeError, TypeError, ValueError):
+        return json_response(_("Invalid data."), status=400, success=False, error_code=ErrorCode.INVALID_DATA)
     appointment = get_object_or_404(Appointment, pk=appointment_id)
     if not has_permission_to_delete_appointment(request.user, appointment):
         message = _("You can only delete your own appointments.")

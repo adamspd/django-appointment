@@ -435,7 +435,7 @@ class AppointmentTestCase(BaseTest):
 
         url = reverse('appointment:delete_appointment_ajax')
         data = json.dumps({'appointment_id': self.appointment.id})
-        response = self.client.post(url, data, content_type='application/json')
+        response = self.client.post(url, data, content_type='application/json', HTTP_X_REQUESTED_WITH='XMLHttpRequest')
 
         self.assertEqual(response.status_code, 200)
         # Expecting both 'message' and 'success' in the response
@@ -470,7 +470,8 @@ class AppointmentTestCase(BaseTest):
         different_appointment = self.create_appt_for_sm2()
         url = reverse('appointment:delete_appointment_ajax')
 
-        response = self.client.post(url, {'appointment_id': different_appointment.id}, content_type='application/json')
+        response = self.client.post(url, {'appointment_id': different_appointment.id}, content_type='application/json',
+                                    HTTP_X_REQUESTED_WITH='XMLHttpRequest')
 
         # Check that the response indicates failure due to lack of permissions
         self.assertEqual(response.status_code, 403)
@@ -1826,6 +1827,65 @@ class SetPasswordViewTests(BaseTest):
             any(msg.message == _("The password reset link is invalid or has expired.") for msg in messages_))
 
 
+class CalendarRequestsCheckInputTests(BaseTest):
+    AJAX = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+
+    def post_json(self, name, payload):
+        return self.client.post(reverse(f'appointment:{name}'), json.dumps(payload),
+                                content_type='application/json', **self.AJAX)
+
+    def test_validate_date_only_for_own_appointments(self):
+        appt = self.create_appt_for_sm2()
+        self.need_staff_login()
+        day = (timezone.localdate() + timedelta(days=7)).isoformat()
+        response = self.post_json('validate_appointment_date', {
+            'start_time': f'{day}T10:00:00.000Z', 'date': day, 'appointment_id': appt.id})
+        self.assertEqual(response.status_code, 403)
+
+    def test_validate_date_bad_input(self):
+        self.need_staff_login()
+        for payload in ({}, {'appointment_id': 'x', 'start_time': '10:00', 'date': '2026-01-01'},
+                        {'appointment_id': 1, 'start_time': 'noon', 'date': '2026-01-01'},
+                        {'appointment_id': 1, 'start_time': '10:00', 'date': 'tomorrow'}):
+            with self.subTest(payload=payload):
+                self.assertEqual(self.post_json('validate_appointment_date', payload).status_code, 400)
+
+    def test_validate_date_unknown_appointment(self):
+        self.need_staff_login()
+        response = self.post_json('validate_appointment_date', {
+            'appointment_id': 999999, 'start_time': '2026-01-01T10:00:00.000Z', 'date': '2026-01-01'})
+        self.assertEqual(response.status_code, 404)
+
+    def test_delete_needs_post(self):
+        appt = self.create_appt_for_sm1()
+        self.need_staff_login()
+        response = self.client.get(reverse('appointment:delete_appointment_ajax'), **self.AJAX)
+        self.assertEqual(response.status_code, 405)
+        self.assertTrue(Appointment.objects.filter(pk=appt.pk).exists())
+
+    def test_delete_bad_input(self):
+        self.need_staff_login()
+        self.assertEqual(self.post_json('delete_appointment_ajax', {'appointment_id': 'x'}).status_code, 400)
+
+    def test_service_list_unknown_appointment(self):
+        self.need_superuser_login()
+        response = self.client.get(reverse('appointment:fetch_service_list_for_staff'), {'appointmentId': '999999'})
+        self.assertEqual(response.status_code, 404)
+
+    def test_service_list_other_staff_appointment(self):
+        appt = self.create_appt_for_sm2()
+        self.need_staff_login()
+        response = self.client.get(reverse('appointment:fetch_service_list_for_staff'), {'appointmentId': appt.id})
+        self.assertEqual(response.status_code, 403)
+
+    def test_next_available_date_needs_the_service_offered(self):
+        url = reverse('appointment:request_next_available_slot', args=[self.service2.id])
+        response = self.client.get(url, {'staff_member': self.staff_member1.id}, **self.AJAX)
+        self.assertEqual(response.status_code, 404)
+        response = self.client.get(url, {'staff_member': 'abc'}, **self.AJAX)
+        self.assertEqual(response.status_code, 404)
+
+
 class GetNonWorkingDaysAjaxTests(BaseTest):
     @classmethod
     def setUpClass(cls):
@@ -1864,7 +1924,12 @@ class GetNonWorkingDaysAjaxTests(BaseTest):
     def test_ajax_required(self):
         """Ensure the view only responds to AJAX requests."""
         non_ajax_response = self.client.get(self.url, {'staff_member': self.staff_member1.id})
-        self.assertEqual(non_ajax_response.status_code, 200)
+        self.assertEqual(non_ajax_response.status_code, 400)
+
+    def test_bad_staff_id(self):
+        response = self.client.get(self.url, {'staff_member': 'abc'}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.json()['success'])
 
 
 class AppointmentClientInformationTest(BaseTest):

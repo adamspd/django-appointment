@@ -122,7 +122,6 @@ def get_available_slots_ajax(request):
     return json_response(message='Successfully retrieved available slots', custom_data=custom_data, success=True)
 
 
-# TODO: service id and staff id are not checked
 @require_ajax
 def get_next_available_date_ajax(request, service_id):
     """This view function handles AJAX requests to get the next available date for a service.
@@ -135,8 +134,12 @@ def get_next_available_date_ajax(request, service_id):
 
     # If staff_id is not provided, you should handle it accordingly.
     if staff_id and staff_id != 'none':
+        if not staff_id.isdigit():
+            raise Http404
         staff_member = get_object_or_404(StaffMember, pk=staff_id)
         service = get_object_or_404(Service, pk=service_id)
+        if not staff_member.get_service_is_offered(service.id):
+            raise Http404
 
         current_date = timezone.localdate()
         next_available_date = None
@@ -165,12 +168,13 @@ def get_next_available_date_ajax(request, service_id):
         return json_response(message=message, custom_data=data, success=False, error_code=ErrorCode.STAFF_ID_REQUIRED)
 
 
+@require_ajax
 def get_non_working_days_ajax(request):
     staff_id = request.GET.get('staff_member')
     error = False
     message = _('Successfully retrieved non-working days')
 
-    if not staff_id or staff_id == 'none':
+    if not staff_id or not staff_id.isdigit():
         message = _('No staff member selected')
         error_code = ErrorCode.STAFF_ID_REQUIRED
         error = True
