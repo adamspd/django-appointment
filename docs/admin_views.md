@@ -221,14 +221,16 @@ bookable — use a day off to remove whole days instead. Slots overlapping one a
 - **Add New Working Hours**:
     - **Endpoint**: `app-admin/add-working-hours/` and `app-admin/add-working-hours/<int:staff_user_id>/`
     - **Description**: Users can set new working hours. Superusers can set for any user, while staff members can only
-      set their own.
+      set their own. Several days can be picked at once (`day_of_week` posted once for each day); they all get the
+      same hours. Days that already have working hours can't be picked, and if one of the posted days has them,
+      nothing is added.
     - **Methods**: GET (display form), POST (submit form) · **Access**: staff or superuser
 
 - **Update Working Hours**:
     - **Endpoint**: `app-admin/update-working-hours/<int:working_hours_id>/` and
       `app-admin/update-working-hours/<int:working_hours_id>/<int:staff_user_id>/`
-    - **Description**: Allows users to modify their working hours. If the working hours record doesn't exist, an error
-      page is displayed.
+    - **Description**: Allows users to modify their working hours, one day at a time. Moving them to a day that
+      already has working hours is refused. If the working hours record doesn't exist, an error page is displayed.
     - **Methods**: GET (display form with pre-filled data), POST (submit updated data) · **Access**: staff or superuser
 
 - **Delete Working Hours**:

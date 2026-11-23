@@ -732,3 +732,13 @@
 :where(.djappt) .djappt-day-chip input:focus-visible + span {
     box-shadow: 0 0 0 .2rem var(--djappt-accent-soft);
 }
+
+/* A day that already has working hours can't be picked again when adding */
+:where(.djappt) .djappt-day-chip:has(input:disabled) {
+    cursor: not-allowed;
+}
+
+:where(.djappt) .djappt-day-chip input:disabled + span {
+    opacity: .45;
+    text-decoration: line-through;
+}
