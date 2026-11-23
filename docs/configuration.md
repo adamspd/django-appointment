@@ -88,6 +88,9 @@ and expires after a few minutes:
 APPOINTMENT_VERIFICATION_CODE_MINUTES = 10  # How long an emailed verification code stays valid
 ```
 
+At most 3 codes are sent to the same address in an hour. For a new client, the account is only created once they
+enter the code.
+
 Staff and superuser accounts are never logged in by a code. Their booking is still made, but they log in with their
 password.
 

@@ -1034,7 +1034,9 @@ class EmailVerificationCode(models.Model):
     Version: 1.1.0
     Since: 1.1.0
     """
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name=_("User"))
+    # Empty for a new client: their account is only created once they enter the code
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True,
+                             verbose_name=_("User"))
     code = models.CharField(
         max_length=6,
         verbose_name=_("Verification Code"),
@@ -1061,9 +1063,17 @@ class EmailVerificationCode(models.Model):
         return f"{self.code}"
 
     @classmethod
+    def _codes_for(cls, user, email):
+        if user is not None:
+            return cls.objects.filter(user=user)
+        return cls.objects.filter(user__isnull=True, email__iexact=email or '')
+
+    @classmethod
     def generate_code(cls, user, email=''):
-        """Create a new code for the user, sent to `email`. It replaces any code the user had before."""
-        cls.objects.filter(user=user).delete()
+        """Create a new code for the user (or, with no user yet, for `email`), sent to `email`. It replaces any code
+        they had before.
+        """
+        cls._codes_for(user, email).delete()
         code = ''.join(secrets.choice(string.ascii_uppercase + string.digits) for _i in range(6))
         cls.objects.create(user=user, code=code, email=email or '')
         return code
@@ -1071,20 +1081,22 @@ class EmailVerificationCode(models.Model):
     @classmethod
     def verify(cls, user, code, email=None) -> bool:
         """Check a code entered by the user. A code works once, for a limited time, and is deleted after too many
-        wrong tries. With `email`, the code must also have been sent to that address.
+        wrong tries. With `email`, the code must also have been sent to that address. With no user, `email` is
+        required.
         """
-        if user is None or not code:
+        if not code or (user is None and not email):
             return False
-        code_obj = cls.objects.filter(user=user).first()
+        codes = cls._codes_for(user, email)
+        code_obj = codes.first()
         if code_obj is None:
             return False
         if email is not None and code_obj.email.lower() != email.lower():
             return False
         if code_obj.is_expired():
-            cls.objects.filter(user=user).delete()
+            codes.delete()
             return False
         if code_obj.check_code(code):
-            cls.objects.filter(user=user).delete()
+            codes.delete()
             return True
         code_obj.attempts = models.F('attempts') + 1
         code_obj.save(update_fields=['attempts', 'updated_at'])

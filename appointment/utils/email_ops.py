@@ -224,11 +224,11 @@ def build_reminder_email(appointment, first_name, reschedule_link, recipient_typ
     }
 
 
-def build_verification_email(user, code, request=None) -> dict:
+def build_verification_email(user, code, request=None, first_name=None) -> dict:
     context = get_email_context(request=request)
     context.update({
         'user': user,
-        'first_name': user.first_name,
+        'first_name': user.first_name if user is not None else first_name,
         'verification_code': code,
     })
     return {
@@ -381,7 +381,7 @@ def notify_admin_about_appointment(appointment, client_name: str, request=None):
     logger.info(f"Notifications sent for appointment {appointment.id}")
 
 
-def send_verification_email(user, email: str, request=None):
+def send_verification_email(user, email: str, request=None, first_name=None):
     """
     Send an email with a verification code to the user for email verification.
 
@@ -393,7 +393,7 @@ def send_verification_email(user, email: str, request=None):
     :return: None
     """
     code = EmailVerificationCode.generate_code(user=user, email=email)
-    email_parts = build_verification_email(user, code, request)
+    email_parts = build_verification_email(user, code, request, first_name=first_name)
     send_email(
         recipient_list=[email],
         subject=email_parts['subject'],
