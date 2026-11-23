@@ -1400,6 +1400,32 @@ class StaffPagesTemplateTests(BaseTest):
         response = self.client.get(reverse('appointment:update_user_info', args=[other.pk]))
         self.assertEqual(response.status_code, 403)
 
+    def test_staff_changes_own_email_with_the_code(self):
+        self.need_staff_login()
+        new_email = 'teal.new@django-appointment.com'
+        data = {'first_name': 'Teal', 'last_name': 'c', 'email': new_email}
+        response = self.client.post(reverse('appointment:update_user_info'), data)
+        self.assertRedirects(response, reverse('appointment:email_change_verification_code'),
+                             fetch_redirect_response=False)
+        self.staff.refresh_from_db()
+        self.assertNotEqual(self.staff.email, new_email)
+        code = EmailVerificationCode.objects.get(user=self.staff).code
+        response = self.client.post(reverse('appointment:email_change_verification_code'), {'code': code})
+        self.assertRedirects(response, reverse('appointment:user_profile'), fetch_redirect_response=False)
+        self.staff.refresh_from_db()
+        self.assertEqual(self.staff.email, new_email)
+
+    def test_email_change_needs_this_users_code(self):
+        self.need_staff_login()
+        old_email = self.staff.email
+        self.client.post(reverse('appointment:update_user_info'),
+                         {'first_name': 'Teal', 'last_name': 'c', 'email': 'teal.new@django-appointment.com'})
+        other_code = EmailVerificationCode.generate_code(self.users['client1'],
+                                                         email='teal.new@django-appointment.com')
+        self.client.post(reverse('appointment:email_change_verification_code'), {'code': other_code})
+        self.staff.refresh_from_db()
+        self.assertEqual(self.staff.email, old_email)
+
     def test_email_change_code_page_has_the_code_field(self):
         self.need_staff_login()
         response = self.client.get(reverse('appointment:email_change_verification_code'))

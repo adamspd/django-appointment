@@ -111,8 +111,7 @@ class HandleEmailChangeTests(BaseTest):
 
         # Assert session data
         session = self.request.session
-        self.assertEqual(session['email'], new_email)
-        self.assertEqual(session['old_email'], self.hammond.email)
+        self.assertEqual(session['email_change'], {'user_id': self.hammond.pk, 'email': new_email})
 
         # Assert redirect
         self.assertEqual(response.status_code, 302)

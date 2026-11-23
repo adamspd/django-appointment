@@ -392,7 +392,7 @@ def send_verification_email(user, email: str, request=None):
     :param request: (optional) Without the request, send_email cannot render the email template with custom context_processors.
     :return: None
     """
-    code = EmailVerificationCode.generate_code(user=user)
+    code = EmailVerificationCode.generate_code(user=user, email=email)
     email_parts = build_verification_email(user, code, request)
     send_email(
         recipient_list=[email],

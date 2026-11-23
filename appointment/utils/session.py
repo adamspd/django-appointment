@@ -71,16 +71,12 @@ def login_or_create_user_by_mail(request, client_data, appointment_data, appoint
 
 
 def handle_email_change(request, user, email):
+    """Send a code to the new address. The email changes once the code is entered."""
     send_verification_email(user=user, email=email, request=request)
-    # clean the session variables
-    session_keys = ['email', 'old_email']
-    for key in session_keys:
-        if key in request.session:
-            del request.session[key]
-    request.session['email'] = email
-    request.session['old_email'] = user.email
+    request.session['email_change'] = {'user_id': user.pk, 'email': email}
     request.session.modified = True
     return redirect('appointment:email_change_verification_code')
+
 
 def get_appointment_data_from_session(request):
     """
