@@ -91,6 +91,17 @@ APPOINTMENT_VERIFICATION_CODE_MINUTES = 10  # How long an emailed verification c
 At most 3 codes are sent to the same address in an hour. For a new client, the account is only created once they
 enter the code.
 
+You can also limit the codes asked for from one IP address in an hour. It is off by default:
+
+```python
+APPOINTMENT_VERIFICATION_EMAILS_PER_IP = None  # e.g. 10
+```
+
+The IP address is read from `REMOTE_ADDR`. Behind a reverse proxy or a load balancer, that is the proxy's address
+for every visitor unless your setup passes the real one on, so only turn this on when `REMOTE_ADDR` is the visitor's
+own address. Both limits use Django's cache: with several worker processes, use a shared cache (Redis, Memcached or the
+database).
+
 Staff and superuser accounts are never logged in by a code. Their booking is still made, but they log in with their
 password.
 

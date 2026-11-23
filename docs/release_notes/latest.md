@@ -6,9 +6,10 @@
 
 ## Introduction 📜
 
-Version 3.15.0 tightens the booking flow, the staff calendar and the email codes, and fixes several bugs found while
-testing a full site from start to finish. It changes the database (run `makemigrations appointment`), adds two
-settings and changes how rescheduling and email codes behave. **Please read the
+Version 3.15.0 tightens the booking flow, the staff calendar and the email codes, lets staff set working hours for
+several days at once, sends emails on Django 6.1 sites that use `MAILERS`, and fixes several bugs found while testing a
+full site from start to finish. It changes the database (run `makemigrations appointment`), adds three settings and
+changes how rescheduling and email codes behave. **Please read the
 [migration guide](../migration_guides/latest.md) before upgrading.**
 
 ## New Features ✨
@@ -34,6 +35,8 @@ settings and changes how rescheduling and email codes behave. **Please read the
 - **New clients get an account only after entering the code.** Before, the account was created as soon as the form was
   sent.
 - **At most 3 codes per address in an hour.** The same message is shown whether the address has an account or not.
+- **Optional limit per IP address.** Set `APPOINTMENT_VERIFICATION_EMAILS_PER_IP` to limit the codes asked for from one
+  IP address in an hour. It is off by default; see the configuration page before turning it on behind a proxy.
 - **Staff and superusers are not logged in by a booking code.** Their booking is still made; they log in with their
   password.
 - **Email change codes are tied to the user and the new address.** The email only changes when the code sent to the new

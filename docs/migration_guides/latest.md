@@ -1,6 +1,6 @@
 ## Migration Guide for Version 3.15.0 🚀
 
-Version 3.15.0 changes the database (email verification codes), adds two settings and changes how rescheduling and
+Version 3.15.0 changes the database (email verification codes), adds three settings and changes how rescheduling and
 email codes behave. The supported Python and Django versions are the same.
 
 ### Coming from 3.14.x
@@ -37,6 +37,13 @@ email codes behave. The supported Python and Django versions are the same.
 
     ```python
     APPOINTMENT_VERIFICATION_CODE_MINUTES = 10
+    ```
+
+   And limit the codes asked for from one IP address in an hour (off by default; read the
+   [configuration page](../configuration.md) first if your site is behind a proxy):
+
+    ```python
+    APPOINTMENT_VERIFICATION_EMAILS_PER_IP = 10
     ```
 
 6. **Check what changed in behaviour:**

@@ -12,6 +12,7 @@ from django.contrib.messages import get_messages
 from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.core import mail
+from django.core.cache import cache
 from django.http import HttpResponseRedirect
 from django.test import Client, override_settings
 from django.test.client import RequestFactory
@@ -1946,6 +1947,24 @@ class VisitorBookingCodeTests(BaseTest):
                 self.client = Client()
                 self.post_info('vala@django-appointment.com')
         self.assertEqual(send.call_count, 3)
+
+    @override_settings(APPOINTMENT_VERIFICATION_EMAILS_PER_IP=4)
+    def test_codes_per_ip_address_are_limited_when_set(self):
+        cache.clear()
+        with patch('appointment.utils.session.send_verification_email') as send:
+            for i in range(6):
+                self.client = Client(REMOTE_ADDR='203.0.113.7')
+                self.post_info(f'visitor{i}@django-appointment.com')
+            self.client = Client(REMOTE_ADDR='203.0.113.8')
+            self.post_info('someone.else@django-appointment.com')
+        self.assertEqual(send.call_count, 5)
+
+    def test_codes_per_ip_address_are_not_limited_by_default(self):
+        with patch('appointment.utils.session.send_verification_email') as send:
+            for i in range(6):
+                self.client = Client(REMOTE_ADDR='203.0.113.9')
+                self.post_info(f'guest{i}@django-appointment.com')
+        self.assertEqual(send.call_count, 6)
 
 
 class CalendarRequestsCheckInputTests(BaseTest):
