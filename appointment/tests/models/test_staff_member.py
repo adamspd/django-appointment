@@ -333,6 +333,12 @@ class StaffMemberGetterTestCase(BaseTest):
         Config.objects.all().delete()
         self.assertEqual(self.get_fresh_staff_member().get_slot_duration(), 30)
 
+    def test_get_buffer_time_with_empty_config(self):
+        Config.get_instance()
+        sm = self.get_fresh_staff_member()
+        self.assertEqual(sm.get_appointment_buffer_time(), 0)
+        self.assertTrue(sm.get_appointment_buffer_time_text())
+
     def test_get_slot_duration_and_appt_buffer_time_text(self):
         """Test get_slot_duration_text & get_appointment_buffer_time_text function."""
         sm = self.get_fresh_staff_member()
