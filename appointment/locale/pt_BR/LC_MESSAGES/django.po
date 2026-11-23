@@ -2692,3 +2692,19 @@ msgstr "Prévia de e-mails"
 #, python-format
 msgid "Each email as it would be sent for appointment #%(id)s."
 msgstr "Cada e-mail da forma que seria enviado para o compromisso de nº %(id)s."
+
+msgid "These hours overlap other working hours on the same day."
+msgstr "Este horário se sobrepõe a outro horário de trabalho no mesmo dia."
+
+#, python-brace-format
+msgid "These hours overlap working hours on: {days}."
+msgstr "Este horário se sobrepõe ao horário de trabalho de: {days}."
+
+msgid "These hours overlap other working hours on this day."
+msgstr "Este horário se sobrepõe a outro horário de trabalho neste dia."
+
+msgid "A day can have several working hours (for example 9:00 to 12:00 and 14:00 to 17:00), as long as they do not overlap."
+msgstr "Um dia pode ter vários horários de trabalho (por exemplo, das 9:00 às 12:00 e das 14:00 às 17:00), desde que não se sobreponham."
+
+msgid "This day already has working hours."
+msgstr "Este dia já tem horário de trabalho."
