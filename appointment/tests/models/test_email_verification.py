@@ -86,3 +86,9 @@ class EmailVerificationCodeBasicTestCase(TestCase, UserMixin):
         mismatched_code = "ABCDEF"
         code = EmailVerificationCode.objects.get(user=self.user)
         self.assertFalse(code.check_code(mismatched_code))
+
+    def test_code_for_a_new_address(self):
+        code = EmailVerificationCode.generate_code(None, email='new@django-appointment.com')
+        self.assertFalse(EmailVerificationCode.verify(None, code, email='other@django-appointment.com'))
+        self.assertFalse(EmailVerificationCode.verify(None, code))
+        self.assertTrue(EmailVerificationCode.verify(None, code, email='NEW@django-appointment.com'))

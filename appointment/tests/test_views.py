@@ -11,6 +11,7 @@ from django.contrib import messages
 from django.contrib.messages import get_messages
 from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
+from django.core import mail
 from django.http import HttpResponseRedirect
 from django.test import Client, override_settings
 from django.test.client import RequestFactory
@@ -27,7 +28,7 @@ from appointment.models import (
     PasswordResetToken, StaffMember, Unavailability
 )
 from appointment.tests.base.base_test import BaseTest
-from appointment.utils.db_helpers import Service, WorkingHours, create_user_with_username
+from appointment.utils.db_helpers import Service, WorkingHours, create_user_with_username, get_user_model
 from appointment.utils.error_codes import ErrorCode
 from appointment.utils.template_helpers import escape_json_for_script
 from appointment.views import (
@@ -1770,6 +1771,55 @@ class SetPasswordViewTests(BaseTest):
         messages_ = list(get_messages(response.wsgi_request))
         self.assertTrue(
             any(msg.message == _("The password reset link is invalid or has expired.") for msg in messages_))
+
+
+class VisitorBookingCodeTests(BaseTest):
+    def setUp(self):
+        super().setUp()
+        mail.outbox = []
+
+    def post_info(self, email, name='Vala Mal Doran'):
+        ar = self.bookable_appt_request_for_sm1()
+        url = reverse('appointment:appointment_client_information', args=[ar.id, ar.id_request])
+        response = self.client.post(url, {
+            'name': name, 'email': email, 'phone_0': 'US', 'phone_1': '2392340543',
+            'address': 'x', 'additional_info': 'x', 'payment_type': 'full'})
+        return ar, response
+
+    def messages_of(self, response):
+        return [str(m) for m in get_messages(response.wsgi_request)]
+
+    def test_same_message_with_or_without_an_account(self):
+        _ar, known = self.post_info(self.users['client1'].email)
+        self.client = Client()
+        _ar, unknown = self.post_info('vala@django-appointment.com')
+        self.assertEqual([m.replace(self.users['client1'].email, 'X') for m in self.messages_of(known)],
+                         [m.replace('vala@django-appointment.com', 'X') for m in self.messages_of(unknown)])
+
+    def test_account_is_created_only_after_the_code(self):
+        ar, _response = self.post_info('vala@django-appointment.com')
+        user_model = get_user_model()
+        self.assertFalse(user_model.objects.filter(email='vala@django-appointment.com').exists())
+        code = EmailVerificationCode.objects.get(email='vala@django-appointment.com').code
+        url = reverse('appointment:enter_verification_code', args=[ar.id, ar.id_request])
+        self.client.post(url, {'code': code})
+        user = user_model.objects.get(email='vala@django-appointment.com')
+        self.assertEqual((user.first_name, user.last_name), ('Vala', 'Mal Doran'))
+        self.assertEqual(Appointment.objects.get(appointment_request=ar).client, user)
+        self.assertEqual(int(self.client.session['_auth_user_id']), user.pk)
+
+    def test_wrong_code_creates_no_account(self):
+        ar, _response = self.post_info('vala@django-appointment.com')
+        url = reverse('appointment:enter_verification_code', args=[ar.id, ar.id_request])
+        self.client.post(url, {'code': 'WRONG1'})
+        self.assertFalse(get_user_model().objects.filter(email='vala@django-appointment.com').exists())
+
+    def test_codes_per_address_are_limited(self):
+        for _i in range(5):
+            self.client = Client()
+            self.post_info('vala@django-appointment.com')
+        sent = [m for m in mail.outbox if 'vala@django-appointment.com' in m.to]
+        self.assertEqual(len(sent), 3)
 
 
 class GetNonWorkingDaysAjaxTests(BaseTest):

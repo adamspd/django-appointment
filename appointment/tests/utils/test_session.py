@@ -74,7 +74,7 @@ class HandleExistingEmailTests(BaseTest):
         self.assertEqual(response.status_code, 302)
         mock_send_verification_email.assert_called_once_with(user=mock_get_user_by_email.return_value,
                                                              email=client_data['email'],
-                                                             request=self.request)
+                                                             request=self.request, first_name='georges.hammond')
         mock_get_user_by_email.assert_called_once_with(client_data['email'])
 
 
