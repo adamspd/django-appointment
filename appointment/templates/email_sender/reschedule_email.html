@@ -44,6 +44,9 @@
                             <div style="margin-bottom: 4px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: #00307c;">{% trans "Rescheduled Appointment:" %}</div>
                             <div style="font-weight: 600;">{{ reschedule_date|date:"l, d F Y" }}</div>
                             <div style="font-weight: 600;">{{ start_time|time }} – {{ end_time|time }}</div>
+                            {% if client_time %}
+                                <div style="margin-top: 4px;">{% trans "Your time" %}: {{ client_time }}</div>
+                            {% endif %}
                         </td>
                     </tr>
                 </table>

@@ -12,7 +12,8 @@
 
 {% trans "Original Appointment:" %} {{ old_date|date:"l, d F Y" }}, {{ old_start_time|time }} – {{ old_end_time|time }}
 {% trans "Rescheduled Appointment:" %} {{ reschedule_date|date:"l, d F Y" }}, {{ start_time|time }} – {{ end_time|time }}
-{% if is_confirmation %}
+{% if client_time %}{% trans "Your time" %}: {{ client_time }}
+{% endif %}{% if is_confirmation %}
 {% trans "Confirm Appointment" %}: {{ confirmation_link }}
 
 {% trans "This link will expire in 5 minutes. If you do not confirm within this time frame, you will need to submit a new reschedule request." %}

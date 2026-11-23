@@ -29,8 +29,8 @@ from phonenumber_field.modelfields import PhoneNumberField
 from appointment.compat import check_constraint
 from appointment.settings import (
     APPOINTMENT_BUFFER_TIME, APPOINTMENT_SLOT_DURATION, APPOINTMENT_VERIFICATION_CODE_MINUTES, CONFIG_CACHE_KEY)
-from appointment.utils.date_time import convert_minutes_in_human_readable_format, get_timestamp, get_weekday_num, \
-    time_difference
+from appointment.utils.date_time import convert_minutes_in_human_readable_format, get_client_time_text, get_timestamp, \
+    get_weekday_num, time_difference
 from appointment.utils.view_helpers import format_price, generate_random_id, get_locale
 
 PAYMENT_TYPES = (
@@ -456,6 +456,10 @@ class AppointmentRequest(models.Model):
         verbose_name=_("Reschedule Attempts"),
         help_text=_("Number of times this appointment has been rescheduled.")
     )
+    client_timezone = models.CharField(
+        max_length=64, blank=True, default='', verbose_name=_("Client time zone"),
+        help_text=_("The client's browser time zone when they booked, like 'America/New_York'.")
+    )
 
     # metadata
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
@@ -501,6 +505,11 @@ class AppointmentRequest(models.Model):
 
     def get_service_name(self):
         return self.service.name
+
+    def get_client_time_text(self, date=None, start_time=None):
+        """The start in the client's time zone, or None when it shows the same time (see get_client_time_text).
+        Pass date and start_time for another time than this request's, like a reschedule."""
+        return get_client_time_text(self.client_timezone, date or self.date, start_time or self.start_time)
 
     def get_service_price(self):
         return self.service.get_price()

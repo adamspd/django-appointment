@@ -218,7 +218,8 @@ function getCalendarConfig(events) {
         selectAllow: function (info) {
         },
         dayCellClassNames: function (info) {
-            const day = info.date.getDay();
+            // FullCalendar keeps the calendar date in the UTC fields.
+            const day = info.date.getUTCDay();
             if (day === 0 || day === 6) { // 0 = Sunday, 6 = Saturday
                 return 'highlight-weekend';
             }

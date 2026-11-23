@@ -119,6 +119,15 @@ class AppointmentRequestTestCase(BaseTest):
         self.assertEqual(response.status_code, 200)
         self.assertFalse(AppointmentRequest.objects.exists())
 
+    def test_client_timezone_is_saved(self):
+        self.client.post(self.url, self.booking_data(client_timezone='America/New_York'))
+        self.assertEqual(AppointmentRequest.objects.get().client_timezone, 'America/New_York')
+
+    def test_unknown_client_timezone_is_dropped_not_refused(self):
+        response = self.client.post(self.url, self.booking_data(client_timezone='Not/A_Zone'))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(AppointmentRequest.objects.get().client_timezone, '')
+
     def test_end_time_follows_the_service(self):
         self.client.post(self.url, self.booking_data(end_time='09:01'))
         self.assertEqual(AppointmentRequest.objects.get().end_time, time(10))

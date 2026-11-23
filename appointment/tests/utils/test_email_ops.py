@@ -11,8 +11,10 @@ from django.utils.translation import gettext as _
 from appointment.messages_ import thank_you_no_payment, thank_you_payment, thank_you_payment_plus_down
 from appointment.models import AppointmentRescheduleHistory
 from appointment.tests.base.base_test import BaseTest
+from appointment.utils.ics_utils import generate_ics_file
 from appointment.utils.email_ops import (
-    build_new_appointment_email, get_email_context, get_thank_you_message, notify_admin_about_appointment,
+    build_new_appointment_email, build_reminder_email, build_reschedule_confirmation_email, get_email_context,
+    get_thank_you_details, get_thank_you_message, notify_admin_about_appointment,
     notify_admin_about_reschedule,
     send_reschedule_confirmation_email,
     send_reset_link_to_staff_member, send_thank_you_email,
@@ -304,3 +306,47 @@ class EmailContextTests(BaseTest):
         context = mock_send_email.call_args[1]['context']
         self.assertEqual(context['service_name'], ar.service.name)
         self.assertEqual(context['appointment'], self.appointment)
+
+
+class ClientTimeInEmailsTests(BaseTest):
+    """Client emails add the client's own time, only when their time zone differs from the site's (UTC in tests)."""
+
+    def setUp(self):
+        super().setUp()
+        self.appointment = self.create_appt_for_sm1()
+        self.ar = self.appointment.appointment_request
+
+    def set_client_timezone(self, name):
+        self.ar.client_timezone = name
+        self.ar.save(update_fields=['client_timezone'])
+
+    def test_thank_you_details_have_the_client_time(self):
+        self.set_client_timezone('America/New_York')
+        details, _account = get_thank_you_details(self.appointment)
+        self.assertIn('(America/New_York)', details[_('Your time')])
+
+    def test_thank_you_details_skip_it_for_the_same_time_zone(self):
+        self.set_client_timezone('UTC')
+        details, _account = get_thank_you_details(self.appointment)
+        self.assertNotIn(_('Your time'), details)
+
+    def test_reminder_has_it_for_the_client_only(self):
+        self.set_client_timezone('Asia/Tokyo')
+        client = build_reminder_email(self.appointment, 'Jack', 'link', recipient_type='client')['context']
+        admin = build_reminder_email(self.appointment, 'Jack', 'link', recipient_type='admin')['context']
+        self.assertIn('(Asia/Tokyo)', client['client_time'])
+        self.assertNotIn('client_time', admin)
+
+    def test_reschedule_confirmation_uses_the_new_time(self):
+        self.set_client_timezone('Asia/Tokyo')
+        history = self.create_appt_reschedule_for_sm1(appointment_request=self.ar)
+        context = build_reschedule_confirmation_email(history, self.ar, 'Jack', RequestFactory().get('/'))['context']
+        self.assertEqual(context['client_time'],
+                         self.ar.get_client_time_text(history.date, history.start_time))
+        self.assertIn(f"{history.date.day}", context['client_time'])
+
+    def test_ics_times_carry_the_site_time_zone(self):
+        with timezone.override('Europe/Paris'):
+            ics = generate_ics_file(self.appointment).decode()
+        self.assertIn('DTSTART;TZID=Europe/Paris:', ics)
+        self.assertIn('BEGIN:VTIMEZONE', ics)

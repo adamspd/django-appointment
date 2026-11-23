@@ -20,7 +20,7 @@ from .models import (
     DAYS_OF_WEEK, Appointment, AppointmentRequest, AppointmentRescheduleHistory, DayOff, Unavailability, Service, StaffMember,
     WorkingHours
 )
-from .utils.date_time import get_ar_end_time
+from .utils.date_time import get_ar_end_time, get_valid_timezone_name
 from .utils.db_helpers import get_user_model
 from .utils.validators import not_in_the_past
 
@@ -125,7 +125,11 @@ class SlotForm(forms.Form):
 class AppointmentRequestForm(forms.ModelForm):
     class Meta:
         model = AppointmentRequest
-        fields = ('date', 'start_time', 'end_time', 'service', 'staff_member')
+        fields = ('date', 'start_time', 'end_time', 'service', 'staff_member', 'client_timezone')
+
+    def clean_client_timezone(self):
+        # Only for showing the client their own time, so an unknown name is dropped, not refused
+        return get_valid_timezone_name(self.cleaned_data.get('client_timezone'))
 
     def clean(self):
         cleaned_data = super().clean()

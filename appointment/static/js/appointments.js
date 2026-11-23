@@ -43,15 +43,13 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
         highlightSelectedDate(info.dayEl);
     },
     selectAllow: function (info) {
-        const day = info.start.getDay();  // Get the day of the week (0 for Sunday, 6 for Saturday)
-        if (nonWorkingDays.includes(day)) {
+        if (nonWorkingDays.includes(calendarWeekday(info.start))) {
             return false;  // Disallow selection for non-working days
         }
-        return (info.start >= getDateWithoutTime(new Date()));
+        return calendarDateStr(info.start) >= moment.tz(timezone).format('YYYY-MM-DD');
     },
     dayCellClassNames: function (info) {
-        const day = info.date.getDay();
-        if (nonWorkingDays.includes(day)) {
+        if (nonWorkingDays.includes(calendarWeekday(info.date))) {
             return ['disabled-day'];
         }
         return [];
@@ -61,6 +59,8 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
 $(document).ready(function () {
     staffId = $('#staff_id').val() || null;
     calendar.render();
+    // Warn visitors whose clock differs from the calendar's.
+    $('#djappt-tz-notice').prop('hidden', moment.tz(timezone).utcOffset() === moment().utcOffset());
     const currentDate = rescheduledDate || moment.tz(timezone).format('YYYY-MM-DD');
     getAvailableSlots(currentDate, staffId);
 });
@@ -70,9 +70,7 @@ $(document).ready(function () {
     dayEl : the day element in the calendar
 */
 function selectDate(date, dayEl = null) {
-    const day = date.getDay();
-
-    if (nonWorkingDays.includes(day)) {
+    if (nonWorkingDays.includes(calendarWeekday(date))) {
         return;
     }
 
@@ -85,7 +83,7 @@ function selectDate(date, dayEl = null) {
         previouslySelectedCell = dayEl;
     }
 
-    selectedDate = moment(date).format('YYYY-MM-DD');
+    selectedDate = calendarDateStr(date);
     getAvailableSlots(selectedDate, staffId);
 }
 
@@ -106,7 +104,8 @@ function jumpToDate(dateStr) {
         `.fc-daygrid-day[data-date="${dateStr}"]`
     );
 
-    const date = new Date(dateStr + 'T00:00:00');
+    // Build the date the same way FullCalendar does (see calendarDateStr).
+    const date = new Date(dateStr + 'T00:00:00Z');
 
     selectDate(date, dayEl);
     highlightSelectedDate(dayEl);
@@ -149,6 +148,8 @@ body.on('click', '.btn-submit-appointment', function () {
         form.append($('<input>', {type: 'hidden', name: 'start_time', value: startTime}));
         form.append($('<input>', {type: 'hidden', name: 'end_time', value: endTime}));
         form.append($('<input>', {type: 'hidden', name: 'service', value: serviceId}));
+        // So the emails can also show the client's own time
+        form.append($('<input>', {type: 'hidden', name: 'client_timezone', value: browserTimezone()}));
         form.append($('<input>', {type: 'hidden', name: 'reason_for_rescheduling', value: reasonForRescheduling}));
         form.submit();
     } else {
@@ -205,9 +206,47 @@ function fetchNonWorkingDays(staffId, callback) {
     });
 }
 
-function getDateWithoutTime(dt) {
-    dt.setHours(0, 0, 0, 0);
-    return dt;
+/*  The calendar uses the server time zone. Without a time zone plugin,
+    FullCalendar gives dates whose UTC fields hold the calendar date in
+    that zone. Reading them in the browser's local time can move the
+    date to the day before or after, so read the UTC fields. */
+function calendarDateStr(date) {
+    return date.toISOString().slice(0, 10);
+}
+
+// Day of the week in the calendar's time zone (0 for Sunday, 6 for Saturday).
+function calendarWeekday(date) {
+    return date.getUTCDay();
+}
+
+/*  The slot's date and time in the visitor's time zone, or null when it
+    is the same as in the calendar's time zone.
+    slotIso : the slot without offset, in the calendar's time zone */
+function visitorTimeForSlot(slotIso) {
+    const instant = moment.tz(slotIso, timezone);
+    if (instant.utcOffset() === instant.clone().local().utcOffset()) {
+        return null;
+    }
+    const options = {dateStyle: 'medium', timeStyle: 'short'};
+    try {
+        return new Intl.DateTimeFormat(locale || undefined, options).format(instant.toDate());
+    } catch (e) {
+        return new Intl.DateTimeFormat(undefined, options).format(instant.toDate());
+    }
+}
+
+function browserTimezone() {
+    try {
+        return Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+    } catch (e) {
+        return '';
+    }
+}
+
+function showVisitorTime(slotIso) {
+    const visitorTime = slotIso ? visitorTimeForSlot(slotIso) : null;
+    $('#djappt-local-time').prop('hidden', !visitorTime)
+        .find('.djappt-local-time-value').text(visitorTime || '');
 }
 
 function formatTime(date) {
@@ -275,12 +314,10 @@ function getAvailableSlots(selectedDate, staffId = null) {
         dataType: 'json',
         success: function (data) {
             if (data.available_slots.length === 0) {
-                const selectedDateObj = moment.tz(selectedDate, timezone);
-                const selectedD = selectedDateObj.toDate();
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
+                // Compare dates in the calendar's time zone, not the browser's.
+                const today = moment.tz(timezone).format('YYYY-MM-DD');
 
-                if (selectedD < today) {
+                if (selectedDate < today) {
                     // Show an error message
                     errorMessageContainer.append($('<p class="djangoAppt_no-availability-text">').text(dateInPastErrorTxt));
                     if (slotContainer.find('.djangoAppt_btn-request-next-slot').length === 0) {
@@ -331,12 +368,14 @@ function getAvailableSlots(selectedDate, staffId = null) {
                         .append($('<span class="djappt-summary-time">').text(selectedSlot.text()));
                     // Pass isoformat datetime from selected timeslot
                     $('#service-datetime-chosen').data('timeslot', selectedSlot.data("timeslot"));
+                    showVisitorTime(selectedSlot.data("timeslot"));
                 });
             }
             // Update the date chosen
             selectedDateIso = data.date_iso;
             $('.djangoAppt_date_chosen').text(data.date_chosen);
             $('#service-datetime-chosen').text(data.date_chosen);
+            showVisitorTime(null);
             isRequestInProgress = false;
         },
         error: function() {

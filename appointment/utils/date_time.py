@@ -8,10 +8,39 @@ Since: 2.0.0
 
 import datetime
 import warnings
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from django.utils import timezone
-from django.utils.formats import get_format
+from django.utils.formats import date_format, get_format
 from django.utils.translation import gettext as _, ngettext
+
+
+def get_valid_timezone_name(name) -> str:
+    """The time zone name if it is a known IANA name like 'America/New_York', else ''."""
+    if not name or not isinstance(name, str) or len(name) > 64:
+        return ''
+    try:
+        ZoneInfo(name)
+    except (ZoneInfoNotFoundError, ValueError):
+        return ''
+    return name
+
+
+def get_client_time_text(client_timezone, date, start_time):
+    """The start of an appointment in the client's time zone, like 'Nov. 24, 2026, 3 a.m. (America/New_York)'.
+
+    :param client_timezone: The client's time zone name, or '' when unknown.
+    :param date: The appointment date, in the site's time zone (TIME_ZONE).
+    :param start_time: The appointment start time, in the site's time zone.
+    :return: The text, or None when the time zone is unknown or the client's clock shows the same time.
+    """
+    if not get_valid_timezone_name(client_timezone):
+        return None
+    start = timezone.make_aware(datetime.datetime.combine(date, start_time))
+    client_start = start.astimezone(ZoneInfo(client_timezone))
+    if client_start.utcoffset() == start.utcoffset():
+        return None
+    return f"{date_format(client_start, 'DATETIME_FORMAT')} ({client_timezone})"
 
 
 def js_timepicker_display_format():

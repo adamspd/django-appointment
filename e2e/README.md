@@ -10,6 +10,11 @@ These tests use Pytest, pytest-django and Playwright with Chromium.
   another slot without email verification. The test checks that the
   occupied slot is unavailable, no additional account is created, and
   the original appointment and its phone number are preserved.
+- With the browser in New York or Sydney and the server in UTC, the
+  calendar grays out exactly the days the staff member doesn't work,
+  says the times are in the server's time zone, and shows the chosen
+  slot in the browser's time. With the same time zone on both sides,
+  the notice stays hidden.
 
 Not covered by these browser tests: invalid verification codes, invalid
 form input, booking with an existing email without authentication,

@@ -36,6 +36,14 @@
                     <dt>{% trans 'Appointment Time' %}</dt>
                     <dd>{{ appointment.appointment_request.start_time }}</dd>
                 </div>
+                {% with client_time=appointment.appointment_request.get_client_time_text %}
+                    {% if client_time %}
+                        <div>
+                            <dt>{% trans 'Your time' %}</dt>
+                            <dd>{{ client_time }}</dd>
+                        </div>
+                    {% endif %}
+                {% endwith %}
                 <div>
                     <dt>{% trans 'Duration' %}</dt>
                     <dd>{{ appointment.get_service_duration }}</dd>

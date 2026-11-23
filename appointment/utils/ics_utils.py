@@ -2,6 +2,7 @@
 
 from datetime import datetime
 
+from django.utils import timezone
 from icalendar import Calendar, Event
 
 from appointment.utils.db_helpers import Appointment, get_website_name
@@ -16,8 +17,9 @@ def generate_ics_file(appointment: Appointment):
 
     event = Event()
     event.add('summary', appointment.get_service_name())
-    event.add('dtstart', appointment.get_start_time())
-    event.add('dtend', appointment.get_end_time())
+    # With the site's time zone attached, calendar apps show the time in the reader's own time zone
+    event.add('dtstart', timezone.make_aware(appointment.get_start_time()))
+    event.add('dtend', timezone.make_aware(appointment.get_end_time()))
     event.add('dtstamp', datetime.now())
     event.add('location', appointment.address)
     event.add('description', appointment.additional_info)
@@ -29,4 +31,5 @@ def generate_ics_file(appointment: Appointment):
     event.add('attendee', attendee)
 
     cal.add_component(event)
+    cal.add_missing_timezones()
     return cal.to_ical()
