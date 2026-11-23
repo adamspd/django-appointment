@@ -9,7 +9,7 @@ from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.cache import cache
-from django.core.exceptions import FieldDoesNotExist
+from django.core.exceptions import FieldDoesNotExist, ObjectDoesNotExist
 from django.test import TestCase, override_settings
 from django.test.client import RequestFactory
 from django.urls import reverse
@@ -1437,3 +1437,20 @@ class GetAbsoluteUrlTests(TestCase):
         with self.settings(APPOINTMENT_SITE_URL='https://shop.example/', ALLOWED_HOSTS=['*']):
             self.assertEqual(get_absolute_url_('/set-password/x/', request), 'https://shop.example/set-password/x/')
             self.assertEqual(get_site_url(request), 'https://shop.example')
+
+    def test_request_is_used_without_the_sites_app(self):
+        self.assertFalse(apps.is_installed('django.contrib.sites'))
+        request = self.factory.get('/', HTTP_HOST='shop.example', secure=True)
+        with self.settings(ALLOWED_HOSTS=['shop.example']):
+            self.assertEqual(get_absolute_url_('/set-password/x/', request), 'https://shop.example/set-password/x/')
+
+    @patch('appointment.utils.db_helpers.get_current_site')
+    def test_sites_framework_is_used_when_no_site_url(self, mock_site):
+        mock_site.return_value = MagicMock(domain='shop.example')
+        request = self.factory.get('/', HTTP_HOST='testserver', secure=True)
+        self.assertEqual(get_absolute_url_('/set-password/x/', request), 'https://shop.example/set-password/x/')
+
+    @patch('appointment.utils.db_helpers.get_current_site', side_effect=ObjectDoesNotExist)
+    def test_request_is_used_when_no_site_matches(self, _mock_site):
+        request = self.factory.get('/')
+        self.assertEqual(get_absolute_url_('/set-password/x/', request), 'http://testserver/set-password/x/')

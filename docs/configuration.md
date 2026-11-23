@@ -51,11 +51,15 @@ APPOINTMENT_FORM_CLASSES = {}  # Swap the Bootstrap classes of the form fields, 
 
 ## Site Address:
 
-Links in emails (set password, reschedule, confirm) need your site's full address. By default it comes from the
-request, which is only safe when `ALLOWED_HOSTS` lists your real domain names. Set it once to be sure:
+Links in emails (set password, reschedule, confirm) need your site's full address. It is taken from, in order:
+
+1. `APPOINTMENT_SITE_URL`, when set;
+2. the current `Site` of `django.contrib.sites`, when that app is installed (make sure its domain is not still
+   `example.com`);
+3. the request, which is only safe when `ALLOWED_HOSTS` lists your real domain names.
 
 ```python
-APPOINTMENT_SITE_URL = None  # e.g. "https://example.com"; when set, every email link uses it
+APPOINTMENT_SITE_URL = None  # optional, e.g. "https://example.com"; when set, every email link uses it
 ```
 
 ## Cleanup Configuration:

@@ -15,7 +15,8 @@ from django.apps import apps
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
-from django.core.exceptions import FieldDoesNotExist
+from django.contrib.sites.shortcuts import get_current_site
+from django.core.exceptions import FieldDoesNotExist, ObjectDoesNotExist
 from django.urls import reverse
 from django.utils import timezone
 
@@ -815,13 +816,23 @@ def working_hours_exist(day_of_week, staff_member):
 
 
 def get_absolute_url_(relative_url, request):
-    """A full URL for links in emails. `APPOINTMENT_SITE_URL` is used when set; otherwise the address comes from the
-    request, so it relies on `ALLOWED_HOSTS` to reject forged Host headers.
+    """A full URL for links in emails. The site's address is taken from, in order:
+
+    1. the `APPOINTMENT_SITE_URL` setting, when set;
+    2. the current `Site` of `django.contrib.sites`, when that app is installed;
+    3. the request, which relies on `ALLOWED_HOSTS` to reject forged Host headers.
     """
+    path = '/' + relative_url.lstrip('/')
     site_url = getattr(settings, 'APPOINTMENT_SITE_URL', None)
     if site_url:
-        return site_url.rstrip('/') + '/' + relative_url.lstrip('/')
-    return request.build_absolute_uri(relative_url)
+        return site_url.rstrip('/') + path
+    try:
+        # Without the sites app, this gives the request's host.
+        domain = get_current_site(request).domain
+    except ObjectDoesNotExist:
+        # The sites app is installed but has no Site for this request.
+        domain = request.get_host()
+    return f'{request.scheme}://{domain}{path}'
 
 
 def get_site_url(request) -> str:
