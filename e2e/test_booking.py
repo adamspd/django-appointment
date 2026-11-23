@@ -101,9 +101,9 @@ def test_new_client_can_book_appointment(
     assert len(emails_to_client) == 1, (
         f"Expected 1 email, got {len(emails_to_client)}"
     )
-    code = EmailVerificationCode.objects.get(
-        user__email=email
-    ).code
+    # The account is only created once the code is entered.
+    assert not django_user_model.objects.filter(email=email).exists()
+    code = EmailVerificationCode.objects.get(email=email).code
     assert code in emails_to_client[0].body
 
     page.get_by_label("Code", exact=True).fill(code)

@@ -1870,11 +1870,11 @@ class VisitorBookingCodeTests(BaseTest):
         self.assertFalse(get_user_model().objects.filter(email='vala@django-appointment.com').exists())
 
     def test_codes_per_address_are_limited(self):
-        for _i in range(5):
-            self.client = Client()
-            self.post_info('vala@django-appointment.com')
-        sent = [m for m in mail.outbox if 'vala@django-appointment.com' in m.to]
-        self.assertEqual(len(sent), 3)
+        with patch('appointment.utils.session.send_verification_email') as send:
+            for _i in range(5):
+                self.client = Client()
+                self.post_info('vala@django-appointment.com')
+        self.assertEqual(send.call_count, 3)
 
 
 class CalendarRequestsCheckInputTests(BaseTest):
