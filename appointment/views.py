@@ -539,7 +539,7 @@ def prepare_reschedule_appointment(request, id_request):
     if not can_appointment_be_rescheduled(ar):
         url = reverse('appointment:appointment_request', kwargs={'service_id': ar.service.id})
         context = get_generic_context_with_extra(request, {'url': url, }, admin=False)
-        logger.error(f"Appointment with id_request {id_request} cannot be rescheduled")
+        logger.info(f"Appointment request {ar.id} cannot be rescheduled")
         template = get_custom_template('403_forbidden_rescheduling.html', 'error_pages/403_forbidden_rescheduling.html', area='booking')
         return render(request, template, context=context, status=403)
 
