@@ -92,3 +92,18 @@ class EmailVerificationCodeBasicTestCase(TestCase, UserMixin):
         self.assertFalse(EmailVerificationCode.verify(None, code, email='other@django-appointment.com'))
         self.assertFalse(EmailVerificationCode.verify(None, code))
         self.assertTrue(EmailVerificationCode.verify(None, code, email='NEW@django-appointment.com'))
+
+    def test_codes_for_two_addresses_do_not_replace_each_other(self):
+        """A booking code (own address) and an email change code (new address) can both be pending."""
+        booking = EmailVerificationCode.generate_code(self.user, email=self.user.email)
+        change = EmailVerificationCode.generate_code(self.user, email='new@django-appointment.com')
+        self.assertTrue(EmailVerificationCode.verify(self.user, change, email='new@django-appointment.com'))
+        self.assertTrue(EmailVerificationCode.verify(self.user, booking, email=self.user.email))
+
+    def test_new_code_for_the_same_address_replaces_the_old_one(self):
+        first = EmailVerificationCode.generate_code(self.user, email='new@django-appointment.com')
+        second = EmailVerificationCode.generate_code(self.user, email='NEW@django-appointment.com')
+        self.assertEqual(EmailVerificationCode.objects.filter(user=self.user, email__iexact='new@django-appointment.com')
+                         .count(), 1)
+        if first != second:
+            self.assertFalse(EmailVerificationCode.verify(self.user, first, email='new@django-appointment.com'))

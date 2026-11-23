@@ -236,7 +236,7 @@ class VerificationCodeTestCase(BaseTest):
         self.assertEqual(str(client.pk), self.request.session['_auth_user_id'])
 
     def test_enter_verification_code_staff_booking_made_without_login(self):
-        code = EmailVerificationCode.generate_code(user=self.daniel)
+        code = EmailVerificationCode.generate_code(user=self.daniel, email=self.daniel.email)
         session = self.client.session
         session.update({'email': self.daniel.email, 'phone': '+12392340543', 'want_reminder': False,
                         'address': 'x', 'additional_info': ''})
