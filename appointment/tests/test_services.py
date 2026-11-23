@@ -8,7 +8,7 @@ from datetime import time, timedelta
 from unittest.mock import patch
 
 from django.core.cache import cache
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.test import Client, override_settings
 from django.test.client import RequestFactory
 from django.utils import timezone
@@ -522,6 +522,43 @@ class SaveAppointmentTests(BaseTest):
         self.appt = self.create_appt_for_sm1()
         self.factory = RequestFactory()
         self.request = self.factory.get('/')
+        self.request.user = self.users['superuser']
+        self.request.user.is_superuser = True
+
+    def save_as(self, user, **kwargs):
+        self.request.user = user
+        values = dict(client_name="Teal'c of Chulak", client_email=self.appt.client.email, start_time='10:00',
+                      phone_number='+1234567890', client_address='SGC', service_id=self.service1.id,
+                      request=self.request)
+        values.update(kwargs)
+        return save_appointment(self.appt, **values)
+
+    def test_staff_cannot_change_client_email(self):
+        with self.assertRaises(PermissionDenied):
+            self.save_as(self.users['staff1'], client_email='someone@example.com')
+        self.appt.client.refresh_from_db()
+        self.assertEqual(self.appt.client.email, self.users['client1'].email)
+
+    def test_staff_can_keep_client_email_and_change_name(self):
+        appt = self.save_as(self.users['staff1'], client_name='Georges Hammond Jr')
+        self.assertEqual(appt.client.get_full_name(), "Georges Hammond Jr")
+
+    def test_superuser_cannot_use_an_email_already_taken(self):
+        with self.assertRaises(ValidationError):
+            self.save_as(self.request.user, client_email=self.users['staff2'].email)
+
+    def test_staff_cannot_move_appointment_to_other_staff(self):
+        with self.assertRaises(PermissionDenied):
+            self.save_as(self.users['staff1'], staff_member_id=self.staff_member2.id, service_id=self.service2.id)
+        self.appt.appointment_request.refresh_from_db()
+        self.assertEqual(self.appt.appointment_request.staff_member, self.staff_member1)
+
+    def test_missing_staff_member_keeps_current_one(self):
+        appt = self.save_as(self.request.user)
+        self.assertEqual(appt.appointment_request.staff_member, self.staff_member1)
+
+    def test_service_must_be_offered_by_staff_member(self):
+        self.assertIsNone(self.save_as(self.users['staff1'], service_id=self.service2.id))
 
     def test_save_appointment(self):
         """Test if an appointment can be saved with valid data."""

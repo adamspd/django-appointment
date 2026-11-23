@@ -104,22 +104,24 @@ def check_day_off_for_staff(staff_member, date) -> bool:
     return DayOff.objects.filter(staff_member=staff_member, start_date__lte=date, end_date__gte=date).exists()
 
 
-def create_and_save_appointment(ar, client_data: dict, appointment_data: dict, request):
+def create_and_save_appointment(ar, client_data: dict, appointment_data: dict, request, client=None):
     """Create and save a new appointment based on the provided appointment request and client data.
 
     :param ar: The appointment request associated with the new appointment.
     :param client_data: The data of the client making the appointment.
     :param appointment_data: Additional data for the appointment, including phone number, address, etc.
     :param request: The request object.
+    :param client: (optional) The client user. By default, the logged-in user, or the user with the client's email.
     :return: The newly created appointment.
     """
-    user = request.user if request.user.is_authenticated else get_user_by_email(client_data['email'])
+    if client is None:
+        client = request.user if request.user.is_authenticated else get_user_by_email(client_data['email'])
     appointment = Appointment.objects.create(
-        client=user, appointment_request=ar,
+        client=client, appointment_request=ar,
         **appointment_data
     )
     appointment.save()
-    logger.info(f"New appointment created: {appointment.to_dict()}")
+    logger.info(f"New appointment created: {appointment.id}")
     if appointment.want_reminder:
         logger.info(f"User wants a reminder for appointment {appointment.id}, scheduling it...")
         if DJANGO_Q_AVAILABLE:

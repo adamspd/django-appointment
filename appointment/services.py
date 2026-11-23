@@ -10,7 +10,8 @@ import datetime
 
 from django.contrib import messages
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
+from django.core.validators import validate_email
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
@@ -500,22 +501,43 @@ def get_entity_management_context(request, btn_txt, form_name, form, user_id=Non
     return context
 
 
+def resolve_staff_member(user, staff_member_id=None, default=None):
+    """Return the staff member a calendar change is for.
+
+    A superuser can pick any staff member. Anyone else can only use their own calendar.
+
+    :raises PermissionDenied: when a staff member picks another staff member's calendar.
+    """
+    if user.is_superuser:
+        if staff_member_id:
+            return StaffMember.objects.filter(id=staff_member_id).first()
+        return default or StaffMember.objects.filter(user=user).first()
+    own = StaffMember.objects.filter(user=user).first()
+    if own is None or (staff_member_id and str(staff_member_id) != str(own.id)):
+        raise PermissionDenied(_("You can only manage your own appointments."))
+    return own
+
+
 def save_appointment(appt, client_name, client_email, start_time, phone_number, client_address, service_id, request,
                      staff_member_id=None, want_reminder=False, additional_info=None):
     """Save an appointment's details.
     :return: The modified appointment.
     """
     service = Service.objects.get(id=service_id)
-    if staff_member_id:
-        staff_member = StaffMember.objects.get(id=staff_member_id)
-        if not staff_member.get_service_is_offered(service_id):
-            return None
+    staff_member = resolve_staff_member(request.user, staff_member_id, default=appt.appointment_request.staff_member)
+    if staff_member is None or not staff_member.get_service_is_offered(service.id):
+        return None
     # Modify and save client details
     first_name, last_name = parse_name(client_name)
     client = appt.client
+    if client_email and client_email != client.email:
+        if not request.user.is_superuser:
+            raise PermissionDenied(_("Only a superuser can change a client's email."))
+        if get_user_model().objects.filter(email__iexact=client_email).exclude(pk=client.pk).exists():
+            raise ValidationError(_("A user with this email already exists."))
+        client.email = client_email
     client.first_name = first_name
     client.last_name = last_name
-    client.email = client_email
     client.save()
     # convert start time to a time object if it is a string
     if isinstance(start_time, str):
@@ -781,12 +803,25 @@ def handle_service_management_request(post_data, files_data=None, service_id=Non
 
 
 def create_new_appointment(data, request):
-    service = Service.objects.get(id=data.get("service_id"))
-    staff_id = data.get("staff_member")
-    if staff_id:
-        staff_member = StaffMember.objects.get(id=staff_id)
-    else:
-        staff_member = StaffMember.objects.get(user=request.user)
+    service = Service.objects.filter(id=data.get("service_id")).first()
+    if service is None:
+        return json_response(_("Service does not exist."), status=404, success=False,
+                             error_code=ErrorCode.SERVICE_NOT_FOUND)
+    try:
+        staff_member = resolve_staff_member(request.user, data.get("staff_member"))
+    except PermissionDenied as e:
+        return json_response(str(e), status=403, success=False, error_code=ErrorCode.NOT_AUTHORIZED)
+    if staff_member is None:
+        return json_response(_("Staff member not found."), status=404, success=False,
+                             error_code=ErrorCode.STAFF_MEMBER_NOT_FOUND)
+    if not staff_member.get_service_is_offered(service.id):
+        return json_response(_("Service not offered by staff member."), status=400, success=False,
+                             error_code=ErrorCode.SERVICE_NOT_FOUND)
+    email = (data.get("client_email") or "").strip()
+    try:
+        validate_email(email)
+    except ValidationError:
+        return json_response(_("Please enter a valid email address."), status=400, success=False)
 
     # Convert date and start time strings to datetime objects
     date = convert_str_to_date(data.get("date"))
@@ -804,7 +839,6 @@ def create_new_appointment(data, request):
     appointment_request.save()
 
     # Prepare client data
-    email = data.get("client_email", "")
     name_parts = data.get("client_name", "").split()
     first_name = name_parts[0] if name_parts else ""
     last_name = name_parts[-1] if len(name_parts) > 1 else ""  # Use an empty string if no last name
@@ -818,7 +852,7 @@ def create_new_appointment(data, request):
     # Use your custom user creation logic
     user = get_user_by_email(email)
     if not user:
-        create_new_user(client_data)
+        user = create_new_user(client_data)
 
     # Create and save the new appointment
     appointment_data = {
@@ -828,7 +862,7 @@ def create_new_appointment(data, request):
         'additional_info': data.get("additional_info", ""),
         'paid': False
     }
-    appointment = create_and_save_appointment(appointment_request, client_data, appointment_data, request)
+    appointment = create_and_save_appointment(appointment_request, client_data, appointment_data, request, client=user)
     appointment_list = convert_appointment_to_json(request, [appointment])
 
     return json_response("Appointment created successfully.", custom_data={'appt': appointment_list})
@@ -864,6 +898,8 @@ def update_existing_appointment(data, request):
                                  error_code=ErrorCode.SERVICE_NOT_FOUND)
         appointments_json = convert_appointment_to_json(request, [appt])[0]
         return json_response(appt_updated_successfully, custom_data={'appt': appointments_json})
+    except PermissionDenied as e:
+        return json_response(str(e), status=403, success=False, error_code=ErrorCode.NOT_AUTHORIZED)
     except Appointment.DoesNotExist:
         return json_response("Appointment does not exist.", status=404, success=False,
                              error_code=ErrorCode.APPOINTMENT_NOT_FOUND)
