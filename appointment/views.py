@@ -418,7 +418,7 @@ def verify_user_and_login(request, user, code, email=None):
     :param code: The verification code.
     :param email: The address the code was sent to.
     """
-    if EmailVerificationCode.verify(user, code, email=email if user is None else None):
+    if EmailVerificationCode.verify(user, code, email=email):
         if user is None:
             user = get_user_by_email(email) or create_new_user(
                 {'name': request.session.get('name') or email.split('@')[0], 'email': email})

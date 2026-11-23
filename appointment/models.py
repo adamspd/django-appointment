@@ -1064,14 +1064,19 @@ class EmailVerificationCode(models.Model):
 
     @classmethod
     def _codes_for(cls, user, email):
+        """The user's codes sent to `email` (all of them without `email`), or with no user, the codes for `email`.
+
+        A booking code and an email change code go to different addresses, so one doesn't replace the other.
+        """
         if user is not None:
-            return cls.objects.filter(user=user)
+            codes = cls.objects.filter(user=user)
+            return codes.filter(email__iexact=email) if email else codes
         return cls.objects.filter(user__isnull=True, email__iexact=email or '')
 
     @classmethod
     def generate_code(cls, user, email=''):
-        """Create a new code for the user (or, with no user yet, for `email`), sent to `email`. It replaces any code
-        they had before.
+        """Create a new code for the user (or, with no user yet, for `email`), sent to `email`. It replaces the code
+        sent to that address before.
         """
         cls._codes_for(user, email).delete()
         code = ''.join(secrets.choice(string.ascii_uppercase + string.digits) for _i in range(6))

@@ -78,6 +78,8 @@ settings and changes how rescheduling and email codes behave. **Please read the
   status, and another staff member's appointment showed a "page not found" page.
 - **Calendar form.** The service list now follows the staff member picked, and the form stays open with what was typed
   when saving fails. Phone numbers typed there are checked; an invalid one used to be saved as is.
+- **A booking code no longer cancels a pending email change.** Each address has its own code, so a booking made with a
+  staff member's address doesn't replace the code sent to their new address.
 - **A pending move to another staff member** no longer blocks the wrong staff member's slot.
 
 ## Getting Started 🚀
