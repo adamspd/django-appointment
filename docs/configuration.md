@@ -49,6 +49,15 @@ APPOINTMENT_CALENDAR_OPTIONS = {}  # Staff calendar: 'height', 'fillRatio', 'bot
 APPOINTMENT_FORM_CLASSES = {}  # Swap the Bootstrap classes of the form fields, e.g. {'form-control': 'input'}
 ```
 
+## Site Address:
+
+Links in emails (set password, reschedule, confirm) need your site's full address. By default it comes from the
+request, which is only safe when `ALLOWED_HOSTS` lists your real domain names. Set it once to be sure:
+
+```python
+APPOINTMENT_SITE_URL = None  # e.g. "https://example.com"; when set, every email link uses it
+```
+
 ## Cleanup Configuration:
 
 Appointment requests that never became an appointment (a client picked a slot, then abandoned the flow) pile up over

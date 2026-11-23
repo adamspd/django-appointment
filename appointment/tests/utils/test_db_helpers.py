@@ -25,7 +25,7 @@ from appointment.utils.db_helpers import (
     calculate_staff_slots, can_appointment_be_rescheduled, cancel_existing_reminder, check_day_off_for_staff,
     create_and_save_appointment, create_new_user, create_payment_info_and_get_url, day_off_exists_for_date_range,
     exclude_booked_slots,
-    exclude_unavailable_slots, exclude_pending_reschedules, generate_unique_username_from_email, get_absolute_url_,
+    exclude_unavailable_slots, exclude_pending_reschedules, generate_unique_username_from_email, get_absolute_url_, get_site_url,
     get_all_appointments, get_all_staff_members, get_appointment_buffer_time, get_appointment_by_id,
     get_appointment_finish_time, get_appointment_lead_time, get_appointment_slot_duration,
     get_appointments_for_date_and_time, get_config, get_day_off_by_id, get_non_working_days_for_staff,
@@ -1431,3 +1431,9 @@ class GetAbsoluteUrlTests(TestCase):
 
         # Assert the result matches the expected URL
         self.assertEqual(result_url, expected_url)
+
+    def test_site_url_setting_wins_over_the_host_header(self):
+        request = self.factory.get('/', HTTP_HOST='evil.example')
+        with self.settings(APPOINTMENT_SITE_URL='https://shop.example/', ALLOWED_HOSTS=['*']):
+            self.assertEqual(get_absolute_url_('/set-password/x/', request), 'https://shop.example/set-password/x/')
+            self.assertEqual(get_site_url(request), 'https://shop.example')

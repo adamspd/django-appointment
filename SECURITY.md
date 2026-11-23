@@ -28,6 +28,12 @@ to quickly fix the problem. Please follow these steps to report a vulnerability:
     - We will work with you to ensure we understand the scope of the issue and will arrange a coordinated disclosure
       plan.
 
+## Deployment
+
+- Set `ALLOWED_HOSTS` to your real domain names, never `["*"]`. The links in emails (set password, reschedule,
+  confirm) are built from the request's address unless `APPOINTMENT_SITE_URL` is set.
+- Set `APPOINTMENT_SITE_URL` (for example `"https://example.com"`) so those links always use your own address.
+
 ## Dependencies
 
 This project depends on several third-party libraries, installed within these ranges (as declared in `setup.cfg`):
