@@ -42,7 +42,7 @@ from appointment.utils.view_helpers import get_locale
 from .decorators import require_ajax
 from .email_sender.email_sender import has_required_email_settings
 from .messages_ import passwd_error, passwd_set_successfully
-from .services import get_appointments_and_slots, get_available_slots_for_staff
+from .services import get_appointments_and_slots, get_available_slots_for_staff, is_slot_bookable
 from .settings import (APPOINTMENT_PAYMENT_URL, APPOINTMENT_THANK_YOU_URL)
 from .utils.date_time import DATE_FORMATS, convert_str_to_date
 from .utils.error_codes import ErrorCode
@@ -271,8 +271,7 @@ def appointment_request_submit(request):
                                 id_request=ar.id_request)
         else:
             # Handle the case if the form is not valid
-            logger.error(f"Form errors: {form.errors}")
-            logger.error(f"Form data: {request.POST}")
+            logger.info(f"Booking form errors: {form.errors.as_json()}")
             messages.error(request, _('There was an error in your submission. Please check the form and try again.'))
     else:
         form = AppointmentRequestForm()
@@ -341,6 +340,10 @@ def create_appointment(request, appointment_request_obj, client_data, appointmen
     :param appointment_data: The appointment data.
     :return: The redirect response.
     """
+    ar = appointment_request_obj
+    if not is_slot_bookable(ar.date, ar.start_time, ar.staff_member, ar.service):
+        messages.error(request, _("This time is not available. Please choose another one."))
+        return redirect('appointment:appointment_request', service_id=ar.service_id)
     appointment = create_and_save_appointment(appointment_request_obj, client_data, appointment_data, request)
     allow_thank_you_page(request, appointment)
     notify_admin_about_appointment(appointment, appointment.client.first_name, request=request)
@@ -370,8 +373,10 @@ def appointment_client_information(request, appointment_request_id, id_request):
         appointment_data = appointment_form.cleaned_data
         client_data = client_data_form.cleaned_data
         payment_type = request.POST.get('payment_type')
+        if payment_type != 'down' or not ar.accepts_down_payment():
+            payment_type = 'full'
         ar.payment_type = payment_type
-        ar.save()
+        ar.save(update_fields=['payment_type'])
 
         if request.user.is_authenticated:
             update_user_name(request.user, client_data['name'])
@@ -584,32 +589,37 @@ def reschedule_appointment_submit(request):
     appointment_template = get_custom_template('appointments.html', 'appointment/appointments.html')
 
     if request.method == 'POST':
-        form = AppointmentRequestForm(request.POST)
-        # get form values:
-        ar_id_request = request.POST.get('appointment_request_id')
-        ar = get_object_or_404(AppointmentRequest, id_request=ar_id_request)
-        date_str = request.POST.get('date')
-        date_ = convert_str_to_date(date_str)
-        start_time = request.POST.get('start_time')
-        end_time = request.POST.get('end_time')
-        sm_id = request.POST.get('staff_member')
-        staff_member = get_object_or_404(StaffMember, id=sm_id)
-        reason_for_rescheduling = request.POST.get('reason_for_rescheduling')
+        ar = get_object_or_404(AppointmentRequest, id_request=request.POST.get('appointment_request_id'),
+                               appointment__isnull=False)
+        if not can_appointment_be_rescheduled(ar):
+            url = reverse('appointment:appointment_request', kwargs={'service_id': ar.service_id})
+            context = get_generic_context_with_extra(request, {'url': url}, admin=False)
+            template = get_custom_template('403_forbidden_rescheduling.html',
+                                           'error_pages/403_forbidden_rescheduling.html', area='booking')
+            return render(request, template, context=context, status=403)
+
+        # The service can't change, and the staff member only if the settings allow it
+        data = request.POST.copy()
+        data['service'] = ar.service_id
+        if not staff_change_allowed_on_reschedule():
+            data['staff_member'] = ar.staff_member_id
+        form = AppointmentRequestForm(data)
         if form.is_valid():
+            # Only the latest request is kept, so repeated requests don't hold several slots
+            ar.reschedule_histories.filter(reschedule_status='pending').delete()
             arh = AppointmentRescheduleHistory.objects.create(
                     appointment_request=ar,
-                    date=date_,
-                    start_time=start_time,
-                    end_time=end_time,
-                    staff_member=staff_member,
-                    reason_for_rescheduling=reason_for_rescheduling
+                    date=form.cleaned_data['date'],
+                    start_time=form.cleaned_data['start_time'],
+                    end_time=form.cleaned_data['end_time'],
+                    staff_member=form.cleaned_data['staff_member'],
+                    reason_for_rescheduling=request.POST.get('reason_for_rescheduling', ''),
             )
             messages.success(request, _("Appointment rescheduled successfully"))
             context = get_generic_context_with_extra(request, {}, admin=False)
-            client_first_name = Appointment.objects.get(appointment_request=ar).client.first_name
-            email = Appointment.objects.get(appointment_request=ar).client.email
-            send_reschedule_confirmation_email(request=request, reschedule_history=arh, first_name=client_first_name,
-                                               email=email, appointment_request=ar)
+            client = ar.appointment.client
+            send_reschedule_confirmation_email(request=request, reschedule_history=arh, first_name=client.first_name,
+                                               email=client.email, appointment_request=ar)
             return render(request, rescheduling_thank_you_template, context=context)
         else:
             messages.error(request, _("There was an error in your submission. Please check the form and try again."))
@@ -629,6 +639,13 @@ def confirm_reschedule(request, id_request):
         template = get_custom_template('404_not_found.html', 'error_pages/404_not_found.html', area='booking')
         return render(request, template, status=404, context=context)
 
+    if request.method != 'POST':
+        # Opening the link only shows the page: email scanners open links too
+        context = get_generic_context_with_extra(request, {'reschedule': reschedule_history}, admin=False)
+        template = get_custom_template('confirm_reschedule.html', 'appointment/confirm_reschedule.html',
+                                       area='booking')
+        return render(request, template, context=context)
+
     ar = reschedule_history.appointment_request
 
     # Store previous details for logging or other purposes
@@ -644,7 +661,8 @@ def confirm_reschedule(request, id_request):
     ar.start_time = reschedule_history.start_time
     ar.end_time = reschedule_history.end_time
     ar.staff_member = reschedule_history.staff_member
-    ar.save(update_fields=['date', 'start_time', 'end_time', 'staff_member'])
+    ar.reschedule_attempts += 1
+    ar.save(update_fields=['date', 'start_time', 'end_time', 'staff_member', 'reschedule_attempts'])
 
     reschedule_history.date = previous_details['date']
     reschedule_history.start_time = previous_details['start_time']

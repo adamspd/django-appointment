@@ -1,0 +1,29 @@
+{% extends "appointment/layout.html" %}
+{% load i18n %}
+{% load static %}
+{% block customCSS %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/booking.css' %}"/>
+{% endblock %}
+{% block title %}
+    {% trans "Confirm the new date" %}
+{% endblock %}
+{% block description %}
+    {% trans "Confirm the new date of your appointment." %}
+{% endblock %}
+{% block djappt_content %}
+    <div class="djappt-shell djappt-shell--narrow djappt-booking content-body-apd">
+        <div class="djappt-card djappt-card--roomy djappt-center main-content confirmation-message">
+            <h1 class="djappt-title">{% trans "Confirm the new date" %}</h1>
+            <p class="djappt-lead mb-4">
+                {% blocktrans with service=reschedule.appointment_request.get_service_name date=reschedule.date|date:"DATE_FORMAT" time=reschedule.start_time|time:"TIME_FORMAT" %}Move your {{ service }} appointment to {{ date }} at {{ time }}?{% endblocktrans %}
+            </p>
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn djappt-btn djappt-btn-primary">{% trans "Confirm" %}</button>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+{% block customJS %}
+    <script src="{% static 'js/js-utils.js' %}"></script>
+{% endblock %}

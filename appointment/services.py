@@ -33,7 +33,7 @@ from appointment.utils.db_helpers import (
     get_appointment_by_id, get_appointments_for_date_and_time, get_unavailabilities_for_date_and_time, get_config,
     get_staff_member_appointment_list,
     get_staff_member_from_user_id_or_logged_in, get_staff_member_slot_gap_time, get_times_from_config,
-    get_user_by_email, get_working_hours_for_staff_and_day, parse_name,
+    get_user_by_email, get_weekday_num_from_date, get_working_hours_for_staff_and_day, parse_name,
     update_appointment_reminder, working_hours_exist)
 from appointment.utils.email_ops import send_reset_link_to_staff_member
 from appointment.utils.error_codes import ErrorCode
@@ -655,6 +655,20 @@ def get_available_slots_for_staff(date, staff_member, day_of_week: int, service=
     return exclude_unavailable_slots(slots, appointments=appointments, unavailabilities=unavailabilities,
                                      slot_duration=slot_duration,
                                      service_duration=service_duration, gap_time=gap_time or None)
+
+
+def is_slot_bookable(date, start_time, staff_member, service) -> bool:
+    """Whether a client can book `service` with `staff_member` at this date and start time: the staff member offers
+    the service, and the start is one of the free slots shown on the booking page.
+    """
+    if not staff_member.get_service_is_offered(service.id):
+        return False
+    weekday_num = get_weekday_num_from_date(date)
+    slots = get_available_slots_for_staff(date, staff_member, weekday_num, service=service)
+    if date == timezone.localdate():
+        now = timezone.localtime().time()
+        slots = [slot for slot in slots if slot.time() > now]
+    return any(slot.time() == start_time for slot in slots)
 
 
 def get_finish_button_text(service) -> str:
