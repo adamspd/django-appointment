@@ -1596,6 +1596,45 @@ class ScheduleFormsTemplateTests(BaseTest):
         wh = WorkingHours.objects.get(staff_member=self.staff_member1, day_of_week=1)
         self.assertEqual((wh.start_time, wh.end_time), (time(9, 0), time(17, 0)))
 
+    def test_working_hours_for_several_days_are_saved(self):
+        self.need_staff_login()
+        user_id = self.staff_member1.user.id
+        data = {'day_of_week': ['1', '2', '5'], 'start_time': '08:30', 'end_time': '16:00'}
+        response = self.client.post(reverse('appointment:add_working_hours_id', args=[user_id]), data=data)
+        self.assertEqual(response.status_code, 200, response.content)
+        hours = WorkingHours.objects.filter(staff_member=self.staff_member1).order_by('day_of_week')
+        self.assertEqual([(wh.day_of_week, wh.start_time, wh.end_time) for wh in hours],
+                         [(day, time(8, 30), time(16, 0)) for day in (1, 2, 5)])
+
+    def test_working_hours_without_a_day_answers_with_its_error(self):
+        self.need_staff_login()
+        user_id = self.staff_member1.user.id
+        data = {'start_time': '08:30', 'end_time': '16:00'}
+        response = self.client.post(reverse('appointment:add_working_hours_id', args=[user_id]), data=data)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('day_of_week', response.json()['errors'])
+
+    def test_add_working_hours_page_offers_free_days_only(self):
+        self.need_staff_login()
+        user_id = self.staff_member1.user.id
+        WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=1, start_time=time(9, 0),
+                                    end_time=time(17, 0))
+        response = self.client.get(reverse('appointment:add_working_hours_id', args=[user_id]))
+        days = {day['value']: day for day in response.context['week_days']}
+        self.assertTrue(days[1]['taken'])
+        self.assertFalse(days[2]['taken'])
+        self.assertContains(response, 'type="checkbox"', count=7)
+        self.assertContains(response, 'disabled', count=1)
+
+    def test_edit_working_hours_page_picks_one_day(self):
+        self.need_staff_login()
+        user_id = self.staff_member1.user.id
+        wh = WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=1, start_time=time(9, 0),
+                                         end_time=time(17, 0))
+        response = self.client.get(reverse('appointment:update_working_hours_id', args=[wh.id, user_id]))
+        self.assertContains(response, 'type="radio"', count=7)
+        self.assertNotContains(response, 'type="checkbox"')
+
     def test_unavailability_payload_is_saved(self):
         self.need_staff_login()
         user_id = self.staff_member1.user.id

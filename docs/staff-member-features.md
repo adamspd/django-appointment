@@ -50,7 +50,7 @@ Administrators have full control over the appointment system, including all staf
    View all appointments across all staff members, modify any appointment, regardless of assigned staff member, delete any appointment in the system
 
 5. **Working Hours Management**:
-   Add working hours for any staff member, modify existing working hours, remove working hours, view working hours for all staff members
+   Add working hours for any staff member (the same hours for several days at once), modify existing working hours, remove working hours, view working hours for all staff members
 
 6. **Days Off Management**:
    Add days off for any staff member, modify existing days off, remove days off, view days off for all staff members
