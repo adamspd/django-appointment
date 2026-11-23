@@ -8,6 +8,7 @@ Since: 1.1.0
 
 import hashlib
 
+from django.conf import settings
 from django.contrib import messages
 from django.core.cache import cache
 from django.shortcuts import redirect
@@ -25,16 +26,27 @@ logger = get_logger(__name__)
 VERIFICATION_EMAILS_PER_HOUR = 3
 
 
-def can_send_verification_email(email) -> bool:
-    """Count the codes sent to an address. At most VERIFICATION_EMAILS_PER_HOUR are sent in an hour."""
-    key = 'appointment_verification_emails_' + hashlib.sha256(email.lower().encode()).hexdigest()
+def _count_this_hour(name, value) -> int:
+    """Add one to the hourly count for `value` and return it. Only a hash of `value` is stored."""
+    key = f'appointment_verification_{name}_' + hashlib.sha256(value.lower().encode()).hexdigest()
     cache.add(key, 0, timeout=3600)
     try:
-        count = cache.incr(key)
+        return cache.incr(key)
     except ValueError:  # the key expired in between
         cache.set(key, 1, timeout=3600)
-        count = 1
-    return count <= VERIFICATION_EMAILS_PER_HOUR
+        return 1
+
+
+def can_send_verification_email(email, ip_address=None) -> bool:
+    """Count the codes sent to an address. At most VERIFICATION_EMAILS_PER_HOUR are sent in an hour.
+
+    With APPOINTMENT_VERIFICATION_EMAILS_PER_IP set, the codes asked for from one IP address are also limited.
+    """
+    # Off by default: behind a proxy, every visitor may share one address
+    per_ip = getattr(settings, 'APPOINTMENT_VERIFICATION_EMAILS_PER_IP', None)
+    if per_ip and ip_address and _count_this_hour('ip', ip_address) > per_ip:
+        return False
+    return _count_this_hour('emails', email) <= VERIFICATION_EMAILS_PER_HOUR
 
 
 def login_or_create_user_by_mail(request, client_data, appointment_data, appointment_request_id, id_request):
@@ -55,7 +67,7 @@ def login_or_create_user_by_mail(request, client_data, appointment_data, appoint
     :return: The redirect response to enter the verification code.
     """
     email = client_data['email']
-    if not can_send_verification_email(email):
+    if not can_send_verification_email(email, request.META.get('REMOTE_ADDR')):
         messages.error(request, _("Too many codes were sent to this address. Please try again later."))
         return redirect('appointment:appointment_client_information', appointment_request_id=appointment_request_id,
                         id_request=id_request)
