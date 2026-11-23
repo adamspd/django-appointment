@@ -178,6 +178,23 @@ EMAIL_HOST_PASSWORD = 'your_email_password'
 APPOINTMENT_WEBSITE_NAME = 'Your Website Name'
 ```
 
+On Django 6.1 or newer you can use `MAILERS` instead of the `EMAIL_*` settings (not both):
+
+```python
+MAILERS = {
+    'default': {
+        'BACKEND': 'django.core.mail.backends.smtp.EmailBackend',
+        'OPTIONS': {
+            'host': 'your_smtp_host',
+            'port': 587,
+            'use_tls': True,
+            'username': 'your_email@example.com',
+            'password': 'your_email_password',
+        },
+    },
+}
+```
+
 To change the emails, see [Custom templates](https://django-appt-doc.adamspierredavid.com/custom-templates/): each
 email can be overridden, with its subject and its plain-text part, and with `DEBUG = True` a superuser can preview them
 all at `app-admin/email-preview/`.
