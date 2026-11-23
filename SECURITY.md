@@ -31,8 +31,10 @@ to quickly fix the problem. Please follow these steps to report a vulnerability:
 ## Deployment
 
 - Set `ALLOWED_HOSTS` to your real domain names, never `["*"]`. The links in emails (set password, reschedule,
-  confirm) are built from the request's address unless `APPOINTMENT_SITE_URL` is set.
-- Set `APPOINTMENT_SITE_URL` (for example `"https://example.com"`) so those links always use your own address.
+  confirm) are built from the request's address unless `APPOINTMENT_SITE_URL` is set or `django.contrib.sites` is
+  installed.
+- To always use your own address, set `APPOINTMENT_SITE_URL` (for example `"https://example.com"`) or set your
+  `Site`'s domain in `django.contrib.sites`.
 
 ## Dependencies
 
