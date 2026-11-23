@@ -99,7 +99,9 @@ def calculate_staff_slots(date, staff_member, service_duration=None):
         end_time = datetime.datetime.combine(date, wh.end_time)
         buffer_time = max(start_time, earliest_start)
         slots += calculate_slots(start_time, end_time, buffer_time, slot_duration, service_duration)
-    return slots
+    # The overlap check runs before saving, so two requests at the same moment could still save overlapping hours:
+    # never list a slot twice
+    return sorted(set(slots))
 
 
 def check_day_off_for_staff(staff_member, date) -> bool:

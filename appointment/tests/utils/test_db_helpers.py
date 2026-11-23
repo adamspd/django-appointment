@@ -223,6 +223,18 @@ class TestCalculateStaffSlots(BaseTest):
         self.assertEqual([slot.time() for slot in slots],
                          [datetime.time(9, 0), datetime.time(9, 30), datetime.time(14, 15), datetime.time(14, 45)])
 
+    @patch("appointment.utils.db_helpers.timezone.localtime")
+    def test_calculate_slots_lists_each_slot_once(self, mock_localtime):
+        """Overlapping working hours (saved by two requests at the same moment) don't list a slot twice."""
+        mock_localtime.return_value = self.reference_now
+        self.wh2.end_time = datetime.time(10, 0)
+        self.wh2.save()
+        WorkingHours.objects.create(staff_member=self.staff_member1, day_of_week=self.wh2.day_of_week,
+                                    start_time=datetime.time(9, 30), end_time=datetime.time(10, 30))
+        slots = calculate_staff_slots(self.working_date2, self.staff_member1)
+        self.assertEqual([slot.time() for slot in slots],
+                         [datetime.time(9, 0), datetime.time(9, 30), datetime.time(10, 0)])
+
     def test_calculate_slots_on_non_working_day(self):
         """Test that no slots are returned on a day the staff member is not working."""
         slots = calculate_staff_slots(self.date_not_working, self.staff_member1, )
