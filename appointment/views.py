@@ -44,6 +44,7 @@ from .email_sender.email_sender import has_required_email_settings
 from .messages_ import passwd_error, passwd_set_successfully
 from .services import get_appointments_and_slots, get_available_slots_for_staff, is_slot_bookable
 from .settings import (APPOINTMENT_PAYMENT_URL, APPOINTMENT_THANK_YOU_URL)
+from .signals import appointment_request_created
 from .utils.date_time import DATE_FORMATS, convert_str_to_date
 from .utils.error_codes import ErrorCode
 from .utils.json_context import get_generic_context_with_extra, json_response
@@ -249,6 +250,16 @@ def appointment_request(request, service_id=None, staff_member_id=None):
     return render(request, appointment_template, context=context)
 
 
+def send_appointment_request_created(request, appointment_request):
+    """Send appointment_request_created. A failing listener is logged and never stops the booking."""
+    results = appointment_request_created.send_robust(sender=AppointmentRequest,
+                                                      appointment_request=appointment_request, request=request)
+    for receiver, result in results:
+        if isinstance(result, Exception):
+            logger.error(f"appointment_request_created listener {receiver!r} failed for request "
+                         f"{appointment_request.id}: {result!r}", exc_info=result)
+
+
 def appointment_request_submit(request):
     """This view function handles the submission of the appointment request form.
 
@@ -270,6 +281,7 @@ def appointment_request_submit(request):
                         f"{form.cleaned_data['end_time']} service {form.cleaned_data['service']} staff {staff_member}")
                 ar = form.save()
                 request.session[f'appointment_completed_{ar.id_request}'] = False
+                send_appointment_request_created(request, ar)
                 # Redirect the user to the account creation page
                 return redirect('appointment:appointment_client_information', appointment_request_id=ar.id,
                                 id_request=ar.id_request)

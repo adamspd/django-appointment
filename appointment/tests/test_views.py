@@ -28,6 +28,7 @@ from appointment.models import (
     Appointment, AppointmentRequest, AppointmentRescheduleHistory, Config, DayOff, EmailVerificationCode,
     PasswordResetToken, StaffMember, Unavailability
 )
+from appointment.signals import appointment_request_created
 from appointment.tests.base.base_test import BaseTest
 from appointment.utils.db_helpers import Service, WorkingHours, create_user_with_username, get_user_model
 from appointment.utils.error_codes import ErrorCode
@@ -113,6 +114,66 @@ class AppointmentRequestTestCase(BaseTest):
         self.assertEqual(response.status_code, 302)  # Redirect status
         # Check if an AppointmentRequest object was created
         self.assertTrue(AppointmentRequest.objects.filter(service=self.service1).exists())
+
+    def listen_to_created(self, listener):
+        appointment_request_created.connect(listener, weak=False, dispatch_uid='test-listener')
+        self.addCleanup(appointment_request_created.disconnect, dispatch_uid='test-listener')
+
+    def test_created_signal_carries_request_and_appointment_request(self):
+        received = []
+        self.listen_to_created(lambda sender, **kwargs: received.append((sender, kwargs)))
+        self.client.post(f'{self.url}?utm_source=newsletter', self.booking_data())
+        self.assertEqual(len(received), 1)
+        sender, kwargs = received[0]
+        self.assertIs(sender, AppointmentRequest)
+        self.assertEqual(kwargs['appointment_request'], AppointmentRequest.objects.get())
+        self.assertEqual(kwargs['request'].GET['utm_source'], 'newsletter')
+
+    @override_settings(APPOINTMENT_BOOKING_CONTEXT_KEYS=['utm_source'])
+    def test_client_cannot_post_a_booking_context(self):
+        self.client.post(self.url, self.booking_data(booking_context='{"utm_source": "forged"}'))
+        self.assertIsNone(AppointmentRequest.objects.get().booking_context)
+
+    @override_settings(APPOINTMENT_BOOKING_CONTEXT_KEYS=['utm_source'])
+    def test_listener_can_store_a_booking_context(self):
+        def keep_source(sender, appointment_request, request, **kwargs):
+            appointment_request.booking_context = {'utm_source': request.GET['utm_source']}
+            appointment_request.save(update_fields=['booking_context'])
+
+        self.listen_to_created(keep_source)
+        self.client.post(f'{self.url}?utm_source=newsletter', self.booking_data())
+        self.assertEqual(AppointmentRequest.objects.get().booking_context, {'utm_source': 'newsletter'})
+
+    @override_settings(APPOINTMENT_BOOKING_CONTEXT_KEYS=['utm_source'])
+    def test_listener_storing_a_bad_context_does_not_stop_booking(self):
+        def keep_everything(sender, appointment_request, request, **kwargs):
+            appointment_request.booking_context = dict(request.GET.items())
+            appointment_request.save(update_fields=['booking_context'])
+
+        self.listen_to_created(keep_everything)
+        with self.assertLogs('appointment.views', level='ERROR') as logs:
+            response = self.client.post(f'{self.url}?utm_source=x&session_id=secret-value', self.booking_data())
+        self.assertEqual(response.status_code, 302)
+        self.assertIsNone(AppointmentRequest.objects.get().booking_context)
+        self.assertNotIn('secret-value', ''.join(logs.output))
+
+    def test_created_signal_not_sent_for_refused_booking(self):
+        received = []
+        self.listen_to_created(lambda sender, **kwargs: received.append(kwargs))
+        self.client.post(self.url, self.booking_data(start_time='03:00', end_time='04:00'))
+        self.assertEqual(received, [])
+
+    def test_failing_listener_does_not_stop_booking(self):
+        def broken_listener(sender, **kwargs):
+            raise RuntimeError("listener bug")
+
+        self.listen_to_created(broken_listener)
+        with self.assertLogs('appointment.views', level='ERROR') as logs:
+            response = self.client.post(self.url, self.booking_data())
+        ar = AppointmentRequest.objects.get()
+        self.assertRedirects(response, reverse('appointment:appointment_client_information',
+                                               args=[ar.id, ar.id_request]), fetch_redirect_response=False)
+        self.assertIn('listener bug', logs.output[0])
 
     def assert_refused(self, data):
         response = self.client.post(self.url, data)
