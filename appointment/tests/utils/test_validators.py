@@ -60,7 +60,7 @@ class ValidateBookingContextTests(TestCase):
         self.assert_refused({'utm_source': 'x' * (BOOKING_CONTEXT_MAX_LENGTH + 1)}, 'too_long')
 
     def test_control_and_invisible_characters_refused(self):
-        for text in ('a\nb', 'a\rb', 'a\x00b', 'a\x1b[31mb', 'a‮b', 'a​b'):
+        for text in ('a\nb', 'a\rb', 'a\x00b', 'a\x1b[31mb', 'a\u202eb', 'a\u200bb'):
             self.assert_refused({'utm_source': text}, 'invalid_character')
 
     def test_error_never_repeats_the_value(self):
