@@ -57,6 +57,10 @@
                             </div>
                             <div class="djangoAppt_slot">
                                 <p class="djappt-step"><span class="djappt-step-number">3</span>{% trans "Choose a time" %}</p>
+                                {# Shown by appointments.js when the visitor's time zone isn't this one. #}
+                                <p class="djappt-tz-notice" id="djappt-tz-notice" role="note" hidden>
+                                    {% blocktrans with tz=timezoneTxt %}Times are in {{ tz }} time, not your time zone.{% endblocktrans %}
+                                </p>
                                 <div class="djangoAppt_date_chosen">{{ date_chosen }}</div>
                                 <div class="slot-container">
                                     <div class="error-message"></div>
@@ -107,6 +111,10 @@
                             <div>
                                 <dt>{% trans "Date" %}</dt>
                                 <dd id="service-datetime-chosen" class="service-datetime-chosen">{{ date_chosen }}</dd>
+                            </div>
+                            <div id="djappt-local-time" hidden>
+                                <dt>{% trans "Your time" %}</dt>
+                                <dd class="djappt-local-time-value"></dd>
                             </div>
                             <div>
                                 <dt>{% trans "Duration" %}</dt>

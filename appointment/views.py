@@ -625,6 +625,9 @@ def reschedule_appointment_submit(request):
                     staff_member=form.cleaned_data['staff_member'],
                     reason_for_rescheduling=request.POST.get('reason_for_rescheduling', ''),
             )
+            if form.cleaned_data['client_timezone']:
+                ar.client_timezone = form.cleaned_data['client_timezone']
+                ar.save(update_fields=['client_timezone'])
             messages.success(request, _("Appointment rescheduled successfully"))
             context = get_generic_context_with_extra(request, {}, admin=False)
             client = ar.appointment.client

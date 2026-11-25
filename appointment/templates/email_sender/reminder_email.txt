@@ -8,7 +8,8 @@
 - {% translate 'Service' %}: {{ appointment.get_service_name }}
 - {% translate 'Date' %}: {{ appointment.appointment_request.date|date:"l, d F Y" }}
 - {% translate 'Time' %}: {{ appointment.appointment_request.start_time|time }} – {{ appointment.appointment_request.end_time|time }}
-{% if appointment.address %}- {% translate 'Location' %}: {{ appointment.address }}
+{% if client_time %}- {% translate 'Your time' %}: {{ client_time }}
+{% endif %}{% if appointment.address %}- {% translate 'Location' %}: {{ appointment.address }}
 {% endif %}
 {% if recipient_type == 'client' %}{% translate 'If you need to reschedule, please click the button below or contact us for further assistance.' %}
 {% if reschedule_link %}{{ reschedule_link }}

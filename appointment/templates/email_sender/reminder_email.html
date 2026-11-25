@@ -25,9 +25,15 @@
             <td valign="top" style="padding: 10px 14px; font-size: 14px; font-weight: 600; border-bottom: 1px solid #e3e8ef;">{{ appointment.appointment_request.date|date:"l, d F Y" }}</td>
         </tr>
         <tr>
-            <td valign="top" style="padding: 10px 14px; font-size: 14px; color: #64748b;{% if appointment.address %} border-bottom: 1px solid #e3e8ef;{% endif %}">{% translate 'Time' %}</td>
-            <td valign="top" style="padding: 10px 14px; font-size: 14px; font-weight: 600;{% if appointment.address %} border-bottom: 1px solid #e3e8ef;{% endif %}">{{ appointment.appointment_request.start_time|time }} – {{ appointment.appointment_request.end_time|time }}</td>
+            <td valign="top" style="padding: 10px 14px; font-size: 14px; color: #64748b;{% if appointment.address or client_time %} border-bottom: 1px solid #e3e8ef;{% endif %}">{% translate 'Time' %}</td>
+            <td valign="top" style="padding: 10px 14px; font-size: 14px; font-weight: 600;{% if appointment.address or client_time %} border-bottom: 1px solid #e3e8ef;{% endif %}">{{ appointment.appointment_request.start_time|time }} – {{ appointment.appointment_request.end_time|time }}</td>
         </tr>
+        {% if client_time %}
+            <tr>
+                <td valign="top" style="padding: 10px 14px; font-size: 14px; color: #64748b;{% if appointment.address %} border-bottom: 1px solid #e3e8ef;{% endif %}">{% translate 'Your time' %}</td>
+                <td valign="top" style="padding: 10px 14px; font-size: 14px; font-weight: 600;{% if appointment.address %} border-bottom: 1px solid #e3e8ef;{% endif %}">{{ client_time }}</td>
+            </tr>
+        {% endif %}
         {% if appointment.address %}
             <tr>
                 <td valign="top" style="padding: 10px 14px; font-size: 14px; color: #64748b;">{% translate 'Location' %}</td>

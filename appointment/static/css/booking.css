@@ -206,6 +206,21 @@
     display: block;
 }
 
+/* The visitor's time zone differs from the calendar's (set by appointments.js). */
+:where(.djappt) .djappt-booking .djappt-tz-notice {
+    margin: 0 0 .75rem;
+    padding: .5rem .75rem;
+    border-radius: var(--djappt-radius-sm);
+    background: var(--djappt-accent-soft);
+    color: var(--djappt-ink-soft);
+    font-size: .875rem;
+}
+
+:where(.djappt) .djappt-booking .djappt-tz-notice[hidden],
+:where(.djappt) .djappt-booking #djappt-local-time[hidden] {
+    display: none;
+}
+
 /* ---- Time slots ---- */
 
 :where(.djappt) .djappt-booking .djangoAppt_date_chosen {

@@ -11,7 +11,8 @@ from django.utils import timezone
 from appointment.utils.date_time import (
     DATE_FORMATS, combine_date_and_time, convert_12_hour_time_to_24_hour_time, convert_24_hour_time_to_12_hour_time,
     convert_minutes_in_human_readable_format, convert_str_to_date,
-    convert_str_to_time, get_ar_end_time, get_current_year, get_timestamp, get_weekday_num,
+    convert_str_to_time, get_ar_end_time, get_client_time_text, get_current_year, get_timestamp,
+    get_valid_timezone_name, get_weekday_num,
     time_difference
 )
 
@@ -430,3 +431,27 @@ class DateFormatsTests(TestCase):
         with translation.override('pt-br'):
             self.assertEqual(date_format(datetime.date(2025, 8, 14), DATE_FORMATS['pt'], use_l10n=True),
                              "Qui, 14 de Agosto de 2025")
+
+
+class ClientTimeTextTests(TestCase):
+    """The client's own time is shown only when their clock differs from the site's (TIME_ZONE is UTC in tests)."""
+    date = datetime.date(2026, 11, 24)
+    start = datetime.time(9, 0)
+
+    def test_other_offset_shows_the_client_time(self):
+        text = get_client_time_text('America/New_York', self.date, self.start)
+        self.assertIn('(America/New_York)', text)
+        self.assertIn('4', text)  # 9:00 UTC is 4:00 in New York in November
+
+    def test_same_offset_shows_nothing(self):
+        self.assertIsNone(get_client_time_text('UTC', self.date, self.start))
+        self.assertIsNone(get_client_time_text('Europe/London', self.date, self.start))  # UTC+0 in November
+
+    def test_unknown_or_missing_time_zone_shows_nothing(self):
+        for name in ('', None, 'Not/A_Zone', '../../etc/passwd', 'x' * 100):
+            self.assertIsNone(get_client_time_text(name, self.date, self.start))
+
+    def test_valid_timezone_name(self):
+        self.assertEqual(get_valid_timezone_name('Australia/Sydney'), 'Australia/Sydney')
+        self.assertEqual(get_valid_timezone_name('Mars/Olympus'), '')
+        self.assertEqual(get_valid_timezone_name(42), '')

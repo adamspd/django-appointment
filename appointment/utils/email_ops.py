@@ -103,6 +103,9 @@ def get_thank_you_details(appointment):
         _('Appointment Time'): appointment.appointment_request.start_time,
         _('Duration'): appointment.get_service_duration()
     }
+    client_time = appointment.appointment_request.get_client_time_text()
+    if client_time:
+        appointment_details[_('Your time')] = client_time
     if client.has_usable_password():
         return appointment_details, None
     account_details = {_('Email address'): client.email}
@@ -211,6 +214,8 @@ def build_reminder_email(appointment, first_name, reschedule_link, recipient_typ
         'reschedule_link': reschedule_link,
         'recipient_type': recipient_type,
     })
+    if recipient_type == 'client':
+        context['client_time'] = appointment.appointment_request.get_client_time_text()
     if recipient_type == 'admin':
         # The admin copy isn't addressed to the client: their first name stays available as client_first_name
         context.update({'first_name': '', 'client_first_name': first_name})
@@ -259,6 +264,8 @@ def build_reschedule_confirmation_email(reschedule_history, appointment_request,
     context.update({
         'is_confirmation': True,
         'first_name': first_name,
+        'client_time': appointment_request.get_client_time_text(reschedule_history.date,
+                                                                reschedule_history.start_time),
         'confirmation_link': get_absolute_url_(
             reverse('appointment:confirm_reschedule', args=[reschedule_history.id_request]), request),
     })
