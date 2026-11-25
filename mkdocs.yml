@@ -88,6 +88,7 @@ nav:
       - Custom templates: custom-templates.md
       - Internationalization: internationalization.md
       - Payment URL configuration: payment_url_configuration.md
+      - Keeping booking context: booking-context.md
   - Reference:
       - Project structure: project-structure.md
       - Models: models.md

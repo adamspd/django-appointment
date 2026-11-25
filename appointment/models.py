@@ -6,6 +6,7 @@ Author: Adams Pierre David
 Since: 1.0.0
 """
 import colorsys
+import copy
 import datetime
 import hmac
 import random
@@ -31,6 +32,7 @@ from appointment.settings import (
     APPOINTMENT_BUFFER_TIME, APPOINTMENT_SLOT_DURATION, APPOINTMENT_VERIFICATION_CODE_MINUTES, CONFIG_CACHE_KEY)
 from appointment.utils.date_time import convert_minutes_in_human_readable_format, get_client_time_text, get_timestamp, \
     get_weekday_num, time_difference
+from appointment.utils.validators import validate_booking_context
 from appointment.utils.view_helpers import format_price, generate_random_id, get_locale
 
 PAYMENT_TYPES = (
@@ -460,6 +462,12 @@ class AppointmentRequest(models.Model):
         max_length=64, blank=True, default='', verbose_name=_("Client time zone"),
         help_text=_("The client's browser time zone when they booked, like 'America/New_York'.")
     )
+    booking_context = models.JSONField(
+        null=True, blank=True, editable=False, validators=[validate_booking_context],
+        verbose_name=_("Booking context"),
+        help_text=_("Values a site kept from the moment the client booked, under the keys in "
+                    "APPOINTMENT_BOOKING_CONTEXT_KEYS. They come from the browser and can be faked.")
+    )
 
     # metadata
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
@@ -501,7 +509,18 @@ class AppointmentRequest(models.Model):
         # duration should not exceed the service duration
         if time_difference(self.start_time, self.end_time) > self.service.duration:
             raise ValidationError(_("Duration cannot exceed the service duration"))
-        return super().save(*args, **kwargs)
+        # Only a changed context is checked, so removing a key from the setting can't block saving old requests
+        if 'booking_context' in self.__dict__ and self.booking_context != getattr(self, '_saved_booking_context', None):
+            validate_booking_context(self.booking_context)
+        super().save(*args, **kwargs)
+        if 'booking_context' in self.__dict__:
+            self._saved_booking_context = copy.deepcopy(self.booking_context)
+
+    @classmethod
+    def from_db(cls, db, field_names, values):
+        instance = super().from_db(db, field_names, values)
+        instance._saved_booking_context = copy.deepcopy(instance.__dict__.get('booking_context'))
+        return instance
 
     def get_service_name(self):
         return self.service.name
@@ -739,6 +758,10 @@ class Appointment(models.Model):
 
     def get_service(self):
         return self.appointment_request.service
+
+    def get_booking_context(self):
+        """A copy of the request's booking context. Values come from the browser and can be faked."""
+        return dict(self.appointment_request.booking_context or {})
 
     def get_service_name(self):
         return self.appointment_request.get_service_name()

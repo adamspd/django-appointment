@@ -8,6 +8,8 @@ Since: 1.0.0
 
 from django import forms
 from django.contrib import admin
+from django.utils.html import format_html, format_html_join
+from django.utils.translation import gettext_lazy as _
 
 from .models import (
     Appointment, AppointmentRequest, AppointmentRescheduleHistory, Config, DayOff, Unavailability, EmailVerificationCode,
@@ -22,11 +24,24 @@ class ServiceAdmin(admin.ModelAdmin):
     list_filter = ('duration', 'use_service_duration_as_slot',)
 
 
+def booking_context_html(context):
+    if not context:
+        return '-'
+    if not isinstance(context, dict):
+        return format_html('{}', context)
+    return format_html('<dl>{}</dl>', format_html_join('', '<dt>{}</dt><dd>{}</dd>', sorted(context.items())))
+
+
 @admin.register(AppointmentRequest)
 class AppointmentRequestAdmin(admin.ModelAdmin):
     list_display = ('date', 'start_time', 'end_time', 'service', 'created_at', 'updated_at',)
     search_fields = ('date', 'service__name',)
     list_filter = ('date', 'service',)
+    readonly_fields = ('booking_context_display',)
+
+    @admin.display(description=_("Booking context"))
+    def booking_context_display(self, obj):
+        return booking_context_html(obj.booking_context)
 
 
 @admin.register(Appointment)
@@ -34,6 +49,11 @@ class AppointmentAdmin(admin.ModelAdmin):
     list_display = ('client', 'appointment_request', 'created_at', 'updated_at',)
     search_fields = ('appointment_request__service__name',)
     list_filter = ('client', 'appointment_request__service',)
+    readonly_fields = ('booking_context_display',)
+
+    @admin.display(description=_("Booking context"))
+    def booking_context_display(self, obj):
+        return booking_context_html(obj.get_booking_context() if obj.pk else None)
 
 
 @admin.register(EmailVerificationCode)

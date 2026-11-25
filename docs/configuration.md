@@ -109,6 +109,18 @@ database).
 Staff and superuser accounts are never logged in by a code. Their booking is still made, but they log in with their
 password.
 
+## Booking Context:
+
+A site can keep a few values from the moment a client books, like the campaign that brought them. It is off by
+default. To turn it on, list the keys you allow:
+
+```python
+APPOINTMENT_BOOKING_CONTEXT_KEYS = ['utm_source', 'utm_campaign']  # Empty by default: nothing can be stored
+```
+
+Keys are lowercase letters, digits and underscores, starting with a letter, 50 characters at most. See
+[Keeping booking context](booking-context.md) for how to fill it.
+
 ## Django Q Configuration:
 
 For email reminders with Django Q, install it (`pip install django-q2`), add `django_q` to your `INSTALLED_APPS`,

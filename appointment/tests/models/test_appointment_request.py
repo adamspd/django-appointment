@@ -1,9 +1,14 @@
 from copy import deepcopy
 from datetime import datetime, time, timedelta
 
+from django.contrib.admin.sites import AdminSite
 from django.core.exceptions import ValidationError
+from django.test import override_settings
 from django.utils import timezone
 
+from appointment.admin import AppointmentAdmin, AppointmentRequestAdmin
+from appointment.forms import AppointmentRequestForm
+from appointment.models import Appointment, AppointmentRequest
 from appointment.tests.base.base_test import BaseTest
 
 
@@ -190,3 +195,77 @@ class AppointmentRequestRescheduleHistory(BaseTest):
         service = deepcopy(self.service1)
         ar = self.create_appointment_request_(service, self.staff_member1)
         self.assertFalse(ar.get_reschedule_history().exists())
+
+
+@override_settings(APPOINTMENT_BOOKING_CONTEXT_KEYS=['utm_source'])
+class AppointmentRequestBookingContextTests(BaseTest):
+    def setUp(self):
+        super().setUp()
+        self.ar = self.create_appt_request_for_sm1()
+
+    def test_empty_by_default(self):
+        self.assertIsNone(self.ar.booking_context)
+        self.assertEqual(self.create_appt_for_sm1(appointment_request=self.ar).get_booking_context(), {})
+
+    def test_valid_context_is_stored_once_and_read_from_the_appointment(self):
+        self.ar.booking_context = {'utm_source': 'newsletter'}
+        self.ar.save(update_fields=['booking_context'])
+        appointment = self.create_appt_for_sm1(appointment_request=self.ar)
+        appointment = Appointment.objects.get(pk=appointment.pk)
+        self.assertEqual(appointment.get_booking_context(), {'utm_source': 'newsletter'})
+        # A copy: changing it does not change the stored value
+        appointment.get_booking_context()['utm_source'] = 'changed'
+        self.assertEqual(appointment.get_booking_context(), {'utm_source': 'newsletter'})
+
+    def test_plain_save_refuses_a_bad_context(self):
+        for value in ({'session_id': 'abc'}, {'utm_source': 'a\nb'}, {'utm_source': {'x': 'y'}}):
+            self.ar.booking_context = value
+            with self.subTest(value=value), self.assertRaises(ValidationError):
+                self.ar.save()
+        self.assertIsNone(AppointmentRequest.objects.get(pk=self.ar.pk).booking_context)
+
+    def test_removing_a_key_from_the_setting_does_not_block_saving_old_requests(self):
+        self.ar.booking_context = {'utm_source': 'newsletter'}
+        self.ar.save()
+        with override_settings(APPOINTMENT_BOOKING_CONTEXT_KEYS=[]):
+            ar = AppointmentRequest.objects.get(pk=self.ar.pk)
+            ar.reschedule_attempts += 1
+            ar.save()
+            ar.booking_context = {'utm_source': 'other'}
+            with self.assertRaises(ValidationError):
+                ar.save()
+
+    def test_changing_a_loaded_context_in_place_is_checked(self):
+        self.ar.booking_context = {'utm_source': 'newsletter'}
+        self.ar.save()
+        ar = AppointmentRequest.objects.get(pk=self.ar.pk)
+        ar.booking_context['session_id'] = 'abc'
+        with self.assertRaises(ValidationError):
+            ar.save()
+
+    def test_full_clean_refuses_a_bad_context(self):
+        self.ar.booking_context = {'session_id': 'abc'}
+        with self.assertRaises(ValidationError):
+            self.ar.full_clean()
+
+    def test_no_form_can_write_it(self):
+        self.assertNotIn('booking_context', AppointmentRequestForm().fields)
+        admin_form = AppointmentRequestAdmin(AppointmentRequest, AdminSite()).get_form(None)
+        self.assertNotIn('booking_context', admin_form.base_fields)
+
+    def test_not_in_appointment_dict(self):
+        self.ar.booking_context = {'utm_source': 'newsletter'}
+        self.ar.save()
+        appointment = self.create_appt_for_sm1(appointment_request=self.ar)
+        self.assertNotIn('newsletter', str(appointment.to_dict()))
+
+    def test_admin_shows_it_escaped(self):
+        self.ar.booking_context = {'utm_source': '<script>alert(1)</script>'}
+        self.ar.save()
+        appointment = self.create_appt_for_sm1(appointment_request=self.ar)
+        for model_admin, obj in ((AppointmentRequestAdmin(AppointmentRequest, AdminSite()), self.ar),
+                                 (AppointmentAdmin(Appointment, AdminSite()), appointment)):
+            html = model_admin.booking_context_display(obj)
+            self.assertNotIn('<script>', html)
+            self.assertIn('&lt;script&gt;alert(1)&lt;/script&gt;', html)
+            self.assertIn('<dt>utm_source</dt>', html)
