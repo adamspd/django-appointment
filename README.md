@@ -312,9 +312,10 @@ Django-Appointment is translated and shows dates in the client's language.
 - English (en), the default
 - French (fr), maintained by the project
 - Spanish (es), contributed by @alexandermamaniy (new maintainers welcome!)
+- Persian (fa), with the Jalali calendar (a review by a native speaker is welcome!)
 
 **What you get:**
-- 🗣️ The interface translated into 3 languages (more are welcome!)
+- 🗣️ The interface translated into 4 languages (more are welcome!)
 - 📅 Localized date formats for 39 languages
 - 🌐 Automatic language detection
 - 📝 Right-to-left (RTL) language support
