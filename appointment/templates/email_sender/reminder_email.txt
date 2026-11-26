@@ -1,4 +1,4 @@
-{% load i18n %}{% autoescape off %}{% translate 'Appointment Reminder' %}
+{% load i18n appointment_tags %}{% autoescape off %}{% translate 'Appointment Reminder' %}
 
 {% if recipient_type == 'client' %}{% if first_name %}{% blocktranslate trimmed %}Dear {{ first_name }},{% endblocktranslate %}{% else %}{% translate 'Hi' %},{% endif %}{% else %}{% translate 'Dear Administrator,' %}{% endif %}
 
@@ -6,7 +6,7 @@
 
 {% translate 'Appointment Details' %}
 - {% translate 'Service' %}: {{ appointment.get_service_name }}
-- {% translate 'Date' %}: {{ appointment.appointment_request.date|date:"l, d F Y" }}
+- {% translate 'Date' %}: {{ appointment.appointment_request.date|long_date }}
 - {% translate 'Time' %}: {{ appointment.appointment_request.start_time|time }} – {{ appointment.appointment_request.end_time|time }}
 {% if client_time %}- {% translate 'Your time' %}: {{ client_time }}
 {% endif %}{% if appointment.address %}- {% translate 'Location' %}: {{ appointment.address }}

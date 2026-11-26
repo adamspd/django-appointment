@@ -16,7 +16,7 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from django.utils.formats import date_format
+from django.utils.formats import date_format, get_format
 from django.utils.translation import gettext as _
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.views.decorators.http import require_POST
@@ -72,6 +72,7 @@ def get_user_appointments(request, response_type='html'):
         'page_description': _("All staff members' appointments.") if request.user.is_superuser
         else _("Your appointments."),
         'calendar_options': getattr(settings, 'APPOINTMENT_CALENDAR_OPTIONS', None) or {},
+        'first_day_of_week': get_format("FIRST_DAY_OF_WEEK"),
     }
     context = get_generic_context_with_extra(request=request, extra=extra_context)
     # if appointment is empty and user doesn't have a staff-member instance, put a message

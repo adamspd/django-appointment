@@ -1,4 +1,4 @@
-{% load i18n %}{% autoescape off %}{% translate 'New Appointment Request' %}
+{% load i18n appointment_tags %}{% autoescape off %}{% translate 'New Appointment Request' %}
 
 {% blocktranslate trimmed %}Dear {{ recipient_name }},{% endblocktranslate %}
 
@@ -8,7 +8,7 @@
 
 - {% translate 'Client Name' %}: {{ client_name }}
 - {% translate 'Service Requested' %}: {{ appointment.get_service_name }}
-- {% translate 'Appointment Date' %}: {{ appointment.appointment_request.date|date:"l, d F Y" }}
+- {% translate 'Appointment Date' %}: {{ appointment.appointment_request.date|long_date }}
 - {% translate 'Time' %}: {{ appointment.appointment_request.start_time|time }} – {{ appointment.appointment_request.end_time|time }}
 - {% translate 'Contact Details' %}: {% if appointment.phone %}{{ appointment.phone }} | {% endif %}{{ appointment.client.email }}
 - {% translate 'Additional Info' %}: {{ appointment.additional_info|default:"N/A" }}

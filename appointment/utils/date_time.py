@@ -12,7 +12,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from django.utils import timezone
 from django.utils.formats import date_format, get_format
-from django.utils.translation import gettext as _, ngettext
+from django.utils.translation import get_language, gettext as _, ngettext
 
 
 def get_valid_timezone_name(name) -> str:
@@ -457,3 +457,8 @@ DATE_FORMATS = {
     'vi': r"D, \n\g\à\y j \t\h\á\n\g n \n\ă\m Y",  # "Th 5, ngày 14 tháng 8 năm 2025" (Vietnamese: with words; corrected to use n for numeric month)
     'zh': "Y年Fj日 D",                        # "2025年八月14日 星期四" (Chinese: year-month-day format)
 }
+
+
+def long_date_format() -> str:
+    """The active language's format for a date with its weekday, from DATE_FORMATS: "D, F j, Y" in English."""
+    return DATE_FORMATS.get((get_language() or '').split('-')[0], "D, F j, Y")

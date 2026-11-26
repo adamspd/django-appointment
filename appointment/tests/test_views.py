@@ -19,6 +19,7 @@ from django.test.client import RequestFactory
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.encoding import force_bytes
+from django.utils.formats import date_format, get_format
 from django.utils.http import urlsafe_base64_encode
 from django.utils.translation import gettext as _
 
@@ -30,6 +31,7 @@ from appointment.models import (
 )
 from appointment.signals import appointment_request_created
 from appointment.tests.base.base_test import BaseTest
+from appointment.utils.date_time import DATE_FORMATS
 from appointment.utils.db_helpers import Service, WorkingHours, create_user_with_username, get_user_model
 from appointment.utils.error_codes import ErrorCode
 from appointment.utils.template_helpers import escape_json_for_script
@@ -1772,6 +1774,11 @@ class CalendarScriptEscapingTests(BaseTest):
         self.assertNotContains(response, "</script><script>alert(1)")
         self.assertIn("\\u003C/script\\u003E", response.context['appointments'])
 
+    def test_calendar_gets_the_first_day_of_the_week(self):
+        self.need_staff_login()
+        response = self.client.get(reverse('appointment:get_user_appointments'))
+        self.assertEqual(response.context['first_day_of_week'], get_format("FIRST_DAY_OF_WEEK"))
+
 
 class ViewsTestCase(BaseTest):
     @classmethod
@@ -2345,6 +2352,15 @@ class PrepareRescheduleAppointmentViewTests(BaseTest):
         self.assertTrue('date_chosen' in response.context)
         self.assertTrue('page_description' in response.context)
         self.assertTrue('timezoneTxt' in response.context)
+
+    def test_reschedule_date_is_in_the_language(self):
+        """The date used to be written in English for every language."""
+        from django.utils import translation
+        with translation.override('fr'):
+            # The demo project's URLs start with the language
+            response = self.client.get(reverse('appointment:prepare_reschedule_appointment', args=[self.ar.id_request]))
+            expected = date_format(self.ar.date, DATE_FORMATS['fr'], use_l10n=True)
+        self.assertEqual(response.context['date_chosen'], expected)
 
 
 class RescheduleAppointmentSubmitViewTests(BaseTest):
