@@ -103,7 +103,7 @@ def get_client_time_text(client_timezone, date, start_time):
     client_start = start.astimezone(ZoneInfo(client_timezone))
     if client_start.utcoffset() == start.utcoffset():
         return None
-    return f"{date_format(client_start, 'DATETIME_FORMAT')} ({client_timezone})"
+    return f"{local_date_format(client_start, 'DATETIME_FORMAT')} ({client_timezone})"
 
 
 def js_timepicker_display_format():

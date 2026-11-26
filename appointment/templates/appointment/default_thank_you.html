@@ -1,5 +1,6 @@
 {% extends "appointment/layout.html" %}
 {% load i18n %}
+{% load appointment_tags %}
 {% load static %}
 {% block customCSS %}
     <link rel="stylesheet" type="text/css" href="{% static 'css/booking.css' %}"/>
@@ -30,7 +31,7 @@
                 </div>
                 <div>
                     <dt>{% trans 'Appointment Date' %}</dt>
-                    <dd>{{ appointment.get_appointment_date }}</dd>
+                    <dd>{{ appointment.get_appointment_date|local_date }}</dd>
                 </div>
                 <div>
                     <dt>{% trans 'Appointment Time' %}</dt>

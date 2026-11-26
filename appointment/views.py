@@ -16,7 +16,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.encoding import force_str
-from django.utils.formats import date_format, localize, get_format
+from django.utils.formats import localize, get_format
 from django.utils.http import urlsafe_base64_decode
 from django.utils.timezone import get_current_timezone_name
 from django.utils.translation import gettext as _
@@ -45,7 +45,7 @@ from .messages_ import passwd_error, passwd_set_successfully
 from .services import get_appointments_and_slots, get_available_slots_for_staff, is_slot_bookable
 from .settings import (APPOINTMENT_PAYMENT_URL, APPOINTMENT_THANK_YOU_URL)
 from .signals import appointment_request_created
-from .utils.date_time import long_date_format
+from .utils.date_time import local_date_format, long_date_format
 from .utils.error_codes import ErrorCode
 from .utils.json_context import get_generic_context_with_extra, json_response
 from .utils.template_helpers import get_custom_template
@@ -75,7 +75,7 @@ def get_available_slots_ajax(request):
 
     selected_date = slot_form.cleaned_data['selected_date']
     sm = slot_form.cleaned_data['staff_member']
-    date_chosen = date_format(selected_date, long_date_format(), use_l10n=True)
+    date_chosen = local_date_format(selected_date, long_date_format())
     custom_data = {
         'date_chosen': date_chosen,
         'date_iso': selected_date.isoformat()
@@ -229,7 +229,7 @@ def appointment_request(request, service_id=None, staff_member_id=None):
     #  approach is much easier for contributors than creating separate format files per language.
     #  Future contributors: add your language's preferred format in the DATE_FORMATS dictionary in utils.date_time.py
     #  file.
-    date_chosen = date_format(timezone.localdate(), long_date_format(), use_l10n=True)
+    date_chosen = local_date_format(timezone.localdate(), long_date_format())
     extra_context = {
         'service': service,
         'staff_member': staff_member,
@@ -580,7 +580,7 @@ def prepare_reschedule_appointment(request, id_request):
     available_slots = get_available_slots_for_staff(ar.date, selected_sm, day_of_week, service=service)
     page_title = _("Rescheduling appointment for {s}").format(s=service.name)
     page_description = _("Reschedule your appointment for {s} at {wn}.").format(s=service.name, wn=get_website_name())
-    date_chosen = date_format(ar.date, long_date_format(), use_l10n=True)
+    date_chosen = local_date_format(ar.date, long_date_format())
 
     extra_context = {
         'service': service,

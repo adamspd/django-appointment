@@ -1,5 +1,6 @@
 {% extends "appointment/layout.html" %}
 {% load i18n %}
+{% load appointment_tags %}
 {% load static %}
 {% block customCSS %}
     <link rel="stylesheet" type="text/css" href="{% static 'css/booking.css' %}"/>
@@ -15,7 +16,7 @@
         <div class="djappt-card djappt-card--roomy djappt-center main-content confirmation-message">
             <h1 class="djappt-title">{% trans "Confirm the new date" %}</h1>
             <p class="djappt-lead mb-4">
-                {% blocktrans with service=reschedule.appointment_request.get_service_name date=reschedule.date|date:"DATE_FORMAT" time=reschedule.start_time|time:"TIME_FORMAT" %}Move your {{ service }} appointment to {{ date }} at {{ time }}?{% endblocktrans %}
+                {% blocktrans with service=reschedule.appointment_request.get_service_name date=reschedule.date|local_date:"DATE_FORMAT" time=reschedule.start_time|time:"TIME_FORMAT" %}Move your {{ service }} appointment to {{ date }} at {{ time }}?{% endblocktrans %}
             </p>
             <form method="post">
                 {% csrf_token %}

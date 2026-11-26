@@ -1,5 +1,6 @@
 {% extends "appointment/layout.html" %}
 {% load i18n %}
+{% load appointment_tags %}
 {% load l10n %}
 {% load static %}
 {% block customCSS %}
@@ -239,12 +240,12 @@
                             {% endif %}
                             <li class="djappt-row{% if today and day_off.end_date < today %} djappt-row--past{% endif %}">
                                 <span class="djappt-date-badge" aria-hidden="true">
-                                    <span>{{ day_off.start_date|date:"M" }}</span>
-                                    <strong>{{ day_off.start_date|date:"j" }}</strong>
+                                    <span>{{ day_off.start_date|local_date:"M" }}</span>
+                                    <strong>{{ day_off.start_date|local_date:"j" }}</strong>
                                 </span>
                                 <div class="djappt-row-main">
                                     <p class="djappt-row-title">
-                                        {{ day_off.start_date }}{% if day_off.end_date != day_off.start_date %} – {{ day_off.end_date }}{% endif %}
+                                        {{ day_off.start_date|local_date }}{% if day_off.end_date != day_off.start_date %} – {{ day_off.end_date|local_date }}{% endif %}
                                         {% if today and day_off.end_date < today %}<span class="djappt-tag">{% trans 'Past' %}</span>{% endif %}
                                     </p>
                                     {% if day_off.description %}
@@ -302,12 +303,12 @@
                             {% endif %}
                             <li class="djappt-row{% if today and unavailability.date < today %} djappt-row--past{% endif %}">
                                 <span class="djappt-date-badge" aria-hidden="true">
-                                    <span>{{ unavailability.date|date:"M" }}</span>
-                                    <strong>{{ unavailability.date|date:"j" }}</strong>
+                                    <span>{{ unavailability.date|local_date:"M" }}</span>
+                                    <strong>{{ unavailability.date|local_date:"j" }}</strong>
                                 </span>
                                 <div class="djappt-row-main">
                                     <p class="djappt-row-title">
-                                        {{ unavailability.date }}
+                                        {{ unavailability.date|local_date }}
                                         {% if today and unavailability.date < today %}<span class="djappt-tag">{% trans 'Past' %}</span>{% endif %}
                                     </p>
                                     <p class="djappt-row-meta">

@@ -13,7 +13,8 @@ from appointment.models import AppointmentRescheduleHistory
 from appointment.tests.base.base_test import BaseTest
 from appointment.utils.ics_utils import generate_ics_file
 from appointment.utils.email_ops import (
-    build_new_appointment_email, build_reminder_email, build_reschedule_confirmation_email, get_email_context,
+    build_new_appointment_email, build_reminder_email, build_reschedule_confirmation_email, build_thank_you_email,
+    get_email_context,
     get_thank_you_details, get_thank_you_message, notify_admin_about_appointment,
     notify_admin_about_reschedule,
     send_reschedule_confirmation_email,
@@ -333,6 +334,21 @@ class ClientTimeInEmailsTests(BaseTest):
             details, _account = get_thank_you_details(self.appointment)
             expected = date_format(self.ar.date, DATE_FORMATS['fr'], use_l10n=True)
             self.assertEqual(details[_('Appointment Date')], expected)
+
+    def test_persian_emails_use_the_jalali_calendar(self):
+        from django.utils import translation
+        from appointment.utils.date_time import local_date_format, long_date_format
+        self.ar.date = datetime(2030, 8, 14).date()
+        self.ar.save(update_fields=['date'])
+        self.set_client_timezone('America/New_York')
+        with translation.override('fa'):
+            details, _account = get_thank_you_details(self.appointment)
+            self.assertEqual(details[_('Appointment Date')], local_date_format(self.ar.date, long_date_format()))
+            self.assertIn('مرداد ۱۴۰۹', details[_('Appointment Date')])
+            self.assertIn('مرداد ۱۴۰۹', details[_('Your time')])
+            email = build_thank_you_email(self.appointment, self.appointment.client, RequestFactory().get('/'))
+            context = email['context']
+            self.assertEqual((context['month_year'], context['day']), ('مرداد ۱۴۰۹', '۲۳'))
 
     def test_thank_you_details_skip_it_for_the_same_time_zone(self):
         self.set_client_timezone('UTC')

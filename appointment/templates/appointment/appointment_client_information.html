@@ -1,5 +1,6 @@
 {% extends "appointment/layout.html" %}
 {% load i18n %}
+{% load appointment_tags %}
 {% load static %}
 {% block customCSS %}
     <link rel="stylesheet" type="text/css" href="{% static 'css/booking.css' %}"/>
@@ -109,7 +110,7 @@
                         <div>
                             <dt>{% trans "Date" %}</dt>
                             <dd id="service-datetime-chosen" class="service-datetime-chosen">
-                                {{ ar.date }}&nbsp;{% trans "at" %}&nbsp;{{ ar.start_time }}</dd>
+                                {{ ar.date|local_date }}&nbsp;{% trans "at" %}&nbsp;{{ ar.start_time }}</dd>
                         </div>
                         <div>
                             <dt>{% trans "Duration" %}</dt>
