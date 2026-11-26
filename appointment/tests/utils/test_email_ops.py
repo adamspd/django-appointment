@@ -325,6 +325,15 @@ class ClientTimeInEmailsTests(BaseTest):
         details, _account = get_thank_you_details(self.appointment)
         self.assertIn('(America/New_York)', details[_('Your time')])
 
+    def test_thank_you_details_date_is_in_the_language(self):
+        from django.utils import translation
+        from django.utils.formats import date_format
+        from appointment.utils.date_time import DATE_FORMATS
+        with translation.override('fr'):
+            details, _account = get_thank_you_details(self.appointment)
+            expected = date_format(self.ar.date, DATE_FORMATS['fr'], use_l10n=True)
+            self.assertEqual(details[_('Appointment Date')], expected)
+
     def test_thank_you_details_skip_it_for_the_same_time_zone(self):
         self.set_client_timezone('UTC')
         details, _account = get_thank_you_details(self.appointment)

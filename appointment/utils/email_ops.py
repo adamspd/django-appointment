@@ -20,6 +20,7 @@ from appointment.models import (
     Appointment, AppointmentRequest, AppointmentRescheduleHistory, EmailVerificationCode, PasswordResetToken
 )
 from appointment.settings import APPOINTMENT_PAYMENT_URL
+from appointment.utils.date_time import long_date_format
 from appointment.utils.db_helpers import get_absolute_url_, get_site_url, get_website_name, username_in_user_model
 from appointment.utils.ics_utils import generate_ics_file
 from appointment.utils.template_helpers import get_email_template
@@ -99,7 +100,7 @@ def get_thank_you_details(appointment):
     client = appointment.client
     appointment_details = {
         _('Service'): appointment.get_service_name(),
-        _('Appointment Date'): appointment.get_appointment_date(),
+        _('Appointment Date'): date_format(appointment.get_appointment_date(), long_date_format(), use_l10n=True),
         _('Appointment Time'): appointment.appointment_request.start_time,
         _('Duration'): appointment.get_service_duration()
     }

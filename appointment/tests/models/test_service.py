@@ -248,7 +248,7 @@ class ServiceModelNegativeTestCase(BaseTest):
             s.full_clean()
 
     def test_large_price_and_down_payment_values(self):
-        """Prices in currencies like the Iranian rial run into millions, up to 9,999,999,999.99."""
+        """Amounts up to 9,999,999,999.99 are accepted."""
         s = deepcopy(self.service)
         s.currency = "IRR"
         s.price = 4500000000

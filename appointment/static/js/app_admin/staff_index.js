@@ -174,9 +174,28 @@ function getEventDisplayedStyle() {
     return "block";
 }
 
+// The weekend days of the language's region as getUTCDay() numbers (0 is Sunday), Saturday and Sunday when the
+// browser can't tell.
+function localWeekendDays(calendarLocale) {
+    try {
+        const region = new Intl.Locale(calendarLocale).maximize();
+        const info = region.getWeekInfo ? region.getWeekInfo() : region.weekInfo;
+        if (info && Array.isArray(info.weekend)) {
+            return info.weekend.map(day => day % 7);
+        }
+    } catch (e) {
+        // Older browsers: keep the default
+    }
+    return [0, 6];
+}
+
+const weekendDays = localWeekendDays(locale);
+
 function getCalendarConfig(events) {
     const config = {
         initialView: 'dayGridMonth',
+        // The week starts on the language's first day, like the booking calendar
+        firstDay: typeof firstDayOfWeek !== 'undefined' && firstDayOfWeek !== '' ? Number(firstDayOfWeek) : undefined,
         headerToolbar: getHeaderToolbarConfig(),
         buttonText: {
             today: todayBtnText, month: monthBtnText, week: weekBtnText, day: dayBtnText, list: listBtnText
@@ -219,8 +238,7 @@ function getCalendarConfig(events) {
         },
         dayCellClassNames: function (info) {
             // FullCalendar keeps the calendar date in the UTC fields.
-            const day = info.date.getUTCDay();
-            if (day === 0 || day === 6) { // 0 = Sunday, 6 = Saturday
+            if (weekendDays.includes(info.date.getUTCDay())) {
                 return 'highlight-weekend';
             }
             return ''; // Return empty string for regular days

@@ -1,7 +1,7 @@
 {% extends "email_sender/base_email.html" %}
-{% load i18n %}
+{% load i18n appointment_tags %}
 {% block title %}{% trans "Appointment Reschedule" %}{% endblock %}
-{% block preheader %}{{ old_date|date:"l, d F Y" }} → {{ reschedule_date|date:"l, d F Y" }}{% endblock %}
+{% block preheader %}{{ old_date|long_date }} → {{ reschedule_date|long_date }}{% endblock %}
 {% block heading %}{% trans "Appointment Reschedule" %}{% endblock %}
 
 {% block content %}
@@ -31,7 +31,7 @@
                     <tr>
                         <td style="padding: 12px 14px; font-size: 14px; color: #64748b;">
                             <div style="margin-bottom: 4px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px;">{% trans "Original Appointment:" %}</div>
-                            <div style="text-decoration: line-through;">{{ old_date|date:"l, d F Y" }}</div>
+                            <div style="text-decoration: line-through;">{{ old_date|long_date }}</div>
                             <div style="text-decoration: line-through;">{{ old_start_time|time }} – {{ old_end_time|time }}</div>
                         </td>
                     </tr>
@@ -42,7 +42,7 @@
                     <tr>
                         <td style="padding: 12px 14px; font-size: 14px; color: #0c1b33;">
                             <div style="margin-bottom: 4px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: #00307c;">{% trans "Rescheduled Appointment:" %}</div>
-                            <div style="font-weight: 600;">{{ reschedule_date|date:"l, d F Y" }}</div>
+                            <div style="font-weight: 600;">{{ reschedule_date|long_date }}</div>
                             <div style="font-weight: 600;">{{ start_time|time }} – {{ end_time|time }}</div>
                             {% if client_time %}
                                 <div style="margin-top: 4px;">{% trans "Your time" %}: {{ client_time }}</div>

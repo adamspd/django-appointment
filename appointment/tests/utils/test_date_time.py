@@ -12,7 +12,7 @@ from appointment.utils.date_time import (
     DATE_FORMATS, combine_date_and_time, convert_12_hour_time_to_24_hour_time, convert_24_hour_time_to_12_hour_time,
     convert_minutes_in_human_readable_format, convert_str_to_date,
     convert_str_to_time, get_ar_end_time, get_client_time_text, get_current_year, get_timestamp,
-    get_valid_timezone_name, get_weekday_num,
+    get_valid_timezone_name, get_weekday_num, long_date_format,
     time_difference
 )
 
@@ -431,6 +431,21 @@ class DateFormatsTests(TestCase):
         with translation.override('pt-br'):
             self.assertEqual(date_format(datetime.date(2025, 8, 14), DATE_FORMATS['pt'], use_l10n=True),
                              "Qui, 14 de Agosto de 2025")
+
+    def test_long_date_format_follows_the_language(self):
+        from django.utils import translation
+        for lang, expected in (('en', DATE_FORMATS['en']), ('fr', DATE_FORMATS['fr']), ('pt-br', DATE_FORMATS['pt']),
+                               ('xx', "D, F j, Y")):
+            with self.subTest(lang=lang), translation.override(lang):
+                self.assertEqual(long_date_format(), expected)
+
+    def test_long_date_filter(self):
+        from django.template import Context, Template
+        from django.utils import translation
+        template = Template('{% load appointment_tags %}{{ day|long_date }}|{{ empty|long_date }}')
+        with translation.override('fr'):
+            self.assertEqual(template.render(Context({'day': datetime.date(2025, 8, 14), 'empty': None})),
+                             "Jeu 14 août 2025|")
 
 
 class ClientTimeTextTests(TestCase):
