@@ -330,11 +330,11 @@ def convert_minutes_in_human_readable_format(minutes: float) -> str:
         parts.append(minutes_display)
 
     if len(parts) == 1:
-        return parts[0]
+        return local_digits(parts[0])
     elif len(parts) == 2:
-        return _("{first_part} and {second_part}").format(first_part=parts[0], second_part=parts[1])
+        return local_digits(_("{first_part} and {second_part}").format(first_part=parts[0], second_part=parts[1]))
     elif len(parts) == 3:
-        return _("{days}, {hours} and {minutes}").format(days=parts[0], hours=parts[1], minutes=parts[2])
+        return local_digits(_("{days}, {hours} and {minutes}").format(days=parts[0], hours=parts[1], minutes=parts[2]))
 
 # TODO if required add support for locale format using : get_format('DATE_INPUT_FORMAT')
 # but we have to discernate year first, month first or day first format properly

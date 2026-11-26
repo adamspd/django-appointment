@@ -110,7 +110,7 @@
                         <div>
                             <dt>{% trans "Date" %}</dt>
                             <dd id="service-datetime-chosen" class="service-datetime-chosen">
-                                {{ ar.date|local_date }}&nbsp;{% trans "at" %}&nbsp;{{ ar.start_time }}</dd>
+                                {{ ar.date|local_date }}&nbsp;{% trans "at" %}&nbsp;{{ ar.start_time|local_time }}</dd>
                         </div>
                         <div>
                             <dt>{% trans "Duration" %}</dt>

@@ -12,7 +12,7 @@ from appointment.utils.date_time import (
     DATE_FORMATS, combine_date_and_time, convert_12_hour_time_to_24_hour_time, convert_24_hour_time_to_12_hour_time,
     convert_minutes_in_human_readable_format, convert_str_to_date,
     convert_str_to_time, get_ar_end_time, get_client_time_text, get_current_year, get_timestamp,
-    get_valid_timezone_name, get_weekday_num, gregorian_to_jalali, local_date_format, long_date_format,
+    get_valid_timezone_name, get_weekday_num, gregorian_to_jalali, local_date_format, local_digits, long_date_format,
     time_difference
 )
 
@@ -533,3 +533,31 @@ class LocalDateFormatTests(TestCase):
             self.assertEqual(template.render(context), "۲۳ مرداد ۱۴۰۴|")
         with translation.override('en'):
             self.assertEqual(template.render(context), "14 August 2025|")
+
+
+class LocalDigitsTests(TestCase):
+    """Persian writes times, durations and prices with Persian digits; other languages keep theirs."""
+
+    def test_local_digits(self):
+        from django.utils import translation
+        with translation.override('fa'):
+            self.assertEqual(local_digits('10:30'), '۱۰:۳۰')
+        with translation.override('en'):
+            self.assertEqual(local_digits('10:30'), '10:30')
+
+    def test_local_time_filter(self):
+        from django.template import Context, Template
+        from django.utils import translation
+        template = Template('{% load appointment_tags %}{{ start|local_time:"H:i" }}|{{ empty|local_time }}')
+        context = Context({'start': datetime.time(9, 5), 'empty': None})
+        with translation.override('fa'):
+            self.assertEqual(template.render(context), '۰۹:۰۵|')
+        with translation.override('en'):
+            self.assertEqual(template.render(context), '09:05|')
+
+    def test_durations(self):
+        from django.utils import translation
+        with translation.override('fa'):
+            self.assertNotRegex(convert_minutes_in_human_readable_format(90), '[0-9]')
+        with translation.override('en'):
+            self.assertEqual(convert_minutes_in_human_readable_format(90), '1 hour and 30 minutes')

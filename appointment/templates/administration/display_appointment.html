@@ -42,11 +42,11 @@
                             </div>
                             <div>
                                 <dt>{% trans 'Start time' %}</dt>
-                                <dd>{{ appointment.get_start_time|time }}</dd>
+                                <dd>{{ appointment.get_start_time|local_time }}</dd>
                             </div>
                             <div>
                                 <dt>{% trans 'End time' %}</dt>
-                                <dd>{{ appointment.get_end_time|time }}</dd>
+                                <dd>{{ appointment.get_end_time|local_time }}</dd>
                             </div>
                         </dl>
                     </section>

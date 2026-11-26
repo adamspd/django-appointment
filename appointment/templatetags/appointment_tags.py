@@ -9,8 +9,9 @@ Since: 3.13.0
 """
 
 from django import template
+from django.utils.formats import time_format
 
-from appointment.utils.date_time import local_date_format, long_date_format
+from appointment.utils.date_time import local_date_format, local_digits, long_date_format
 
 register = template.Library()
 
@@ -29,6 +30,14 @@ def long_date(value):
     if value in (None, ''):
         return ''
     return local_date_format(value, long_date_format())
+
+
+@register.filter(expects_localtime=True, is_safe=False)
+def local_time(value, format=None):
+    """Like the time filter, with Persian digits for Persian. Empty for an empty value."""
+    if value in (None, ''):
+        return ''
+    return local_digits(time_format(value, format, use_l10n=True))
 
 
 @register.simple_tag(takes_context=True)

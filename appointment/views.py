@@ -45,7 +45,7 @@ from .messages_ import passwd_error, passwd_set_successfully
 from .services import get_appointments_and_slots, get_available_slots_for_staff, is_slot_bookable
 from .settings import (APPOINTMENT_PAYMENT_URL, APPOINTMENT_THANK_YOU_URL)
 from .signals import appointment_request_created
-from .utils.date_time import local_date_format, long_date_format
+from .utils.date_time import local_date_format, local_digits, long_date_format
 from .utils.error_codes import ErrorCode
 from .utils.json_context import get_generic_context_with_extra, json_response
 from .utils.template_helpers import get_custom_template
@@ -110,7 +110,7 @@ def get_available_slots_ajax(request):
         available_slots = [slot for slot in available_slots if slot.time() > current_time]
 
     # Pass slots as array of [isoformat, localized_timeslot], ex (en locale) [..., ["2026-07-29T09:30:00", "9:30 p.m."], ...]
-    custom_data['available_slots'] = [[slot, localize(slot.time())] for slot in available_slots]
+    custom_data['available_slots'] = [[slot, local_digits(localize(slot.time()))] for slot in available_slots]
     if len(available_slots) == 0:
         custom_data['error'] = True
         custom_data['date_iso'] = selected_date.isoformat()

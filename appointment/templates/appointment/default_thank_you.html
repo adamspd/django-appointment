@@ -35,7 +35,7 @@
                 </div>
                 <div>
                     <dt>{% trans 'Appointment Time' %}</dt>
-                    <dd>{{ appointment.appointment_request.start_time }}</dd>
+                    <dd>{{ appointment.appointment_request.start_time|local_time }}</dd>
                 </div>
                 {% with client_time=appointment.appointment_request.get_client_time_text %}
                     {% if client_time %}

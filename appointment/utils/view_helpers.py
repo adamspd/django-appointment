@@ -12,6 +12,8 @@ from babel import Locale
 from babel.numbers import format_currency
 from django.utils.translation import get_language, to_locale
 
+from appointment.utils.date_time import local_digits, uses_jalali_calendar
+
 
 def get_locale() -> str:
     """Get the current locale based on the user's language settings, without the country code.
@@ -34,10 +36,13 @@ def format_price(amount, currency: str) -> str:
     :return: The formatted amount with its currency symbol
     """
     locale = get_locale()
+    # Persian: the language's own thousands separator (٬), and Persian digits
+    numbering = 'default' if uses_jalali_calendar() else 'latn'
     if amount % 1 == 0:
         pattern = Locale.parse(locale).currency_formats['standard'].pattern.replace('.00', '')
-        return format_currency(amount, currency, format=pattern, locale=locale, currency_digits=False)
-    return format_currency(amount, currency, locale=locale)
+        return local_digits(format_currency(amount, currency, format=pattern, locale=locale, currency_digits=False,
+                                            numbering_system=numbering))
+    return local_digits(format_currency(amount, currency, locale=locale, numbering_system=numbering))
 
 
 def is_ajax(request):
