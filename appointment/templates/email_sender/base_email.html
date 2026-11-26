@@ -1,5 +1,5 @@
-{% load i18n %}{% get_current_language as LANGUAGE_CODE %}<!DOCTYPE html>
-<html lang="{{ LANGUAGE_CODE }}">
+{% load i18n %}{% get_current_language as LANGUAGE_CODE %}{% get_current_language_bidi as LANGUAGE_BIDI %}<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}" dir="{% if LANGUAGE_BIDI %}rtl{% else %}ltr{% endif %}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -50,7 +50,8 @@
 <div style="display: none; max-height: 0; max-width: 0; overflow: hidden; opacity: 0; font-size: 1px; line-height: 1px; color: #f4f6fa;">
     {% block preheader %}{% endblock %}
 </div>
-<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f4f6fa;">
+{# Many mail clients drop the attributes of <html>, so the direction is set again here #}
+<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f4f6fa;" dir="{% if LANGUAGE_BIDI %}rtl{% else %}ltr{% endif %}">
     <tr>
         <td align="center" valign="top" class="djappt-email-outer" style="padding: 32px 12px;">
             <!--[if (gte mso 9)|(IE)]>
