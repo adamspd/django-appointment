@@ -1,69 +1,66 @@
-## Migration Guide for Version 3.15.0 🚀
+## Migration Guide for Version 3.16.0 🚀
 
-Version 3.15.0 changes the database (email verification codes), adds three settings and changes how rescheduling and
-email codes behave. The supported Python and Django versions are the same.
+Version 3.16.0 changes the database (working hours, appointment requests and amounts), adds one optional setting and a
+new script used by the booking and staff calendars. The supported Python and Django versions are the same.
 
-### Coming from 3.14.x
+### Coming from 3.15.x
 
 1. **Upgrade the package**:
 
     ```bash
-    pip install django-appointment==3.15.0
+    pip install django-appointment==3.16.0
     ```
 
-2. **Create and run the migration.** `EmailVerificationCode` has new `attempts` and `email` fields, and its `user` can
-   now be empty (a new client's account is only created once they enter the code):
+2. **Create and run the migration.** It covers these changes:
+    - `WorkingHours` no longer has the one-row-per-day constraint, so a day can have several working hours.
+    - `AppointmentRequest` has new `client_timezone` and `booking_context` fields.
+    - `Service.price`, `Service.down_payment` and `Appointment.amount_to_pay` take up to 12 digits.
 
     ```bash
     python manage.py makemigrations appointment
     python manage.py migrate
     ```
 
-3. **Collect the static files**, since the booking and calendar scripts changed:
+3. **Collect the static files**, since the booking and staff calendar scripts changed and `js/local_calendar.js` is
+   new:
 
     ```bash
     python manage.py collectstatic
     ```
 
-4. **Check your site address** (optional). Links in emails use, in order, `APPOINTMENT_SITE_URL`, the current `Site`
-   of `django.contrib.sites` when that app is installed, or the request's address:
+4. **Check your template overrides.** If you override these templates, copy the new lines from the package's version:
+    - `appointment/appointments.html` and `administration/staff_index.html`: load `js/local_calendar.js` before the
+      calendar script. **Without it, the booking or staff calendar doesn't load.**
+
+        ```django
+        <script src="{% static 'js/local_calendar.js' %}"></script>
+        ```
+
+    - `appointment/appointments.html`: add the `djappt-tz-notice` paragraph and the `djappt-local-time` block if you
+      want the client's own time on the booking page.
+    - `base_templates/base.html` and `email_sender/base_email.html`: set `lang` and `dir` from the current language,
+      so right-to-left languages are mirrored.
+    - `administration/manage_day_off.html`, `manage_unavailability.html` and `manage_working_hours.html`: load
+      `js/local_calendar.js` and call `localDateTimeInputs(document.documentElement.lang)` if you use Persian.
+
+5. **Optional:** keep values from the moment a client books, such as the campaign. List the keys a listener of the new
+   `appointment_request_created` signal may store (none by default):
 
     ```python
-    APPOINTMENT_SITE_URL = "https://example.com"
+    APPOINTMENT_BOOKING_CONTEXT_KEYS = ['utm_source', 'utm_campaign']
     ```
 
-   If you use `django.contrib.sites`, make sure your `Site`'s domain is not still `example.com`. Also make sure
-   `ALLOWED_HOSTS` lists your real domain names, not `["*"]`.
-
-5. **Optional:** change how long email codes stay valid (10 minutes by default):
-
-    ```python
-    APPOINTMENT_VERIFICATION_CODE_MINUTES = 10
-    ```
-
-   And limit the codes asked for from one IP address in an hour (off by default; read the
-   [configuration page](../configuration.md) first if your site is behind a proxy):
-
-    ```python
-    APPOINTMENT_VERIFICATION_EMAILS_PER_IP = 10
-    ```
+   See [Keeping booking context](../booking-context.md).
 
 6. **Check what changed in behaviour:**
-    - Confirming a reschedule now takes a click on a Confirm button. The link opens the new
-      `appointment/confirm_reschedule.html` page, which you can override like the other templates. Only a POST to
-      that page confirms.
-    - The reschedule limit now counts confirmed reschedules for each appointment request.
-    - Staff and superuser accounts are no longer logged in by a booking code.
-    - Bookings outside the staff member's free slots are refused, and the end time follows the service's duration.
-    - If you override `manage_working_hours.html`, it keeps working with one day. To let staff pick several days,
-      use checkboxes when `multiple_days` is set, as the package template does.
-    - The calendar delete endpoint (`delete_appointment_ajax`) only accepts AJAX POST requests.
-    - Only 3 codes are sent to the same address in an hour. The count uses Django's cache, so with several worker
-      processes use a shared cache (Redis, Memcached or the database) for an exact count.
+    - Emails, the thank-you details and the reschedule page write dates with the language's format, not a fixed
+      `l, d F Y` format.
+    - The staff calendar starts the week on the language's first day and shades the region's weekend.
+    - In Persian, dates are shown in the Jalali calendar with Persian digits. They are still stored as Gregorian dates.
 
-### Coming from 3.13.x or older
+### Coming from 3.14.x or older
 
-Follow the [3.14.0 migration guide](v3_14_0.md) first, then the steps above.
+Follow the [3.15.0 migration guide](v3_15_0.md) first, then the steps above.
 
 ### Important Notes 📝:
 

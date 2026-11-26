@@ -214,7 +214,16 @@ For translating service names, descriptions, and other database content, you can
 
 ### Right-to-Left (RTL) Languages
 
-Django-Appointment includes basic RTL support for languages like Arabic and Hebrew. The date formats are properly configured for RTL display.
+In right-to-left languages (Arabic, Hebrew, Persian), the package's pages and emails set `dir="rtl"`, so the layout
+is mirrored. If you override `base_templates/base.html` or `email_sender/base_email.html`, keep the `lang` and `dir`
+attributes from the package's version.
+
+### Jalali Calendar
+
+In Persian, pages and emails show dates in the Jalali (Solar Hijri) calendar with Persian digits, and the booking and
+staff calendars show Jalali months. The browser's date and time inputs only know the Gregorian calendar, so the day
+off, unavailability and working hours forms use day, month and year lists instead. Dates are still stored and sent as
+Gregorian dates (`YYYY-MM-DD`), so nothing changes for other languages or in the database.
 
 ### Pluralization
 
