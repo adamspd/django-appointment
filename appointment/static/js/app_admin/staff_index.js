@@ -101,6 +101,9 @@ function initializeCalendar() {
     }
     AppState.calendar = new FullCalendar.Calendar(calendarEl, config);
     AppState.calendar.setOption('locale', locale);
+    if (localMonth) {
+        localMonth.attach(AppState.calendar);
+    }
     AppState.calendar.render();
     AppState.layout = getLayout();
 }
@@ -190,15 +193,20 @@ function localWeekendDays(calendarLocale) {
 }
 
 const weekendDays = localWeekendDays(locale);
+// The month view in the language's calendar (Jalali for Persian), or null for Gregorian
+const localMonth = localMonthCalendar(locale);
+const monthView = localMonth ? localMonth.viewName : 'dayGridMonth';
 
 function getCalendarConfig(events) {
     const config = {
-        initialView: 'dayGridMonth',
+        initialView: monthView,
+        views: localMonth ? {[localMonth.viewName]: localMonth.view} : {},
         // The week starts on the language's first day, like the booking calendar
         firstDay: typeof firstDayOfWeek !== 'undefined' && firstDayOfWeek !== '' ? Number(firstDayOfWeek) : undefined,
         headerToolbar: getHeaderToolbarConfig(),
         buttonText: {
-            today: todayBtnText, month: monthBtnText, week: weekBtnText, day: dayBtnText, list: listBtnText
+            today: todayBtnText, month: monthBtnText, localMonth: monthBtnText, week: weekBtnText, day: dayBtnText,
+            list: listBtnText
         },
         navLinks: true,
         editable: true,
@@ -344,19 +352,19 @@ function getHeaderToolbarConfig() {
     if (window.matchMedia('(max-width: 767px)').matches) {
         // Mobile configuration
         return {
-            left: 'title', right: 'prev,next,dayGridMonth,timeGridDay'
+            left: 'title', right: `prev,next,${monthView},timeGridDay`
         };
     } else if (window.matchMedia('(max-width: 991px)').matches) {
         // Tablet configuration
         return {
-            left: 'prev,today,next', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            left: 'prev,today,next', center: 'title', right: `${monthView},timeGridWeek,timeGridDay`
         };
     } else {
         // Desktop configuration
         return {
             left: 'prevYear,prev,today,next,nextYear',
             center: 'title',
-            right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek',
+            right: `${monthView},timeGridWeek,timeGridDay,listWeek`,
             prevYear: 'prevYear',
             nextYear: 'nextYear'
         };
