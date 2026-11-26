@@ -10,9 +10,23 @@ import datetime
 import warnings
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from django.utils import timezone
+from django.utils import dateformat, timezone
 from django.utils.formats import date_format, get_format
 from django.utils.translation import get_language, gettext as _, ngettext
+
+# Persian writes dates in the Jalali calendar, with Persian digits, like the browser does for the calendars
+PERSIAN_DIGITS = str.maketrans('0123456789', '۰۱۲۳۴۵۶۷۸۹')
+JALALI_MONTHS = ('فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند')
+
+
+def uses_jalali_calendar() -> bool:
+    """True when the active language writes dates in the Jalali calendar (Persian)."""
+    return (get_language() or '').split('-')[0] == 'fa'
+
+
+def local_digits(text: str) -> str:
+    """The text with Persian digits for Persian, unchanged for other languages: '10:30' gives '۱۰:۳۰'."""
+    return text.translate(PERSIAN_DIGITS) if uses_jalali_calendar() else text
 
 
 def gregorian_to_jalali(date) -> tuple[int, int, int]:
@@ -34,6 +48,34 @@ def gregorian_to_jalali(date) -> tuple[int, int, int]:
     if days < 186:
         return year, 1 + days // 31, 1 + days % 31
     return year, 7 + (days - 186) // 30, 1 + (days - 186) % 30
+
+
+def local_date_format(value, format=None):
+    """Like Django's date_format, but in the Jalali calendar for Persian: 'j F Y' gives '۴ آذر ۱۴۰۵'.
+
+    Only the day, month and year letters change. The weekday and the time are the same in both calendars.
+    """
+    if not uses_jalali_calendar():
+        return date_format(value, format, use_l10n=True)
+    year, month, day = gregorian_to_jalali(value)
+    month_name = JALALI_MONTHS[month - 1]
+    values = {'d': f'{day:02}', 'j': str(day), 'm': f'{month:02}', 'n': str(month), 'F': month_name,
+              'M': month_name, 'N': month_name, 'E': month_name, 'b': month_name, 'Y': str(year),
+              'y': f'{year % 100:02}'}
+    # Write the Jalali values as escaped text, then let Django fill in the rest (weekday, time)
+    pattern = get_format(format or 'DATE_FORMAT', use_l10n=True)
+    result, escaped = [], False
+    for char in pattern:
+        if escaped:
+            result.append('\\' + char)
+            escaped = False
+        elif char == '\\':
+            escaped = True
+        elif char in values:
+            result.extend('\\' + c for c in values[char])
+        else:
+            result.append(char)
+    return local_digits(dateformat.format(value, ''.join(result)))
 
 
 def get_valid_timezone_name(name) -> str:
@@ -448,7 +490,7 @@ DATE_FORMATS = {
     'en': "D, F j, Y",                       # "Thu, August 14, 2025" (English: commas)
     'es': r"D, j \d\e F \d\e Y",               # "jue, 14 de agosto de 2025" (Spanish: with "de")
     'et': "D, j. F Y",                       # "N, 14. august 2025" (Estonian: period after day)
-    'fa': "D، j F Y",                        # "پ، 14 اوت 2025" (Persian: RTL with Persian comma)
+    'fa': "D، j F Y",                        # "پنجشنبه، ۲۳ مرداد ۱۴۰۴" (Persian: Jalali calendar, Persian comma)
     'fi': r"D j. F\t\a Y",                  # "to 14. elokuuta 2025" (Finnish: partitive case for month)
     'fr': "D j F Y",                         # "jeu 14 août 2025" (French: no comma, day before month)
     'he': "D، j בF Y",                       # "ה، 14 באוגוסט 2025" (Hebrew: RTL format)
