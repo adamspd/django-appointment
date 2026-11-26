@@ -61,9 +61,11 @@ function localMonths(calendarLocale) {
         isoDate: (date) => date.toISOString().slice(0, 10)};
 }
 
-// The browser's date input only knows the Gregorian calendar. For a language with another calendar, like Persian,
-// each <input type="date"> becomes day, month and year lists in that calendar, in the language's digits.
-// The input stays in the form as a hidden field with the value the server reads (YYYY-MM-DD) and still sends
+
+// The browser's date and time inputs follow the browser's language, and its date input only knows the Gregorian
+// calendar. For a language with another calendar, like Persian, each <input type="date"> becomes day, month and year
+// lists in that calendar, and each <input type="time"> becomes hour and minute lists, in the language's digits.
+// The input stays in the form as a hidden field with the value the server reads (YYYY-MM-DD, HH:MM) and still sends
 // change events. When a script sets its value or disables it, the lists follow.
 function localDateTimeInputs(calendarLocale, root) {
     const months = localMonths(calendarLocale);
@@ -81,6 +83,7 @@ function localDateTimeInputs(calendarLocale, root) {
     }
     const years = [...new Set(allMonths.map(m => m.year))];
     const number = new Intl.NumberFormat(calendarLocale, {useGrouping: false});
+    const twoDigits = new Intl.NumberFormat(calendarLocale, {useGrouping: false, minimumIntegerDigits: 2});
     const monthName = new Intl.DateTimeFormat(calendarLocale, {timeZone: 'UTC', month: 'long'});
     let fieldName = (field) => '';
     try {
@@ -89,6 +92,7 @@ function localDateTimeInputs(calendarLocale, root) {
     } catch (e) {
         // Older browsers: the lists are named after the field's label only
     }
+    const pad = (value) => String(value).padStart(2, '0');
 
     function list(field, width) {
         const select = document.createElement('select');
@@ -189,5 +193,40 @@ function localDateTimeInputs(calendarLocale, root) {
         }
     }
 
+    function timeInput(input) {
+        const [hour, minute] = [list('hour', 1), list('minute', 1)];
+        const hours = Array.from({length: 24}, (_, h) => [pad(h), twoDigits.format(h)]);
+        let seconds = false;
+
+        function showParts(hourValue, minuteValue) {
+            fill(hour, hours, hourValue);
+            // Every 5 minutes, and the value's own minute
+            const minutes = Array.from({length: 12}, (_, i) => i * 5);
+            if (minuteValue !== undefined && !minutes.includes(Number(minuteValue))) {
+                minutes.push(Number(minuteValue));
+                minutes.sort((a, b) => a - b);
+            }
+            fill(minute, minutes.map(m => [pad(m), twoDigits.format(m)]), minuteValue);
+        }
+
+        const box = replace(input, [hour, minute], (value) => {
+            const match = /^(\d{2}):(\d{2})(:\d{2}(\.\d+)?)?$/.exec(value);
+            if (!value || !match) {
+                showParts();
+                return !value;
+            }
+            seconds = Boolean(match[3]);
+            showParts(match[1], match[2]);
+            return true;
+        }, () => {
+            showParts(hour.value || undefined, minute.value || undefined);
+            return hour.value && minute.value ? `${hour.value}:${minute.value}${seconds ? ':00' : ''}` : '';
+        });
+        // Hour first, then minutes, as times are written in every language
+        box.dir = 'ltr';
+        hour.after(Object.assign(document.createElement('span'), {textContent: ':', ariaHidden: 'true'}));
+    }
+
     (root || document).querySelectorAll('input[type="date"]').forEach(dateInput);
+    (root || document).querySelectorAll('input[type="time"]').forEach(timeInput);
 }
