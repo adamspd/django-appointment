@@ -7,9 +7,11 @@ let selectedDateIso = null;
 let staffId = $('#staff_id').val() || null;
 let previouslySelectedCell = null;
 let isRequestInProgress = false;
+const localMonth = localMonthCalendar(locale);
 
 const calendar = new FullCalendar.Calendar(calendarEl, {
-    initialView: 'dayGridMonth',
+    initialView: localMonth ? localMonth.viewName : 'dayGridMonth',
+    views: localMonth ? {[localMonth.viewName]: localMonth.view} : {},
     initialDate: selectedDate,
     timeZone: timezone,
     locale: locale,
@@ -55,6 +57,9 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
         return [];
     },
 });
+if (localMonth) {
+    localMonth.attach(calendar);
+}
 
 $(document).ready(function () {
     staffId = $('#staff_id').val() || null;
