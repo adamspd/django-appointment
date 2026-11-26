@@ -1,0 +1,2777 @@
+# Persian translation for django-appointment
+# Copyright (C) 2026 Adams Pierre David
+# This file is distributed under the same license as the django-appointment package.
+msgid ""
+msgstr ""
+"Project-Id-Version: django-appointment 3.15.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-26 09:41+0000\n"
+"PO-Revision-Date: 2026-11-25 12:00+0000\n"
+"Last-Translator: Adams Pierre David <django-appt@adamspierredavid.com>\n"
+"Language-Team: Persian <django-appt@adamspierredavid.com>\n"
+"Language: fa\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: admin.py:42 admin.py:54 models.py:467
+msgid "Booking context"
+msgstr "زمینهٔ رزرو"
+
+#: forms.py:70
+msgid "Hours"
+msgstr "ساعت"
+
+#: forms.py:72
+msgid "Minutes"
+msgstr "دقیقه"
+
+#: forms.py:103
+msgid "Length of each slot, in minutes."
+msgstr "طول هر بازه، به دقیقه."
+
+#: forms.py:104
+msgid ""
+"Minutes between now and the first slot of today. Other days are not changed."
+msgstr "دقیقه‌ها بین اکنون و اولین بازهٔ امروز. روزهای دیگر تغییر نمی‌کنند."
+
+#: forms.py:112
+msgid "Staff member does not exist"
+msgstr "کارمند وجود ندارد"
+
+#: forms.py:117
+msgid "Service does not exist"
+msgstr "خدمت وجود ندارد"
+
+#: forms.py:145 views.py:359
+msgid "This time is not available. Please choose another one."
+msgstr "این زمان در دسترس نیست. لطفاً زمان دیگری انتخاب کنید."
+
+#: forms.py:155
+msgid "Reason for rescheduling..."
+msgstr "دلیل تغییر زمان..."
+
+#: forms.py:170
+msgid "1234567890"
+msgstr "09121234567"
+
+#: forms.py:186
+msgid "1234 Main St, City, State, Zip Code"
+msgstr "تهران، خیابان ولیعصر، پلاک ۱۲"
+
+#: forms.py:191
+msgid "I would like to be contacted by phone."
+msgstr "مایلم با من تلفنی تماس گرفته شود."
+
+#: forms.py:198
+msgid "John Doe"
+msgstr "علی رضایی"
+
+#: forms.py:200 forms.py:220
+msgid "john.doe@example.com"
+msgstr "ali.rezaei@example.com"
+
+#: forms.py:216
+msgid "John"
+msgstr "علی"
+
+#: forms.py:218
+msgid "Doe"
+msgstr "رضایی"
+
+#: forms.py:236
+msgid "This email is already taken."
+msgstr "این ایمیل قبلاً استفاده شده است."
+
+#: forms.py:346 services.py:397 services.py:452
+msgid "Start time must be before end time."
+msgstr "زمان شروع باید قبل از زمان پایان باشد."
+
+#: forms.py:377
+msgid "Choose at least one day."
+msgstr "دست‌کم یک روز انتخاب کنید."
+
+#: forms.py:416
+msgid "Example: First Consultation"
+msgstr "مثال: جلسهٔ اول مشاوره"
+
+#: forms.py:420
+msgid "Example: Overview of client's needs."
+msgstr "مثال: بررسی کلی نیازهای مشتری."
+
+#: forms.py:425
+msgid "Example: 100.00 (0 for free)"
+msgstr "مثال: 100.00 (۰ برای رایگان)"
+
+#: forms.py:429
+msgid "Example: 50.00 (0 for free)"
+msgstr "مثال: 50.00 (۰ برای رایگان)"
+
+#: messages_.py:11
+msgid "We're excited to have you on board!"
+msgstr "از همراهی شما خوشحالیم!"
+
+#: messages_.py:13
+msgid ""
+"We're excited to have you on board! The next step is \n"
+"to pay for the booking. You have the choice to pay the whole amount or a "
+"down deposit.\n"
+"If you choose the deposit, you will have to pay the rest of the amount on "
+"the day of the booking."
+msgstr ""
+"از همراهی شما خوشحالیم! مرحلهٔ بعد \n"
+"پرداخت هزینهٔ رزرو است. می‌توانید کل مبلغ یا پیش‌پرداخت را بپردازید.\n"
+"اگر پیش‌پرداخت را انتخاب کنید، باقی مبلغ را روز نوبت می‌پردازید."
+
+#: messages_.py:17
+msgid ""
+"We're excited to have you on board! Thank you for booking us. The next step "
+"is to pay for\n"
+"the booking."
+msgstr ""
+"از همراهی شما خوشحالیم! از رزرو شما سپاسگزاریم. مرحلهٔ بعد پرداخت\n"
+"هزینهٔ رزرو است."
+
+#: messages_.py:20
+msgid "Appointment updated successfully."
+msgstr "نوبت با موفقیت به‌روز شد."
+
+#: messages_.py:22
+msgid ""
+"We've successfully set your password. You can now log in to your account."
+msgstr "رمز عبور شما با موفقیت تنظیم شد. اکنون می‌توانید وارد حساب خود شوید."
+
+#: messages_.py:24 tests/test_views.py:1980 tests/test_views.py:1991
+#: tests/test_views.py:2001 views.py:551
+msgid "The password reset link is invalid or has expired."
+msgstr "پیوند بازنشانی رمز عبور نامعتبر است یا منقضی شده است."
+
+#: models.py:39
+msgid "Full payment"
+msgstr "پرداخت کامل"
+
+#: models.py:40 templates/administration/user_profile.html:202
+msgid "Down payment"
+msgstr "پیش‌پرداخت"
+
+#: models.py:44 models.py:361 tests/models/test_staff_member.py:228
+msgid "Sunday"
+msgstr "یکشنبه"
+
+#: models.py:45 tests/models/test_working_hours.py:37
+msgid "Monday"
+msgstr "دوشنبه"
+
+#: models.py:46
+msgid "Tuesday"
+msgstr "سه‌شنبه"
+
+#: models.py:47
+msgid "Wednesday"
+msgstr "چهارشنبه"
+
+#: models.py:48
+msgid "Thursday"
+msgstr "پنجشنبه"
+
+#: models.py:49
+msgid "Friday"
+msgstr "جمعه"
+
+#: models.py:50 models.py:359 tests/models/test_staff_member.py:216
+msgid "Saturday"
+msgstr "شنبه"
+
+#: models.py:78 templates/administration/manage_service.html:74
+msgid "Name"
+msgstr "نام"
+
+#: models.py:79 models.py:1253 models.py:1278
+#: templates/administration/manage_day_off.html:58
+#: templates/administration/manage_unavailability.html:64
+msgid "Description"
+msgstr "توضیحات"
+
+#: models.py:82 templates/administration/display_appointment.html:61
+#: templates/administration/manage_service.html:134
+#: templates/administration/service_list.html:91
+#: templates/appointment/appointment_client_information.html:115
+#: templates/appointment/appointments.html:120
+#: templates/appointment/default_thank_you.html:48 utils/email_ops.py:105
+msgid "Duration"
+msgstr "مدت"
+
+#: models.py:88 templates/administration/manage_service.html:138
+#: templates/administration/service_list.html:94
+#: templates/appointment/appointments.html:124
+msgid "Price"
+msgstr "قیمت"
+
+#: models.py:95 templates/administration/manage_service.html:143
+#: templates/appointment/appointment_client_information.html:134
+msgid "Down Payment"
+msgstr "پیش‌پرداخت"
+
+#: models.py:97
+msgid "Image"
+msgstr "تصویر"
+
+#: models.py:102
+msgid "Currency"
+msgstr "واحد پول"
+
+#: models.py:109
+msgid "Background Color"
+msgstr "رنگ پس‌زمینه"
+
+#: models.py:113
+msgid "Maximum number of times an appointment can be rescheduled."
+msgstr "بیشترین تعداد دفعاتی که زمان یک نوبت را می‌توان تغییر داد."
+
+#: models.py:114
+msgid "Reschedule limit"
+msgstr "حد تغییر زمان"
+
+#: models.py:118
+msgid "Indicates whether appointments for this service can be rescheduled."
+msgstr "نشان می‌دهد که آیا زمان نوبت‌های این خدمت را می‌توان تغییر داد."
+
+#: models.py:119
+msgid "Allow Rescheduling"
+msgstr "اجازهٔ تغییر زمان"
+
+#: models.py:123
+msgid "Use Service Duration as Slot"
+msgstr "استفاده از مدت خدمت به‌عنوان بازه"
+
+#: models.py:125
+msgid ""
+"If enabled, the service's actual duration is used when checking slot "
+"availability, preventing overlaps for services longer than the default slot "
+"duration. Only evaluated when 'Default to service duration' is disabled in "
+"Config."
+msgstr ""
+"اگر فعال باشد، هنگام بررسی بازه‌های آزاد از مدت واقعی خدمت استفاده می‌شود تا "
+"خدمت‌های طولانی‌تر از بازهٔ پیش‌فرض با هم تداخل نکنند. فقط وقتی بررسی می‌شود که "
+"«پیش‌فرض: مدت خدمت» در تنظیمات غیرفعال باشد."
+
+#: models.py:132 models.py:284 models.py:473 models.py:615 models.py:707
+#: models.py:964 models.py:1024 models.py:1086 models.py:1186 models.py:1256
+#: models.py:1283 models.py:1333
+msgid "Created At"
+msgstr "تاریخ ایجاد"
+
+#: models.py:133 models.py:285 models.py:474 models.py:620 models.py:708
+#: models.py:965 models.py:1025 models.py:1087 models.py:1187 models.py:1257
+#: models.py:1284 models.py:1334
+msgid "Updated At"
+msgstr "تاریخ به‌روزرسانی"
+
+#: models.py:136 models.py:447
+#: templates/administration/display_appointment.html:54
+#: templates/administration/display_appointment.html:57
+#: templates/administration/manage_service.html:107
+#: templates/appointment/appointment_client_information.html:106
+#: templates/appointment/appointments.html:108
+#: templates/appointment/default_thank_you.html:28
+#: templates/email_sender/reminder_email.html:20
+#: templates/email_sender/reminder_email.txt:8 utils/email_ops.py:102
+msgid "Service"
+msgstr "خدمت"
+
+#: models.py:137 views_admin.py:711
+msgid "Services"
+msgstr "خدمات"
+
+#: models.py:169 utils/date_time.py:258
+#, python-format
+msgid "%(count)d day"
+msgid_plural "%(count)d days"
+msgstr[0] "%(count)d روز"
+msgstr[1] "%(count)d روز"
+
+#: models.py:176 utils/date_time.py:262
+#, python-format
+msgid "%(count)d hour"
+msgid_plural "%(count)d hours"
+msgstr[0] "%(count)d ساعت"
+msgstr[1] "%(count)d ساعت"
+
+#: models.py:183 utils/date_time.py:266
+#, python-format
+msgid "%(count)d minute"
+msgid_plural "%(count)d minutes"
+msgstr[0] "%(count)d دقیقه"
+msgstr[1] "%(count)d دقیقه"
+
+#: models.py:190
+#, python-format
+msgid "%(count)d second"
+msgid_plural "%(count)d seconds"
+msgstr[0] "%(count)d ثانیه"
+msgstr[1] "%(count)d ثانیه"
+
+#: models.py:209 models.py:221 models.py:818
+#: templates/administration/manage_service.html:67
+#: templates/administration/manage_service.html:84
+msgid "Free"
+msgstr "رایگان"
+
+#: models.py:237 models.py:1073 models.py:1173
+msgid "User"
+msgstr "کاربر"
+
+#: models.py:240
+msgid "Services Offered"
+msgstr "خدمات ارائه‌شده"
+
+#: models.py:241
+msgid "Services that this staff member provides."
+msgstr "خدماتی که این کارمند ارائه می‌دهد."
+
+#: models.py:245 models.py:907
+msgid "Slot Duration"
+msgstr "مدت بازه"
+
+#: models.py:246 models.py:908
+msgid "Minimum time for an appointment in minutes, recommended 30."
+msgstr "کمترین زمان یک نوبت به دقیقه، پیشنهاد: ۳۰."
+
+#: models.py:250 models.py:912
+msgid "Lead Time"
+msgstr "زمان شروع کار"
+
+#: models.py:251
+msgid "Time when the staff member starts working."
+msgstr "زمانی که کارمند کار را شروع می‌کند."
+
+#: models.py:255 models.py:917
+msgid "Finish Time"
+msgstr "زمان پایان کار"
+
+#: models.py:256
+msgid "Time when the staff member stops working."
+msgstr "زمانی که کارمند کار را تمام می‌کند."
+
+#: models.py:260 models.py:922
+msgid "Appointment Buffer Time"
+msgstr "فاصلهٔ زمانی نوبت"
+
+#: models.py:261
+msgid ""
+"Time between now and the first available slot for the current day (doesn't "
+"affect tomorrow). e.g: If you start working at 9:00 AM and the current time "
+"is 8:30 AM and you set it to 30 minutes, the first available slot will be at "
+"9:00 AM. If you set the appointment buffer time to 60 minutes, the first "
+"available slot will be at 9:30 AM."
+msgstr ""
+"فاصلهٔ زمانی بین اکنون و اولین بازهٔ آزاد امروز (روی فردا اثری ندارد). مثلاً "
+"اگر کارتان ساعت ۹:۰۰ شروع شود، ساعت اکنون ۸:۳۰ باشد و این مقدار را ۳۰ دقیقه "
+"بگذارید، اولین بازهٔ آزاد ساعت ۹:۰۰ خواهد بود. اگر ۶۰ دقیقه بگذارید، اولین "
+"بازهٔ آزاد ساعت ۹:۳۰ خواهد بود."
+
+#: models.py:268 models.py:958
+msgid "Slot Gap Time"
+msgstr "فاصلهٔ بین نوبت‌ها"
+
+#: models.py:269
+msgid ""
+"Required rest time in minutes between the end of one appointment and the "
+"start of the next. Overrides the global Config setting for this staff member."
+msgstr ""
+"زمان استراحت لازم به دقیقه، بین پایان یک نوبت و شروع نوبت بعدی. برای این "
+"کارمند به‌جای تنظیم کلی استفاده می‌شود."
+
+#: models.py:274
+msgid "Work on Saturday"
+msgstr "کار در روز شنبه"
+
+#: models.py:275
+msgid "Indicates whether this staff member works on Saturdays."
+msgstr "نشان می‌دهد که آیا این کارمند شنبه‌ها کار می‌کند."
+
+#: models.py:279
+msgid "Work on Sunday"
+msgstr "کار در روز یکشنبه"
+
+#: models.py:280
+msgid "Indicates whether this staff member works on Sundays."
+msgstr "نشان می‌دهد که آیا این کارمند یکشنبه‌ها کار می‌کند."
+
+#: models.py:288 models.py:448 models.py:595 models.py:1250 models.py:1277
+#: models.py:1327 templates/administration/display_appointment.html:65
+#: templates/administration/manage_day_off.html:39
+#: templates/administration/manage_unavailability.html:39
+#: templates/administration/manage_working_hours.html:39
+#: templates/administration/staff_index.html:133
+#: templates/administration/user_profile.html:39
+msgid "Staff Member"
+msgstr "کارمند"
+
+#: models.py:289 templates/administration/staff_list.html:8
+#: templates/administration/staff_list.html:23
+msgid "Staff Members"
+msgstr "کارمندان"
+
+#: models.py:357 tests/models/test_staff_member.py:222
+msgid "Saturday and Sunday"
+msgstr "شنبه و یکشنبه"
+
+#: models.py:363 tests/models/test_staff_member.py:234
+msgid "None"
+msgstr "هیچ"
+
+#: models.py:438 models.py:582 models.py:1279
+#: templates/administration/display_appointment.html:39
+#: templates/administration/manage_unavailability.html:47
+#: templates/appointment/appointment_client_information.html:110
+#: templates/appointment/appointments.html:112
+#: templates/email_sender/reminder_email.html:24
+#: templates/email_sender/reminder_email.txt:9
+msgid "Date"
+msgstr "تاریخ"
+
+#: models.py:438
+msgid "The date of the appointment request."
+msgstr "تاریخ درخواست نوبت."
+
+#: models.py:440 models.py:586 models.py:1280 models.py:1329
+msgid "Start Time"
+msgstr "زمان شروع"
+
+#: models.py:441
+msgid "The start time of the appointment request."
+msgstr "زمان شروع درخواست نوبت."
+
+#: models.py:444 models.py:590 models.py:1281 models.py:1330
+msgid "End Time"
+msgstr "زمان پایان"
+
+#: models.py:445
+msgid "The end time of the appointment request."
+msgstr "زمان پایان درخواست نوبت."
+
+#: models.py:453
+msgid "Payment Type"
+msgstr "نوع پرداخت"
+
+#: models.py:455 models.py:610 models.py:704
+msgid "Request ID"
+msgstr "شناسهٔ درخواست"
+
+#: models.py:458
+msgid "Reschedule Attempts"
+msgstr "دفعات تغییر زمان"
+
+#: models.py:459
+msgid "Number of times this appointment has been rescheduled."
+msgstr "تعداد دفعاتی که زمان این نوبت تغییر کرده است."
+
+#: models.py:462
+msgid "Client time zone"
+msgstr "منطقهٔ زمانی مشتری"
+
+#: models.py:463
+msgid ""
+"The client's browser time zone when they booked, like 'America/New_York'."
+msgstr "منطقهٔ زمانی مرورگر مشتری هنگام رزرو، مانند «Asia/Tehran»."
+
+#: models.py:468
+msgid ""
+"Values a site kept from the moment the client booked, under the keys in "
+"APPOINTMENT_BOOKING_CONTEXT_KEYS. They come from the browser and can be "
+"faked."
+msgstr ""
+"مقادیری که سایت هنگام رزرو مشتری نگه داشته، با کلیدهای "
+"APPOINTMENT_BOOKING_CONTEXT_KEYS. این مقادیر از مرورگر می‌آیند و ممکن است "
+"جعلی باشند."
+
+#: models.py:477 models.py:578 models.py:670
+msgid "Appointment Request"
+msgstr "درخواست نوبت"
+
+#: models.py:478
+msgid "Appointment Requests"
+msgstr "درخواست‌های نوبت"
+
+#: models.py:491
+msgid "Start time must be before end time"
+msgstr "زمان شروع باید قبل از زمان پایان باشد"
+
+#: models.py:493 models.py:505
+msgid "Start time and end time cannot be the same"
+msgstr "زمان شروع و پایان نمی‌توانند یکسان باشند"
+
+#: models.py:497 models.py:508 models.py:638
+msgid "Date cannot be in the past"
+msgstr "تاریخ نمی‌تواند در گذشته باشد"
+
+#: models.py:511
+msgid "Duration cannot exceed the service duration"
+msgstr "مدت نمی‌تواند از مدت خدمت بیشتر باشد"
+
+#: models.py:579
+msgid "The appointment request made by a client."
+msgstr "درخواست نوبتی که مشتری ثبت کرده است."
+
+#: models.py:583
+msgid "The previous date of the appointment before it was rescheduled."
+msgstr "تاریخ قبلی نوبت پیش از تغییر زمان."
+
+#: models.py:587
+msgid "The previous start time of the appointment before it was rescheduled."
+msgstr "زمان شروع قبلی نوبت پیش از تغییر زمان."
+
+#: models.py:591
+msgid "The previous end time of the appointment before it was rescheduled."
+msgstr "زمان پایان قبلی نوبت پیش از تغییر زمان."
+
+#: models.py:596
+msgid "The previous staff member of the appointment before it was rescheduled."
+msgstr "کارمند قبلی نوبت پیش از تغییر زمان."
+
+#: models.py:600
+msgid "Reason for Rescheduling"
+msgstr "دلیل تغییر زمان"
+
+#: models.py:601
+msgid "Reason for the appointment reschedule."
+msgstr "دلیل تغییر زمان نوبت."
+
+#: models.py:605
+msgid "Pending"
+msgstr "در انتظار"
+
+#: models.py:605
+msgid "Confirmed"
+msgstr "تأییدشده"
+
+#: models.py:607
+msgid "Reschedule Status"
+msgstr "وضعیت تغییر زمان"
+
+#: models.py:608
+msgid "Indicates the status of the reschedule action."
+msgstr "وضعیت تغییر زمان را نشان می‌دهد."
+
+#: models.py:616
+msgid "The date and time the reschedule was recorded."
+msgstr "تاریخ و زمانی که تغییر زمان ثبت شد."
+
+#: models.py:621
+msgid "The date and time the reschedule was confirmed."
+msgstr "تاریخ و زمانی که تغییر زمان تأیید شد."
+
+#: models.py:625
+msgid "Appointment Reschedule History"
+msgstr "سابقهٔ تغییر زمان نوبت"
+
+#: models.py:626
+msgid "Appointment Reschedule Histories"
+msgstr "سوابق تغییر زمان نوبت"
+
+#: models.py:642
+msgid "The date is not valid"
+msgstr "تاریخ معتبر نیست"
+
+#: models.py:664 templates/administration/display_appointment.html:75
+msgid "Client"
+msgstr "مشتری"
+
+#: models.py:665
+msgid "The user who made the appointment request."
+msgstr "کاربری که درخواست نوبت را ثبت کرده است."
+
+#: models.py:671
+msgid "The appointment request made by the client."
+msgstr "درخواست نوبتی که مشتری ثبت کرده است."
+
+#: models.py:673 templates/administration/staff_index.html:142
+msgid "Phone Number"
+msgstr "شماره تلفن"
+
+#: models.py:678
+msgid "Address"
+msgstr "نشانی"
+
+#: models.py:679
+msgid "Does not have to be specific, just the city and the state"
+msgstr "لازم نیست دقیق باشد، فقط شهر و استان"
+
+#: models.py:683
+msgid "Want Reminder"
+msgstr "یادآوری می‌خواهد"
+
+#: models.py:684
+msgid "Indicates whether the client wants a reminder for the appointment."
+msgstr "نشان می‌دهد که آیا مشتری برای نوبت یادآوری می‌خواهد."
+
+#: models.py:688 templates/email_sender/admin_new_appointment_email.html:43
+#: templates/email_sender/admin_new_appointment_email.txt:14
+msgid "Additional Info"
+msgstr "اطلاعات بیشتر"
+
+#: models.py:689
+msgid ""
+"Any additional information the client wants to provide for the appointment."
+msgstr "هر اطلاعات دیگری که مشتری می‌خواهد برای نوبت بدهد."
+
+#: models.py:693
+msgid "Paid"
+msgstr "پرداخت‌شده"
+
+#: models.py:694
+msgid "Indicates whether the appointment has been paid for."
+msgstr "نشان می‌دهد که آیا هزینهٔ نوبت پرداخت شده است."
+
+#: models.py:700
+msgid "Amount to Pay"
+msgstr "مبلغ قابل پرداخت"
+
+#: models.py:701
+msgid ""
+"The amount to be paid for the appointment. If 0, it means the appointment is "
+"free or already paid."
+msgstr ""
+"مبلغی که برای نوبت باید پرداخت شود. اگر ۰ باشد، نوبت رایگان است یا قبلاً "
+"پرداخت شده است."
+
+#: models.py:711 models.py:1021
+#: templates/administration/display_appointment.html:25
+msgid "Appointment"
+msgstr "نوبت"
+
+#: models.py:712 templates/administration/staff_index.html:11
+#: templates/administration/staff_index.html:25 views_admin.py:71
+msgid "Appointments"
+msgstr "نوبت‌ها"
+
+#: models.py:807 models.py:825
+msgid "Yes"
+msgstr "بله"
+
+#: models.py:807 models.py:825 tests/models/test_appointment.py:62
+msgid "No"
+msgstr "خیر"
+
+#: models.py:849
+#, python-brace-format
+msgid "{staff_member} does not work on this day."
+msgstr "{staff_member} در این روز کار نمی‌کند."
+
+#: models.py:854
+#, python-brace-format
+msgid ""
+"The appointment start time is outside of {staff_member}'s working hours."
+msgstr "زمان شروع نوبت خارج از ساعات کاری {staff_member} است."
+
+#: models.py:865
+#, python-brace-format
+msgid "{staff_member} already has an appointment at this time."
+msgstr "{staff_member} در این زمان نوبت دیگری دارد."
+
+#: models.py:871
+#, python-brace-format
+msgid "{staff_member} has a day off on this date."
+msgstr "{staff_member} در این تاریخ مرخصی است."
+
+#: models.py:913
+msgid "Time when we start working."
+msgstr "زمانی که کار را شروع می‌کنیم."
+
+#: models.py:918
+msgid "Time when we stop working."
+msgstr "زمانی که کار را تمام می‌کنیم."
+
+#: models.py:923
+msgid ""
+"Time between now and the first available slot for the current day (doesn't "
+"affect tomorrow)."
+msgstr "فاصلهٔ زمانی بین اکنون و اولین بازهٔ آزاد امروز (روی فردا اثری ندارد)."
+
+#: models.py:928
+msgid "Website Name"
+msgstr "نام وب‌سایت"
+
+#: models.py:929
+msgid "Name of your website."
+msgstr "نام وب‌سایت شما."
+
+#: models.py:933 templates/administration/manage_service.html:160 views.py:204
+#: views.py:574
+msgid "Offered by"
+msgstr "ارائه‌دهنده"
+
+#: models.py:934
+msgid "`Offered by` Label"
+msgstr "برچسب `Offered by`"
+
+#: models.py:935
+msgid "Label for `Offered by` on the appointment page"
+msgstr "برچسب `Offered by` در صفحهٔ نوبت"
+
+#: models.py:939
+msgid "Default Reschedule Limit"
+msgstr "حد پیش‌فرض تغییر زمان"
+
+#: models.py:940
+msgid ""
+"Default maximum number of times an appointment can be rescheduled across all "
+"services."
+msgstr "بیشترین تعداد پیش‌فرض دفعات تغییر زمان یک نوبت، برای همهٔ خدمات."
+
+#: models.py:944
+msgid "Allow Staff Change on Reschedule"
+msgstr "اجازهٔ تغییر کارمند هنگام تغییر زمان"
+
+#: models.py:945
+msgid ""
+"Allows clients to change the staff member when rescheduling an appointment."
+msgstr "به مشتریان اجازه می‌دهد هنگام تغییر زمان نوبت، کارمند را هم عوض کنند."
+
+#: models.py:949
+msgid "Default to Service Duration"
+msgstr "پیش‌فرض: مدت خدمت"
+
+#: models.py:951
+msgid ""
+"When enabled, all services automatically use their own duration when "
+"checking slot availability, preventing overlaps for longer services. When "
+"disabled, each service's individual 'Use Service Duration as Slot' setting "
+"is respected instead."
+msgstr ""
+"اگر فعال باشد، همهٔ خدمات هنگام بررسی بازه‌های آزاد از مدت خودشان استفاده "
+"می‌کنند تا خدمت‌های طولانی‌تر تداخل نکنند. اگر غیرفعال باشد، تنظیم «استفاده از "
+"مدت خدمت به‌عنوان بازه» هر خدمت رعایت می‌شود."
+
+#: models.py:959
+msgid ""
+"Required rest time in minutes between the end of one appointment and the "
+"start of the next. Applies to all staff members unless overridden per staff "
+"member."
+msgstr ""
+"زمان استراحت لازم به دقیقه، بین پایان یک نوبت و شروع نوبت بعدی. برای همهٔ "
+"کارمندان اعمال می‌شود، مگر برای کارمندی جداگانه تنظیم شده باشد."
+
+#: models.py:968
+msgid "Config"
+msgstr "تنظیمات"
+
+#: models.py:969
+msgid "Configs"
+msgstr "تنظیمات"
+
+#: models.py:974
+msgid "You can only create one Config object"
+msgstr "فقط یک شیء تنظیمات می‌توانید بسازید"
+
+#: models.py:977
+msgid "Lead time must be before finish time"
+msgstr "زمان شروع کار باید قبل از زمان پایان کار باشد"
+
+#: models.py:979
+msgid "Appointment buffer time cannot be negative"
+msgstr "فاصلهٔ زمانی نوبت نمی‌تواند منفی باشد"
+
+#: models.py:981
+msgid "Slot duration must be greater than 0"
+msgstr "مدت بازه باید بیشتر از ۰ باشد"
+
+#: models.py:1028
+msgid "Payment Info"
+msgstr "اطلاعات پرداخت"
+
+#: models.py:1029
+msgid "Payment Infos"
+msgstr "اطلاعات پرداخت"
+
+#: models.py:1076
+msgid "Verification Code"
+msgstr "کد تأیید"
+
+#: models.py:1077
+msgid "The verification code sent to the user's email."
+msgstr "کد تأییدی که به ایمیل کاربر فرستاده شد."
+
+#: models.py:1080 templates/administration/display_appointment.html:79
+#: templates/appointment/appointment_client_information.html:64
+msgid "Email"
+msgstr "ایمیل"
+
+#: models.py:1081
+msgid "The address the code was sent to."
+msgstr "نشانی‌ای که کد به آن فرستاده شد."
+
+#: models.py:1082
+msgid "Attempts"
+msgstr "تلاش‌ها"
+
+#: models.py:1083
+msgid "Number of wrong codes entered."
+msgstr "تعداد کدهای نادرست واردشده."
+
+#: models.py:1092
+msgid "Email Verification Code"
+msgstr "کد تأیید ایمیل"
+
+#: models.py:1093
+msgid "Email Verification Codes"
+msgstr "کدهای تأیید ایمیل"
+
+#: models.py:1165
+msgid "Active"
+msgstr "فعال"
+
+#: models.py:1166
+msgid "Verified"
+msgstr "تأییدشده"
+
+#: models.py:1167
+msgid "Invalidated"
+msgstr "باطل‌شده"
+
+#: models.py:1175
+msgid "Token"
+msgstr "توکن"
+
+#: models.py:1176
+msgid "Expires At"
+msgstr "تاریخ انقضا"
+
+#: models.py:1182
+msgid "Status"
+msgstr "وضعیت"
+
+#: models.py:1190
+msgid "Password Reset Token"
+msgstr "توکن بازنشانی رمز عبور"
+
+#: models.py:1191
+msgid "Password Reset Tokens"
+msgstr "توکن‌های بازنشانی رمز عبور"
+
+#: models.py:1251
+msgid "Start Date"
+msgstr "تاریخ شروع"
+
+#: models.py:1252
+msgid "End Date"
+msgstr "تاریخ پایان"
+
+#: models.py:1260
+msgid "Day Off"
+msgstr "مرخصی"
+
+#: models.py:1261 templates/administration/user_profile.html:219
+msgid "Days Off"
+msgstr "مرخصی‌ها"
+
+#: models.py:1270
+msgid "Start date must be before end date"
+msgstr "تاریخ شروع باید قبل از تاریخ پایان باشد"
+
+#: models.py:1287
+msgid "Unavailability"
+msgstr "زمان ناموجود"
+
+#: models.py:1288 templates/administration/user_profile.html:282
+msgid "Unavailabilities"
+msgstr "زمان‌های ناموجود"
+
+#: models.py:1303
+msgid "Start datetime must be before end datetime"
+msgstr "تاریخ و زمان شروع باید قبل از تاریخ و زمان پایان باشد"
+
+#: models.py:1305
+msgid "Cannot create unavailabilities for past dates"
+msgstr "برای تاریخ‌های گذشته نمی‌توان زمان ناموجود ساخت"
+
+#: models.py:1328 templates/administration/manage_working_hours.html:46
+msgid "Day of Week"
+msgstr "روز هفته"
+
+#: models.py:1337
+msgid "Working Hour"
+msgstr "ساعت کاری"
+
+#: models.py:1338 templates/administration/user_profile.html:99
+msgid "Working Hours"
+msgstr "ساعات کاری"
+
+#: models.py:1366
+msgid "These hours overlap other working hours on the same day."
+msgstr "این ساعات با ساعات کاری دیگرِ همان روز تداخل دارند."
+
+#: services.py:78 tests/test_services.py:167 views_admin.py:339
+#: views_admin.py:415 views_admin.py:446
+msgid "Appointment does not exist."
+msgstr "نوبت وجود ندارد."
+
+#: services.py:82 tests/test_services.py:175
+msgid "You are not authorized to view this appointment."
+msgstr "شما اجازهٔ دیدن این نوبت را ندارید."
+
+#: services.py:85 templates/appointment/default_thank_you.html:25
+msgid "Appointment details"
+msgstr "جزئیات نوبت"
+
+#: services.py:85
+#, python-brace-format
+msgid ": {client_name}"
+msgstr ": {client_name}"
+
+#: services.py:87
+msgid "by"
+msgstr "توسط"
+
+#: services.py:146
+msgid "Remove me"
+msgstr "حذف من"
+
+#: services.py:146
+msgid "Staff me"
+msgstr "کارمند کردن من"
+
+#: services.py:158
+msgid "Staff members"
+msgstr "کارمندان"
+
+#: services.py:159
+msgid "Everyone clients can book with."
+msgstr "همهٔ کسانی که مشتریان می‌توانند با آن‌ها نوبت بگیرند."
+
+#: services.py:167
+msgid "You can only view your own profile"
+msgstr "فقط می‌توانید نمایهٔ خودتان را ببینید"
+
+#: services.py:176 views_admin.py:301 views_admin.py:460
+msgid "Not authorized."
+msgstr "اجازه ندارید."
+
+#: services.py:186
+msgid ""
+"Here you can add/remove services offered by this staff member by modifying "
+"this section."
+msgstr "در این بخش می‌توانید خدمات این کارمند را اضافه یا حذف کنید."
+
+#: services.py:188
+msgid ""
+"Here you can add/remove services offered by you by modifying this section."
+msgstr "در این بخش می‌توانید خدماتی را که ارائه می‌دهید اضافه یا حذف کنید."
+
+#: services.py:198
+#, python-format
+msgid "Services, working hours and time off of %(name)s"
+msgstr "خدمات، ساعات کاری و مرخصی‌های %(name)s"
+
+#: services.py:235 tests/test_views.py:1345 views_admin.py:489
+#: views_admin.py:623
+msgid "Update"
+msgstr "به‌روزرسانی"
+
+#: services.py:235 templates/administration/user_profile.html:19
+msgid "Add"
+msgstr "افزودن"
+
+#: services.py:274
+msgid "Days off for this date range already exist."
+msgstr "برای این بازهٔ تاریخ قبلاً مرخصی ثبت شده است."
+
+#: services.py:319 services.py:393 services.py:446 services.py:448
+#: views_admin.py:411 views_admin.py:740
+msgid "Invalid data."
+msgstr "داده‌های نامعتبر."
+
+#: services.py:337
+msgid "Edit day off"
+msgstr "ویرایش مرخصی"
+
+#: services.py:337
+msgid "Add day off"
+msgstr "افزودن مرخصی"
+
+#: services.py:338
+msgid "Edit unavailability"
+msgstr "ویرایش زمان ناموجود"
+
+#: services.py:338
+msgid "Add unavailability"
+msgstr "افزودن زمان ناموجود"
+
+#: services.py:339
+msgid "Edit working hours"
+msgstr "ویرایش ساعات کاری"
+
+#: services.py:339
+msgid "Add working hours"
+msgstr "افزودن ساعات کاری"
+
+#: services.py:343
+#, python-format
+msgid "Schedule of %(name)s"
+msgstr "برنامهٔ %(name)s"
+
+#: services.py:372 tests/test_views.py:1269
+msgid "Day off saved successfully."
+msgstr "مرخصی با موفقیت ذخیره شد."
+
+#: services.py:407
+msgid "Invalid or no unavailability id provided."
+msgstr "شناسهٔ زمان ناموجود داده نشده یا نامعتبر است."
+
+#: services.py:418
+msgid "Unavailability does not exist."
+msgstr "زمان ناموجود وجود ندارد."
+
+#: services.py:427
+msgid "Unavailability saved successfully."
+msgstr "زمان ناموجود با موفقیت ذخیره شد."
+
+#: services.py:462
+#, python-brace-format
+msgid "These hours overlap working hours on: {days}."
+msgstr "این ساعات با ساعات کاری این روزها تداخل دارند: {days}."
+
+#: services.py:472
+msgid "Invalid or no working_hours_id provided."
+msgstr "working_hours_id داده نشده یا نامعتبر است."
+
+#: services.py:479
+msgid "Working hours does not exist."
+msgstr "ساعات کاری وجود ندارد."
+
+#: services.py:485
+msgid "These hours overlap other working hours on this day."
+msgstr "این ساعات با ساعات کاری دیگرِ این روز تداخل دارند."
+
+#: services.py:492
+msgid "Working hours saved successfully."
+msgstr "ساعات کاری با موفقیت ذخیره شد."
+
+#: services.py:538 views_admin.py:418
+msgid "You can only manage your own appointments."
+msgstr "فقط می‌توانید نوبت‌های خودتان را مدیریت کنید."
+
+#: services.py:539 services.py:957 tests/test_views.py:733
+msgid "You can only update your own appointments."
+msgstr "فقط می‌توانید نوبت‌های خودتان را به‌روز کنید."
+
+#: services.py:540
+msgid "Only a superuser can change a client's email."
+msgstr "فقط مدیر کل می‌تواند ایمیل مشتری را تغییر دهد."
+
+#: services.py:547
+msgid "You are not allowed to do this."
+msgstr "اجازهٔ این کار را ندارید."
+
+#: services.py:584 services.py:836
+msgid "A user with this email already exists."
+msgstr "کاربری با این ایمیل از قبل وجود دارد."
+
+#: services.py:751 tests/test_services.py:1249
+msgid "Pay Now"
+msgstr "پرداخت کنید"
+
+#: services.py:752
+#: templates/appointment/appointment_client_information.html:141
+#: tests/test_services.py:1244
+msgid "Finish"
+msgstr "پایان"
+
+#: services.py:789 tests/test_services.py:1010
+msgid "Empty fields are not allowed."
+msgstr "فیلدهای خالی مجاز نیستند."
+
+#: services.py:800 tests/test_services.py:1003
+msgid "User not found."
+msgstr "کاربر پیدا نشد."
+
+#: services.py:864 views_admin.py:614
+msgid "Service saved successfully."
+msgstr "خدمت با موفقیت ذخیره شد."
+
+#: services.py:880
+msgid "Please enter a valid phone number."
+msgstr "لطفاً یک شماره تلفن معتبر وارد کنید."
+
+#: services.py:887
+msgid "Service does not exist."
+msgstr "خدمت وجود ندارد."
+
+#: services.py:894
+msgid "Staff member not found."
+msgstr "کارمند پیدا نشد."
+
+#: services.py:897
+msgid "Service not offered by staff member."
+msgstr "این کارمند این خدمت را ارائه نمی‌دهد."
+
+#: services.py:903
+msgid "Please enter a valid email address."
+msgstr "لطفاً یک نشانی ایمیل معتبر وارد کنید."
+
+#: templates/administration/display_appointment.html:23
+msgid "Back to the calendar"
+msgstr "بازگشت به تقویم"
+
+#: templates/administration/display_appointment.html:36
+#: templates/administration/manage_staff_member.html:88
+msgid "Schedule"
+msgstr "برنامه"
+
+#: templates/administration/display_appointment.html:43
+#: templates/administration/manage_unavailability.html:52
+#: templates/administration/manage_working_hours.html:66
+#: templates/administration/staff_index.html:145
+msgid "Start time"
+msgstr "زمان شروع"
+
+#: templates/administration/display_appointment.html:47
+#: templates/administration/manage_unavailability.html:58
+#: templates/administration/manage_working_hours.html:72
+#: templates/administration/staff_index.html:163
+msgid "End time"
+msgstr "زمان پایان"
+
+#: templates/administration/display_appointment.html:72
+msgid "Client Details"
+msgstr "مشخصات مشتری"
+
+#: templates/administration/display_appointment.html:85
+#: templates/appointment/appointment_client_information.html:70
+msgid "Phone"
+msgstr "تلفن"
+
+#: templates/administration/display_appointment.html:91
+#: templates/administration/staff_index.html:143
+msgid "Client address"
+msgstr "نشانی مشتری"
+
+#: templates/administration/display_appointment.html:98
+msgid "Notes"
+msgstr "یادداشت‌ها"
+
+#: templates/administration/display_appointment.html:101
+#: templates/administration/staff_index.html:152
+msgid "Wants reminder"
+msgstr "یادآوری می‌خواهد"
+
+#: templates/administration/display_appointment.html:106
+#: templates/administration/staff_index.html:144
+#: templates/appointment/appointment_client_information.html:84
+msgid "Additional Information"
+msgstr "اطلاعات بیشتر"
+
+#: templates/administration/display_appointment.html:116
+msgid "Payment"
+msgstr "پرداخت"
+
+#: templates/administration/display_appointment.html:132
+msgid "No payment needed"
+msgstr "نیازی به پرداخت نیست"
+
+#: templates/administration/display_appointment.html:134
+msgid "Payment Complete"
+msgstr "پرداخت کامل شد"
+
+#: templates/administration/display_appointment.html:136
+msgid "Payment Pending"
+msgstr "در انتظار پرداخت"
+
+#: templates/administration/display_appointment.html:143
+msgid "Paid in full"
+msgstr "به‌طور کامل پرداخت شد"
+
+#: templates/administration/display_appointment.html:145
+msgid "Amount due"
+msgstr "مبلغ باقی‌مانده"
+
+#: templates/administration/email_change_verification_code.html:8
+#: templates/administration/email_change_verification_code.html:11
+#: templates/administration/email_change_verification_code.html:22
+#: templates/appointment/enter_verification_code.html:9
+#: templates/appointment/enter_verification_code.html:10
+#: templates/appointment/enter_verification_code.html:20
+msgid "Enter Verification Code"
+msgstr "کد تأیید را وارد کنید"
+
+#: templates/administration/email_change_verification_code.html:24
+#: templates/appointment/enter_verification_code.html:21
+msgid "We've sent a verification code to your email. Please enter it below"
+msgstr "یک کد تأیید به ایمیل شما فرستادیم. لطفاً آن را در زیر وارد کنید"
+
+#: templates/administration/email_change_verification_code.html:31
+#: templates/appointment/enter_verification_code.html:28
+msgid "Code"
+msgstr "کد"
+
+#: templates/administration/email_change_verification_code.html:36
+#: templates/administration/manage_day_off.html:67
+#: templates/appointment/enter_verification_code.html:34
+#: templates/modal/event_details_modal.html:33
+msgid "Submit"
+msgstr "ارسال"
+
+#: templates/administration/email_preview.html:19
+#: templates/administration/manage_day_off.html:24
+#: templates/administration/manage_staff_member.html:24
+#: templates/administration/manage_staff_personal_info.html:24
+#: templates/administration/manage_unavailability.html:24
+#: templates/administration/manage_working_hours.html:24
+msgid "Back"
+msgstr "بازگشت"
+
+#: templates/administration/email_preview.html:35
+msgid "Subject"
+msgstr "موضوع"
+
+#: templates/administration/email_preview.html:37
+msgid "Template"
+msgstr "قالب"
+
+#: templates/administration/email_preview.html:41
+msgid "HTML"
+msgstr "HTML"
+
+#: templates/administration/email_preview.html:43
+msgid "Text"
+msgstr "متن"
+
+#: templates/administration/email_preview.html:49
+msgid "Book an appointment first: the preview uses the latest one."
+msgstr "اول یک نوبت رزرو کنید: پیش‌نمایش از آخرین نوبت استفاده می‌کند."
+
+#: templates/administration/manage_day_off.html:9
+#: templates/administration/manage_day_off.html:12
+#: templates/administration/manage_day_off.html:30
+msgid "Manage Days Off"
+msgstr "مدیریت مرخصی‌ها"
+
+#: templates/administration/manage_day_off.html:46
+msgid "Start date"
+msgstr "تاریخ شروع"
+
+#: templates/administration/manage_day_off.html:52
+msgid "End date"
+msgstr "تاریخ پایان"
+
+#: templates/administration/manage_day_off.html:66
+#: templates/administration/manage_service.html:58
+#: templates/administration/manage_staff_member.html:134
+#: templates/administration/manage_staff_personal_info.html:52
+#: templates/administration/manage_unavailability.html:73
+#: templates/administration/manage_working_hours.html:80
+#: templates/modal/event_details_modal.html:26
+msgid "Cancel"
+msgstr "انصراف"
+
+#: templates/administration/manage_day_off.html:76
+#: templates/administration/manage_unavailability.html:82
+#: templates/administration/manage_working_hours.html:89
+#: templates/administration/staff_index.html:99
+#: templates/modal/error_modal.html:7 views.py:512
+msgid "Error"
+msgstr "خطا"
+
+#: templates/administration/manage_service.html:16
+#: templates/administration/service_list.html:14
+#: templates/administration/staff_index.html:92
+#: templates/administration/user_profile.html:15
+msgid "Confirm Deletion"
+msgstr "تأیید حذف"
+
+#: templates/administration/manage_service.html:17
+#: templates/administration/manage_service.html:114
+#: templates/administration/service_list.html:15
+#: templates/administration/service_list.html:118
+#: templates/administration/staff_index.html:94
+#: templates/administration/user_profile.html:16
+#: templates/administration/user_profile.html:18
+#: templates/modal/event_details_modal.html:18
+msgid "Delete"
+msgstr "حذف"
+
+#: templates/administration/manage_service.html:18
+#: templates/administration/service_list.html:16
+msgid "Are you sure you want to delete this service?"
+msgstr "آیا مطمئن هستید که می‌خواهید این خدمت را حذف کنید؟"
+
+#: templates/administration/manage_service.html:28
+msgid "Back to the services"
+msgstr "بازگشت به خدمات"
+
+#: templates/administration/manage_service.html:64
+msgid "Preview"
+msgstr "پیش‌نمایش"
+
+#: templates/administration/manage_service.html:115
+#: templates/administration/service_list.html:110
+#: templates/administration/user_profile.html:17
+#: templates/modal/event_details_modal.html:29
+msgid "Edit"
+msgstr "ویرایش"
+
+#: templates/administration/manage_service.html:125
+#: templates/administration/service_list.html:76
+msgid "You offer this service"
+msgstr "شما این خدمت را ارائه می‌دهید"
+
+#: templates/administration/manage_service.html:148
+#: templates/email_sender/thank_you_email.html:59
+#: templates/email_sender/thank_you_email.txt:20
+msgid "Rescheduling"
+msgstr "تغییر زمان"
+
+#: templates/administration/manage_service.html:150
+#, python-format
+msgid "Up to %(counter)s time"
+msgid_plural "Up to %(counter)s times"
+msgstr[0] "تا %(counter)s بار"
+msgstr[1] "تا %(counter)s بار"
+
+#: templates/administration/manage_service.html:151
+msgid "Not allowed"
+msgstr "مجاز نیست"
+
+#: templates/administration/manage_service.html:154
+msgid "Calendar colour"
+msgstr "رنگ تقویم"
+
+#: templates/administration/manage_service.html:172
+msgid "No staff member offers this service yet."
+msgstr "هنوز هیچ کارمندی این خدمت را ارائه نمی‌دهد."
+
+#: templates/administration/manage_staff_member.html:9
+#: templates/administration/manage_staff_member.html:12
+#: templates/administration/manage_staff_member.html:33
+#: templates/administration/manage_staff_member.html:39
+msgid "Staff Appointment Information"
+msgstr "اطلاعات نوبت‌دهی کارمند"
+
+#: templates/administration/manage_staff_member.html:40
+#: templates/administration/staff_list.html:37 views_admin.py:548
+msgid "Add staff member"
+msgstr "افزودن کارمند"
+
+#: templates/administration/manage_staff_member.html:59
+msgid "User not found"
+msgstr "کاربر پیدا نشد"
+
+#: templates/administration/manage_staff_member.html:59
+msgid "Create staff member manually"
+msgstr "ساخت دستی کارمند"
+
+#: templates/administration/manage_staff_member.html:78
+#: templates/administration/user_profile.html:208
+msgid "No service offered yet"
+msgstr "هنوز خدمتی ارائه نشده"
+
+#: templates/administration/manage_staff_member.html:106
+#: templates/appointment/widgets/duration.html:2
+msgctxt "minutes, short"
+msgid "min"
+msgstr "دقیقه"
+
+#: templates/administration/manage_staff_member.html:135 views_admin.py:623
+msgid "Save"
+msgstr "ذخیره"
+
+#: templates/administration/manage_staff_personal_info.html:9
+#: templates/administration/manage_staff_personal_info.html:12
+#: templates/administration/manage_staff_personal_info.html:29
+msgid "Staff Personal Information"
+msgstr "اطلاعات شخصی کارمند"
+
+#: templates/administration/manage_unavailability.html:9
+#: templates/administration/manage_unavailability.html:12
+#: templates/administration/manage_unavailability.html:33
+msgid "Manage Unavailabilities"
+msgstr "مدیریت زمان‌های ناموجود"
+
+#: templates/administration/manage_working_hours.html:9
+#: templates/administration/manage_working_hours.html:12
+#: templates/administration/manage_working_hours.html:33
+msgid "Manage Working Hours"
+msgstr "مدیریت ساعات کاری"
+
+#: templates/administration/manage_working_hours.html:46
+msgid "Days of Week"
+msgstr "روزهای هفته"
+
+#: templates/administration/manage_working_hours.html:48
+msgid "Pick one or more days. They all get the same hours."
+msgstr "یک یا چند روز انتخاب کنید. همه ساعات یکسانی می‌گیرند."
+
+#: templates/administration/manage_working_hours.html:49
+msgid ""
+"A day can have several working hours (for example 9:00 to 12:00 and 14:00 to "
+"17:00), as long as they do not overlap."
+msgstr ""
+"یک روز می‌تواند چند بازهٔ کاری داشته باشد (مثلاً ۹:۰۰ تا ۱۲:۰۰ و ۱۴:۰۰ تا "
+"۱۷:۰۰)، به شرطی که با هم تداخل نداشته باشند."
+
+#: templates/administration/manage_working_hours.html:53
+#: templates/administration/manage_working_hours.html:58
+msgid "This day already has working hours."
+msgstr "این روز از قبل ساعات کاری دارد."
+
+#: templates/administration/service_list.html:8
+#: templates/administration/service_list.html:11
+#: templates/administration/service_list.html:23
+msgid "Service List"
+msgstr "فهرست خدمات"
+
+#: templates/administration/service_list.html:30
+msgid "Display"
+msgstr "نمایش"
+
+#: templates/administration/service_list.html:32
+#: templates/administration/service_list.html:36
+msgid "Cards"
+msgstr "کارت‌ها"
+
+#: templates/administration/service_list.html:39
+#: templates/administration/service_list.html:43
+#: templates/administration/staff_index.html:109
+msgid "List"
+msgstr "فهرست"
+
+#: templates/administration/service_list.html:52
+#: templates/administration/service_list.html:132 views_admin.py:625
+msgid "Add Service"
+msgstr "افزودن خدمت"
+
+#: templates/administration/service_list.html:100
+msgid "View"
+msgstr "مشاهده"
+
+#: templates/administration/service_list.html:138
+msgid "No service found"
+msgstr "خدمتی پیدا نشد"
+
+#: templates/administration/staff_index.html:28
+msgid "Click an appointment to see or edit it."
+msgstr "برای دیدن یا ویرایش نوبت، روی آن کلیک کنید."
+
+#: templates/administration/staff_index.html:29
+msgid "Drag it to another day to move it."
+msgstr "برای جابه‌جایی، آن را به روز دیگری بکشید."
+
+#: templates/administration/staff_index.html:30
+msgid "Right-click a day to add one."
+msgstr "برای افزودن نوبت، روی یک روز راست‌کلیک کنید."
+
+#: templates/administration/staff_index.html:39
+#: templates/administration/staff_index.html:53
+#: templates/administration/staff_index.html:97
+msgid "New Appointment"
+msgstr "نوبت جدید"
+
+#: templates/administration/staff_index.html:93
+msgid "Are you sure you want to delete this appointment?"
+msgstr "آیا مطمئن هستید که می‌خواهید این نوبت را حذف کنید؟"
+
+#: templates/administration/staff_index.html:95
+msgid "Appointments on"
+msgstr "نوبت‌های"
+
+#: templates/administration/staff_index.html:96
+msgid "No appointment for this day."
+msgstr "برای این روز نوبتی نیست."
+
+#: templates/administration/staff_index.html:98
+msgid "Success"
+msgstr "موفق"
+
+#: templates/administration/staff_index.html:100
+msgid "Error: Unable to delete appointment."
+msgstr "خطا: حذف نوبت ممکن نشد."
+
+#: templates/administration/staff_index.html:101
+msgid "Appointment not found."
+msgstr "نوبت پیدا نشد."
+
+#: templates/administration/staff_index.html:102 views_admin.py:359
+msgid "You're not a staff member. Can't perform this action !"
+msgstr "شما کارمند نیستید و نمی‌توانید این کار را انجام دهید!"
+
+#: templates/administration/staff_index.html:103
+msgid "You don't offer any service. Add new service from your profile."
+msgstr "شما هیچ خدمتی ارائه نمی‌دهید. از نمایهٔ خود خدمت جدید اضافه کنید."
+
+#: templates/administration/staff_index.html:104
+msgid "No staff members found."
+msgstr "هیچ کارمندی پیدا نشد."
+
+#: templates/administration/staff_index.html:105
+#: templates/appointment/appointments.html:167
+msgid "Today"
+msgstr "امروز"
+
+#: templates/administration/staff_index.html:106
+msgid "Month"
+msgstr "ماه"
+
+#: templates/administration/staff_index.html:107
+msgid "Week"
+msgstr "هفته"
+
+#: templates/administration/staff_index.html:108
+msgid "Day"
+msgstr "روز"
+
+#: templates/administration/staff_index.html:110
+msgid "Enter a valid email address."
+msgstr "یک نشانی ایمیل معتبر وارد کنید."
+
+#: templates/administration/staff_index.html:138
+msgid "Service Name"
+msgstr "نام خدمت"
+
+#: templates/administration/staff_index.html:139
+#: templates/email_sender/admin_new_appointment_email.html:21
+#: templates/email_sender/admin_new_appointment_email.txt:9
+msgid "Client Name"
+msgstr "نام مشتری"
+
+#: templates/administration/staff_index.html:140
+msgid "Client Email"
+msgstr "ایمیل مشتری"
+
+#: templates/administration/staff_index.html:144
+msgid "Client wants this and that"
+msgstr "مشتری این و آن را می‌خواهد"
+
+#: templates/administration/staff_list.html:11
+msgid "List of all staff members"
+msgstr "فهرست همهٔ کارمندان"
+
+#: templates/administration/staff_list.html:14
+msgid "Confirm Removal"
+msgstr "تأیید حذف"
+
+#: templates/administration/staff_list.html:15
+#: templates/administration/staff_list.html:56
+msgid "Remove"
+msgstr "حذف"
+
+#: templates/administration/staff_list.html:16
+msgid "Are you sure you want to remove this staff member?"
+msgstr "آیا مطمئن هستید که می‌خواهید این کارمند را حذف کنید؟"
+
+#: templates/administration/staff_list.html:53
+msgid "View Profile"
+msgstr "مشاهدهٔ نمایه"
+
+#: templates/administration/staff_list.html:61
+msgid "No staff members found"
+msgstr "هیچ کارمندی پیدا نشد"
+
+#: templates/administration/staff_list.html:66
+msgid ""
+"PS: Remove means, deleting the staff status of the user. The user account is "
+"still active."
+msgstr ""
+"توجه: حذف یعنی برداشتن نقش کارمندی از کاربر. حساب کاربری همچنان فعال می‌ماند."
+
+#: templates/administration/user_profile.html:29
+msgid "Back to the staff"
+msgstr "بازگشت به کارمندان"
+
+#: templates/administration/user_profile.html:50
+msgid "Personal Information"
+msgstr "اطلاعات شخصی"
+
+#: templates/administration/user_profile.html:55
+msgid "Appointment Information"
+msgstr "اطلاعات نوبت‌دهی"
+
+#: templates/administration/user_profile.html:68
+msgid "Slot duration"
+msgstr "مدت بازه"
+
+#: templates/administration/user_profile.html:72
+msgid "General start time"
+msgstr "زمان شروع کلی"
+
+#: templates/administration/user_profile.html:76
+msgid "General end time"
+msgstr "زمان پایان کلی"
+
+#: templates/administration/user_profile.html:80
+msgid "Weekend days you work"
+msgstr "روزهای آخر هفته که کار می‌کنید"
+
+#: templates/administration/user_profile.html:84
+msgid "Appointment buffer time"
+msgstr "فاصلهٔ زمانی نوبت"
+
+#: templates/administration/user_profile.html:89
+msgid "No staff member information yet for this user"
+msgstr "هنوز اطلاعات کارمندی برای این کاربر نیست"
+
+#: templates/administration/user_profile.html:108
+msgid ""
+"Note: If you are a staff member, your working hours will be used to "
+"determine when you are available for appointments."
+msgstr ""
+"توجه: اگر کارمند باشید، ساعات کاری شما برای تعیین زمان‌های آزادتان استفاده "
+"می‌شود."
+
+#: templates/administration/user_profile.html:110
+msgid "Are you sure you want to delete this working hours?"
+msgstr "آیا مطمئن هستید که می‌خواهید این ساعات کاری را حذف کنید؟"
+
+#: templates/administration/user_profile.html:128
+msgctxt "day without working hours"
+msgid "Off"
+msgstr "تعطیل"
+
+#: templates/administration/user_profile.html:170
+msgid "No working hours have been set"
+msgstr "هیچ ساعت کاری تنظیم نشده است"
+
+#: templates/administration/user_profile.html:177
+msgid "Service Offered"
+msgstr "خدمت ارائه‌شده"
+
+#: templates/administration/user_profile.html:182
+msgid "To add/modify a new service, make a request to an admin."
+msgstr "برای افزودن یا تغییر خدمت، از مدیر درخواست کنید."
+
+#: templates/administration/user_profile.html:183
+msgid "Changes made in one service will change it for every staff member."
+msgstr "تغییر یک خدمت، آن را برای همهٔ کارمندان تغییر می‌دهد."
+
+#: templates/administration/user_profile.html:228
+msgid ""
+"Days off are days you're not working, you need to set them for holidays as "
+"well so clients don't book you those days."
+msgstr ""
+"مرخصی‌ها روزهایی هستند که کار نمی‌کنید. تعطیلات را هم باید ثبت کنید تا مشتریان "
+"در آن روزها نوبت نگیرند."
+
+#: templates/administration/user_profile.html:230
+msgid "Are you sure you want to delete this day off?"
+msgstr "آیا مطمئن هستید که می‌خواهید این مرخصی را حذف کنید؟"
+
+#: templates/administration/user_profile.html:248
+#: templates/administration/user_profile.html:311
+msgid "Past"
+msgstr "گذشته"
+
+#: templates/administration/user_profile.html:273
+msgid "No days off have been set"
+msgstr "هیچ مرخصی‌ای ثبت نشده است"
+
+#: templates/administration/user_profile.html:291
+msgid ""
+"Unavailabilities are periods when you're not available on a specific day. "
+"Use them to block time slots you don't want to make available."
+msgstr ""
+"زمان‌های ناموجود بازه‌هایی در یک روز هستند که در دسترس نیستید. با آن‌ها "
+"بازه‌هایی را که نمی‌خواهید آزاد باشند ببندید."
+
+#: templates/administration/user_profile.html:293
+msgid "Are you sure you want to delete this unavailability?"
+msgstr "آیا مطمئن هستید که می‌خواهید این زمان ناموجود را حذف کنید؟"
+
+#: templates/administration/user_profile.html:336
+msgid "No unavailabilities have been set"
+msgstr "هیچ زمان ناموجودی ثبت نشده است"
+
+#: templates/appointment/appointment_client_information.html:8
+msgid "Client Information"
+msgstr "اطلاعات مشتری"
+
+#: templates/appointment/appointment_client_information.html:11
+#, python-format
+msgid ""
+"\n"
+"        Your appointment request for %(service_name)s has been submitted.\n"
+"        Please provide your information to create an account and complete "
+"the payment process.\n"
+"    "
+msgstr ""
+"\n"
+"        درخواست نوبت شما برای %(service_name)s ثبت شد.\n"
+"        لطفاً اطلاعات خود را برای ساخت حساب کاربری و تکمیل پرداخت وارد کنید.\n"
+"    "
+
+#: templates/appointment/appointment_client_information.html:22
+#: templates/appointment/appointments.html:19
+#: templates/error_pages/304_already_submitted.html:172
+#: templates/error_pages/403_forbidden_rescheduling.html:23
+msgid "Book an appointment"
+msgstr "رزرو نوبت"
+
+#: templates/appointment/appointment_client_information.html:23
+msgid "Fill out your details"
+msgstr "اطلاعات خود را وارد کنید"
+
+#: templates/appointment/appointment_client_information.html:31
+msgid "Contact information"
+msgstr "اطلاعات تماس"
+
+#: templates/appointment/appointment_client_information.html:35
+#, python-format
+msgid "You're booking as <strong>%(email)s</strong>."
+msgstr "شما با <strong>%(email)s</strong> رزرو می‌کنید."
+
+#: templates/appointment/appointment_client_information.html:39
+msgid "Already have an account?"
+msgstr "حساب کاربری دارید؟"
+
+#: templates/appointment/appointment_client_information.html:41
+msgid "Log in"
+msgstr "وارد شوید"
+
+#: templates/appointment/appointment_client_information.html:41
+msgid "for faster booking."
+msgstr "تا سریع‌تر رزرو کنید."
+
+#: templates/appointment/appointment_client_information.html:48
+msgid "Please correct the errors below."
+msgstr "لطفاً خطاهای زیر را برطرف کنید."
+
+#: templates/appointment/appointment_client_information.html:57
+msgid "Full Name"
+msgstr "نام کامل"
+
+#: templates/appointment/appointment_client_information.html:78
+msgid "City and State"
+msgstr "شهر و استان"
+
+#: templates/appointment/appointment_client_information.html:93
+msgid "I want to receive an EMAIL reminder 24 hours before this session starts"
+msgstr "می‌خواهم ۲۴ ساعت پیش از شروع این جلسه یک یادآوری با ایمیل دریافت کنم"
+
+#: templates/appointment/appointment_client_information.html:103
+#: templates/appointment/appointments.html:105
+msgid "Your appointment"
+msgstr "نوبت شما"
+
+#: templates/appointment/appointment_client_information.html:112
+msgid "at"
+msgstr "ساعت"
+
+#: templates/appointment/appointment_client_information.html:120
+msgid "Total"
+msgstr "جمع کل"
+
+#: templates/appointment/appointment_client_information.html:129
+msgid "Pay"
+msgstr "پرداخت"
+
+#: templates/appointment/appointment_client_information.html:209
+#: templates/appointment/appointment_client_information.html:228
+msgid "Please enter a valid email address"
+msgstr "لطفاً یک نشانی ایمیل معتبر وارد کنید"
+
+#: templates/appointment/appointments.html:23
+msgid ""
+"Check out our availability and book the date and time that works for you"
+msgstr ""
+"زمان‌های آزاد ما را ببینید و تاریخ و ساعتی را که برایتان مناسب است رزرو کنید"
+
+#: templates/appointment/appointments.html:43
+msgid "Timezone"
+msgstr "منطقهٔ زمانی"
+
+#: templates/appointment/appointments.html:50
+msgid "Select a date and time"
+msgstr "تاریخ و ساعت را انتخاب کنید"
+
+#: templates/appointment/appointments.html:55
+msgid "Choose a date"
+msgstr "انتخاب تاریخ"
+
+#: templates/appointment/appointments.html:59
+msgid "Choose a time"
+msgstr "انتخاب ساعت"
+
+#: templates/appointment/appointments.html:62
+#, python-format
+msgid "Times are in %(tz)s time, not your time zone."
+msgstr "ساعت‌ها به وقت %(tz)s هستند، نه منطقهٔ زمانی شما."
+
+#: templates/appointment/appointments.html:78
+msgid "Reason for rescheduling"
+msgstr "دلیل تغییر زمان"
+
+#: templates/appointment/appointments.html:92
+msgid "Please select a staff member"
+msgstr "لطفاً یک کارمند انتخاب کنید"
+
+#: templates/appointment/appointments.html:116
+#: templates/appointment/default_thank_you.html:42
+#: templates/email_sender/reminder_email.html:33
+#: templates/email_sender/reminder_email.txt:11
+#: templates/email_sender/reschedule_email.html:48
+#: templates/email_sender/reschedule_email.txt:15
+#: tests/utils/test_email_ops.py:326 tests/utils/test_email_ops.py:340
+#: utils/email_ops.py:109
+msgid "Your time"
+msgstr "ساعت شما"
+
+#: templates/appointment/appointments.html:129
+msgid "Next"
+msgstr "بعدی"
+
+#: templates/appointment/appointments.html:162
+msgid "Request next available slot"
+msgstr "درخواست اولین زمان آزاد"
+
+#: templates/appointment/appointments.html:163
+msgid "No staff member selected."
+msgstr "کارمندی انتخاب نشده است."
+
+#: templates/appointment/appointments.html:164
+msgid "Please select a time slot before submitting the appointment request."
+msgstr "لطفاً پیش از ارسال درخواست نوبت، یک بازهٔ زمانی انتخاب کنید."
+
+#: templates/appointment/appointments.html:165
+msgid "Date is in the past."
+msgstr "تاریخ در گذشته است."
+
+#: templates/appointment/appointments.html:166
+msgid "Please select a date and time"
+msgstr "لطفاً تاریخ و ساعت را انتخاب کنید"
+
+#: templates/appointment/appointments.html:168
+msgid "Next month"
+msgstr "ماه بعد"
+
+#: templates/appointment/appointments.html:169
+msgid "Previous month"
+msgstr "ماه قبل"
+
+#: templates/appointment/appointments.html:170
+msgid "Next available date"
+msgstr "اولین تاریخ آزاد"
+
+#: templates/appointment/confirm_reschedule.html:8
+#: templates/appointment/confirm_reschedule.html:16
+msgid "Confirm the new date"
+msgstr "تأیید تاریخ جدید"
+
+#: templates/appointment/confirm_reschedule.html:11
+msgid "Confirm the new date of your appointment."
+msgstr "تاریخ جدید نوبت خود را تأیید کنید."
+
+#: templates/appointment/confirm_reschedule.html:18
+#, python-format
+msgid "Move your %(service)s appointment to %(date)s at %(time)s?"
+msgstr "نوبت %(service)s شما به %(date)s ساعت %(time)s منتقل شود؟"
+
+#: templates/appointment/confirm_reschedule.html:22
+msgid "Confirm"
+msgstr "تأیید"
+
+#: templates/appointment/default_thank_you.html:8
+msgid "See you soon"
+msgstr "به امید دیدار"
+
+#: templates/appointment/default_thank_you.html:22
+msgid "See you soon!"
+msgstr "به امید دیدار!"
+
+#: templates/appointment/default_thank_you.html:23
+msgid ""
+"We've successfully scheduled your appointment! Please check your email for "
+"all the details"
+msgstr "نوبت شما با موفقیت ثبت شد! لطفاً ایمیل خود را برای همهٔ جزئیات ببینید"
+
+#: templates/appointment/default_thank_you.html:32
+#: templates/email_sender/admin_new_appointment_email.html:29
+#: templates/email_sender/admin_new_appointment_email.txt:11
+#: tests/utils/test_email_ops.py:335 utils/email_ops.py:103
+msgid "Appointment Date"
+msgstr "تاریخ نوبت"
+
+#: templates/appointment/default_thank_you.html:36 utils/email_ops.py:104
+msgid "Appointment Time"
+msgstr "ساعت نوبت"
+
+#: templates/appointment/rescheduling_thank_you.html:8
+#: templates/appointment/rescheduling_thank_you.html:21
+msgid "Rescheduling Successful"
+msgstr "تغییر زمان موفق بود"
+
+#: templates/appointment/rescheduling_thank_you.html:11
+msgid "Your appointment rescheduling was successful. Please confirm via email."
+msgstr "زمان نوبت شما با موفقیت تغییر کرد. لطفاً از طریق ایمیل تأیید کنید."
+
+#: templates/appointment/rescheduling_thank_you.html:22
+msgid ""
+"Your appointment rescheduling request has been successfully submitted. "
+"Please check your email and click on the confirmation link to finalize the "
+"rescheduling process."
+msgstr ""
+"درخواست تغییر زمان نوبت شما با موفقیت ثبت شد. لطفاً ایمیل خود را ببینید و روی "
+"پیوند تأیید کلیک کنید تا تغییر زمان نهایی شود."
+
+#: templates/appointment/rescheduling_thank_you.html:23
+msgid "Go to Homepage"
+msgstr "رفتن به صفحهٔ اصلی"
+
+#: templates/appointment/set_password.html:5
+#: templates/appointment/set_password.html:8
+#: templates/appointment/set_password.html:19
+msgid "Reset Your Password"
+msgstr "رمز عبور خود را بازنشانی کنید"
+
+#: templates/appointment/set_password.html:42
+msgid "Reset Password"
+msgstr "بازنشانی رمز عبور"
+
+#: templates/appointment/widgets/duration.html:2
+msgctxt "hours, short"
+msgid "h"
+msgstr "ساعت"
+
+#: templates/base_templates/base.html:8
+msgid "Appointment application"
+msgstr "سامانهٔ نوبت‌دهی"
+
+#: templates/email_sender/admin_new_appointment_email.html:3
+#: templates/email_sender/admin_new_appointment_email.html:5
+#: templates/email_sender/admin_new_appointment_email.txt:1
+msgid "New Appointment Request"
+msgstr "درخواست نوبت جدید"
+
+#: templates/email_sender/admin_new_appointment_email.html:8
+#: templates/email_sender/admin_new_appointment_email.txt:3
+#, python-format
+msgid "Dear %(recipient_name)s,"
+msgstr "%(recipient_name)s گرامی،"
+
+#: templates/email_sender/admin_new_appointment_email.html:11
+#: templates/email_sender/admin_new_appointment_email.txt:5
+msgid "You have received a new appointment request. Here are the details:"
+msgstr "یک درخواست نوبت جدید دریافت کرده‌اید. جزئیات آن:"
+
+#: templates/email_sender/admin_new_appointment_email.html:13
+#: templates/email_sender/admin_new_appointment_email.txt:5
+#, python-format
+msgid ""
+"A new appointment request has been received for %(staff_member_name)s. Here "
+"are the details:"
+msgstr "یک درخواست نوبت جدید برای %(staff_member_name)s رسیده است. جزئیات آن:"
+
+#: templates/email_sender/admin_new_appointment_email.html:25
+#: templates/email_sender/admin_new_appointment_email.txt:10
+msgid "Service Requested"
+msgstr "خدمت درخواستی"
+
+#: templates/email_sender/admin_new_appointment_email.html:33
+#: templates/email_sender/admin_new_appointment_email.txt:12
+#: templates/email_sender/reminder_email.html:28
+#: templates/email_sender/reminder_email.txt:10
+msgid "Time"
+msgstr "ساعت"
+
+#: templates/email_sender/admin_new_appointment_email.html:37
+#: templates/email_sender/admin_new_appointment_email.txt:13
+msgid "Contact Details"
+msgstr "اطلاعات تماس"
+
+#: templates/email_sender/admin_new_appointment_email.html:50
+#: templates/email_sender/admin_new_appointment_email.txt:16
+#: templates/email_sender/reminder_email.html:56
+#: templates/email_sender/reminder_email.txt:17
+msgid "View Appointment"
+msgstr "مشاهدهٔ نوبت"
+
+#: templates/email_sender/admin_new_appointment_email.html:56
+#: templates/email_sender/admin_new_appointment_email.txt:18
+msgid "Please review the appointment request and take the necessary action."
+msgstr "لطفاً درخواست نوبت را بررسی و اقدام لازم را انجام دهید."
+
+#: templates/email_sender/admin_new_appointment_email.html:58
+#: templates/email_sender/admin_new_appointment_email.txt:18
+#, python-format
+msgid ""
+"Please ensure that %(staff_member_name)s reviews this appointment request "
+"and takes the necessary action."
+msgstr ""
+"لطفاً مطمئن شوید که %(staff_member_name)s این درخواست نوبت را بررسی و اقدام "
+"لازم را انجام می‌دهد."
+
+#: templates/email_sender/admin_new_appointment_email.txt:23
+#: templates/email_sender/base_email.html:89
+#: templates/email_sender/password_reset_email.txt:16
+#: templates/email_sender/reminder_email.txt:21
+#: templates/email_sender/verification_email.txt:14
+msgid ""
+"This is an automated message. Please do not reply directly to this email."
+msgstr "این پیام خودکار است. لطفاً مستقیم به این ایمیل پاسخ ندهید."
+
+#: templates/email_sender/password_reset_email.html:3
+#: templates/email_sender/password_reset_email.html:5
+#: templates/email_sender/password_reset_email.html:12
+#: templates/email_sender/password_reset_email.txt:1
+#: templates/email_sender/thank_you_email.html:53
+msgid "Set Your Password"
+msgstr "رمز عبور خود را تنظیم کنید"
+
+#: templates/email_sender/password_reset_email.html:4
+#, python-format
+msgid "Your staff account at %(company)s is ready."
+msgstr "حساب کارمندی شما در %(company)s آماده است."
+
+#: templates/email_sender/password_reset_email.html:8
+#: templates/email_sender/password_reset_email.txt:3
+#: templates/email_sender/thank_you_email.html:29
+#: templates/email_sender/thank_you_email.txt:3
+#: templates/email_sender/verification_email.html:8
+#: templates/email_sender/verification_email.txt:3
+#, python-format
+msgid "Hi %(first_name)s,"
+msgstr "سلام %(first_name)s،"
+
+#: templates/email_sender/password_reset_email.html:8
+#: templates/email_sender/password_reset_email.txt:3
+#: templates/email_sender/reminder_email.html:10
+#: templates/email_sender/reminder_email.txt:3
+#: templates/email_sender/reschedule_email.html:9
+#: templates/email_sender/reschedule_email.html:12
+#: templates/email_sender/reschedule_email.txt:3
+#: templates/email_sender/reschedule_email.txt:5
+#: templates/email_sender/thank_you_email.html:29
+#: templates/email_sender/thank_you_email.txt:3
+#: templates/email_sender/verification_email.html:8
+#: templates/email_sender/verification_email.txt:3
+msgid "Hi"
+msgstr "سلام"
+
+#: templates/email_sender/password_reset_email.html:9
+#: templates/email_sender/password_reset_email.txt:5
+#, python-format
+msgid ""
+"A staff account was created for you at %(company)s. Click the button below "
+"to set your password."
+msgstr ""
+"یک حساب کارمندی برای شما در %(company)s ساخته شد. برای تنظیم رمز عبور روی "
+"دکمهٔ زیر کلیک کنید."
+
+#: templates/email_sender/password_reset_email.html:15
+#: templates/email_sender/reschedule_email.html:65
+msgid ""
+"If the button above does not work, please copy and paste the following link "
+"into your browser:"
+msgstr "اگر دکمهٔ بالا کار نکرد، لطفاً پیوند زیر را در مرورگر خود کپی کنید:"
+
+#: templates/email_sender/password_reset_email.html:20
+#: templates/email_sender/password_reset_email.txt:11
+#: templates/email_sender/verification_email.html:11
+#: templates/email_sender/verification_email.txt:9
+msgid "If you did not expect this email, you can ignore it."
+msgstr "اگر انتظار این ایمیل را نداشتید، می‌توانید آن را نادیده بگیرید."
+
+#: templates/email_sender/password_reset_email.html:22
+#: templates/email_sender/password_reset_email.txt:13
+#: templates/email_sender/reschedule_email.html:70
+#: templates/email_sender/reschedule_email.txt:21
+#: templates/email_sender/verification_email.html:13
+#: templates/email_sender/verification_email.txt:11
+msgid "Thank you,"
+msgstr "با سپاس،"
+
+#: templates/email_sender/reminder_email.html:3
+#: templates/email_sender/reminder_email.html:5
+#: templates/email_sender/reminder_email.txt:1
+msgid "Appointment Reminder"
+msgstr "یادآوری نوبت"
+
+#: templates/email_sender/reminder_email.html:10
+#: templates/email_sender/reminder_email.txt:3
+#: templates/email_sender/reschedule_email.html:9
+#: templates/email_sender/reschedule_email.txt:3
+#, python-format
+msgid "Dear %(first_name)s,"
+msgstr "%(first_name)s گرامی،"
+
+#: templates/email_sender/reminder_email.html:12
+#: templates/email_sender/reminder_email.txt:3
+msgid "Dear Administrator,"
+msgstr "مدیر گرامی،"
+
+#: templates/email_sender/reminder_email.html:15
+#: templates/email_sender/reminder_email.txt:5
+msgid "This is a reminder for your upcoming appointment."
+msgstr "این یادآوری نوبت پیش روی شماست."
+
+#: templates/email_sender/reminder_email.html:17
+#: templates/email_sender/reminder_email.txt:7
+#: templates/email_sender/thank_you_email.html:35
+#: templates/email_sender/thank_you_email.txt:7
+#: templates/modal/event_details_modal.html:8
+msgid "Appointment Details"
+msgstr "جزئیات نوبت"
+
+#: templates/email_sender/reminder_email.html:39
+#: templates/email_sender/reminder_email.txt:12
+msgid "Location"
+msgstr "مکان"
+
+#: templates/email_sender/reminder_email.html:46
+#: templates/email_sender/reminder_email.txt:14
+msgid ""
+"If you need to reschedule, please click the button below or contact us for "
+"further assistance."
+msgstr ""
+"اگر لازم است زمان نوبت را تغییر دهید، روی دکمهٔ زیر کلیک کنید یا برای "
+"راهنمایی با ما تماس بگیرید."
+
+#: templates/email_sender/reminder_email.html:49
+#: templates/email_sender/thank_you_email.html:62
+msgid "Reschedule Appointment"
+msgstr "تغییر زمان نوبت"
+
+#: templates/email_sender/reminder_email.html:52
+#: templates/email_sender/reminder_email.txt:17
+msgid "Thank you for choosing us!"
+msgstr "از اینکه ما را انتخاب کردید سپاسگزاریم!"
+
+#: templates/email_sender/reminder_email.html:59
+#: templates/email_sender/reminder_email.txt:19
+msgid ""
+"Please ensure the appointment setup is complete and ready for the client."
+msgstr "لطفاً مطمئن شوید که همه‌چیز برای نوبت مشتری آماده است."
+
+#: templates/email_sender/reschedule_email.html:3
+#: templates/email_sender/reschedule_email.html:5
+#: templates/email_sender/reschedule_email.txt:1
+msgid "Appointment Reschedule"
+msgstr "تغییر زمان نوبت"
+
+#: templates/email_sender/reschedule_email.html:10
+#: templates/email_sender/reschedule_email.txt:5
+msgid ""
+"You have requested to reschedule your appointment. Please review the changes "
+"below and confirm:"
+msgstr ""
+"شما درخواست تغییر زمان نوبت خود را داده‌اید. لطفاً تغییرات زیر را بررسی و "
+"تأیید کنید:"
+
+#: templates/email_sender/reschedule_email.html:14
+#: templates/email_sender/reschedule_email.txt:7
+#, python-format
+msgid ""
+"An appointment with %(client_name)s for the service %(service_name)s has "
+"been rescheduled."
+msgstr "نوبت %(client_name)s برای خدمت %(service_name)s تغییر زمان داده شد."
+
+#: templates/email_sender/reschedule_email.html:21
+#: templates/email_sender/reschedule_email.txt:11
+msgid "Reason for rescheduling:"
+msgstr "دلیل تغییر زمان:"
+
+#: templates/email_sender/reschedule_email.html:33
+#: templates/email_sender/reschedule_email.txt:13
+msgid "Original Appointment:"
+msgstr "نوبت اصلی:"
+
+#: templates/email_sender/reschedule_email.html:44
+#: templates/email_sender/reschedule_email.txt:14
+msgid "Rescheduled Appointment:"
+msgstr "نوبت جدید:"
+
+#: templates/email_sender/reschedule_email.html:59
+#: templates/email_sender/reschedule_email.txt:17
+msgid "Confirm Appointment"
+msgstr "تأیید نوبت"
+
+#: templates/email_sender/reschedule_email.html:62
+#: templates/email_sender/reschedule_email.txt:19
+msgid ""
+"This link will expire in 5 minutes. If you do not confirm within this time "
+"frame, you will need to submit a new reschedule request."
+msgstr ""
+"این پیوند پس از ۵ دقیقه منقضی می‌شود. اگر در این مدت تأیید نکنید، باید "
+"درخواست تغییر زمان جدیدی ثبت کنید."
+
+#: templates/email_sender/thank_you_email.html:22
+msgid "Thank you for choosing us."
+msgstr "از اینکه ما را انتخاب کردید سپاسگزاریم."
+
+#: templates/email_sender/thank_you_email.html:40
+#: templates/email_sender/thank_you_email.txt:10
+msgid "Account Information"
+msgstr "اطلاعات حساب کاربری"
+
+#: templates/email_sender/thank_you_email.html:47
+#: templates/email_sender/thank_you_email.txt:14
+msgid ""
+"To activate your account and set your password, use the link below. For your "
+"security, it expires in 2 days."
+msgstr ""
+"برای فعال کردن حساب و تنظیم رمز عبور، از پیوند زیر استفاده کنید. برای امنیت "
+"شما، این پیوند پس از ۲ روز منقضی می‌شود."
+
+#: templates/email_sender/thank_you_email.html:60
+#: templates/email_sender/thank_you_email.txt:21
+msgid ""
+"If your plans change and you need to reschedule your appointment, you can "
+"easily do so by following this link: "
+msgstr ""
+"اگر برنامه‌تان تغییر کرد و لازم شد زمان نوبت را عوض کنید، به‌راحتی از این "
+"پیوند استفاده کنید: "
+
+#: templates/email_sender/thank_you_email.html:67
+#: templates/email_sender/thank_you_email.txt:24
+msgid ""
+"Should you have any inquiries or require further assistance, our support "
+"team is here to help. You can reach us anytime."
+msgstr ""
+"اگر پرسشی دارید یا به راهنمایی بیشتری نیاز دارید، تیم پشتیبانی ما آمادهٔ کمک "
+"است. هر زمان می‌توانید با ما تماس بگیرید."
+
+#: templates/email_sender/thank_you_email.html:71
+#: templates/email_sender/thank_you_email.txt:27
+msgid ""
+"We look forward to serving you and ensuring that your experience with us is "
+"both rewarding and satisfactory."
+msgstr ""
+"مشتاق خدمت به شما هستیم و امیدواریم تجربه‌ای خوب و رضایت‌بخش با ما داشته باشید."
+
+#: templates/email_sender/thank_you_email.html:73
+#: templates/email_sender/thank_you_email.txt:29
+msgid "Warm regards"
+msgstr "با احترام"
+
+#: templates/email_sender/thank_you_email.html:73
+#: templates/email_sender/thank_you_email.txt:30
+msgid "The Team"
+msgstr "تیم ما"
+
+#: templates/email_sender/thank_you_email.html:77
+#: templates/email_sender/thank_you_email.txt:32
+msgid "All rights reserved"
+msgstr "همهٔ حقوق محفوظ است"
+
+#: templates/email_sender/verification_email.html:3
+#: templates/email_sender/verification_email.html:5
+#: templates/email_sender/verification_email.txt:1
+#: tests/utils/test_email_ops.py:118 utils/email_ops.py:242
+msgid "Email Verification"
+msgstr "تأیید ایمیل"
+
+#: templates/email_sender/verification_email.html:4
+#, python-format
+msgid "Your verification code is %(verification_code)s."
+msgstr "کد تأیید شما %(verification_code)s است."
+
+#: templates/email_sender/verification_email.html:9
+#: templates/email_sender/verification_email.txt:5
+msgid "Enter this code to confirm your email address:"
+msgstr "برای تأیید نشانی ایمیل خود، این کد را وارد کنید:"
+
+#: templates/error_pages/304_already_submitted.html:9
+#: templates/error_pages/403_forbidden_rescheduling.html:9
+msgid "Not authorized!"
+msgstr "اجازه ندارید!"
+
+#: templates/error_pages/304_already_submitted.html:12
+#: templates/error_pages/403_forbidden_rescheduling.html:12
+msgid "Form resubmission not allowed."
+msgstr "ارسال دوبارهٔ فرم مجاز نیست."
+
+#: templates/error_pages/304_already_submitted.html:168
+msgid "Sorry, re-submission is not allowed"
+msgstr "متأسفیم، ارسال دوباره مجاز نیست"
+
+#: templates/error_pages/304_already_submitted.html:169
+msgid "But don't worry, you can create a new appointment"
+msgstr "اما نگران نباشید، می‌توانید نوبت جدیدی ثبت کنید"
+
+#: templates/error_pages/403_forbidden.html:18
+msgid "Error 403"
+msgstr "خطای ۴۰۳"
+
+#: templates/error_pages/403_forbidden.html:23
+msgid "You don't have permission to view this resource, and you know it"
+msgstr "شما اجازهٔ دیدن این صفحه را ندارید"
+
+#: templates/error_pages/403_forbidden.html:29
+msgid "Go to profile"
+msgstr "رفتن به نمایه"
+
+#: templates/error_pages/403_forbidden.html:32
+#: templates/error_pages/404_not_found.html:248
+msgid "Go back"
+msgstr "بازگشت"
+
+#: templates/error_pages/403_forbidden_rescheduling.html:20
+msgid "Sorry, it's not allowed to reschedule this appointment at this time"
+msgstr "متأسفیم، در حال حاضر تغییر زمان این نوبت مجاز نیست"
+
+#: templates/error_pages/403_forbidden_rescheduling.html:21
+msgid "Please, send us a message or schedule a new appointment"
+msgstr "لطفاً به ما پیام دهید یا نوبت جدیدی ثبت کنید"
+
+#: templates/error_pages/404_not_found.html:240
+msgid "O-o-oh! Something broke."
+msgstr "ای وای! مشکلی پیش آمد."
+
+#: templates/error_pages/404_not_found.html:245
+msgid "Go home"
+msgstr "رفتن به خانه"
+
+#: templates/modal/confirm_modal.html:12 templates/modal/confirm_modal.html:20
+#: templates/modal/error_modal.html:8 templates/modal/error_modal.html:17
+#: templates/modal/event_details_modal.html:9
+#: templates/modal/event_details_modal.html:23
+msgid "Close"
+msgstr "بستن"
+
+#: templates/modal/confirm_modal.html:21
+msgid "Action"
+msgstr "عملیات"
+
+#: templates/modal/event_details_modal.html:31
+msgid "Go"
+msgstr "برو"
+
+#: tests/test_services.py:1236
+msgid "Service matching query does not exist"
+msgstr "خدمت مورد نظر وجود ندارد"
+
+#: tests/test_tasks.py:41 utils/email_ops.py:225
+msgid "Reminder: Upcoming Appointment"
+msgstr "یادآوری: نوبت پیش رو"
+
+#: tests/test_tasks.py:54 utils/email_ops.py:223
+msgid "Admin Reminder: Upcoming Appointment"
+msgstr "یادآوری مدیر: نوبت پیش رو"
+
+#: tests/test_views.py:297 views.py:440
+msgid "Invalid verification code."
+msgstr "کد تأیید نامعتبر است."
+
+#: tests/test_views.py:394 views_admin.py:684
+msgid "Staff member deleted successfully!"
+msgstr "کارمند با موفقیت حذف شد!"
+
+#: tests/test_views.py:458 views_admin.py:755
+msgid "User is a staff member."
+msgstr "کاربر کارمند است."
+
+#: tests/test_views.py:474 views_admin.py:759
+msgid "User is not a staff member."
+msgstr "کاربر کارمند نیست."
+
+#: tests/test_views.py:501 views_admin.py:728
+msgid "Appointment deleted successfully!"
+msgstr "نوبت با موفقیت حذف شد!"
+
+#: tests/test_views.py:553 views_admin.py:725 views_admin.py:743
+msgid "You can only delete your own appointments."
+msgstr "فقط می‌توانید نوبت‌های خودتان را حذف کنید."
+
+#: tests/test_views.py:920 views_admin.py:365
+msgid "No services offered by this staff member."
+msgstr "این کارمند هیچ خدمتی ارائه نمی‌دهد."
+
+#: tests/test_views.py:933 views_admin.py:668
+msgid "Service deleted successfully!"
+msgstr "خدمت با موفقیت حذف شد!"
+
+#: tests/test_views.py:1234 views_admin.py:172
+msgid "Day off deleted successfully."
+msgstr "مرخصی با موفقیت حذف شد."
+
+#: tests/test_views.py:1241 views_admin.py:226
+msgid "Unavailability deleted successfully."
+msgstr "زمان ناموجود با موفقیت حذف شد."
+
+#: tests/test_views.py:1247 views_admin.py:284
+msgid "Working hours deleted successfully."
+msgstr "ساعات کاری با موفقیت حذف شد."
+
+#: tests/test_views.py:1963 views.py:533
+msgid "Password reset successfully."
+msgstr "رمز عبور با موفقیت بازنشانی شد."
+
+#: tests/test_views.py:2150 views.py:167 views.py:178
+msgid "No staff member selected"
+msgstr "کارمندی انتخاب نشده است"
+
+#: tests/test_views.py:2161 views.py:175
+msgid "Successfully retrieved non-working days"
+msgstr "روزهای تعطیل با موفقیت دریافت شد"
+
+#: tests/test_views.py:2455 views.py:289 views.py:648
+msgid ""
+"There was an error in your submission. Please check the form and try again."
+msgstr "در فرم شما خطایی وجود دارد. لطفاً فرم را بررسی کنید و دوباره تلاش کنید."
+
+#: tests/utils/test_email_ops.py:153 utils/email_ops.py:277
+msgid "Confirm Your Appointment Rescheduling"
+msgstr "تغییر زمان نوبت خود را تأیید کنید"
+
+#: tests/utils/test_validators.py:16 utils/validators.py:15
+msgid "Date is in the past"
+msgstr "تاریخ در گذشته است"
+
+#: utils/date_time.py:250
+msgid "Not set."
+msgstr "تنظیم نشده."
+
+#: utils/date_time.py:272
+#, python-brace-format
+msgid "{first_part} and {second_part}"
+msgstr "{first_part} و {second_part}"
+
+#: utils/date_time.py:274
+#, python-brace-format
+msgid "{days}, {hours} and {minutes}"
+msgstr "{days}، {hours} و {minutes}"
+
+#: utils/email_ops.py:112
+msgid "Email address"
+msgstr "نشانی ایمیل"
+
+#: utils/email_ops.py:114
+msgid "Username"
+msgstr "نام کاربری"
+
+#: utils/email_ops.py:142
+msgid ""
+"To enhance your experience, we have created a personalized account for you. "
+"It will allow you to manage your appointments, view service details, and "
+"make any necessary adjustments with ease."
+msgstr ""
+"برای تجربهٔ بهتر، یک حساب کاربری برای شما ساخته‌ایم. با آن می‌توانید نوبت‌هایتان "
+"را مدیریت کنید، جزئیات خدمات را ببینید و به‌راحتی تغییرات لازم را انجام دهید."
+
+#: utils/email_ops.py:155
+msgid "Appointment successfully scheduled"
+msgstr "نوبت با موفقیت ثبت شد"
+
+#: utils/email_ops.py:161
+msgid "Thank you for booking us."
+msgstr "از رزرو شما سپاسگزاریم."
+
+#: utils/email_ops.py:168
+#, python-brace-format
+msgid "To login, use username '{username}' or your email address."
+msgstr "برای ورود، از نام کاربری «{username}» یا نشانی ایمیل خود استفاده کنید."
+
+#: utils/email_ops.py:172
+msgid "To login, use your email address."
+msgstr "برای ورود، از نشانی ایمیل خود استفاده کنید."
+
+#: utils/email_ops.py:178
+msgid "No additional details provided."
+msgstr "جزئیات بیشتری داده نشده است."
+
+#: utils/email_ops.py:186
+#, python-brace-format
+msgid "Set Your Password for {company}"
+msgstr "رمز عبور خود را برای {company} تنظیم کنید"
+
+#: utils/email_ops.py:205
+#, python-format
+msgid "New Appointment Request for %(client_name)s"
+msgstr "درخواست نوبت جدید برای %(client_name)s"
+
+#: utils/email_ops.py:293
+#, python-format
+msgid "Reschedule Request for %(client_name)s"
+msgstr "درخواست تغییر زمان برای %(client_name)s"
+
+#: utils/email_ops.py:464
+msgid "Example reason"
+msgstr "دلیل نمونه"
+
+#: utils/email_ops.py:473
+msgid "Booking confirmation (client)"
+msgstr "تأیید رزرو (مشتری)"
+
+#: utils/email_ops.py:474
+msgid "New appointment (staff)"
+msgstr "نوبت جدید (کارمند)"
+
+#: utils/email_ops.py:476
+msgid "Reminder (client)"
+msgstr "یادآوری (مشتری)"
+
+#: utils/email_ops.py:478
+msgid "Reminder (admin)"
+msgstr "یادآوری (مدیر)"
+
+#: utils/email_ops.py:480
+msgid "Reschedule confirmation (client)"
+msgstr "تأیید تغییر زمان (مشتری)"
+
+#: utils/email_ops.py:482
+msgid "Reschedule (staff)"
+msgstr "تغییر زمان (کارمند)"
+
+#: utils/email_ops.py:484
+msgid "Set a password (staff)"
+msgstr "تنظیم رمز عبور (کارمند)"
+
+#: utils/email_ops.py:486
+msgid "Verification code (client)"
+msgstr "کد تأیید (مشتری)"
+
+#: utils/session.py:71
+msgid "Too many codes were sent to this address. Please try again later."
+msgstr "کدهای زیادی به این نشانی فرستاده شده است. لطفاً بعداً دوباره تلاش کنید."
+
+#: utils/session.py:80
+#, python-brace-format
+msgid "We sent a code to {email}. Enter it below to confirm your booking."
+msgstr "یک کد به {email} فرستادیم. برای تأیید رزرو، آن را در زیر وارد کنید."
+
+#: utils/validators.py:33
+msgid "The booking context must be a flat object of text values."
+msgstr "زمینهٔ رزرو باید یک شیء ساده با مقادیر متنی باشد."
+
+#: utils/validators.py:38
+#, python-format
+msgid ""
+"The booking context has %(count)d key(s) that are not in "
+"APPOINTMENT_BOOKING_CONTEXT_KEYS."
+msgstr ""
+"زمینهٔ رزرو %(count)d کلید دارد که در APPOINTMENT_BOOKING_CONTEXT_KEYS نیستند."
+
+#: utils/validators.py:42
+#, python-format
+msgid "The booking context value for '%(key)s' must be text."
+msgstr "مقدار زمینهٔ رزرو برای «%(key)s» باید متن باشد."
+
+#: utils/validators.py:45
+#, python-format
+msgid ""
+"The booking context value for '%(key)s' is longer than %(max)d characters."
+msgstr "مقدار زمینهٔ رزرو برای «%(key)s» بیشتر از %(max)d نویسه است."
+
+#: utils/validators.py:49
+#, python-format
+msgid ""
+"The booking context value for '%(key)s' has characters that are not allowed."
+msgstr "مقدار زمینهٔ رزرو برای «%(key)s» نویسه‌های غیرمجاز دارد."
+
+#: views.py:86
+msgid "Day off. Please select another date!"
+msgstr "روز مرخصی. لطفاً تاریخ دیگری انتخاب کنید!"
+
+#: views.py:97
+#, python-brace-format
+msgid "Not a working day for {staff_member}. Please select another date!"
+msgstr "روز کاری {staff_member} نیست. لطفاً تاریخ دیگری انتخاب کنید!"
+
+#: views.py:118
+msgid "No availability"
+msgstr "زمان آزادی نیست"
+
+#: views.py:158
+msgid "Successfully retrieved next available date"
+msgstr "اولین تاریخ آزاد با موفقیت دریافت شد"
+
+#: views.py:163
+msgid "No availability in the next 90 days for this staff member"
+msgstr "این کارمند در ۹۰ روز آینده زمان آزادی ندارد"
+
+#: views.py:223
+#, python-brace-format
+msgid "Book an appointment for {s} at {wn}."
+msgstr "رزرو نوبت {s} در {wn}."
+
+#: views.py:275
+msgid "Selected staff member does not exist."
+msgstr "کارمند انتخاب‌شده وجود ندارد."
+
+#: views.py:438
+msgid "Email verified successfully."
+msgstr "ایمیل با موفقیت تأیید شد."
+
+#: views.py:514
+msgid "Please try resetting your password again or contact support for help."
+msgstr ""
+"لطفاً دوباره رمز عبور خود را بازنشانی کنید یا برای کمک با پشتیبانی تماس "
+"بگیرید."
+
+#: views.py:538
+msgid "Password Reset Successful"
+msgstr "بازنشانی رمز عبور موفق بود"
+
+#: views.py:540
+msgid "You can now use your new password to log in."
+msgstr "اکنون می‌توانید با رمز عبور جدید وارد شوید."
+
+#: views.py:581
+#, python-brace-format
+msgid "Rescheduling appointment for {s}"
+msgstr "تغییر زمان نوبت {s}"
+
+#: views.py:582
+#, python-brace-format
+msgid "Reschedule your appointment for {s} at {wn}."
+msgstr "زمان نوبت {s} خود را در {wn} تغییر دهید."
+
+#: views.py:641 views.py:697
+msgid "Appointment rescheduled successfully"
+msgstr "زمان نوبت با موفقیت تغییر کرد"
+
+#: views.py:659
+msgid "O-o-oh! This link is no longer valid."
+msgstr "ای وای! این پیوند دیگر معتبر نیست."
+
+#: views.py:660
+msgid "O-o-oh! Can't find the pending reschedule request."
+msgstr "ای وای! درخواست تغییر زمان در انتظار پیدا نشد."
+
+#: views_admin.py:72
+msgid "All staff members' appointments."
+msgstr "نوبت‌های همهٔ کارمندان."
+
+#: views_admin.py:73
+msgid "Your appointments."
+msgstr "نوبت‌های شما."
+
+#: views_admin.py:82
+msgid ""
+"User doesn't have a staff member instance. Please contact the administrator."
+msgstr "این کاربر نقش کارمندی ندارد. لطفاً با مدیر تماس بگیرید."
+
+#: views_admin.py:103
+#, python-format
+msgid "%(service)s on %(date)s"
+msgstr "%(service)s در %(date)s"
+
+#: views_admin.py:135
+msgid "You can only add your own days off"
+msgstr "فقط می‌توانید مرخصی‌های خودتان را اضافه کنید"
+
+#: views_admin.py:157
+msgid "You can only update your own days off."
+msgstr "فقط می‌توانید مرخصی‌های خودتان را به‌روز کنید."
+
+#: views_admin.py:169
+msgid "You can only delete your own days off."
+msgstr "فقط می‌توانید مرخصی‌های خودتان را حذف کنید."
+
+#: views_admin.py:186
+msgid "You can only add your own unavailabilities."
+msgstr "فقط می‌توانید زمان‌های ناموجود خودتان را اضافه کنید."
+
+#: views_admin.py:209
+msgid "You can only update your own unavailabilities."
+msgstr "فقط می‌توانید زمان‌های ناموجود خودتان را به‌روز کنید."
+
+#: views_admin.py:223
+msgid "You can only delete your own unavailabilities."
+msgstr "فقط می‌توانید زمان‌های ناموجود خودتان را حذف کنید."
+
+#: views_admin.py:240
+msgid "You can only add your own working hours."
+msgstr "فقط می‌توانید ساعات کاری خودتان را اضافه کنید."
+
+#: views_admin.py:263
+msgid "You can only update your own working hours."
+msgstr "فقط می‌توانید ساعات کاری خودتان را به‌روز کنید."
+
+#: views_admin.py:278
+msgid "You can only delete your own working hours."
+msgstr "فقط می‌توانید ساعات کاری خودتان را حذف کنید."
+
+#: views_admin.py:320
+msgid "Appointment settings"
+msgstr "تنظیمات نوبت‌دهی"
+
+#: views_admin.py:321
+#, python-format
+msgid "Appointment settings of %(name)s"
+msgstr "تنظیمات نوبت‌دهی %(name)s"
+
+#: views_admin.py:343
+msgid "You do not have permission to access this appointment."
+msgstr "شما اجازهٔ دسترسی به این نوبت را ندارید."
+
+#: views_admin.py:367
+msgid "Successfully fetched services."
+msgstr "خدمات با موفقیت دریافت شد."
+
+#: views_admin.py:427
+msgid "Appointment date and time are valid."
+msgstr "تاریخ و ساعت نوبت معتبر است."
+
+#: views_admin.py:490
+msgid "Personal information"
+msgstr "اطلاعات شخصی"
+
+#: views_admin.py:491
+#, python-format
+msgid "Name and email of %(name)s"
+msgstr "نام و ایمیل %(name)s"
+
+#: views_admin.py:503
+msgid "Verify your email"
+msgstr "ایمیل خود را تأیید کنید"
+
+#: views_admin.py:504
+msgid "Enter the code sent to your new email address."
+msgstr "کدی را که به نشانی ایمیل جدیدتان فرستاده شد وارد کنید."
+
+#: views_admin.py:517
+msgid "Email updated successfully!"
+msgstr "ایمیل با موفقیت به‌روز شد!"
+
+#: views_admin.py:522
+msgid "The verification code provided is incorrect. Please try again."
+msgstr "کد تأیید واردشده نادرست است. لطفاً دوباره تلاش کنید."
+
+#: views_admin.py:549
+msgid "Make an existing user a staff member."
+msgstr "یک کاربر موجود را کارمند کنید."
+
+#: views_admin.py:571
+msgid "Create"
+msgstr "ساختن"
+
+#: views_admin.py:572
+msgid "New staff member"
+msgstr "کارمند جدید"
+
+#: views_admin.py:573
+msgid "Create a user account for a new staff member."
+msgstr "برای کارمند جدید یک حساب کاربری بسازید."
+
+#: views_admin.py:625
+msgid "Update Service"
+msgstr "به‌روزرسانی خدمت"
+
+#: views_admin.py:626
+msgid "A new service clients can book."
+msgstr "خدمت جدیدی که مشتریان می‌توانند رزرو کنند."
+
+#: views_admin.py:651
+msgid "View Service"
+msgstr "مشاهدهٔ خدمت"
+
+#: views_admin.py:712
+msgid "The services clients can book."
+msgstr "خدماتی که مشتریان می‌توانند رزرو کنند."
+
+#: views_admin.py:746
+msgid "Appointment deleted successfully."
+msgstr "نوبت با موفقیت حذف شد."
+
+#: views_admin.py:760
+msgid "User is a superuser."
+msgstr "کاربر مدیر کل است."
+
+#: views_admin.py:780 views_admin.py:790
+msgid "Email preview"
+msgstr "پیش‌نمایش ایمیل"
+
+#: views_admin.py:791
+#, python-format
+msgid "Each email as it would be sent for appointment #%(id)s."
+msgstr "هر ایمیل همان‌طور که برای نوبت #%(id)s فرستاده می‌شود."
