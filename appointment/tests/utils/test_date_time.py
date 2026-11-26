@@ -12,7 +12,7 @@ from appointment.utils.date_time import (
     DATE_FORMATS, combine_date_and_time, convert_12_hour_time_to_24_hour_time, convert_24_hour_time_to_12_hour_time,
     convert_minutes_in_human_readable_format, convert_str_to_date,
     convert_str_to_time, get_ar_end_time, get_client_time_text, get_current_year, get_timestamp,
-    get_valid_timezone_name, get_weekday_num, long_date_format,
+    get_valid_timezone_name, get_weekday_num, gregorian_to_jalali, long_date_format,
     time_difference
 )
 
@@ -470,3 +470,34 @@ class ClientTimeTextTests(TestCase):
         self.assertEqual(get_valid_timezone_name('Australia/Sydney'), 'Australia/Sydney')
         self.assertEqual(get_valid_timezone_name('Mars/Olympus'), '')
         self.assertEqual(get_valid_timezone_name(42), '')
+
+
+class GregorianToJalaliTests(TestCase):
+    def test_known_dates(self):
+        for day, expected in (
+                (datetime.date(1979, 2, 11), (1357, 11, 22)),
+                (datetime.date(1996, 3, 20), (1375, 1, 1)),  # Nowruz, the first day of the year
+                (datetime.date(2025, 3, 20), (1403, 12, 30)),  # last day of a leap year
+                (datetime.date(2025, 3, 21), (1404, 1, 1)),
+                (datetime.date(2026, 11, 25), (1405, 9, 4)),
+                (datetime.date(2100, 3, 21), (1479, 1, 1)),
+        ):
+            with self.subTest(day=day):
+                self.assertEqual(gregorian_to_jalali(day), expected)
+
+    def test_days_follow_each_other(self):
+        """From 1990 to 2060, each day is the next day of the same month, or the first day of the next month."""
+        day = datetime.date(1990, 1, 1)
+        previous = gregorian_to_jalali(day)
+        while day < datetime.date(2060, 1, 1):
+            day += datetime.timedelta(days=1)
+            current = gregorian_to_jalali(day)
+            year, month, day_of_month = previous
+            if current[2] == 1:
+                # The month that ended had its full length
+                lengths = (31,) if month <= 6 else (30,) if month <= 11 else (29, 30)
+                self.assertIn(day_of_month, lengths)
+                self.assertEqual(current[:2], (year + 1, 1) if month == 12 else (year, month + 1))
+            else:
+                self.assertEqual(current, (year, month, day_of_month + 1))
+            previous = current

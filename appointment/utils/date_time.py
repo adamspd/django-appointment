@@ -15,6 +15,27 @@ from django.utils.formats import date_format, get_format
 from django.utils.translation import get_language, gettext as _, ngettext
 
 
+def gregorian_to_jalali(date) -> tuple[int, int, int]:
+    """The (year, month, day) of a date in the Jalali (Solar Hijri) calendar: 2026-11-25 is (1405, 9, 4).
+
+    The first 6 months have 31 days, the next 5 have 30, and the last has 29, or 30 in a leap year.
+    """
+    days_before_month = (0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334)
+    leap_year = date.year + 1 if date.month > 2 else date.year
+    days = (355666 + 365 * date.year + (leap_year + 3) // 4 - (leap_year + 99) // 100 + (leap_year + 399) // 400
+            + date.day + days_before_month[date.month - 1])
+    year = -1595 + 33 * (days // 12053)
+    days %= 12053
+    year += 4 * (days // 1461)
+    days %= 1461
+    if days > 365:
+        year += (days - 1) // 365
+        days = (days - 1) % 365
+    if days < 186:
+        return year, 1 + days // 31, 1 + days % 31
+    return year, 7 + (days - 186) // 30, 1 + (days - 186) % 30
+
+
 def get_valid_timezone_name(name) -> str:
     """The time zone name if it is a known IANA name like 'America/New_York', else ''."""
     if not name or not isinstance(name, str) or len(name) > 64:
