@@ -6,12 +6,13 @@ Django-Appointment includes built-in internationalization support with localized
 
 Django-Appointment currently ships UI translations for:
 
-| Language          | Code | Status                                                                |
-|-------------------|------|-----------------------------------------------------------------------|
-| English           | `en` | Default — the source strings                                          |
-| French            | `fr` | Maintained by the project                                             |
-| Spanish           | `es` | Contributed by @alexandermamaniy, **not actively maintained**         |
-| Persian           | `fa` | Added by the project, **needs a review by a native speaker**          |
+| Language             | Code    | Status                                                                |
+|----------------------|---------|-----------------------------------------------------------------------|
+| English              | `en`    | Default — the source strings                                          |
+| French               | `fr`    | Maintained by the project                                             |
+| Spanish              | `es`    | Contributed by @alexandermamaniy, **not actively maintained**         |
+| Brazilian Portuguese | `pt-br` | Contributed by @FelipeCarvalhoS                                       |
+| Persian              | `fa`    | Added by the project, **needs a review by a native speaker**          |
 
 > **Spanish needs a maintainer.** The Spanish catalogue was contributed by @alexandermamaniy and is not kept up to
 > date as the package changes, so newer strings may still show in English. It is shipped because a mostly-translated
