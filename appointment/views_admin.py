@@ -16,7 +16,7 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from django.utils.formats import date_format, get_format
+from django.utils.formats import get_format
 from django.utils.translation import gettext as _
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.views.decorators.http import require_POST
@@ -32,6 +32,7 @@ from appointment.services import (
     fetch_user_appointments, get_error_message_in_form, handle_entity_management_request, not_authorized_response,
     prepare_appointment_display_data, prepare_user_profile_data, save_appt_date_time, update_existing_appointment,
     update_personal_info_service)
+from appointment.utils.date_time import local_date_format
 from appointment.utils.db_helpers import (
     Service, get_day_off_by_id, get_unavailability_by_id, get_staff_member_by_user_id, get_user_model,
     get_working_hours_by_id)
@@ -101,7 +102,7 @@ def display_appointment(request, appointment_id):
         'appointment': appointment,
         'page_title': page_title,
         'page_description': _("%(service)s on %(date)s") % {
-            'service': appointment.get_service_name(), 'date': date_format(appointment.get_date())},
+            'service': appointment.get_service_name(), 'date': local_date_format(appointment.get_date())},
     }
     context = get_generic_context_with_extra(request=request, extra=extra_context)
     template = get_custom_template('display_appointment.html', 'administration/display_appointment.html')

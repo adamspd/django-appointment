@@ -31,7 +31,7 @@
         </tr>
         <tr>
             <td valign="top" style="padding: 10px 14px; font-size: 14px; color: #64748b; border-bottom: 1px solid #e3e8ef;">{% translate 'Time' %}</td>
-            <td valign="top" style="padding: 10px 14px; font-size: 14px; font-weight: 600; border-bottom: 1px solid #e3e8ef;">{{ appointment.appointment_request.start_time|time }} – {{ appointment.appointment_request.end_time|time }}</td>
+            <td valign="top" style="padding: 10px 14px; font-size: 14px; font-weight: 600; border-bottom: 1px solid #e3e8ef;">{{ appointment.appointment_request.start_time|local_time }} – {{ appointment.appointment_request.end_time|local_time }}</td>
         </tr>
         <tr>
             <td valign="top" style="padding: 10px 14px; font-size: 14px; color: #64748b; border-bottom: 1px solid #e3e8ef;">{% translate 'Contact Details' %}</td>

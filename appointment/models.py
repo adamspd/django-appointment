@@ -31,7 +31,7 @@ from appointment.compat import check_constraint
 from appointment.settings import (
     APPOINTMENT_BUFFER_TIME, APPOINTMENT_SLOT_DURATION, APPOINTMENT_VERIFICATION_CODE_MINUTES, CONFIG_CACHE_KEY)
 from appointment.utils.date_time import convert_minutes_in_human_readable_format, get_client_time_text, get_timestamp, \
-    get_weekday_num, time_difference
+    get_weekday_num, local_digits, time_difference
 from appointment.utils.validators import validate_booking_context
 from appointment.utils.view_helpers import format_price, generate_random_id, get_locale
 
@@ -192,7 +192,7 @@ class Service(models.Model):
                 seconds
             ) % {'count': seconds})
 
-        return ' '.join(parts)
+        return local_digits(' '.join(parts))
 
     def get_price(self):
         # Check if the decimal part is 0

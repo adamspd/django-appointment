@@ -1,5 +1,6 @@
 {% extends "appointment/layout.html" %}
 {% load i18n %}
+{% load appointment_tags %}
 {% load static %}
 {% block customCSS %}
     <link rel="stylesheet" type="text/css" href="{% static 'css/booking.css' %}"/>
@@ -30,11 +31,11 @@
                 </div>
                 <div>
                     <dt>{% trans 'Appointment Date' %}</dt>
-                    <dd>{{ appointment.get_appointment_date }}</dd>
+                    <dd>{{ appointment.get_appointment_date|local_date }}</dd>
                 </div>
                 <div>
                     <dt>{% trans 'Appointment Time' %}</dt>
-                    <dd>{{ appointment.appointment_request.start_time }}</dd>
+                    <dd>{{ appointment.appointment_request.start_time|local_time }}</dd>
                 </div>
                 {% with client_time=appointment.appointment_request.get_client_time_text %}
                     {% if client_time %}

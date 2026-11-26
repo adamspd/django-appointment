@@ -10,9 +10,72 @@ import datetime
 import warnings
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from django.utils import timezone
+from django.utils import dateformat, timezone
 from django.utils.formats import date_format, get_format
 from django.utils.translation import get_language, gettext as _, ngettext
+
+# Persian writes dates in the Jalali calendar, with Persian digits, like the browser does for the calendars
+PERSIAN_DIGITS = str.maketrans('0123456789', '۰۱۲۳۴۵۶۷۸۹')
+JALALI_MONTHS = ('فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند')
+
+
+def uses_jalali_calendar() -> bool:
+    """True when the active language writes dates in the Jalali calendar (Persian)."""
+    return (get_language() or '').split('-')[0] == 'fa'
+
+
+def local_digits(text: str) -> str:
+    """The text with Persian digits for Persian, unchanged for other languages: '10:30' gives '۱۰:۳۰'."""
+    return text.translate(PERSIAN_DIGITS) if uses_jalali_calendar() else text
+
+
+def gregorian_to_jalali(date) -> tuple[int, int, int]:
+    """The (year, month, day) of a date in the Jalali (Solar Hijri) calendar: 2026-11-25 is (1405, 9, 4).
+
+    The first 6 months have 31 days, the next 5 have 30, and the last has 29, or 30 in a leap year.
+    """
+    days_before_month = (0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334)
+    leap_year = date.year + 1 if date.month > 2 else date.year
+    days = (355666 + 365 * date.year + (leap_year + 3) // 4 - (leap_year + 99) // 100 + (leap_year + 399) // 400
+            + date.day + days_before_month[date.month - 1])
+    year = -1595 + 33 * (days // 12053)
+    days %= 12053
+    year += 4 * (days // 1461)
+    days %= 1461
+    if days > 365:
+        year += (days - 1) // 365
+        days = (days - 1) % 365
+    if days < 186:
+        return year, 1 + days // 31, 1 + days % 31
+    return year, 7 + (days - 186) // 30, 1 + (days - 186) % 30
+
+
+def local_date_format(value, format=None):
+    """Like Django's date_format, but in the Jalali calendar for Persian: 'j F Y' gives '۴ آذر ۱۴۰۵'.
+
+    Only the day, month and year letters change. The weekday and the time are the same in both calendars.
+    """
+    if not uses_jalali_calendar():
+        return date_format(value, format, use_l10n=True)
+    year, month, day = gregorian_to_jalali(value)
+    month_name = JALALI_MONTHS[month - 1]
+    values = {'d': f'{day:02}', 'j': str(day), 'm': f'{month:02}', 'n': str(month), 'F': month_name,
+              'M': month_name, 'N': month_name, 'E': month_name, 'b': month_name, 'Y': str(year),
+              'y': f'{year % 100:02}'}
+    # Write the Jalali values as escaped text, then let Django fill in the rest (weekday, time)
+    pattern = get_format(format or 'DATE_FORMAT', use_l10n=True)
+    result, escaped = [], False
+    for char in pattern:
+        if escaped:
+            result.append('\\' + char)
+            escaped = False
+        elif char == '\\':
+            escaped = True
+        elif char in values:
+            result.extend('\\' + c for c in values[char])
+        else:
+            result.append(char)
+    return local_digits(dateformat.format(value, ''.join(result)))
 
 
 def get_valid_timezone_name(name) -> str:
@@ -40,7 +103,7 @@ def get_client_time_text(client_timezone, date, start_time):
     client_start = start.astimezone(ZoneInfo(client_timezone))
     if client_start.utcoffset() == start.utcoffset():
         return None
-    return f"{date_format(client_start, 'DATETIME_FORMAT')} ({client_timezone})"
+    return f"{local_date_format(client_start, 'DATETIME_FORMAT')} ({client_timezone})"
 
 
 def js_timepicker_display_format():
@@ -267,11 +330,11 @@ def convert_minutes_in_human_readable_format(minutes: float) -> str:
         parts.append(minutes_display)
 
     if len(parts) == 1:
-        return parts[0]
+        return local_digits(parts[0])
     elif len(parts) == 2:
-        return _("{first_part} and {second_part}").format(first_part=parts[0], second_part=parts[1])
+        return local_digits(_("{first_part} and {second_part}").format(first_part=parts[0], second_part=parts[1]))
     elif len(parts) == 3:
-        return _("{days}, {hours} and {minutes}").format(days=parts[0], hours=parts[1], minutes=parts[2])
+        return local_digits(_("{days}, {hours} and {minutes}").format(days=parts[0], hours=parts[1], minutes=parts[2]))
 
 # TODO if required add support for locale format using : get_format('DATE_INPUT_FORMAT')
 # but we have to discernate year first, month first or day first format properly
@@ -427,7 +490,7 @@ DATE_FORMATS = {
     'en': "D, F j, Y",                       # "Thu, August 14, 2025" (English: commas)
     'es': r"D, j \d\e F \d\e Y",               # "jue, 14 de agosto de 2025" (Spanish: with "de")
     'et': "D, j. F Y",                       # "N, 14. august 2025" (Estonian: period after day)
-    'fa': "D، j F Y",                        # "پ، 14 اوت 2025" (Persian: RTL with Persian comma)
+    'fa': "D، j F Y",                        # "پنجشنبه، ۲۳ مرداد ۱۴۰۴" (Persian: Jalali calendar, Persian comma)
     'fi': r"D j. F\t\a Y",                  # "to 14. elokuuta 2025" (Finnish: partitive case for month)
     'fr': "D j F Y",                         # "jeu 14 août 2025" (French: no comma, day before month)
     'he': "D، j בF Y",                       # "ה، 14 באוגוסט 2025" (Hebrew: RTL format)

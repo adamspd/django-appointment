@@ -7,7 +7,7 @@
 {% translate 'Appointment Details' %}
 - {% translate 'Service' %}: {{ appointment.get_service_name }}
 - {% translate 'Date' %}: {{ appointment.appointment_request.date|long_date }}
-- {% translate 'Time' %}: {{ appointment.appointment_request.start_time|time }} – {{ appointment.appointment_request.end_time|time }}
+- {% translate 'Time' %}: {{ appointment.appointment_request.start_time|local_time }} – {{ appointment.appointment_request.end_time|local_time }}
 {% if client_time %}- {% translate 'Your time' %}: {{ client_time }}
 {% endif %}{% if appointment.address %}- {% translate 'Location' %}: {{ appointment.address }}
 {% endif %}

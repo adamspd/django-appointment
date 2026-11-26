@@ -9,11 +9,19 @@ Since: 3.13.0
 """
 
 from django import template
-from django.utils.formats import date_format
+from django.utils.formats import time_format
 
-from appointment.utils.date_time import long_date_format
+from appointment.utils.date_time import local_date_format, local_digits, long_date_format
 
 register = template.Library()
+
+
+@register.filter(expects_localtime=True, is_safe=False)
+def local_date(value, format=None):
+    """Like the date filter, but in the Jalali calendar for Persian. Empty for an empty value."""
+    if value in (None, ''):
+        return ''
+    return local_date_format(value, format)
 
 
 @register.filter(expects_localtime=True, is_safe=False)
@@ -21,7 +29,15 @@ def long_date(value):
     """The date with its weekday, in the active language's format from DATE_FORMATS ("Thu, August 14, 2025")."""
     if value in (None, ''):
         return ''
-    return date_format(value, long_date_format(), use_l10n=True)
+    return local_date_format(value, long_date_format())
+
+
+@register.filter(expects_localtime=True, is_safe=False)
+def local_time(value, format=None):
+    """Like the time filter, with Persian digits for Persian. Empty for an empty value."""
+    if value in (None, ''):
+        return ''
+    return local_digits(time_format(value, format, use_l10n=True))
 
 
 @register.simple_tag(takes_context=True)

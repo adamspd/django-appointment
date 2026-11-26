@@ -1,5 +1,6 @@
 {% extends "appointment/layout.html" %}
 {% load i18n %}
+{% load appointment_tags %}
 {% load static %}
 {% block customCSS %}
     <link rel="stylesheet" type="text/css" href="{% static 'css/appointment_details.css' %}"/>
@@ -37,15 +38,15 @@
                         <dl class="djappt-summary">
                             <div>
                                 <dt>{% trans 'Date' %}</dt>
-                                <dd>{{ appointment.get_date }}</dd>
+                                <dd>{{ appointment.get_date|local_date }}</dd>
                             </div>
                             <div>
                                 <dt>{% trans 'Start time' %}</dt>
-                                <dd>{{ appointment.get_start_time|time }}</dd>
+                                <dd>{{ appointment.get_start_time|local_time }}</dd>
                             </div>
                             <div>
                                 <dt>{% trans 'End time' %}</dt>
-                                <dd>{{ appointment.get_end_time|time }}</dd>
+                                <dd>{{ appointment.get_end_time|local_time }}</dd>
                             </div>
                         </dl>
                     </section>

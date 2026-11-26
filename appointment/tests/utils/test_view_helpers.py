@@ -59,6 +59,10 @@ class FormatPriceTests(TestCase):
             self.assertEqual(format_price(1000, 'USD'), '$1,000')
             self.assertEqual(format_price(1000, 'JPY'), '¥1,000')
 
+    def test_persian_uses_persian_digits(self):
+        with translation.override('fa'):
+            self.assertEqual(format_price(4500000, 'IRR'), '\u200eریال\xa0۴٬۵۰۰٬۰۰۰')
+
 
 class IsAjaxTests(TestCase):
     """Test cases for is_ajax"""

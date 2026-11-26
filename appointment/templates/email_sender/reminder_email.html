@@ -1,7 +1,7 @@
 {% extends "email_sender/base_email.html" %}
 {% load i18n appointment_tags %}
 {% block title %}{% translate 'Appointment Reminder' %}{% endblock %}
-{% block preheader %}{{ appointment.get_service_name }} · {{ appointment.appointment_request.date|long_date }} · {{ appointment.appointment_request.start_time|time }}{% endblock %}
+{% block preheader %}{{ appointment.get_service_name }} · {{ appointment.appointment_request.date|long_date }} · {{ appointment.appointment_request.start_time|local_time }}{% endblock %}
 {% block heading %}{% translate 'Appointment Reminder' %}{% endblock %}
 
 {% block content %}
@@ -26,7 +26,7 @@
         </tr>
         <tr>
             <td valign="top" style="padding: 10px 14px; font-size: 14px; color: #64748b;{% if appointment.address or client_time %} border-bottom: 1px solid #e3e8ef;{% endif %}">{% translate 'Time' %}</td>
-            <td valign="top" style="padding: 10px 14px; font-size: 14px; font-weight: 600;{% if appointment.address or client_time %} border-bottom: 1px solid #e3e8ef;{% endif %}">{{ appointment.appointment_request.start_time|time }} – {{ appointment.appointment_request.end_time|time }}</td>
+            <td valign="top" style="padding: 10px 14px; font-size: 14px; font-weight: 600;{% if appointment.address or client_time %} border-bottom: 1px solid #e3e8ef;{% endif %}">{{ appointment.appointment_request.start_time|local_time }} – {{ appointment.appointment_request.end_time|local_time }}</td>
         </tr>
         {% if client_time %}
             <tr>

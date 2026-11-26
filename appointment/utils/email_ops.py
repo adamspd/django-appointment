@@ -9,7 +9,7 @@ Since: 1.1.0
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.encoding import force_bytes
-from django.utils.formats import date_format
+from django.utils.formats import time_format
 from django.utils.http import urlsafe_base64_encode
 from django.utils.translation import gettext as _
 
@@ -20,7 +20,7 @@ from appointment.models import (
     Appointment, AppointmentRequest, AppointmentRescheduleHistory, EmailVerificationCode, PasswordResetToken
 )
 from appointment.settings import APPOINTMENT_PAYMENT_URL
-from appointment.utils.date_time import long_date_format
+from appointment.utils.date_time import local_date_format, local_digits, long_date_format
 from appointment.utils.db_helpers import get_absolute_url_, get_site_url, get_website_name, username_in_user_model
 from appointment.utils.ics_utils import generate_ics_file
 from appointment.utils.template_helpers import get_email_template
@@ -100,8 +100,8 @@ def get_thank_you_details(appointment):
     client = appointment.client
     appointment_details = {
         _('Service'): appointment.get_service_name(),
-        _('Appointment Date'): date_format(appointment.get_appointment_date(), long_date_format(), use_l10n=True),
-        _('Appointment Time'): appointment.appointment_request.start_time,
+        _('Appointment Date'): local_date_format(appointment.get_appointment_date(), long_date_format()),
+        _('Appointment Time'): local_digits(time_format(appointment.appointment_request.start_time, use_l10n=True)),
         _('Duration'): appointment.get_service_duration()
     }
     client_time = appointment.appointment_request.get_client_time_text()
@@ -149,8 +149,8 @@ def build_thank_you_email(appointment, user, request, appointment_details=None, 
         'account_details': account_details,
         'message_2': message if account_details is not None else None,
         # Month and year like "JAN 2021", in the active language, unlike strftime
-        'month_year': date_format(ar.date, "M Y").upper(),
-        'day': ar.date.strftime("%d"),
+        'month_year': local_date_format(ar.date, "M Y").upper(),
+        'day': local_date_format(ar.date, "d"),
         'activation_link': activation_link,
         'main_title': _("Appointment successfully scheduled"),
         'reschedule_link': context['reschedule_url'],

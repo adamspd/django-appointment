@@ -10,8 +10,8 @@
 {% endblocktrans %}{% if reason_for_rescheduling %}
 {% trans "Reason for rescheduling:" %} {{ reason_for_rescheduling }}{% endif %}{% endif %}
 
-{% trans "Original Appointment:" %} {{ old_date|long_date }}, {{ old_start_time|time }} – {{ old_end_time|time }}
-{% trans "Rescheduled Appointment:" %} {{ reschedule_date|long_date }}, {{ start_time|time }} – {{ end_time|time }}
+{% trans "Original Appointment:" %} {{ old_date|long_date }}, {{ old_start_time|local_time }} – {{ old_end_time|local_time }}
+{% trans "Rescheduled Appointment:" %} {{ reschedule_date|long_date }}, {{ start_time|local_time }} – {{ end_time|local_time }}
 {% if client_time %}{% trans "Your time" %}: {{ client_time }}
 {% endif %}{% if is_confirmation %}
 {% trans "Confirm Appointment" %}: {{ confirmation_link }}
