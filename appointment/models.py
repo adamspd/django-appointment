@@ -82,13 +82,13 @@ class Service(models.Model):
         verbose_name=_("Duration")
     )
     price = models.DecimalField(
-        max_digits=8,
+        max_digits=12,
         decimal_places=2,
         validators=[MinValueValidator(0)],
         verbose_name=_("Price")
     )
     down_payment = models.DecimalField(
-        max_digits=6,
+        max_digits=12,
         decimal_places=2,
         default=0,
         validators=[MinValueValidator(0)],
@@ -694,7 +694,7 @@ class Appointment(models.Model):
         help_text=_("Indicates whether the appointment has been paid for.")
     )
     amount_to_pay = models.DecimalField(
-        max_digits=10,
+        max_digits=12,
         decimal_places=2,
         blank=True, null=True,
         verbose_name=_("Amount to Pay"),
