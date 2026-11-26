@@ -6,11 +6,13 @@ Django-Appointment includes built-in internationalization support with localized
 
 Django-Appointment currently ships UI translations for:
 
-| Language          | Code | Status                                                                |
-|-------------------|------|-----------------------------------------------------------------------|
-| English           | `en` | Default — the source strings                                          |
-| French            | `fr` | Maintained by the project                                             |
-| Spanish           | `es` | Contributed by @alexandermamaniy, **not actively maintained**         |
+| Language             | Code    | Status                                                                |
+|----------------------|---------|-----------------------------------------------------------------------|
+| English              | `en`    | Default — the source strings                                          |
+| French               | `fr`    | Maintained by the project                                             |
+| Spanish              | `es`    | Contributed by @alexandermamaniy, **not actively maintained**         |
+| Brazilian Portuguese | `pt-br` | Contributed by @FelipeCarvalhoS                                       |
+| Persian              | `fa`    | Added by the project, **needs a review by a native speaker**          |
 
 > **Spanish needs a maintainer.** The Spanish catalogue was contributed by @alexandermamaniy and is not kept up to
 > date as the package changes, so newer strings may still show in English. It is shipped because a mostly-translated
@@ -84,6 +86,7 @@ Django-Appointment automatically formats dates according to the user's language:
 - **French**: "jeu 14 août 2025"
 - **German**: "Do, 14. August 2025"
 - **Spanish**: "jue, 14 de agosto de 2025"
+- **Persian**: "پنجشنبه، ۲۳ مرداد ۱۴۰۴" (Jalali calendar, Persian digits)
 
 The package includes date format patterns for 39 languages. No additional configuration needed!
 
