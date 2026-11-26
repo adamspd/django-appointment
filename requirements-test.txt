@@ -6,7 +6,7 @@ setuptools==84.2.1
 requests~=2.34.2
 django-q2==1.11.1
 python-dotenv==1.2.4
-django-recurrence==1.15
+django-recurrence==1.15.1
 colorama~=0.4.6
 icalendar~=7.3.2
 tblib~=3.2.2
